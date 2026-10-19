@@ -33,6 +33,13 @@ async function iniciar(): Promise<void> {
   if (!mapa) throw new Error('No hay plantillas del Bosque');
   // shortcut: sala y semilla fijas; el hito 2 genera la zona.
   const sala = construirSala(mapa, plantillas, crearCatalogo(tilesets), crearAzar(1));
+  // shortcut: salidas cerradas (puertas y borde del mapa) hasta que el hito 2 las convierta en paso a la sala vecina.
+  sala.solido.forEach((_, i) => {
+    const x = i % sala.ancho;
+    const y = Math.floor(i / sala.ancho);
+    const borde = x === 0 || y === 0 || x === sala.ancho - 1 || y === sala.alto - 1;
+    if (borde || sala.base[i]?.layer === 'muro') sala.solido[i] = true;
+  });
 
   // El joystick escucha en todo el body: también responde en las franjas negras fuera del canvas.
   const fuentes = [crearTeclado(), crearJoystick(document.body, controles.joystick)];
