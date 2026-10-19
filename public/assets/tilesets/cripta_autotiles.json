@@ -1,0 +1,262 @@
+{
+  "tileSize": 32,
+  "bitmask": "N=1, E=2, S=4, O=8",
+  "tiles": [
+    {
+      "name": "alfombra_0",
+      "index": 0,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "alfombra",
+      "mask": 0
+    },
+    {
+      "name": "alfombra_1",
+      "index": 1,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "alfombra",
+      "mask": 1
+    },
+    {
+      "name": "alfombra_2",
+      "index": 2,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "alfombra",
+      "mask": 2
+    },
+    {
+      "name": "alfombra_3",
+      "index": 3,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "alfombra",
+      "mask": 3
+    },
+    {
+      "name": "alfombra_4",
+      "index": 4,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "alfombra",
+      "mask": 4
+    },
+    {
+      "name": "alfombra_5",
+      "index": 5,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "alfombra",
+      "mask": 5
+    },
+    {
+      "name": "alfombra_6",
+      "index": 6,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "alfombra",
+      "mask": 6
+    },
+    {
+      "name": "alfombra_7",
+      "index": 7,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "alfombra",
+      "mask": 7
+    },
+    {
+      "name": "alfombra_8",
+      "index": 8,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "alfombra",
+      "mask": 8
+    },
+    {
+      "name": "alfombra_9",
+      "index": 9,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "alfombra",
+      "mask": 9
+    },
+    {
+      "name": "alfombra_10",
+      "index": 10,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "alfombra",
+      "mask": 10
+    },
+    {
+      "name": "alfombra_11",
+      "index": 11,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "alfombra",
+      "mask": 11
+    },
+    {
+      "name": "alfombra_12",
+      "index": 12,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "alfombra",
+      "mask": 12
+    },
+    {
+      "name": "alfombra_13",
+      "index": 13,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "alfombra",
+      "mask": 13
+    },
+    {
+      "name": "alfombra_14",
+      "index": 14,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "alfombra",
+      "mask": 14
+    },
+    {
+      "name": "alfombra_15",
+      "index": 15,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "alfombra",
+      "mask": 15
+    },
+    {
+      "name": "fosa_0",
+      "index": 16,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "fosa",
+      "mask": 0
+    },
+    {
+      "name": "fosa_1",
+      "index": 17,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "fosa",
+      "mask": 1
+    },
+    {
+      "name": "fosa_2",
+      "index": 18,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "fosa",
+      "mask": 2
+    },
+    {
+      "name": "fosa_3",
+      "index": 19,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "fosa",
+      "mask": 3
+    },
+    {
+      "name": "fosa_4",
+      "index": 20,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "fosa",
+      "mask": 4
+    },
+    {
+      "name": "fosa_5",
+      "index": 21,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "fosa",
+      "mask": 5
+    },
+    {
+      "name": "fosa_6",
+      "index": 22,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "fosa",
+      "mask": 6
+    },
+    {
+      "name": "fosa_7",
+      "index": 23,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "fosa",
+      "mask": 7
+    },
+    {
+      "name": "fosa_8",
+      "index": 24,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "fosa",
+      "mask": 8
+    },
+    {
+      "name": "fosa_9",
+      "index": 25,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "fosa",
+      "mask": 9
+    },
+    {
+      "name": "fosa_10",
+      "index": 26,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "fosa",
+      "mask": 10
+    },
+    {
+      "name": "fosa_11",
+      "index": 27,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "fosa",
+      "mask": 11
+    },
+    {
+      "name": "fosa_12",
+      "index": 28,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "fosa",
+      "mask": 12
+    },
+    {
+      "name": "fosa_13",
+      "index": 29,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "fosa",
+      "mask": 13
+    },
+    {
+      "name": "fosa_14",
+      "index": 30,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "fosa",
+      "mask": 14
+    },
+    {
+      "name": "fosa_15",
+      "index": 31,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "fosa",
+      "mask": 15
+    }
+  ]
+}

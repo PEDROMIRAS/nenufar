@@ -1,0 +1,262 @@
+{
+  "tileSize": 32,
+  "bitmask": "N=1, E=2, S=4, O=8",
+  "tiles": [
+    {
+      "name": "camino_0",
+      "index": 0,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "camino",
+      "mask": 0
+    },
+    {
+      "name": "camino_1",
+      "index": 1,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "camino",
+      "mask": 1
+    },
+    {
+      "name": "camino_2",
+      "index": 2,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "camino",
+      "mask": 2
+    },
+    {
+      "name": "camino_3",
+      "index": 3,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "camino",
+      "mask": 3
+    },
+    {
+      "name": "camino_4",
+      "index": 4,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "camino",
+      "mask": 4
+    },
+    {
+      "name": "camino_5",
+      "index": 5,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "camino",
+      "mask": 5
+    },
+    {
+      "name": "camino_6",
+      "index": 6,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "camino",
+      "mask": 6
+    },
+    {
+      "name": "camino_7",
+      "index": 7,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "camino",
+      "mask": 7
+    },
+    {
+      "name": "camino_8",
+      "index": 8,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "camino",
+      "mask": 8
+    },
+    {
+      "name": "camino_9",
+      "index": 9,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "camino",
+      "mask": 9
+    },
+    {
+      "name": "camino_10",
+      "index": 10,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "camino",
+      "mask": 10
+    },
+    {
+      "name": "camino_11",
+      "index": 11,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "camino",
+      "mask": 11
+    },
+    {
+      "name": "camino_12",
+      "index": 12,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "camino",
+      "mask": 12
+    },
+    {
+      "name": "camino_13",
+      "index": 13,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "camino",
+      "mask": 13
+    },
+    {
+      "name": "camino_14",
+      "index": 14,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "camino",
+      "mask": 14
+    },
+    {
+      "name": "camino_15",
+      "index": 15,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "camino",
+      "mask": 15
+    },
+    {
+      "name": "agua_0",
+      "index": 16,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "agua",
+      "mask": 0
+    },
+    {
+      "name": "agua_1",
+      "index": 17,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "agua",
+      "mask": 1
+    },
+    {
+      "name": "agua_2",
+      "index": 18,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "agua",
+      "mask": 2
+    },
+    {
+      "name": "agua_3",
+      "index": 19,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "agua",
+      "mask": 3
+    },
+    {
+      "name": "agua_4",
+      "index": 20,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "agua",
+      "mask": 4
+    },
+    {
+      "name": "agua_5",
+      "index": 21,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "agua",
+      "mask": 5
+    },
+    {
+      "name": "agua_6",
+      "index": 22,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "agua",
+      "mask": 6
+    },
+    {
+      "name": "agua_7",
+      "index": 23,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "agua",
+      "mask": 7
+    },
+    {
+      "name": "agua_8",
+      "index": 24,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "agua",
+      "mask": 8
+    },
+    {
+      "name": "agua_9",
+      "index": 25,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "agua",
+      "mask": 9
+    },
+    {
+      "name": "agua_10",
+      "index": 26,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "agua",
+      "mask": 10
+    },
+    {
+      "name": "agua_11",
+      "index": 27,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "agua",
+      "mask": 11
+    },
+    {
+      "name": "agua_12",
+      "index": 28,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "agua",
+      "mask": 12
+    },
+    {
+      "name": "agua_13",
+      "index": 29,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "agua",
+      "mask": 13
+    },
+    {
+      "name": "agua_14",
+      "index": 30,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "agua",
+      "mask": 14
+    },
+    {
+      "name": "agua_15",
+      "index": 31,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "agua",
+      "mask": 15
+    }
+  ]
+}

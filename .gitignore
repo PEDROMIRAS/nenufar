@@ -1,0 +1,21 @@
+# Dependencias y builds
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Salida intermedia de los generadores (los resultados se copian a public/ y src/)
+tools/generadores/entorno/out/
+
+# Sistema y editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log

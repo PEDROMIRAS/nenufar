@@ -1,0 +1,42 @@
+{
+  "tileSize": 32,
+  "columns": 8,
+  "tiles": [
+    {
+      "name": "cofre_cerrado",
+      "index": 0,
+      "layer": "objeto",
+      "solid": true
+    },
+    {
+      "name": "cofre_abierto",
+      "index": 1,
+      "layer": "objeto",
+      "solid": true
+    },
+    {
+      "name": "fuente",
+      "index": 2,
+      "layer": "objeto",
+      "solid": true,
+      "frames": 2,
+      "fps": 4
+    },
+    {
+      "name": "portal",
+      "index": 4,
+      "layer": "objeto",
+      "solid": false,
+      "frames": 2,
+      "fps": 4
+    },
+    {
+      "name": "hoguera",
+      "index": 6,
+      "layer": "objeto",
+      "solid": true,
+      "frames": 2,
+      "fps": 4
+    }
+  ]
+}
