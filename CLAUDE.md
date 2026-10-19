@@ -44,7 +44,10 @@ Si el diseño y este archivo discrepan, manda el documento; avisa de la discrepa
 
 ## Comandos
 
-Se definen en el hito 1 (`npm run dev`, `npm run build`, `npm test`, `npm run lint`). Actualiza esta sección al crearlos.
+- `npm run dev`: servidor de desarrollo de Vite.
+- `npm run build`: comprueba tipos (`tsc`) y genera `dist/`.
+- `npm test`: tests de Vitest (una pasada).
+- `npm run lint`: ESLint y comprobación de Prettier (`npx prettier --write .` para formatear).
 
 ## Forma de trabajar
 

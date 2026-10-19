@@ -1,0 +1,7 @@
+dist
+tools
+public
+src/data
+docs
+*.md
+package-lock.json
