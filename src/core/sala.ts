@@ -1,30 +1,8 @@
-export type Capa = 'suelo' | 'muro' | 'objeto' | 'dosel';
-
-/** Un tile tal como viene en `public/assets/tilesets/*.json`. */
-export interface TileJson {
-  name: string;
-  index: number;
-  layer: Capa;
-  solid: boolean;
-  weight?: number;
-  frames?: number;
-  fps?: number;
-}
-
-export interface TilesetJson {
-  tileSize: number;
-  tiles: TileJson[];
-}
+import type { PlantillasJson, TileJson, TilesetJson } from './types';
 
 /** Tile del catálogo: recuerda de qué hoja viene (posición en la lista de tilesets cargados). */
 export interface Tile extends TileJson {
   hoja: number;
-}
-
-export interface PlantillasJson {
-  leyenda: Record<string, string>;
-  autotiles: Record<string, string>;
-  plantillas: { id: string; tipo: string; mapa: string[] }[];
 }
 
 /** Objeto colocado en una casilla. Los altos tienen parte superior (`sup`) en la casilla de encima. */

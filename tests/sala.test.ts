@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
-import { crearAzar } from './azar';
-import { construirSala, crearCatalogo, type TileJson } from './sala';
+import { crearAzar } from '../src/core/azar';
+import { construirSala, crearCatalogo } from '../src/core/sala';
+import type { TileJson } from '../src/core/types';
 
 const tile = (
   name: string,

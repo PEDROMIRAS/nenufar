@@ -8,7 +8,7 @@ interface Ajustes {
   zonaMuerta: number;
 }
 
-/** Joystick flotante: aparece donde se pone el dedo y mide el arrastre desde ese punto. */
+/** Joystick flotante: aparece donde se pone el dedo (mitad izquierda) y mide el arrastre desde ese punto. */
 export function crearJoystick(raiz: HTMLElement, { radio, zonaMuerta }: Ajustes): FuenteEntrada {
   const base = circulo(radio * 2, 'rgba(255,255,255,0.12)');
   const mando = circulo(radio, 'rgba(255,255,255,0.35)');
@@ -33,7 +33,8 @@ export function crearJoystick(raiz: HTMLElement, { radio, zonaMuerta }: Ajustes)
   };
 
   raiz.addEventListener('pointerdown', (e) => {
-    if (dedo !== null || e.pointerType === 'mouse') return;
+    // Solo en la mitad izquierda: la derecha queda para los botones táctiles.
+    if (dedo !== null || e.pointerType === 'mouse' || e.clientX > innerWidth / 2) return;
     dedo = e.pointerId;
     origenX = e.clientX;
     origenY = e.clientY;

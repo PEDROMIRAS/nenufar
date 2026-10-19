@@ -7,8 +7,9 @@ const DERECHA = ['ArrowRight', 'KeyD'];
 const ARRIBA = ['ArrowUp', 'KeyW'];
 const ABAJO = ['ArrowDown', 'KeyS'];
 const CONFIRMAR = ['Enter', 'Space', 'KeyZ'];
-const CANCELAR = ['Escape', 'KeyX', 'Backspace'];
-const MENU = ['KeyM', 'Tab'];
+const CANCELAR = ['Escape', 'KeyX'];
+// Escape es CANCELAR en los menús y MENU en el mapa (documento de diseño); cada escena lee la que le toca.
+const MENU = ['Escape'];
 const PROPIAS = new Set([
   ...IZQUIERDA,
   ...DERECHA,
@@ -26,7 +27,7 @@ export function crearTeclado(): FuenteEntrada {
 
   addEventListener('keydown', (e) => {
     if (!PROPIAS.has(e.code)) return;
-    e.preventDefault(); // que flechas, espacio y tabulador no desplacen la página ni cambien el foco
+    e.preventDefault(); // que flechas y espacio no desplacen la página
     sostenidas.add(e.code);
     if (!e.repeat) nuevas.add(e.code);
   });

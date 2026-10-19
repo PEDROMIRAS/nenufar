@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { crearAzar } from './azar';
+import { crearAzar } from '../src/core/azar';
 
 test('la misma semilla repite la secuencia y otra semilla la cambia', () => {
   const a = crearAzar(42);

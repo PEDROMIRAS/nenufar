@@ -1,4 +1,4 @@
-import type { TilesetJson } from '../core/sala';
+import type { TilesetJson } from '../core/types';
 
 const BASE = import.meta.env.BASE_URL;
 

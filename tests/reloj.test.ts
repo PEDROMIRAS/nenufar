@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { alpha, avanzar, crearReloj, PASO } from './reloj';
+import { alpha, avanzar, crearReloj, PASO } from '../src/core/reloj';
 
 describe('reloj de paso fijo', () => {
   test('un fotograma de 60 Hz da un paso', () => {

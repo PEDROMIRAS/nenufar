@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import type { Acciones } from './acciones';
-import { fijarDireccion } from './direccion';
+import type { Acciones } from '../src/core/acciones';
+import { fijarDireccion } from '../src/core/direccion';
 
 function mover(x: number, y: number, zonaMuerta = 0): [number, number] {
   const a: Acciones = { moverX: 0, moverY: 0, confirmar: false, cancelar: false, menu: false };

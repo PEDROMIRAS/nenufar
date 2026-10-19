@@ -1,6 +1,7 @@
 import type { Acciones } from './core/acciones';
 import { crearAzar } from './core/azar';
-import { construirSala, crearCatalogo, type PlantillasJson } from './core/sala';
+import { construirSala, crearCatalogo } from './core/sala';
+import type { PlantillasJson } from './core/types';
 import controles from './data/controles.json';
 import plantillasBosque from './data/salas/plantillas_bosque.json';
 import type { Escena } from './escenas/escena';
@@ -24,7 +25,7 @@ async function iniciar(): Promise<void> {
   // shortcut: sala y semilla fijas; el hito 2 genera la zona.
   const sala = construirSala(mapa, plantillas, crearCatalogo(tilesets), crearAzar(1));
 
-  // El joystick escucha en todo el body: se puede tocar también en las franjas negras fuera del canvas.
+  // El joystick escucha en todo el body: también responde en las franjas negras fuera del canvas.
   const fuentes = [crearTeclado(), crearJoystick(document.body, controles.joystick)];
   const acciones: Acciones = {
     moverX: 0,
