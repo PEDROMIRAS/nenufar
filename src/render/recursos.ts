@@ -1,4 +1,9 @@
-import type { TilesetJson } from '../core/types';
+import type { SpriteJson, TilesetJson } from '../core/types';
+
+export interface Sprite {
+  imagen: HTMLImageElement;
+  datos: SpriteJson;
+}
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -25,4 +30,12 @@ export async function cargarTilesets(
     Promise.all(nombres.map((n) => cargarImagen(`assets/tilesets/${n}.png`))),
   ]);
   return { tilesets, imagenes };
+}
+
+export async function cargarSprite(nombre: string): Promise<Sprite> {
+  const [imagen, datos] = await Promise.all([
+    cargarImagen(`assets/sprites/${nombre}.png`),
+    cargarJson<SpriteJson>(`assets/sprites/${nombre}.json`),
+  ]);
+  return { imagen, datos };
 }

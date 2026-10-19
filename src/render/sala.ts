@@ -124,15 +124,22 @@ export function pintarVineta(ancho: number, alto: number): HTMLCanvasElement {
   return lienzo;
 }
 
-/** Dibuja los objetos de la sala (ya vienen ordenados por la Y de su base). */
+/**
+ * Dibuja los objetos cuya base (borde inferior, en píxeles) cae en (desde, hasta].
+ * Partiendo el rango en la Y de un personaje, este queda delante o detrás de cada objeto.
+ */
 export function dibujarObjetos(
   ctx: CanvasRenderingContext2D,
   sala: Sala,
   imagenes: readonly HTMLImageElement[],
   tam: number,
   tiempo: number,
+  desde = -Infinity,
+  hasta = Infinity,
 ): void {
   for (const o of sala.objetos) {
+    const base = (o.y + 1) * tam;
+    if (base <= desde || base > hasta) continue;
     const frame = o.inf.frames ? Math.floor(tiempo * (o.inf.fps ?? 0)) % o.inf.frames : 0;
     dibujarTile(ctx, imagenes, o.inf, tam, o.x * tam, o.y * tam, frame);
     if (o.sup) dibujarTile(ctx, imagenes, o.sup, tam, o.x * tam, (o.y - 1) * tam);

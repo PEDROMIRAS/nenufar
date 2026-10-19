@@ -1,0 +1,14 @@
+{
+  "ronin": {
+    "sprite": "rana_ronin",
+    "velocidad": 96,
+    "caja": { "ancho": 14, "alto": 8 },
+    "margenEsquina": 8
+  },
+  "maga": {
+    "sprite": "rana_maga",
+    "velocidad": 96,
+    "caja": { "ancho": 14, "alto": 8 },
+    "margenEsquina": 8
+  }
+}

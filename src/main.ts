@@ -1,8 +1,11 @@
 import type { Acciones } from './core/acciones';
 import { crearAzar } from './core/azar';
+import { crearHeroina } from './core/heroina';
+import { buscarInicio } from './core/movimiento';
 import { construirSala, crearCatalogo } from './core/sala';
-import type { PlantillasJson } from './core/types';
+import type { HeroeJson, PlantillasJson } from './core/types';
 import controles from './data/controles.json';
+import heroes from './data/heroes.json';
 import plantillasBosque from './data/salas/plantillas_bosque.json';
 import type { Escena } from './escenas/escena';
 import { EscenaSala } from './escenas/sala';
@@ -11,14 +14,20 @@ import { crearJoystick } from './input/joystick';
 import { crearTeclado } from './input/teclado';
 import { iniciarBucle } from './render/bucle';
 import { prepararPantalla } from './render/pantalla';
-import { cargarTilesets } from './render/recursos';
+import { cargarSprite, cargarTilesets } from './render/recursos';
 
 async function iniciar(): Promise<void> {
   const canvas = document.querySelector<HTMLCanvasElement>('#juego');
   if (!canvas) throw new Error('Falta el canvas #juego');
   const ctx = prepararPantalla(canvas);
 
-  const { tilesets, imagenes } = await cargarTilesets('bosque');
+  // shortcut: heroína fija (ronin); la pantalla de selección llega en el hito 5.
+  const heroe: HeroeJson = heroes.ronin;
+  const [{ tilesets, imagenes }, sprite] = await Promise.all([
+    cargarTilesets('bosque'),
+    cargarSprite(heroe.sprite),
+  ]);
+  const tam = tilesets[0]?.tileSize ?? 32;
   const plantillas: PlantillasJson = plantillasBosque;
   const mapa = plantillas.plantillas[0]?.mapa;
   if (!mapa) throw new Error('No hay plantillas del Bosque');
@@ -34,7 +43,9 @@ async function iniciar(): Promise<void> {
     cancelar: false,
     menu: false,
   };
-  const escena: Escena = new EscenaSala(sala, imagenes, tilesets[0]?.tileSize ?? 32);
+  const inicio = buscarInicio(sala, tam, heroe.caja.ancho, heroe.caja.alto);
+  const heroina = crearHeroina(heroe, inicio.x, inicio.y);
+  const escena: Escena = new EscenaSala(sala, imagenes, tam, heroina, sprite);
   escena.enter();
 
   iniciarBucle(
