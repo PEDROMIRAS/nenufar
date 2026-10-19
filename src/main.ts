@@ -1,9 +1,19 @@
+import type { Acciones } from './core/acciones';
+import type { Escena } from './escenas/escena';
+import { EscenaPrueba } from './escenas/prueba';
+import { iniciarBucle } from './render/bucle';
+import { prepararPantalla } from './render/pantalla';
+
 const canvas = document.querySelector<HTMLCanvasElement>('#juego');
 if (!canvas) throw new Error('Falta el canvas #juego');
-const ctx = canvas.getContext('2d');
-if (!ctx) throw new Error('El navegador no soporta Canvas 2D');
+const ctx = prepararPantalla(canvas);
 
-canvas.width = 480;
-canvas.height = 352;
-ctx.fillStyle = '#1d3b2a';
-ctx.fillRect(0, 0, canvas.width, canvas.height);
+// Sin fuentes de entrada todavía (paso 3): acciones en reposo.
+const acciones: Acciones = { moverX: 0, moverY: 0, confirmar: false, cancelar: false, menu: false };
+const escena: Escena = new EscenaPrueba();
+escena.enter();
+
+iniciarBucle(
+  (dt) => escena.update(dt, acciones),
+  (alpha) => escena.draw(ctx, alpha),
+);
