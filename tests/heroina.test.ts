@@ -1,8 +1,9 @@
 import { describe, expect, test } from 'vitest';
 import type { Acciones } from '../src/core/acciones';
 import { actualizarHeroina, crearHeroina } from '../src/core/heroina';
+import heroes from '../src/data/heroes.json';
 
-const datos = { sprite: 'x', velocidad: 60, caja: { ancho: 14, alto: 8 }, margenEsquina: 8 };
+const datos = { ...heroes.ronin, velocidad: 60 };
 const libre = { ancho: 10, alto: 10, solido: new Array<boolean>(100).fill(false) };
 const acciones = (moverX: number, moverY: number): Acciones => ({
   moverX,

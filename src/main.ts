@@ -11,6 +11,7 @@ import plantillasRuinas from './data/salas/plantillas_ruinas.json';
 import zonas from './data/zonas.json';
 import type { Escena } from './escenas/escena';
 import { EscenaMapa } from './escenas/mapa';
+import { PilaEscenas } from './escenas/pila';
 import { leerFuentes } from './input/fuente';
 import { crearJoystick } from './input/joystick';
 import { crearTeclado } from './input/teclado';
@@ -52,17 +53,17 @@ async function iniciar(): Promise<void> {
   };
   const heroina = crearHeroina(heroe, 0, 0); // cada escena la coloca en su sala de inicio
 
-  let escena: Escena = await crearZona(0, semilla, heroina, sprite, false, (siguiente) => {
-    escena = siguiente;
-  });
-  escena.enter();
+  const pila = new PilaEscenas();
+  pila.apilar(
+    await crearZona(0, semilla, heroina, sprite, false, (siguiente) => pila.cambiar(siguiente)),
+  );
 
   iniciarBucle(
     (dt) => {
       leerFuentes(fuentes, acciones);
-      escena.update(dt, acciones);
+      pila.update(dt, acciones);
     },
-    (alpha) => escena.draw(ctx, alpha),
+    (alpha) => pila.draw(ctx, alpha),
   );
 }
 
@@ -99,10 +100,7 @@ async function crearZona(
     alUsarPortal: hayOtra
       ? () => {
           crearZona(indice + 1, semilla, heroina, sprite, true, cambiar)
-            .then((siguiente) => {
-              siguiente.enter();
-              cambiar(siguiente);
-            })
+            .then(cambiar)
             .catch(mostrarError);
         }
       : null,

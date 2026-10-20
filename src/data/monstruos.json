@@ -1,0 +1,13 @@
+{
+  "limo": {
+    "nombre": "Limo",
+    "estadisticas": { "pv": 16, "pm": 0, "ataque": 6, "magia": 0, "defensa": 3, "velocidad": 4 },
+    "acciones": [
+      { "accion": "atacar", "peso": 70 },
+      { "accion": "cargar", "peso": 30 }
+    ],
+    "cargado": { "poder": 2.2, "aviso": "El Limo se hincha..." },
+    "jefe": false,
+    "color": "#7fc46a"
+  }
+}

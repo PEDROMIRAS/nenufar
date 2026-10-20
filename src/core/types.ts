@@ -45,8 +45,19 @@ export interface SpriteJson {
   castReleaseFrame?: number;
 }
 
+/** Estadísticas de combate (las seis del documento). */
+export interface Estadisticas {
+  pv: number;
+  pm: number;
+  ataque: number;
+  magia: number;
+  defensa: number;
+  velocidad: number;
+}
+
 /** Una heroína de `src/data/heroes.json`. */
 export interface HeroeJson {
+  nombre: string;
   sprite: string;
   /** Píxeles por segundo. */
   velocidad: number;
@@ -54,4 +65,29 @@ export interface HeroeJson {
   caja: { ancho: number; alto: number };
   /** Píxeles que se la empuja de lado para que no se enganche en la esquina de un hueco. */
   margenEsquina: number;
+  estadisticas: Estadisticas;
+}
+
+/** Un monstruo de `src/data/monstruos.json`. */
+export interface MonstruoJson {
+  nombre: string;
+  estadisticas: Estadisticas;
+  /** Qué hace en su turno, elegido al azar según los pesos. */
+  acciones: { accion: 'atacar' | 'cargar'; peso: number }[];
+  /** Golpe fuerte que anuncia un turno antes con la acción "cargar". */
+  cargado?: { poder: number; aviso: string };
+  jefe: boolean;
+  /** Color del rectángulo que lo representa hasta que tenga sprite (hito 6). */
+  color: string;
+}
+
+/** `src/data/combate.json`: reglas comunes de todos los combates. */
+export interface ReglasCombate {
+  varianza: { min: number; max: number };
+  critico: { probabilidad: number; multiplicador: number };
+  /** Fracción de la Defensa del objetivo que se resta al daño físico y al mágico. */
+  defensaFisica: number;
+  defensaMagica: number;
+  defender: { factorDanio: number; pm: number };
+  huida: { base: number; porIntento: number };
 }

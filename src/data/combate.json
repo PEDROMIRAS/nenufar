@@ -1,0 +1,8 @@
+{
+  "varianza": { "min": 0.9, "max": 1.1 },
+  "critico": { "probabilidad": 0.05, "multiplicador": 1.5 },
+  "defensaFisica": 0.5,
+  "defensaMagica": 0.25,
+  "defender": { "factorDanio": 0.5, "pm": 2 },
+  "huida": { "base": 0.6, "porIntento": 0.1 }
+}
