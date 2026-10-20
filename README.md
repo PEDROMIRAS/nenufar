@@ -1,23 +1,41 @@
 # Nenúfar
 
-Dungeon crawler 2D para navegador: exploras zonas de salas en tiempo real y, al tocar un monstruo, luchas en un combate por turnos estilo JRPG. Al empezar eliges heroína: una **rana ronin** de cuerpo a cuerpo o una **rana maga** de fuego morado. Tres zonas (Bosque, Ruinas y Cripta), un jefe por zona y un jefe final.
+Dungeon crawler 2D para navegador y móvil: exploras zonas de salas en tiempo real y, al tocar un monstruo, luchas en un combate por turnos estilo JRPG. Al empezar eliges heroína: una **rana ronin** de cuerpo a cuerpo o una **rana maga** de fuego morado. Tres zonas (Bosque, Ruinas y Cripta), un jefe por zona y un jefe final.
 
-**Stack:** TypeScript + Canvas 2D (sin motor) + Vite · Tests con Vitest · Despliegue en GitHub Pages.
+### ▶ [Jugar en el navegador](https://pedromiras.github.io/nenufar/)
+
+| Elige heroína | Explora | Lucha |
+| --- | --- | --- |
+| ![Elección de heroína](docs/capturas/seleccion.png) | ![Sala del Bosque con monstruos](docs/capturas/mapa.png) | ![Combate: la maga lanza fuego morado a un limo](docs/capturas/combate.png) |
+
+## Cómo se juega
+
+| Acción | Teclado | Táctil |
+| --- | --- | --- |
+| Moverse y elegir | Flechas o WASD | Joystick (arrastra en cualquier punto) |
+| Aceptar | Enter, Espacio o Z | Tocar la opción |
+| Volver / pausa | Escape o X | Botón ☰ |
+
+Cada zona se genera al entrar (`?semilla=N` en la URL repite una partida). Los monstruos patrullan y te persiguen; si los pillas por la espalda, atacas primero. En combate, fíjate en el golpe cargado que anuncian: es el momento de Defender. Sube de nivel, encuentra equipo en el botín y los cofres, y bebe de la fuente una vez por zona.
+
+## Qué tiene de interesante por dentro
+
+- **Sin motor:** TypeScript `strict` y Canvas 2D a mano, bucle a 60 Hz fijos con dibujado interpolado y escalado de píxel entero.
+- **Lógica pura y testeada:** `src/core/` no toca el navegador. El combate es una máquina de estados que emite eventos y la escena solo los anima. Vitest cubre generación de zonas, combate, IA, jefes, objetos y progresión.
+- **Datos, no números en el código:** estadísticas, habilidades, monstruos, zonas, botín, música y efectos de sonido viven en `src/data/*.json`.
+- **Equilibrado medido:** un test juega 300 partidas enteras con cada heroína y exige que entre el 85 % y el 95 % lleguen al final, sin más de 5 puntos entre ellas ([tests/equilibrado.test.ts](tests/equilibrado.test.ts)).
+- **Todo el arte generado por script:** heroínas, monstruos, efectos y tilesets salen de scripts deterministas en Python ([tools/generadores/](tools/generadores/)).
+- **Sonido sintetizado:** música por zona y efectos con Web Audio a partir de notas en JSON; ningún archivo de audio.
+- **Accesible:** se juega entero con teclado; lo que pasa en pantalla se lee en una región `aria-live` para lectores de pantalla; respeta `prefers-reduced-motion`.
+- **Ligero:** unos 300 KB de descarga en total.
 
 📄 **Documento de desarrollo:** https://claude.ai/code/artifact/a6ea0dd0-438d-4190-8647-06fd62dc8754
-(desde el propio documento se puede descargar en Markdown o PDF para guardarlo en `docs/`).
-
-| Ronin | Maga |
-| --- | --- |
-| ![Ronin](docs/previews/ronin_animada.gif) | ![Maga](docs/previews/maga_animada.gif) |
-
-![Sala de descanso del Bosque](docs/previews/plantilla_bosque_descanso_01.png)
 
 ## Estado
 
 - [x] Diseño de juego cerrado (ver documento)
-- [x] Arte: heroínas, proyectil, tilesets de las tres zonas, objetos comunes, autotiles y plantillas de sala
-- [x] Hito 1: base, sala y movimiento ([jugar](https://pedromiras.github.io/nenufar/))
+- [x] Arte: heroínas, monstruos, efectos, tilesets de las tres zonas, objetos comunes, autotiles y plantillas de sala
+- [x] Hito 1: base, sala y movimiento
 - [x] Hito 2: zona generada
 - [x] Hito 3: combate prototipo
 - [x] Hito 4: contenido y progresión
@@ -25,21 +43,33 @@ Dungeon crawler 2D para navegador: exploras zonas de salas en tiempo real y, al 
 - [x] Hito 6: arte de combate y sonido
 - [ ] Hito 7: equilibrado, pulido y publicación
 
+## Desarrollo
+
+```bash
+npm install
+npm run dev     # servidor de desarrollo
+npm test        # tests (Vitest)
+npm run lint    # ESLint y Prettier
+npm run build   # tipos y build de producción en dist/
+```
+
 ## Estructura
 
-```
+```text
 nenufar/
+├── src/
+│   ├── core/       # lógica pura: zona, salas, movimiento, combate, IA, progresión, música
+│   ├── data/       # JSON de diseño: héroes, monstruos, zonas, objetos, combate, sonido, salas
+│   ├── escenas/    # título, selección, mapa, combate, pausa, equipo y mensajes (pila de escenas)
+│   ├── input/      # teclado, joystick y toque como fuentes de acciones abstractas
+│   └── render/     # canvas, sprites, HUD, sonido, accesibilidad y almacenamiento
 ├── public/assets/
-│   ├── sprites/      # heroínas (32x32) y proyectil (16x16), cada hoja con su JSON
-│   └── tilesets/     # bosque, ruinas, cripta, comunes y sus autotiles, con JSON
-├── src/data/salas/   # plantillas de sala por zona (mapas ASCII de 15x11)
-├── docs/previews/    # vistas previas del arte
-└── tools/
-    ├── requirements.txt
-    └── generadores/  # scripts en Python que generan todo el arte
+│   ├── sprites/    # heroínas, monstruos, efectos y proyectil, cada hoja con su JSON
+│   └── tilesets/   # bosque, ruinas, cripta, comunes y sus autotiles, con JSON
+├── tests/          # Vitest, incluido el simulador de equilibrado
+├── docs/           # capturas y vistas previas del arte
+└── tools/generadores/  # scripts en Python que generan todo el arte
 ```
-
-El código del juego (`src/engine`, `src/core`, `src/scenes`…) se añade a partir del hito 1 siguiendo la estructura del documento.
 
 ## Formato de los assets
 
