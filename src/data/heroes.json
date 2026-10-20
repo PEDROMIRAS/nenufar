@@ -7,6 +7,19 @@
       "efecto": "corte",
       "sonido": "corte"
     },
+    "tintes": {
+      "ropa": [
+        "#4a5e84",
+        "#2e3a5a",
+        "#7086ac"
+      ],
+      "arma": [
+        "#1e1822",
+        "#e8e2ce",
+        "#d6e0ec",
+        "#8c98aa"
+      ]
+    },
     "velocidad": 96,
     "caja": {
       "ancho": 14,
@@ -83,6 +96,18 @@
       "efecto": "llamarada",
       "sonido": "fuego",
       "proyectil": "fuego_morado"
+    },
+    "tintes": {
+      "ropa": [
+        "#3a7078",
+        "#244a56",
+        "#60989a"
+      ],
+      "arma": [
+        "#784e2e",
+        "#4e3220",
+        "#e2c8ff"
+      ]
     },
     "velocidad": 96,
     "caja": {

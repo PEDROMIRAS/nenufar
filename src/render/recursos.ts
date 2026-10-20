@@ -1,7 +1,8 @@
 import type { SpriteJson, TilesetJson } from '../core/types';
 
 export interface Sprite {
-  imagen: HTMLImageElement;
+  /** La hoja (o una copia recoloreada, como la heroína con su equipo). */
+  imagen: CanvasImageSource;
   datos: SpriteJson;
 }
 

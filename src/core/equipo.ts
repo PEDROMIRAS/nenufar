@@ -94,3 +94,29 @@ export function abrirCofre(
   const clave = piezaDeBotin(entrada.objeto, entrada.nivel, heroe, objetos);
   return clave ? { tipo: 'equipo', clave } : null;
 }
+
+/**
+ * Qué colores de la hoja de la heroína cambian con su equipo puesto: pares [original, nuevo] en hex.
+ * El arma recolorea su parte «arma» y la armadura, su «ropa».
+ */
+export function coloresDeEquipo(
+  heroe: HeroeJson,
+  inv: Inventario,
+  objetos: ObjetosJson,
+): [string, string][] {
+  const pares: [string, string][] = [];
+  const huecos = [
+    ['arma', 'arma'],
+    ['armadura', 'ropa'],
+  ] as const;
+  for (const [hueco, parte] of huecos) {
+    const clave = inv[hueco];
+    const tinte = clave ? objetos.equipo[clave]?.tinte : undefined;
+    if (!tinte) continue;
+    heroe.tintes[parte].forEach((desde, i) => {
+      const hacia = tinte[i];
+      if (hacia) pares.push([desde, hacia]);
+    });
+  }
+  return pares;
+}

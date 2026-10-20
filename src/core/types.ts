@@ -63,6 +63,8 @@ export interface HeroeJson {
   sprite: string;
   /** Cómo se ve y suena su ataque: animación de su hoja, efecto sobre el objetivo, sonido (de sonido.json) y proyectil, si lanza algo. */
   combate: { ataque: string; efecto: string; sonido: string; proyectil?: string };
+  /** Colores de su hoja (hex) que cambian con el equipo: los de la ropa (armadura) y los del arma, en orden. */
+  tintes: { ropa: string[]; arma: string[] };
   /** Píxeles por segundo. */
   velocidad: number;
   /** Caja de colisión en los pies, más pequeña que el sprite. */
@@ -133,6 +135,8 @@ export interface EquipoJson {
   bonos: Partial<Estadisticas>;
   /** Al golpear, probabilidad de aplicar un estado de combate.json. */
   efecto?: { estado: string; probabilidad: number };
+  /** Colores nuevos (hex) para la ropa o el arma de la heroína que la lleva, en el orden de sus `tintes`. */
+  tinte?: string[];
 }
 
 /** `src/data/objetos.json` */

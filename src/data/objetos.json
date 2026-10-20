@@ -25,14 +25,26 @@
       "hueco": "arma",
       "bonos": {
         "ataque": 3
-      }
+      },
+      "tinte": [
+        "#6b4428",
+        "#c9a06a",
+        "#b08050",
+        "#7a5634"
+      ]
     },
     "katana_acero": {
       "nombre": "Katana de acero",
       "hueco": "arma",
       "bonos": {
         "ataque": 6
-      }
+      },
+      "tinte": [
+        "#2a3448",
+        "#f0ece0",
+        "#e8f0fa",
+        "#9aa8bc"
+      ]
     },
     "hoja_runica": {
       "nombre": "Hoja rúnica",
@@ -43,21 +55,37 @@
       "efecto": {
         "estado": "veneno",
         "probabilidad": 0.1
-      }
+      },
+      "tinte": [
+        "#3c1e52",
+        "#7ee0a8",
+        "#a8f0d0",
+        "#4aa080"
+      ]
     },
     "baston_aprendiz": {
       "nombre": "Bastón de aprendiz",
       "hueco": "arma",
       "bonos": {
         "magia": 3
-      }
+      },
+      "tinte": [
+        "#a07850",
+        "#6e5034",
+        "#f0e6c8"
+      ]
     },
     "baston_amatista": {
       "nombre": "Bastón de amatista",
       "hueco": "arma",
       "bonos": {
         "magia": 6
-      }
+      },
+      "tinte": [
+        "#5a3a78",
+        "#3a2450",
+        "#c890ff"
+      ]
     },
     "cetro_luna": {
       "nombre": "Cetro de la luna",
@@ -68,28 +96,48 @@
       "efecto": {
         "estado": "aturdido",
         "probabilidad": 0.1
-      }
+      },
+      "tinte": [
+        "#c8ccd8",
+        "#8c90a0",
+        "#e8f4ff"
+      ]
     },
     "tunica": {
       "nombre": "Túnica",
       "hueco": "armadura",
       "bonos": {
         "defensa": 2
-      }
+      },
+      "tinte": [
+        "#6a7a44",
+        "#46532c",
+        "#93a463"
+      ]
     },
     "cota_malla": {
       "nombre": "Cota de malla",
       "hueco": "armadura",
       "bonos": {
         "defensa": 5
-      }
+      },
+      "tinte": [
+        "#8a919c",
+        "#5c6370",
+        "#b9c0ca"
+      ]
     },
     "armadura_placas": {
       "nombre": "Armadura de placas",
       "hueco": "armadura",
       "bonos": {
         "defensa": 8
-      }
+      },
+      "tinte": [
+        "#8e3a3a",
+        "#5e2228",
+        "#c0645a"
+      ]
     }
   }
 }

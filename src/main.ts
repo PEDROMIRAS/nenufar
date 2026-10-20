@@ -8,6 +8,7 @@ import {
   type Resultado,
 } from './core/combate';
 import { crearHeroina, type Heroina } from './core/heroina';
+import { coloresDeEquipo } from './core/equipo';
 import { crearInventario, type Inventario } from './core/inventario';
 import { cambiosDeNivel, instantanea } from './core/progresion';
 import { actualizarRecords, formatearTiempo, type Resumen } from './core/records';
@@ -35,6 +36,7 @@ import { crearToque } from './input/toque';
 import { iniciarBucle } from './render/bucle';
 import { prepararPantalla } from './render/pantalla';
 import { prepararSonido } from './render/sonido';
+import { recolorear } from './render/tinte';
 import { cargarRecords, guardarRecords } from './render/almacen';
 import { cargarSprite, cargarSprites, cargarTilesets, type Sprite } from './render/recursos';
 
@@ -54,7 +56,9 @@ interface Partida {
   heroina: Heroina;
   luchadora: Luchador;
   inventario: Inventario;
+  /** La heroína: su hoja cambia de colores con el equipo (ver `vestir`); `imagenBase` es la original. */
   sprite: Sprite;
+  imagenBase: HTMLImageElement;
   /** Hojas de monstruos, efectos y proyectiles, por nombre. */
   hojas: ReadonlyMap<string, Sprite>;
   combates: number;
@@ -104,6 +108,7 @@ async function iniciar(): Promise<void> {
       luchadora: luchadorDeHeroe(heroe),
       inventario: crearInventario(),
       sprite,
+      imagenBase: sprite.imagen as HTMLImageElement, // recién cargada: aún es la original
       hojas,
       combates: 0,
       inicio: performance.now(),
@@ -207,9 +212,20 @@ function monstruo(clave: string): MonstruoJson {
 }
 
 /** Enseña, una tras otra, las piezas de equipo encontradas para decidir si se cambian; después sigue. */
+/** Recolorea la hoja de la heroína según el arma y la armadura que lleva. */
+function vestir(partida: Partida): void {
+  const heroe = partida.luchadora.heroe;
+  if (!heroe) return;
+  partida.sprite.imagen = recolorear(
+    partida.imagenBase,
+    coloresDeEquipo(heroe, partida.inventario, OBJETOS),
+  );
+}
+
 function ofrecerEquipo(partida: Partida, piezas: readonly string[], alFinal: () => void): void {
   const [primera, ...resto] = piezas;
   if (!primera) {
+    vestir(partida);
     alFinal();
     return;
   }

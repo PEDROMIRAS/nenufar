@@ -8,7 +8,13 @@ import {
   luchadorDeMonstruo,
   type Combate,
 } from '../src/core/combate';
-import { abrirCofre, describirPieza, equipar, piezaDeBotin } from '../src/core/equipo';
+import {
+  abrirCofre,
+  coloresDeEquipo,
+  describirPieza,
+  equipar,
+  piezaDeBotin,
+} from '../src/core/equipo';
 import { crearInventario, guardar } from '../src/core/inventario';
 import type { MonstruoJson } from '../src/core/types';
 import { HEROES, MONSTRUOS, OBJETOS, REGLAS } from '../src/data/datos';
@@ -187,5 +193,28 @@ describe('cofres', () => {
       }
     }
     expect(zonas.zonas.cripta.cofre.every((b) => (b as { nivel?: number }).nivel === 3)).toBe(true);
+  });
+});
+
+describe('colores del equipo', () => {
+  test('sin equipo no cambia nada; el arma tiñe su parte y la armadura la ropa', () => {
+    const ronin = HEROES.ronin;
+    const inv = crearInventario();
+    expect(coloresDeEquipo(ronin, inv, OBJETOS)).toEqual([]);
+    inv.arma = 'katana_acero';
+    inv.armadura = 'tunica';
+    const pares = coloresDeEquipo(ronin, inv, OBJETOS);
+    expect(pares).toHaveLength(ronin.tintes.arma.length + ronin.tintes.ropa.length);
+    expect(pares[0]).toEqual([ronin.tintes.arma[0], OBJETOS.equipo.katana_acero!.tinte![0]]);
+  });
+
+  test('cada pieza trae tantos colores como la parte que tiñe en las heroínas que pueden llevarla', () => {
+    for (const heroe of Object.values(HEROES)) {
+      for (const clave of [...heroe.armas, ...OBJETOS.armaduras]) {
+        const pieza = OBJETOS.equipo[clave]!;
+        const parte = pieza.hueco === 'arma' ? heroe.tintes.arma : heroe.tintes.ropa;
+        expect(pieza.tinte, clave).toHaveLength(parte.length);
+      }
+    }
   });
 });
