@@ -59,6 +59,8 @@ export interface Estadisticas {
 export interface HeroeJson {
   nombre: string;
   sprite: string;
+  /** Cómo se ve su ataque: animación de su hoja, efecto sobre el objetivo y proyectil, si lanza algo. */
+  combate: { ataque: string; efecto: string; proyectil?: string };
   /** Píxeles por segundo. */
   velocidad: number;
   /** Caja de colisión en los pies, más pequeña que el sprite. */

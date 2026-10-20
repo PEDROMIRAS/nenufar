@@ -1,12 +1,22 @@
 {
   "frameWidth": 16,
   "frameHeight": 16,
-  "frames": 4,
-  "fps": 12,
-  "loop": true,
-  "faces": "right",
   "anchor": {
     "x": 11,
     "y": 8
+  },
+  "directions": {
+    "down": 0,
+    "left": 0,
+    "right": 0,
+    "up": 0
+  },
+  "animations": {
+    "vuelo": {
+      "startColumn": 0,
+      "frames": 4,
+      "fps": 12,
+      "loop": true
+    }
   }
 }

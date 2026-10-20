@@ -10,6 +10,7 @@ PREVIEWS = os.path.join(REPO, "docs", "previews")
 import json
 from PIL import Image
 from rana import Canvas, PAL, S
+from combate_anim import derrota, golpe
 
 PAL.update({
     "hat": (44, 78, 102), "hat_s": (28, 50, 70), "hat_l": (76, 118, 140),
@@ -167,6 +168,10 @@ def body_side(c, bob, fx_, bx, lf, lb, swing, raise_):
 
 
 def frame(direction, anim, i):
+    if anim == "golpe":
+        return golpe(frame(direction, "idle", 0))
+    if anim == "derrota":
+        return derrota(frame(direction, "idle", 0))[i]
     c, fx = Canvas(), Canvas()
     bob, ll, lr, swing, raise_, fsize = 0, 0, 0, 0, 0, 2
     if anim == "idle":
@@ -214,7 +219,8 @@ def fireball(i):
 
 
 DIRS = ["down", "left", "right", "up"]
-ANIMS = [("idle", 2, 3, True), ("walk", 4, 8, True), ("cast", 4, 10, False)]
+ANIMS = [("idle", 2, 3, True), ("walk", 4, 8, True), ("cast", 4, 10, False), ("golpe", 1, 1, False),
+         ("derrota", 2, 4, False)]
 
 
 def build(out):
@@ -237,8 +243,10 @@ def build(out):
     for i in range(4):
         fb.paste(fireball(i), (i * 16, 0))
     fb.save(f"{out}/fuego_morado.png")
-    json.dump({"frameWidth": 16, "frameHeight": 16, "frames": 4, "fps": 12, "loop": True,
-               "faces": "right", "anchor": {"x": 11, "y": 8}},
+    # Mismo formato que las demás hojas: una fila para todas las direcciones (siempre mira a la derecha).
+    json.dump({"frameWidth": 16, "frameHeight": 16, "anchor": {"x": 11, "y": 8},
+               "directions": {d: 0 for d in DIRS},
+               "animations": {"vuelo": {"startColumn": 0, "frames": 4, "fps": 12, "loop": True}}},
               open(f"{out}/fuego_morado.json", "w"), indent=2)
 
     sheet.resize((sheet.width * 6, sheet.height * 6), Image.NEAREST).save(os.path.join(PREVIEWS, "maga_x6.png"))

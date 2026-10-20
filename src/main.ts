@@ -54,7 +54,8 @@ interface Partida {
   luchadora: Luchador;
   inventario: Inventario;
   sprite: Sprite;
-  monstruos: ReadonlyMap<string, Sprite>;
+  /** Hojas de monstruos, efectos y proyectiles, por nombre. */
+  hojas: ReadonlyMap<string, Sprite>;
   combates: number;
   /** Para el resumen final: cuándo empezó (ms), monstruos vencidos y zona en la que está. */
   inicio: number;
@@ -87,7 +88,11 @@ async function iniciar(): Promise<void> {
       sprite: await cargarSprite(heroe.sprite),
     })),
   );
-  const monstruos = await cargarSprites(Object.values(MONSTRUOS).map((m) => m.sprite));
+  const hojas = await cargarSprites([
+    ...Object.values(MONSTRUOS).map((m) => m.sprite),
+    ...Object.values(HEROES).flatMap((h) => (h.combate.proyectil ? [h.combate.proyectil] : [])),
+    'efectos',
+  ]);
   const seleccion = new EscenaSeleccion(opciones, ({ heroe, sprite }) => {
     const partida: Partida = {
       semilla,
@@ -97,7 +102,7 @@ async function iniciar(): Promise<void> {
       luchadora: luchadorDeHeroe(heroe),
       inventario: crearInventario(),
       sprite,
-      monstruos,
+      hojas,
       combates: 0,
       inicio: performance.now(),
       vencidos: 0,
@@ -144,7 +149,7 @@ async function crearZona(
     tam: tilesets[0]?.tileSize ?? 32,
     heroina: partida.heroina,
     sprite: partida.sprite,
-    spritesMonstruos: partida.monstruos,
+    spritesMonstruos: partida.hojas,
     duracionFundido: zonas.transicionSalas,
     rejilla: zonas.generacion.rejilla,
     // El portal de la última zona lleva al jefe final; vencerlo es ganar la partida.
@@ -258,7 +263,7 @@ function luchar(
   combate.inventario = partida.inventario;
   combate.objetos = OBJETOS;
   pila.apilar(
-    new EscenaCombate(combate, partida.sprite, partida.monstruos, (resultado) => {
+    new EscenaCombate(combate, partida.sprite, partida.hojas, (resultado) => {
       pila.desapilar();
       if (resultado === 'victoria') partida.vencidos += combate.enemigos.length;
       if (resultado !== 'derrota') {

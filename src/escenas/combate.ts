@@ -10,7 +10,13 @@ import {
   type Luchador,
   type Resultado,
 } from '../core/combate';
-import { dibujarCombate, rectOpcion, type MenuVista, type VistaCombate } from '../render/combate';
+import {
+  anticipoAtaque,
+  dibujarCombate,
+  rectOpcion,
+  type MenuVista,
+  type VistaCombate,
+} from '../render/combate';
 import type { Sprite } from '../render/recursos';
 import type { Escena } from './escena';
 
@@ -39,6 +45,8 @@ const DURACION: Record<Evento['tipo'], number> = {
   nivel: 1.2,
   fin: 0,
 };
+/** Efecto que deja el golpe de un monstruo sobre la heroína. */
+const EFECTO_MONSTRUO = 'impacto';
 /** Segundos que parpadea quien recibe un golpe y flota su número. */
 const DURACION_GOLPE = 0.7;
 const TITULO: Record<Resultado, string> = {
@@ -67,11 +75,13 @@ export class EscenaCombate implements Escena {
   /** Estados que se ven sobre cada luchador, en el orden en que aparecieron. */
   private readonly estadosVistos = new Map<Luchador, string[]>();
   private readonly v: VistaCombate;
+  /** Quién hizo el último golpe enseñado, para no repetir su animación en un ataque a varios. */
+  private ultimoAtacante: Luchador | null = null;
 
   constructor(
     private readonly combate: Combate,
     sprite: Sprite,
-    monstruos: ReadonlyMap<string, Sprite>,
+    hojas: ReadonlyMap<string, Sprite>,
     private readonly alTerminar: (resultado: Resultado) => void,
   ) {
     const todos = [combate.heroina, ...combate.enemigos];
@@ -79,7 +89,7 @@ export class EscenaCombate implements Escena {
     this.v = {
       combate,
       sprite,
-      monstruos,
+      hojas,
       tiempo: 0,
       pv: new Map(todos.map((l) => [l, l.pv])),
       textoPv: new Map(todos.map((l) => [l, textoVida(l.pv, l.pvMax)])),
@@ -94,6 +104,11 @@ export class EscenaCombate implements Escena {
       tiempoGolpe: 0,
       atacante: null,
       tiempoAtaque: 0,
+      objetivoAtaque: null,
+      efecto: '',
+      efectoEn: null,
+      tiempoEfecto: 0,
+      tiempoCaida: -1,
       cargando: new Set(),
       defendiendo: false,
       titulo: '',
@@ -110,6 +125,8 @@ export class EscenaCombate implements Escena {
     const v = this.v;
     v.tiempo += dt;
     v.tiempoAtaque += dt;
+    v.tiempoEfecto += dt;
+    if (v.tiempoCaida >= 0) v.tiempoCaida += dt;
     if (v.golpeado) {
       v.tiempoGolpe += dt;
       if (v.tiempoGolpe >= DURACION_GOLPE) v.golpeado = null;
@@ -118,8 +135,19 @@ export class EscenaCombate implements Escena {
       this.espera -= dt;
       return;
     }
+    // Antes de enseñar un golpe, el atacante hace su animación (los golpes seguidos del mismo, una vez).
+    const siguiente = this.cola[0];
+    if (siguiente?.tipo === 'danio' && siguiente.origen !== this.ultimoAtacante) {
+      this.ultimoAtacante = siguiente.origen;
+      v.atacante = siguiente.origen;
+      v.objetivoAtaque = siguiente.objetivo;
+      v.tiempoAtaque = 0;
+      this.espera = anticipoAtaque(v, siguiente.origen);
+      return;
+    }
     const evento = this.cola.shift();
     if (evento) {
+      if (evento.tipo !== 'danio') this.ultimoAtacante = null;
       this.mostrar(evento);
       this.espera = DURACION[evento.tipo];
       return;
@@ -151,8 +179,9 @@ export class EscenaCombate implements Escena {
           e.critico ? `${e.cantidad}!` : String(e.cantidad),
         );
         if (e.cargado) v.cargando.delete(e.origen);
-        v.atacante = e.origen;
-        v.tiempoAtaque = 0;
+        v.efecto = e.origen.heroe?.combate.efecto ?? EFECTO_MONSTRUO;
+        v.efectoEn = e.objetivo;
+        v.tiempoEfecto = 0;
         const como = e.cargado ? 'descarga su golpe sobre' : 'golpea a';
         this.registrar(
           `${e.origen.nombre} ${como} ${e.objetivo.nombre}: ${e.cantidad}${e.critico ? ' ¡crítico!' : ''}`,
@@ -220,6 +249,7 @@ export class EscenaCombate implements Escena {
         this.registrar(e.exito ? 'Huyes del combate.' : 'No consigues huir.');
         break;
       case 'muerte':
+        if (e.objetivo.esHeroina) v.tiempoCaida = 0;
         v.estados.delete(e.objetivo);
         this.estadosVistos.delete(e.objetivo);
         this.registrar(`${e.objetivo.nombre} cae.`);

@@ -2,6 +2,10 @@
   "ronin": {
     "nombre": "Rana ronin",
     "sprite": "rana_ronin",
+    "combate": {
+      "ataque": "atacar",
+      "efecto": "corte"
+    },
     "velocidad": 96,
     "caja": {
       "ancho": 14,
@@ -73,6 +77,11 @@
   "maga": {
     "nombre": "Rana maga",
     "sprite": "rana_maga",
+    "combate": {
+      "ataque": "cast",
+      "efecto": "llamarada",
+      "proyectil": "fuego_morado"
+    },
     "velocidad": 96,
     "caja": {
       "ancho": 14,

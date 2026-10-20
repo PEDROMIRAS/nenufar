@@ -22,7 +22,8 @@ export interface MenuVista {
 export interface VistaCombate {
   combate: Combate;
   sprite: Sprite;
-  monstruos: ReadonlyMap<string, Sprite>;
+  /** Hojas de monstruos, efectos y proyectiles, por nombre. */
+  hojas: ReadonlyMap<string, Sprite>;
   tiempo: number;
   /** PV y textos que se ven (van por detrás del combate mientras se animan los eventos). */
   pv: Map<Luchador, number>;
@@ -43,6 +44,14 @@ export interface VistaCombate {
   /** Quien acaba de golpear (anima su ataque) y desde cuándo. */
   atacante: Luchador | null;
   tiempoAtaque: number;
+  /** Hacia quién va ese ataque (allí vuela el proyectil, si lo hay). */
+  objetivoAtaque: Luchador | null;
+  /** Efecto que se ve sobre quien recibe un golpe («corte», «impacto»…) y desde cuándo. */
+  efecto: string;
+  efectoEn: Luchador | null;
+  tiempoEfecto: number;
+  /** Segundos desde que cayó la heroína; negativo mientras sigue en pie. */
+  tiempoCaida: number;
   /** Quién se ve preparando un golpe cargado y si la heroína se ve defendiendo. */
   cargando: Set<Luchador>;
   defendiendo: boolean;
@@ -69,6 +78,39 @@ const ENEMIGO = { y: 128, escala: 2, separacion: 140, alto: 56, topeMinimo: 44 }
 const HEROINA = { x: 120, y: 236, escala: 2 };
 /** Segundos que dura la animación de ataque de un enemigo (3 fotogramas a 10 fps y un respiro). */
 const DURACION_ATAQUE = 0.45;
+/** Segundos que tarda un proyectil en llegar, y lo mínimo que se ve un ataque antes de su golpe. */
+const VUELO = 0.25;
+const ANTICIPO_MINIMO = 0.2;
+/** Hoja con los efectos de golpe (una animación por efecto). */
+const EFECTOS = 'efectos';
+
+function hojaDe(v: VistaCombate, l: Luchador): Sprite | undefined {
+  return l.esHeroina ? v.sprite : l.monstruo ? v.hojas.get(l.monstruo.sprite) : undefined;
+}
+
+function animacionAtaque(l: Luchador): string {
+  return l.heroe?.combate.ataque ?? 'atacar';
+}
+
+/** Segundos desde que `l` empieza su animación de ataque hasta que el golpe llega (y se ve el daño). */
+export function anticipoAtaque(v: VistaCombate, l: Luchador): number {
+  const hoja = hojaDe(v, l);
+  const anim = hoja?.datos.animations[animacionAtaque(l)];
+  if (!hoja || !anim) return ANTICIPO_MINIMO;
+  // El golpe sale en el fotograma marcado (el proyectil de la maga) o en el segundo.
+  const suelta = (hoja.datos.castReleaseFrame ?? 1) / anim.fps;
+  return Math.max(ANTICIPO_MINIMO, suelta + (l.heroe?.combate.proyectil ? VUELO : 0));
+}
+
+/** Centro del cuerpo de un luchador en pantalla, donde se dibujan efectos y proyectiles. */
+function centroX(v: VistaCombate, l: Luchador): number {
+  const enemigos = v.combate.enemigos;
+  return l.esHeroina ? HEROINA.x : xEnemigo(enemigos.indexOf(l), enemigos.length);
+}
+
+function centroY(l: Luchador): number {
+  return l.esHeroina ? HEROINA.y - 28 : ENEMIGO.y - 26;
+}
 
 /** Centro horizontal del enemigo `i` de `n`, repartidos alrededor del centro de la pantalla. */
 export function xEnemigo(i: number, n: number): number {
@@ -103,6 +145,8 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
     dibujarEnemigo(ctx, v, e, xEnemigo(i, combate.enemigos.length)),
   );
   dibujarHeroina(ctx, v);
+  dibujarProyectil(ctx, v);
+  dibujarEfecto(ctx, v);
   dibujarFlotante(ctx, v);
 
   const enRejilla = v.menu !== null && v.menu.opciones.length > 5;
@@ -183,7 +227,7 @@ function parpadea(v: VistaCombate, l: Luchador): boolean {
 
 /** Altura de la parte de arriba del enemigo, de donde cuelgan su nombre y los avisos. */
 function topeEnemigo(v: VistaCombate, e: Luchador): number {
-  const sprite = e.monstruo && v.monstruos.get(e.monstruo.sprite);
+  const sprite = e.monstruo && v.hojas.get(e.monstruo.sprite);
   // Los fotogramas dejan unos píxeles libres por arriba; los jefes grandes no deben pisar la barra de turnos.
   const alto = sprite ? (sprite.datos.frameHeight - 6) * ENEMIGO.escala : ENEMIGO.alto;
   return Math.max(ENEMIGO.topeMinimo, ENEMIGO.y - alto);
@@ -199,7 +243,7 @@ function dibujarEnemigo(
   if (pv <= 0 && v.golpeado !== e) return;
   const { y } = ENEMIGO;
   const tope = topeEnemigo(v, e);
-  const sprite = e.monstruo && v.monstruos.get(e.monstruo.sprite);
+  const sprite = e.monstruo && v.hojas.get(e.monstruo.sprite);
   if (sprite) {
     // Golpe: destello blanco; ataque recién hecho: su animación; preparando el golpe cargado: tiembla en guardia.
     let anim = 'idle';
@@ -237,25 +281,19 @@ function dibujarEnemigo(
 
 function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   const h = v.combate.heroina;
-  const { imagen, datos } = v.sprite;
-  const anim = datos.animations['idle'];
   const { x, y, escala } = HEROINA;
-  if (anim && !parpadea(v, h)) {
-    const columna = anim.startColumn + (Math.floor(v.tiempo * anim.fps) % anim.frames);
-    const w = datos.frameWidth;
-    const a = datos.frameHeight;
-    ctx.drawImage(
-      imagen,
-      columna * w,
-      datos.directions.up * a,
-      w,
-      a,
-      x - datos.anchor.x * escala,
-      y - datos.anchor.y * escala,
-      w * escala,
-      a * escala,
-    );
+  let anim = 'idle';
+  let t = v.tiempo;
+  if (v.tiempoCaida >= 0) {
+    anim = 'derrota';
+    t = v.tiempoCaida;
+  } else if (parpadea(v, h)) anim = 'golpe';
+  else if (v.atacante === h && v.tiempoAtaque < DURACION_ATAQUE) {
+    anim = animacionAtaque(h);
+    t = v.tiempoAtaque;
   }
+  // De espaldas, mirando a los enemigos.
+  dibujarFotograma(ctx, v.sprite, anim, 'up', t, x, y, escala);
   if (v.defendiendo) escribir(ctx, 'Defendiendo', x, y - 76, COLOR.pm, 'center');
   const bx = x + 48;
   escribir(ctx, h.nombre, bx, 176);
@@ -264,6 +302,35 @@ function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   escribir(ctx, v.textoPv.get(h) ?? '', bx + 128, 190);
   barra(ctx, bx, 212, 120, h.pm / Math.max(1, h.pmMax), COLOR.pm);
   escribir(ctx, v.textoPm, bx + 128, 208);
+}
+
+/** Proyectil del ataque en curso, en vuelo del atacante al objetivo durante el último tramo antes del golpe. */
+function dibujarProyectil(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
+  const a = v.atacante;
+  const o = v.objetivoAtaque;
+  const nombre = a?.heroe?.combate.proyectil;
+  const hoja = nombre ? v.hojas.get(nombre) : undefined;
+  if (!a || !o || !hoja) return;
+  const t = (v.tiempoAtaque - (anticipoAtaque(v, a) - VUELO)) / VUELO;
+  if (t < 0 || t > 1) return;
+  const x0 = centroX(v, a);
+  const y0 = centroY(a);
+  const x1 = centroX(v, o);
+  const y1 = centroY(o);
+  ctx.save();
+  ctx.translate(Math.round(x0 + (x1 - x0) * t), Math.round(y0 + (y1 - y0) * t));
+  // La hoja mira a la derecha: se gira hacia el objetivo.
+  ctx.rotate(Math.atan2(y1 - y0, x1 - x0));
+  dibujarFotograma(ctx, hoja, 'vuelo', 'right', v.tiempo, 0, 0, 2);
+  ctx.restore();
+}
+
+function dibujarEfecto(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
+  const l = v.efectoEn;
+  const hoja = v.hojas.get(EFECTOS);
+  const anim = hoja?.datos.animations[v.efecto];
+  if (!l || !hoja || !anim || v.tiempoEfecto >= anim.frames / anim.fps) return;
+  dibujarFotograma(ctx, hoja, v.efecto, 'down', v.tiempoEfecto, centroX(v, l), centroY(l), 2);
 }
 
 function dibujarFlotante(ctx: CanvasRenderingContext2D, v: VistaCombate): void {

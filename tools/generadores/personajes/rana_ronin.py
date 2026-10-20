@@ -1,5 +1,5 @@
 """Héroe rana ronin (32x32, 4 direcciones). Filas: abajo, izquierda, derecha, arriba.
-Columnas: reposo 0-1, caminar 0-3."""
+Columnas: reposo 0-1, caminar 0-3, atacar 0-2, golpe 0 y derrota 0-1."""
 import os
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
@@ -9,6 +9,7 @@ PREVIEWS = os.path.join(REPO, "docs", "previews")
 import json
 from PIL import Image
 from rana import Canvas, PAL, S, eye
+from combate_anim import derrota, golpe
 
 PAL.update({
     "hat": (204, 158, 92), "hat_s": (156, 108, 60), "hat_d": (98, 62, 38), "hat_l": (234, 198, 128),
@@ -16,6 +17,7 @@ PAL.update({
     "gold": (224, 178, 70), "gold_s": (164, 116, 44),
     "scarf": (190, 46, 56), "scarf_s": (126, 28, 44), "scarf_l": (232, 92, 82),
     "lacquer": (30, 24, 34), "wrap": (232, 226, 206),
+    "blade": (214, 224, 236), "blade_s": (140, 152, 170),
 })
 
 
@@ -173,10 +175,30 @@ TAIL_IDLE = [0, 1]
 TAIL_WALK = [0, -1, 0, 1]
 
 
+# Katana desenvainada al atacar, por vista: (mano, punta) en preparar, cortar y acabar el tajo.
+TAJO = {
+    "down": [((24, 13), (15, 1)), ((9, 20), (1, 29)), ((8, 22), (3, 30))],
+    "up": [((24, 14), (19, 0)), ((10, 13), (1, 4)), ((8, 16), (0, 12))],
+    "side": [((17, 14), (8, 2)), ((24, 18), (31, 26)), ((23, 20), (28, 29))],
+}
+
+
+def katana(c, mano, punta):
+    (hx, hy), (tx, ty) = mano, punta
+    c.line(hx, hy, tx, ty, "blade", w=2)
+    c.line(hx, hy, tx, ty, "blade_s")
+    c.rect(hx - 1, hy - 1, hx + 1, hy + 1, "gold")
+    c.rect(hx, hy, hx, hy, "wrap")
+
+
 def frame(direction, anim, i):
+    if anim == "golpe":
+        return golpe(frame(direction, "idle", 0))
+    if anim == "derrota":
+        return derrota(frame(direction, "idle", 0))[i]
     c = Canvas()
-    if anim == "idle":
-        bob, tail = BOB_IDLE[i], TAIL_IDLE[i]
+    if anim in ("idle", "atacar"):
+        bob, tail = (BOB_IDLE[i], TAIL_IDLE[i]) if anim == "idle" else (0, [0, 1, 1][i])
         lift_l = lift_r = swing = 0
     else:
         bob, tail = BOB_WALK[i], TAIL_WALK[i]
@@ -187,11 +209,13 @@ def frame(direction, anim, i):
     elif direction == "up":
         draw_back(c, bob, lift_l, lift_r, swing, tail)
     else:
-        if anim == "idle":
+        if anim != "walk":
             fx, bx, lf, lb = 17, 9, 0, 0
         else:
             fx, bx, lf, lb = [(19, 8, 0, 0), (15, 12, 0, 1), (9, 18, 0, 0), (13, 14, 1, 0)][i]
         draw_side(c, bob, fx, bx, lf, lb, swing, tail)
+    if anim == "atacar":
+        katana(c, *TAJO[direction if direction in ("down", "up") else "side"][i])
     c.outline()
     img = c.image()
     if direction == "left":
@@ -200,18 +224,19 @@ def frame(direction, anim, i):
 
 
 DIRS = ["down", "left", "right", "up"]
-ANIMS = [("idle", 2), ("walk", 4)]
+# (nombre, fotogramas, fps, en bucle)
+ANIMS = [("idle", 2, 3, True), ("walk", 4, 8, True), ("atacar", 3, 12, False), ("golpe", 1, 1, False),
+         ("derrota", 2, 4, False)]
 
 
 def build(out):
-    sheet = Image.new("RGBA", (6 * S, 4 * S), (0, 0, 0, 0))
+    sheet = Image.new("RGBA", (sum(a[1] for a in ANIMS) * S, 4 * S), (0, 0, 0, 0))
     meta = {"frameWidth": S, "frameHeight": S, "anchor": {"x": 16, "y": 30},
             "directions": {d: r for r, d in enumerate(DIRS)}, "animations": {}}
     for r, d in enumerate(DIRS):
         col = 0
-        for name, n in ANIMS:
-            meta["animations"][name] = {"startColumn": col, "frames": n,
-                                        "fps": 3 if name == "idle" else 8, "loop": True}
+        for name, n, fps, loop in ANIMS:
+            meta["animations"][name] = {"startColumn": col, "frames": n, "fps": fps, "loop": loop}
             for i in range(n):
                 sheet.paste(frame(d, name, i), (col * S, r * S))
                 col += 1

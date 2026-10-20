@@ -11,10 +11,11 @@ Si el diseño y este archivo discrepan, manda el documento; avisa de la discrepa
 
 - Diseño y arte cerrados.
 - Hitos 1 (base, sala y movimiento), 2 (zona generada) y 3 (combate prototipo) hechos y publicados en https://pedromiras.github.io/nenufar/.
-- **Siguiente: hito 4** (contenido y progresión): los 6 monstruos, experiencia, niveles, las 8 habilidades, estados alterados y los 4 jefes con sus fases. Hecho cuando se puede completar una partida entera de principio a fin.
+- Hitos 4 (contenido y progresión) y 5 (objetos, equipo, menús) hechos en código; **sin marcar hasta que Pedro confirme una partida entera en el móvil**.
+- **En curso: hito 6** (arte y sonido). Sprites de monstruos, efectos y animaciones de combate de las ranas hechos; faltan el fondo de combate por zona y el sonido (sintetizado con Web Audio desde JSON, con botón de silencio).
 - La "decisión interesante" del combate es el golpe cargado que el monstruo anuncia un turno antes (Limo, poder 3); defender solo si no se puede rematar antes es la mejor estrategia (simulado).
 - Zonas en "ramas de 3" (8/11/14 salas): el inicio con 1 puerta y cada sala de paso con la de llegada + 3 nuevas. Decidido en el hito 2 y ya reflejado en el documento.
-- Atajos provisionales marcados con `shortcut:` en el código (monstruos y combate dibujados con rectángulos); se quitan en el hito que indica cada uno.
+- Atajos provisionales marcados con `shortcut:` en el código; se quitan en el hito que indica cada uno.
 - `?semilla=N` en la URL repite una partida; la semilla de cada zona sale en la consola.
 - Hitos 2-7 en el documento. Hasta el hito 5 la lógica puede probarse con rectángulos, pero el arte ya existe y se puede usar desde el hito 1.
 
@@ -40,7 +41,7 @@ Si el diseño y este archivo discrepan, manda el documento; avisa de la discrepa
 
 ## Assets (ya generados, no editar a mano)
 
-- `public/assets/sprites/`: `rana_ronin`, `rana_maga` (32×32; filas `down,left,right,up`; animaciones `idle`, `walk` y `cast` en la maga; ancla en los pies (16,30); `castReleaseFrame` marca cuándo sale el proyectil) y `fuego_morado` (16×16, mirando a la derecha).
+- `public/assets/sprites/`: `rana_ronin`, `rana_maga` (32×32; filas `down,left,right,up`; animaciones `idle`, `walk`, `golpe`, `derrota` y el ataque que nombra `heroes.json` (`atacar` / `cast`); ancla en los pies (16,30); `castReleaseFrame` marca cuándo sale el proyectil), `monstruos/<clave>` (campo `sprite` de `monstruos.json`; `idle`, `walk`, `atacar`, `golpe`), `efectos` y `fuego_morado` (16×16, mirando a la derecha). Todas las hojas comparten el formato `SpriteJson`.
 - `public/assets/tilesets/<zona>.json`: todos los tiles tienen `name`, `index`, `layer` (`suelo|muro|objeto|dosel`) y `solid`. Los campos opcionales solo aparecen donde aplican: `weight` solo en suelos (sorteo ponderado entre los suelos de la zona para el símbolo `.`); `frames`/`fps` solo en tiles animados (fuente, portal, hoguera y candelabro). El resto de variantes `_a/_b/_c` (muros) se eligen con la misma probabilidad. En los tipos de TypeScript, `weight`, `frames` y `fps` deben ser opcionales. Los objetos altos se parten en `_sup` (dosel) e `_inf` (sólido) y se ordenan por la Y de su base junto con los personajes.
 - `public/assets/tilesets/comunes.json`: cofres, fuente, portal y hoguera, compartidos por todas las zonas. **Se carga siempre junto al tileset de la zona**: las plantillas los usan (`X`, `F`, `>`, `H`) y no existen en los tilesets de zona.
 - `public/assets/tilesets/<zona>_autotiles.json`: 16 variantes por tipo, máscara `N=1, E=2, S=4, O=8`.
