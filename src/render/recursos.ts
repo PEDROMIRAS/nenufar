@@ -32,6 +32,13 @@ export async function cargarTilesets(
   return { tilesets, imagenes };
 }
 
+/** Varias hojas a la vez, por nombre (los repetidos se cargan una vez). */
+export async function cargarSprites(nombres: readonly string[]): Promise<Map<string, Sprite>> {
+  const unicos = [...new Set(nombres)];
+  const sprites = await Promise.all(unicos.map(cargarSprite));
+  return new Map(unicos.map((n, i) => [n, sprites[i]!]));
+}
+
 export async function cargarSprite(nombre: string): Promise<Sprite> {
   const [imagen, datos] = await Promise.all([
     cargarImagen(`assets/sprites/${nombre}.png`),

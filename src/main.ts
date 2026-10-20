@@ -35,7 +35,7 @@ import { crearToque } from './input/toque';
 import { iniciarBucle } from './render/bucle';
 import { prepararPantalla } from './render/pantalla';
 import { cargarRecords, guardarRecords } from './render/almacen';
-import { cargarSprite, cargarTilesets, type Sprite } from './render/recursos';
+import { cargarSprite, cargarSprites, cargarTilesets, type Sprite } from './render/recursos';
 
 type NombreZona = keyof typeof zonas.zonas;
 /** Orden de las zonas: el de zonas.json. */
@@ -54,6 +54,7 @@ interface Partida {
   luchadora: Luchador;
   inventario: Inventario;
   sprite: Sprite;
+  monstruos: ReadonlyMap<string, Sprite>;
   combates: number;
   /** Para el resumen final: cuándo empezó (ms), monstruos vencidos y zona en la que está. */
   inicio: number;
@@ -86,6 +87,7 @@ async function iniciar(): Promise<void> {
       sprite: await cargarSprite(heroe.sprite),
     })),
   );
+  const monstruos = await cargarSprites(Object.values(MONSTRUOS).map((m) => m.sprite));
   const seleccion = new EscenaSeleccion(opciones, ({ heroe, sprite }) => {
     const partida: Partida = {
       semilla,
@@ -95,6 +97,7 @@ async function iniciar(): Promise<void> {
       luchadora: luchadorDeHeroe(heroe),
       inventario: crearInventario(),
       sprite,
+      monstruos,
       combates: 0,
       inicio: performance.now(),
       vencidos: 0,
@@ -141,6 +144,7 @@ async function crearZona(
     tam: tilesets[0]?.tileSize ?? 32,
     heroina: partida.heroina,
     sprite: partida.sprite,
+    spritesMonstruos: partida.monstruos,
     duracionFundido: zonas.transicionSalas,
     rejilla: zonas.generacion.rejilla,
     // El portal de la última zona lleva al jefe final; vencerlo es ganar la partida.
@@ -254,7 +258,7 @@ function luchar(
   combate.inventario = partida.inventario;
   combate.objetos = OBJETOS;
   pila.apilar(
-    new EscenaCombate(combate, partida.sprite, (resultado) => {
+    new EscenaCombate(combate, partida.sprite, partida.monstruos, (resultado) => {
       pila.desapilar();
       if (resultado === 'victoria') partida.vencidos += combate.enemigos.length;
       if (resultado !== 'derrota') {

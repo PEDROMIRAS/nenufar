@@ -71,6 +71,7 @@ export class EscenaCombate implements Escena {
   constructor(
     private readonly combate: Combate,
     sprite: Sprite,
+    monstruos: ReadonlyMap<string, Sprite>,
     private readonly alTerminar: (resultado: Resultado) => void,
   ) {
     const todos = [combate.heroina, ...combate.enemigos];
@@ -78,6 +79,7 @@ export class EscenaCombate implements Escena {
     this.v = {
       combate,
       sprite,
+      monstruos,
       tiempo: 0,
       pv: new Map(todos.map((l) => [l, l.pv])),
       textoPv: new Map(todos.map((l) => [l, textoVida(l.pv, l.pvMax)])),
@@ -90,6 +92,8 @@ export class EscenaCombate implements Escena {
       flotante: '',
       flotanteCura: false,
       tiempoGolpe: 0,
+      atacante: null,
+      tiempoAtaque: 0,
       cargando: new Set(),
       defendiendo: false,
       titulo: '',
@@ -105,6 +109,7 @@ export class EscenaCombate implements Escena {
   update(dt: number, acciones: Acciones): void {
     const v = this.v;
     v.tiempo += dt;
+    v.tiempoAtaque += dt;
     if (v.golpeado) {
       v.tiempoGolpe += dt;
       if (v.tiempoGolpe >= DURACION_GOLPE) v.golpeado = null;
@@ -146,6 +151,8 @@ export class EscenaCombate implements Escena {
           e.critico ? `${e.cantidad}!` : String(e.cantidad),
         );
         if (e.cargado) v.cargando.delete(e.origen);
+        v.atacante = e.origen;
+        v.tiempoAtaque = 0;
         const como = e.cargado ? 'descarga su golpe sobre' : 'golpea a';
         this.registrar(
           `${e.origen.nombre} ${como} ${e.objetivo.nombre}: ${e.cantidad}${e.critico ? ' ¡crítico!' : ''}`,

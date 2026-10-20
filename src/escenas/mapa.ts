@@ -41,7 +41,7 @@ import {
   type TextosHud,
 } from '../render/hud';
 import { pintarMinimapa } from '../render/minimapa';
-import { dibujarMonstruoMapa } from '../render/monstruo';
+import { dibujarMonstruoMapa, direccionDe } from '../render/monstruo';
 import type { Sprite } from '../render/recursos';
 import { dibujarObjetos, dibujarTile, pintarFondo, pintarVineta } from '../render/sala';
 import type { Escena } from './escena';
@@ -85,6 +85,8 @@ export interface OpcionesMapa {
   tam: number;
   heroina: Heroina;
   sprite: Sprite;
+  /** Hojas de los monstruos, por el nombre de `sprite` de cada uno. */
+  spritesMonstruos: ReadonlyMap<string, Sprite>;
   /** Duración total del fundido a negro y vuelta al cambiar de sala, en segundos. */
   duracionFundido: number;
   /** Lado de la rejilla de la zona, en salas (para el minimapa). */
@@ -332,7 +334,19 @@ export class EscenaMapa implements Escena {
     const { cuerpo: c, xAnterior, yAnterior } = m.p;
     const x = xAnterior + (c.x - xAnterior) * alpha;
     const y = yAnterior + (c.y - yAnterior) * alpha;
-    dibujarMonstruoMapa(ctx, x, y, c.ancho, c.alto, m.grupo, this.tiempo);
+    const andando = c.x !== xAnterior || c.y !== yAnterior;
+    const direccion = direccionDe(m.p.dirX, m.p.dirY);
+    dibujarMonstruoMapa(
+      ctx,
+      this.o.spritesMonstruos,
+      x,
+      y,
+      c.ancho,
+      m.grupo,
+      direccion,
+      andando,
+      this.tiempo,
+    );
   }
 
   private luchar(m: MonstruoMapa): void {

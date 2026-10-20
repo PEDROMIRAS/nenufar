@@ -1,9 +1,10 @@
 import type { Combate, Luchador } from '../core/combate';
 import { ALTO, ANCHO } from './pantalla';
+import { dibujarFotograma } from './monstruo';
 import type { Sprite } from './recursos';
 import { escribir, FUENTE_GRANDE } from './texto';
 
-// shortcut: el combate se dibuja con rectángulos y texto hasta el arte de combate del hito 6.
+// shortcut: la heroína no anima ataques ni golpes y el fondo es liso hasta terminar el arte de combate del hito 6.
 
 export interface OpcionMenu {
   texto: string;
@@ -21,6 +22,7 @@ export interface MenuVista {
 export interface VistaCombate {
   combate: Combate;
   sprite: Sprite;
+  monstruos: ReadonlyMap<string, Sprite>;
   tiempo: number;
   /** PV y textos que se ven (van por detrás del combate mientras se animan los eventos). */
   pv: Map<Luchador, number>;
@@ -38,6 +40,9 @@ export interface VistaCombate {
   flotante: string;
   flotanteCura: boolean;
   tiempoGolpe: number;
+  /** Quien acaba de golpear (anima su ataque) y desde cuándo. */
+  atacante: Luchador | null;
+  tiempoAtaque: number;
   /** Quién se ve preparando un golpe cargado y si la heroína se ve defendiendo. */
   cargando: Set<Luchador>;
   defendiendo: boolean;
@@ -60,8 +65,10 @@ const COLOR = {
   aviso: '#ffd27a',
   estado: '#c89bff',
 };
-const ENEMIGO = { y: 128, ancho: 56, alto: 44, separacion: 140 };
+const ENEMIGO = { y: 128, escala: 2, separacion: 140, alto: 56, topeMinimo: 44 };
 const HEROINA = { x: 120, y: 236, escala: 2 };
+/** Segundos que dura la animación de ataque de un enemigo (3 fotogramas a 10 fps y un respiro). */
+const DURACION_ATAQUE = 0.45;
 
 /** Centro horizontal del enemigo `i` de `n`, repartidos alrededor del centro de la pantalla. */
 export function xEnemigo(i: number, n: number): number {
@@ -174,6 +181,14 @@ function parpadea(v: VistaCombate, l: Luchador): boolean {
   return v.golpeado === l && !v.flotanteCura && Math.floor(v.tiempoGolpe * 16) % 2 === 0;
 }
 
+/** Altura de la parte de arriba del enemigo, de donde cuelgan su nombre y los avisos. */
+function topeEnemigo(v: VistaCombate, e: Luchador): number {
+  const sprite = e.monstruo && v.monstruos.get(e.monstruo.sprite);
+  // Los fotogramas dejan unos píxeles libres por arriba; los jefes grandes no deben pisar la barra de turnos.
+  const alto = sprite ? (sprite.datos.frameHeight - 6) * ENEMIGO.escala : ENEMIGO.alto;
+  return Math.max(ENEMIGO.topeMinimo, ENEMIGO.y - alto);
+}
+
 function dibujarEnemigo(
   ctx: CanvasRenderingContext2D,
   v: VistaCombate,
@@ -182,25 +197,32 @@ function dibujarEnemigo(
 ): void {
   const pv = v.pv.get(e) ?? e.pv;
   if (pv <= 0 && v.golpeado !== e) return;
-  const { y, ancho, alto } = ENEMIGO;
-  // Mientras prepara el golpe cargado, se hincha y vibra.
-  const hinchado = v.cargando.has(e) ? 6 + Math.round(Math.sin(v.tiempo * 20) * 2) : 0;
-  if (!parpadea(v, e)) {
-    ctx.fillStyle = e.monstruo?.color ?? '#999';
-    ctx.fillRect(
-      x - ancho / 2 - hinchado / 2,
-      y - alto - hinchado,
-      ancho + hinchado,
-      alto + hinchado,
-    );
+  const { y } = ENEMIGO;
+  const tope = topeEnemigo(v, e);
+  const sprite = e.monstruo && v.monstruos.get(e.monstruo.sprite);
+  if (sprite) {
+    // Golpe: destello blanco; ataque recién hecho: su animación; preparando el golpe cargado: tiembla en guardia.
+    let anim = 'idle';
+    let t = v.tiempo + x * 0.01;
+    let dx = 0;
+    if (parpadea(v, e)) anim = 'golpe';
+    else if (v.atacante === e && v.tiempoAtaque < DURACION_ATAQUE) {
+      anim = 'atacar';
+      t = v.tiempoAtaque;
+    } else if (v.cargando.has(e)) {
+      anim = 'atacar';
+      t = 0;
+      dx = Math.round(Math.sin(v.tiempo * 40));
+    }
+    dibujarFotograma(ctx, sprite, anim, 'down', t, x + dx, y, ENEMIGO.escala);
   }
-  escribir(ctx, e.nombre, x, y - alto - hinchado - 18, '#e8efe4', 'center');
+  escribir(ctx, e.nombre, x, tope - 18, '#e8efe4', 'center');
   if (v.apuntado === e) {
     escribir(
       ctx,
       '▼',
       x,
-      y - alto - hinchado - 34 + Math.round(Math.sin(v.tiempo * 8) * 2),
+      tope - 34 + Math.round(Math.sin(v.tiempo * 8) * 2),
       COLOR.aviso,
       'center',
     );
@@ -209,7 +231,7 @@ function dibujarEnemigo(
   escribir(ctx, v.textoPv.get(e) ?? '', x, y + 18, '#e8efe4', 'center');
   escribir(ctx, v.estados.get(e) ?? '', x, y + 32, COLOR.estado, 'center');
   if (v.cargando.has(e)) {
-    escribir(ctx, '¡Prepara un golpe fuerte!', x, y - alto - hinchado - 36, COLOR.aviso, 'center');
+    escribir(ctx, '¡Prepara un golpe fuerte!', x, tope - 36, COLOR.aviso, 'center');
   }
 }
 
@@ -250,7 +272,7 @@ function dibujarFlotante(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   const sube = Math.round(v.tiempoGolpe * 30);
   const enemigos = v.combate.enemigos;
   const x = g.esHeroina ? HEROINA.x : xEnemigo(enemigos.indexOf(g), enemigos.length);
-  const y = (g.esHeroina ? HEROINA.y - 80 : ENEMIGO.y - ENEMIGO.alto - 40) - sube;
+  const y = (g.esHeroina ? HEROINA.y - 80 : topeEnemigo(v, g) - 22) - sube;
   const color = v.flotanteCura ? COLOR.cura : g.esHeroina ? COLOR.pv : '#ffffff';
   escribir(ctx, v.flotante, x, y, color, 'center', FUENTE_GRANDE);
 }

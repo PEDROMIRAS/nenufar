@@ -191,7 +191,9 @@ export interface MonstruoJson {
   caja: { ancho: number; alto: number };
   /** Patrulla y persecución en el mapa; sin este campo se queda quieto (los jefes). */
   mapa?: MovimientoMapaJson;
-  /** Color del rectángulo que lo representa hasta que tenga sprite (hito 6). */
+  /** Hoja de sprites en `public/assets/sprites/`, sin extensión. */
+  sprite: string;
+  /** Color que lo identifica en la barra de turnos. */
   color: string;
 }
 

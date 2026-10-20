@@ -1,6 +1,7 @@
 {
   "limo": {
     "nombre": "Limo",
+    "sprite": "monstruos/limo",
     "estadisticas": {
       "pv": 16,
       "pm": 0,
@@ -63,6 +64,7 @@
   },
   "murcielago": {
     "nombre": "Murciélago",
+    "sprite": "monstruos/murcielago",
     "estadisticas": {
       "pv": 12,
       "pm": 0,
@@ -112,6 +114,7 @@
   },
   "esqueleto": {
     "nombre": "Esqueleto",
+    "sprite": "monstruos/esqueleto",
     "estadisticas": {
       "pv": 34,
       "pm": 0,
@@ -177,6 +180,7 @@
   },
   "arana": {
     "nombre": "Araña",
+    "sprite": "monstruos/arana",
     "estadisticas": {
       "pv": 30,
       "pm": 12,
@@ -243,6 +247,7 @@
   },
   "caballero": {
     "nombre": "Caballero oscuro",
+    "sprite": "monstruos/caballero",
     "estadisticas": {
       "pv": 60,
       "pm": 0,
@@ -305,6 +310,7 @@
   },
   "chaman": {
     "nombre": "Chamán goblin",
+    "sprite": "monstruos/chaman",
     "estadisticas": {
       "pv": 36,
       "pm": 20,
@@ -385,6 +391,7 @@
   },
   "rey_limo": {
     "nombre": "Rey Limo",
+    "sprite": "monstruos/rey_limo",
     "estadisticas": {
       "pv": 36,
       "pm": 0,
@@ -439,6 +446,7 @@
   },
   "limo_grande": {
     "nombre": "Limo grande",
+    "sprite": "monstruos/limo_grande",
     "estadisticas": {
       "pv": 13,
       "pm": 0,
@@ -471,6 +479,7 @@
   },
   "golem": {
     "nombre": "Golem de piedra",
+    "sprite": "monstruos/golem",
     "estadisticas": {
       "pv": 84,
       "pm": 0,
@@ -531,6 +540,7 @@
   },
   "reina_arana": {
     "nombre": "Reina Araña",
+    "sprite": "monstruos/reina_arana",
     "estadisticas": {
       "pv": 96,
       "pm": 40,
@@ -614,6 +624,7 @@
   },
   "senor_cripta": {
     "nombre": "Señor de la Cripta",
+    "sprite": "monstruos/senor_cripta",
     "estadisticas": {
       "pv": 156,
       "pm": 60,
