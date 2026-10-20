@@ -18,7 +18,7 @@ Dungeon crawler 2D para navegador: exploras zonas de salas en tiempo real y, al 
 - [x] Diseño de juego cerrado (ver documento)
 - [x] Arte: heroínas, proyectil, tilesets de las tres zonas, objetos comunes, autotiles y plantillas de sala
 - [x] Hito 1: base, sala y movimiento ([jugar](https://pedromiras.github.io/nenufar/))
-- [ ] Hito 2: zona generada
+- [x] Hito 2: zona generada
 - [ ] Hito 3: combate prototipo
 - [ ] Hito 4: contenido y progresión
 - [ ] Hito 5: objetos y pantallas
