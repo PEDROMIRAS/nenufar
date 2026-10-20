@@ -19,3 +19,9 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 *.log
+
+# Herramientas locales (grafo de graphify y skills instaladas): no son parte del juego
+graphify-out/
+.agents/
+.claude/
+skills-lock.json
