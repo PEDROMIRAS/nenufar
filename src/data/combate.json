@@ -6,6 +6,7 @@
   "defender": { "factorDanio": 0.5, "pm": 2 },
   "huida": { "base": 0.6, "porIntento": 0.1 },
   "invulnerabilidadTrasCombate": 1.5,
+  "recuperacionTrasVictoria": 0.3,
   "estados": {
     "veneno": { "nombre": "Veneno", "turnos": 3, "danioPorTurno": 0.08 },
     "aturdido": { "nombre": "Aturdido", "turnos": 1, "pierdeTurno": true },

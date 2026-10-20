@@ -153,9 +153,10 @@ describe('estados', () => {
     const c = combate(heroes.maga, 5);
     c.enemigos[0]!.pv = 9; // Fuego fatuo quita (10 × 0,8 − 0,75) = 7,25 → 7; el veneno, 8.
     const eventos = usar(c, 'Fuego fatuo', heroes.maga);
-    expect(eventos.slice(-4).map((e) => e.tipo)).toEqual([
+    expect(eventos.slice(-5).map((e) => e.tipo)).toEqual([
       'danioEstado',
       'muerte',
+      'recupera',
       'experiencia',
       'fin',
     ]);

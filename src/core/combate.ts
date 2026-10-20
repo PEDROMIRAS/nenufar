@@ -71,6 +71,8 @@ export type Evento =
   | { tipo: 'huida'; exito: boolean }
   | { tipo: 'muerte'; objetivo: Luchador }
   | { tipo: 'experiencia'; cantidad: number }
+  /** PV y PM que recupera la heroína al ganar. */
+  | { tipo: 'recupera'; pv: number; pm: number }
   | { tipo: 'nivel'; nivel: number }
   | { tipo: 'fin'; resultado: Resultado };
 
@@ -498,6 +500,13 @@ function terminar(c: Combate, resultado: Resultado, eventos: Evento[]): void {
   c.resultado = resultado;
   c.esperando = false;
   if (resultado === 'victoria') {
+    const h = c.heroina;
+    const fraccion = c.reglas.recuperacionTrasVictoria;
+    const pv = Math.min(h.pvMax - h.pv, Math.round(h.pvMax * fraccion));
+    const pm = Math.min(h.pmMax - h.pm, Math.round(h.pmMax * fraccion));
+    h.pv += pv;
+    h.pm += pm;
+    eventos.push({ tipo: 'recupera', pv, pm });
     const px = c.enemigos.reduce((suma, e) => suma + (e.monstruo?.experiencia ?? 0), 0);
     eventos.push({ tipo: 'experiencia', cantidad: px });
     for (const nivel of ganarExperiencia(c.heroina, px, c.reglas.experiencia)) {

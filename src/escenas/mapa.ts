@@ -2,7 +2,14 @@ import type { Acciones } from '../core/acciones';
 import type { Luchador, Resultado } from '../core/combate';
 import { crearAzar, elegirConPeso } from '../core/azar';
 import { actualizarHeroina, type Heroina } from '../core/heroina';
-import { opuesto, portalPisado, posicionEntrada, salaVecina, salidaPisada } from '../core/mapa';
+import {
+  objetoAlAlcance,
+  opuesto,
+  portalPisado,
+  posicionEntrada,
+  salaVecina,
+  salidaPisada,
+} from '../core/mapa';
 import { colocarMonstruos, seTocan, type Caja } from '../core/monstruos';
 import { buscarInicio } from '../core/movimiento';
 import {
@@ -17,7 +24,7 @@ import {
 import type { MonstruoJson, PlantillasJson } from '../core/types';
 import type { SalaZona, Zona } from '../core/zona';
 import { dibujarHeroina } from '../render/heroina';
-import { dibujarHud, type TextosHud } from '../render/hud';
+import { dibujarAviso, dibujarHud, type TextosHud } from '../render/hud';
 import { pintarMinimapa } from '../render/minimapa';
 import { dibujarMonstruoMapa } from '../render/monstruo';
 import type { Sprite } from '../render/recursos';
@@ -26,6 +33,10 @@ import type { Escena } from './escena';
 
 /** Separación del minimapa respecto al borde de la pantalla, en píxeles lógicos. */
 const MARGEN_HUD = 6;
+/** Píxeles alrededor de la heroína en los que un objeto se puede usar (pegarse a la fuente). */
+const ALCANCE = 4;
+/** Segundos que se ve un aviso en el mapa. */
+const DURACION_AVISO = 2.5;
 
 /** Un grupo de monstruos en el mapa: se ve y choca como el primero, y se lucha contra todos. */
 interface MonstruoMapa extends Caja {
@@ -88,6 +99,11 @@ export class EscenaMapa implements Escena {
   private portalUsado = false;
   /** Segundos que quedan sin poder empezar otro combate. */
   private invulnerable = 0;
+  /** La fuente de la sala de descanso restaura una sola vez por zona. */
+  private fuenteUsada = false;
+  /** Aviso en pantalla (la fuente…) y segundos que le quedan. */
+  private aviso = '';
+  private tiempoAviso = 0;
   private readonly hud: TextosHud = { cabecera: '', pv: '', pm: '' };
   /** Valores con los que se escribieron los textos del HUD, para rehacerlos solo si cambian. */
   private hudFirma = -1;
@@ -132,6 +148,19 @@ export class EscenaMapa implements Escena {
       return;
     }
     actualizarHeroina(h, acciones, dt, this.montada.sala, tam);
+    this.tiempoAviso = Math.max(0, this.tiempoAviso - dt);
+    if (
+      !this.fuenteUsada &&
+      this.actual.tipo === 'descanso' &&
+      objetoAlAlcance(this.montada.sala, 'fuente', h.cuerpo, tam, ALCANCE)
+    ) {
+      const l = this.o.luchadora;
+      l.pv = l.pvMax;
+      l.pm = l.pmMax;
+      this.fuenteUsada = true;
+      this.aviso = 'La fuente te restaura los PV y los PM';
+      this.tiempoAviso = DURACION_AVISO;
+    }
     if (this.invulnerable > 0) {
       this.invulnerable = Math.max(0, this.invulnerable - dt);
     } else {
@@ -183,6 +212,7 @@ export class EscenaMapa implements Escena {
     }
     this.refrescarHud();
     dibujarHud(ctx, this.o.luchadora, this.hud);
+    if (this.tiempoAviso > 0) dibujarAviso(ctx, this.aviso);
     // El minimapa va encima del fundido: es interfaz, no parte de la sala.
     ctx.drawImage(this.minimapa, this.vineta.width - this.minimapa.width - MARGEN_HUD, MARGEN_HUD);
   }

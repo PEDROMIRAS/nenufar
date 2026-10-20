@@ -1,4 +1,5 @@
-import type { Sala, Salida } from './sala';
+import type { Cuerpo } from './movimiento';
+import type { ObjetoSala, Sala, Salida } from './sala';
 import { E, N, O, S, type SalaZona, type Zona } from './zona';
 
 const OPUESTO: Record<number, number> = { [N]: S, [E]: O, [S]: N, [O]: E };
@@ -56,4 +57,28 @@ export function portalPisado(sala: Sala, tam: number, x: number, y: number): boo
     if (o.inf.name === 'portal' && o.x === col && o.y === fila) return true;
   }
   return false;
+}
+
+/**
+ * Objeto llamado `nombre` cuya casilla toca la caja de la heroína ampliada `margen` píxeles por cada
+ * lado (para usar algo sólido, como la fuente, basta con pegarse a él).
+ */
+export function objetoAlAlcance(
+  sala: Sala,
+  nombre: string,
+  cuerpo: Cuerpo,
+  tam: number,
+  margen: number,
+): ObjetoSala | null {
+  const izq = cuerpo.x - cuerpo.ancho / 2 - margen;
+  const der = cuerpo.x + cuerpo.ancho / 2 + margen;
+  const arriba = cuerpo.y - cuerpo.alto - margen;
+  const abajo = cuerpo.y + margen;
+  for (const o of sala.objetos) {
+    if (o.inf.name !== nombre) continue;
+    const x0 = o.x * tam;
+    const y0 = o.y * tam;
+    if (izq < x0 + tam && der > x0 && arriba < y0 + tam && abajo > y0) return o;
+  }
+  return null;
 }

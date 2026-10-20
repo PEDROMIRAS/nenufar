@@ -29,6 +29,7 @@ const DURACION: Record<Evento['tipo'], number> = {
   aparece: 0.5,
   huida: 0.7,
   muerte: 0.6,
+  recupera: 0.8,
   experiencia: 0.8,
   nivel: 1.2,
   fin: 0,
@@ -203,6 +204,14 @@ export class EscenaCombate implements Escena {
         this.estadosVistos.delete(e.objetivo);
         this.registrar(`${e.objetivo.nombre} cae.`);
         break;
+      case 'recupera': {
+        const h = this.combate.heroina;
+        v.pv.set(h, h.pv);
+        v.textoPv.set(h, textoVida(h.pv, h.pvMax));
+        v.textoPm = textoVida(h.pm, h.pmMax);
+        this.registrar(`Recuperas ${e.pv} PV y ${e.pm} PM`);
+        break;
+      }
       case 'experiencia':
         this.registrar(`+${e.cantidad} PX`);
         break;

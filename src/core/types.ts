@@ -154,6 +154,8 @@ export interface ReglasCombate {
   huida: { base: number; porIntento: number };
   /** Segundos sin poder empezar otro combate en el mapa tras huir o vencer. */
   invulnerabilidadTrasCombate: number;
+  /** Fracción de PV y PM máximos que recupera la heroína al ganar un combate. */
+  recuperacionTrasVictoria: number;
   experiencia: ReglasProgresion;
   estados: Record<string, EstadoJson>;
 }

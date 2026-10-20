@@ -148,9 +148,13 @@ describe('final', () => {
     avanzar(c);
     let eventos = actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
     while (!c.resultado) eventos = actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
-    // Tras la muerte llega la experiencia del Limo; con 6 PX todavía no se sube de nivel.
-    expect(eventos.slice(-3)).toEqual([
+    // Tras la muerte: recupera el 30 % de lo que le falta (sin pasarse) y cobra la experiencia del
+    // Limo; con 6 PX todavía no sube de nivel.
+    const herida =
+      42 - (c.heroina.pv - (eventos.find((e) => e.tipo === 'recupera') as { pv: number }).pv);
+    expect(eventos.slice(-4)).toEqual([
       { tipo: 'muerte', objetivo: c.enemigos[0] },
+      { tipo: 'recupera', pv: Math.min(herida, Math.round(42 * 0.3)), pm: 0 },
       { tipo: 'experiencia', cantidad: 6 },
       { tipo: 'fin', resultado: 'victoria' },
     ]);
