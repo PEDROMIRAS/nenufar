@@ -28,7 +28,8 @@ export function crearTeclado(): FuenteEntrada {
   const nuevas = new Set<string>();
 
   addEventListener('keydown', (e) => {
-    if (!PROPIAS.has(e.code)) return;
+    // Lo que se escribe en un campo de texto (el nombre de la rana) no es para el juego.
+    if (!PROPIAS.has(e.code) || e.target instanceof HTMLInputElement) return;
     e.preventDefault(); // que flechas y espacio no desplacen la página
     sostenidas.add(e.code);
     if (!e.repeat) nuevas.add(e.code);

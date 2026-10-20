@@ -30,6 +30,7 @@ import plantillasRuinas from './data/salas/plantillas_ruinas.json';
 import zonas from './data/zonas.json';
 import { EscenaCombate } from './escenas/combate';
 import { EscenaDificultad } from './escenas/dificultad';
+import { EscenaNombre } from './escenas/nombre';
 import { EscenaEquipo } from './escenas/equipo';
 import { EscenaMensaje } from './escenas/mensaje';
 import { EscenaMapa } from './escenas/mapa';
@@ -43,6 +44,8 @@ import { crearTeclado } from './input/teclado';
 import { crearToque } from './input/toque';
 import { iniciarBucle } from './render/bucle';
 import { prepararPantalla } from './render/pantalla';
+import { crearCampoNombre } from './render/campoNombre';
+import { LARGO_NOMBRE, RECT_CAMPO } from './render/nombre';
 import { prepararSonido } from './render/sonido';
 import { recolorear } from './render/tinte';
 import { cargarRecords, guardarRecords } from './render/almacen';
@@ -117,24 +120,43 @@ async function iniciar(): Promise<void> {
     ...Object.values(HEROES).flatMap((h) => (h.combate.proyectil ? [h.combate.proyectil] : [])),
     'efectos',
   ]);
-  const seleccion: EscenaSeleccion = new EscenaSeleccion(opciones, ({ heroe, sprite }) =>
-    pila.cambiar(
-      new EscenaDificultad(
-        Object.values(DIFICULTADES),
-        `Con la ${heroe.nombre}`,
-        (dificultad) => empezar(heroe, sprite, dificultad),
-        () => pila.cambiar(seleccion),
-      ),
-    ),
-  );
-  /** Crea la partida con la heroína y la dificultad elegidas y carga la primera zona. */
-  const empezar = (heroe: HeroeJson, sprite: Sprite, dificultad: DificultadJson): void => {
+  // Elegir rana → ponerle nombre → dificultad; Escape vuelve al paso anterior.
+  const campoNombre = crearCampoNombre(canvas, RECT_CAMPO, LARGO_NOMBRE);
+  const seleccion: EscenaSeleccion = new EscenaSeleccion(opciones, ({ heroe, sprite }) => {
+    const pedirNombre: EscenaNombre = new EscenaNombre(
+      heroe,
+      sprite,
+      campoNombre,
+      (nombre) =>
+        pila.cambiar(
+          new EscenaDificultad(
+            Object.values(DIFICULTADES),
+            nombre === heroe.nombre
+              ? `Con la ${heroe.nombre}`
+              : `Con ${nombre}, la ${heroe.nombre.toLowerCase()}`,
+            (dificultad) => empezar(heroe, sprite, dificultad, nombre),
+            () => pila.cambiar(pedirNombre),
+          ),
+        ),
+      () => pila.cambiar(seleccion),
+    );
+    pila.cambiar(pedirNombre);
+  });
+  /** Crea la partida con la heroína, su nombre y la dificultad elegidas y carga la primera zona. */
+  const empezar = (
+    heroe: HeroeJson,
+    sprite: Sprite,
+    dificultad: DificultadJson,
+    nombre: string,
+  ): void => {
+    const luchadora = luchadorDeHeroe(heroe);
+    luchadora.nombre = nombre;
     const partida: Partida = {
       semilla,
       pila,
       heroina: crearHeroina(heroe, 0, 0), // cada escena la coloca en su sala de inicio
       // La misma luchadora en todos los combates: la vida perdida se arrastra.
-      luchadora: luchadorDeHeroe(heroe),
+      luchadora,
       inventario: crearInventario(),
       sprite,
       imagenBase: sprite.imagen as HTMLImageElement, // recién cargada: aún es la original
