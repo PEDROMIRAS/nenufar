@@ -77,6 +77,8 @@ export interface MonstruoJson {
   /** Golpe fuerte que anuncia un turno antes con la acción "cargar". */
   cargado?: { poder: number; aviso: string };
   jefe: boolean;
+  /** Caja de colisión en el mapa, anclada en los pies. */
+  caja: { ancho: number; alto: number };
   /** Color del rectángulo que lo representa hasta que tenga sprite (hito 6). */
   color: string;
 }
@@ -90,4 +92,6 @@ export interface ReglasCombate {
   defensaMagica: number;
   defender: { factorDanio: number; pm: number };
   huida: { base: number; porIntento: number };
+  /** Segundos sin poder empezar otro combate en el mapa tras huir o vencer. */
+  invulnerabilidadTrasCombate: number;
 }

@@ -1,7 +1,9 @@
 import type { Acciones } from '../core/acciones';
+import type { Resultado } from '../core/combate';
 import { crearAzar } from '../core/azar';
 import { actualizarHeroina, type Heroina } from '../core/heroina';
 import { opuesto, portalPisado, posicionEntrada, salaVecina, salidaPisada } from '../core/mapa';
+import { colocarMonstruos, seTocan, type Caja } from '../core/monstruos';
 import { buscarInicio } from '../core/movimiento';
 import {
   aplicarPuertas,
@@ -11,10 +13,11 @@ import {
   type Salida,
   type Tile,
 } from '../core/sala';
-import type { PlantillasJson } from '../core/types';
+import type { MonstruoJson, PlantillasJson } from '../core/types';
 import type { SalaZona, Zona } from '../core/zona';
 import { dibujarHeroina } from '../render/heroina';
 import { pintarMinimapa } from '../render/minimapa';
+import { dibujarMonstruoMapa } from '../render/monstruo';
 import type { Sprite } from '../render/recursos';
 import { dibujarObjetos, pintarFondo, pintarVineta } from '../render/sala';
 import type { Escena } from './escena';
@@ -22,9 +25,15 @@ import type { Escena } from './escena';
 /** Separación del minimapa respecto al borde de la pantalla, en píxeles lógicos. */
 const MARGEN_HUD = 6;
 
+interface MonstruoMapa extends Caja {
+  datos: MonstruoJson;
+  vivo: boolean;
+}
+
 interface SalaMontada {
   sala: Sala;
   fondo: HTMLCanvasElement;
+  monstruos: MonstruoMapa[];
 }
 
 export interface OpcionesMapa {
@@ -43,6 +52,14 @@ export interface OpcionesMapa {
   alUsarPortal: (() => void) | null;
   /** Empieza saliendo de negro, como segunda mitad de un fundido (al llegar desde otra zona). */
   entrarDesdeNegro: boolean;
+  /** Tipos de monstruo de la zona; cuántos hay por sala de combate y a cuántas casillas de las entradas. */
+  monstruos: readonly MonstruoJson[];
+  monstruosPorSala: number;
+  distanciaMonstruos: number;
+  /** Segundos sin poder empezar otro combate tras huir o vencer. */
+  invulnerabilidad: number;
+  /** Abre el combate contra `monstruo` y avisa de su resultado al terminar (salvo derrota). */
+  iniciarCombate: (monstruo: MonstruoJson, alTerminar: (r: Resultado) => void) => void;
 }
 
 /** Exploración de una zona: la sala actual, la heroína y el paso de una sala a otra o a la zona siguiente. */
@@ -59,15 +76,18 @@ export class EscenaMapa implements Escena {
   private fundido = 0;
   private pendiente: number | 'portal' | null = null;
   private portalUsado = false;
+  /** Segundos que quedan sin poder empezar otro combate. */
+  private invulnerable = 0;
 
   constructor(private readonly o: OpcionesMapa) {
     const inicio = o.zona.salas.find((s) => s.tipo === 'inicio');
     if (!inicio) throw new Error('La zona no tiene sala de inicio');
+    const referencia = o.plantillas.plantillas[0]?.mapa ?? [];
+    this.salidas = salidas(referencia[0]?.length ?? 0, referencia.length);
     this.actual = inicio;
     this.montada = this.montar(inicio);
     this.minimapa = this.visitar(inicio);
     const { sala } = this.montada;
-    this.salidas = salidas(sala.ancho, sala.alto);
     this.vineta = pintarVineta(this.montada.fondo.width, this.montada.fondo.height);
     const c = o.heroina.cuerpo;
     this.colocar(buscarInicio(sala, o.tam, c.ancho, c.alto));
@@ -99,6 +119,16 @@ export class EscenaMapa implements Escena {
       return;
     }
     actualizarHeroina(h, acciones, dt, this.montada.sala, tam);
+    if (this.invulnerable > 0) {
+      this.invulnerable = Math.max(0, this.invulnerable - dt);
+    } else {
+      for (const m of this.montada.monstruos) {
+        if (m.vivo && seTocan(h.cuerpo, m)) {
+          this.luchar(m);
+          return;
+        }
+      }
+    }
     const salida = salidaPisada(this.salidas, this.actual.puertas, tam, h.cuerpo.x, h.cuerpo.y);
     if (salida) {
       this.pendiente = salida.lado;
@@ -118,8 +148,16 @@ export class EscenaMapa implements Escena {
     // Los objetos con la base por encima de los pies quedan detrás de la heroína; el resto, delante.
     const pies = Math.round(h.yAnterior + (h.cuerpo.y - h.yAnterior) * alpha);
     ctx.drawImage(fondo, 0, 0);
+    const { monstruos } = this.montada;
     dibujarObjetos(ctx, sala, imagenes, tam, this.tiempo, -Infinity, pies);
-    dibujarHeroina(ctx, sprite, h, alpha);
+    for (const m of monstruos) {
+      if (m.vivo && m.y <= pies) dibujarMonstruoMapa(ctx, m, m.datos.color, this.tiempo);
+    }
+    // Parpadea mientras no se puede empezar otro combate.
+    if (Math.floor(this.invulnerable * 10) % 2 === 0) dibujarHeroina(ctx, sprite, h, alpha);
+    for (const m of monstruos) {
+      if (m.vivo && m.y > pies) dibujarMonstruoMapa(ctx, m, m.datos.color, this.tiempo);
+    }
     dibujarObjetos(ctx, sala, imagenes, tam, this.tiempo, pies, Infinity);
     ctx.drawImage(this.vineta, 0, 0);
     if (this.fundido > 0) {
@@ -132,6 +170,13 @@ export class EscenaMapa implements Escena {
     }
     // El minimapa va encima del fundido: es interfaz, no parte de la sala.
     ctx.drawImage(this.minimapa, this.vineta.width - this.minimapa.width - MARGEN_HUD, MARGEN_HUD);
+  }
+
+  private luchar(m: MonstruoMapa): void {
+    this.o.iniciarCombate(m.datos, (resultado) => {
+      if (resultado === 'victoria') m.vivo = false;
+      this.invulnerable = this.o.invulnerabilidad;
+    });
   }
 
   private cruzar(lado: number): void {
@@ -173,8 +218,32 @@ export class EscenaMapa implements Escena {
       catalogo,
       azar,
     );
-    const montada = { sala, fondo: pintarFondo(sala, imagenes, tam) };
+    const montada = {
+      sala,
+      fondo: pintarFondo(sala, imagenes, tam),
+      monstruos: this.poblar(s, sala, azar),
+    };
     this.montadas.set(s, montada);
     return montada;
+  }
+
+  /** Monstruos de una sala de combate, en casillas libres lejos de las entradas. */
+  private poblar(s: SalaZona, sala: Sala, azar: () => number): MonstruoMapa[] {
+    const { monstruos, monstruosPorSala, distanciaMonstruos, tam } = this.o;
+    if (s.tipo !== 'combate' || monstruos.length === 0) return [];
+    return colocarMonstruos(sala, this.salidas, monstruosPorSala, distanciaMonstruos, azar).map(
+      ([c, f]) => {
+        const datos = monstruos[Math.floor(azar() * monstruos.length)]!;
+        const { ancho, alto } = datos.caja;
+        return {
+          x: c * tam + tam / 2,
+          y: f * tam + (tam + alto) / 2,
+          ancho,
+          alto,
+          datos,
+          vivo: true,
+        };
+      },
+    );
   }
 }

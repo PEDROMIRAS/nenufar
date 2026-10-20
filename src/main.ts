@@ -1,20 +1,26 @@
-import type { Acciones } from './core/acciones';
+import { crearAcciones } from './core/acciones';
+import { crearAzar } from './core/azar';
+import { crearCombate, luchadorDeHeroe, luchadorDeMonstruo, type Luchador } from './core/combate';
 import { crearHeroina, type Heroina } from './core/heroina';
 import { crearCatalogo } from './core/sala';
-import type { HeroeJson, PlantillasJson } from './core/types';
+import type { HeroeJson, MonstruoJson, PlantillasJson, ReglasCombate } from './core/types';
 import { generarZona } from './core/zona';
+import reglasCombate from './data/combate.json';
 import controles from './data/controles.json';
 import heroes from './data/heroes.json';
+import monstruos from './data/monstruos.json';
 import plantillasBosque from './data/salas/plantillas_bosque.json';
 import plantillasCripta from './data/salas/plantillas_cripta.json';
 import plantillasRuinas from './data/salas/plantillas_ruinas.json';
 import zonas from './data/zonas.json';
-import type { Escena } from './escenas/escena';
+import { EscenaCombate } from './escenas/combate';
+import { EscenaFin } from './escenas/fin';
 import { EscenaMapa } from './escenas/mapa';
 import { PilaEscenas } from './escenas/pila';
 import { leerFuentes } from './input/fuente';
 import { crearJoystick } from './input/joystick';
 import { crearTeclado } from './input/teclado';
+import { crearToque } from './input/toque';
 import { iniciarBucle } from './render/bucle';
 import { prepararPantalla } from './render/pantalla';
 import { cargarSprite, cargarTilesets, type Sprite } from './render/recursos';
@@ -27,15 +33,26 @@ const PLANTILLAS: Record<NombreZona, PlantillasJson> = {
   ruinas: plantillasRuinas,
   cripta: plantillasCripta,
 };
+const MONSTRUOS = monstruos as Record<string, MonstruoJson>;
+const REGLAS: ReglasCombate = reglasCombate;
+
+/** Lo que comparten todas las zonas de una partida. */
+interface Partida {
+  semilla: number;
+  pila: PilaEscenas;
+  heroina: Heroina;
+  luchadora: Luchador;
+  sprite: Sprite;
+  combates: number;
+}
 
 async function iniciar(): Promise<void> {
   const canvas = document.querySelector<HTMLCanvasElement>('#juego');
   if (!canvas) throw new Error('Falta el canvas #juego');
   const ctx = prepararPantalla(canvas);
 
-  // shortcut: heroína fija (ronin); la pantalla de selección llega en el hito 5.
+  // shortcut: heroína fija (ronin); la pantalla de selección llega al final del hito 3.
   const heroe: HeroeJson = heroes.ronin;
-  const sprite = await cargarSprite(heroe.sprite);
   // ?semilla=N repite una partida; sin ella, cada carga es distinta.
   const pedida = Number(new URLSearchParams(location.search).get('semilla'));
   const semilla =
@@ -43,46 +60,46 @@ async function iniciar(): Promise<void> {
   console.info('Semilla de la partida:', semilla);
 
   // El joystick escucha en todo el body: también responde en las franjas negras fuera del canvas.
-  const fuentes = [crearTeclado(), crearJoystick(document.body, controles.joystick)];
-  const acciones: Acciones = {
-    moverX: 0,
-    moverY: 0,
-    confirmar: false,
-    cancelar: false,
-    menu: false,
+  const fuentes = [
+    crearTeclado(),
+    crearJoystick(document.body, controles.joystick),
+    crearToque(canvas),
+  ];
+  const acciones = crearAcciones();
+  const partida: Partida = {
+    semilla,
+    pila: new PilaEscenas(),
+    heroina: crearHeroina(heroe, 0, 0), // cada escena la coloca en su sala de inicio
+    // La misma luchadora en todos los combates: la vida perdida se arrastra.
+    luchadora: luchadorDeHeroe(heroe),
+    sprite: await cargarSprite(heroe.sprite),
+    combates: 0,
   };
-  const heroina = crearHeroina(heroe, 0, 0); // cada escena la coloca en su sala de inicio
-
-  const pila = new PilaEscenas();
-  pila.apilar(
-    await crearZona(0, semilla, heroina, sprite, false, (siguiente) => pila.cambiar(siguiente)),
-  );
+  partida.pila.apilar(await crearZona(partida, 0, false));
 
   iniciarBucle(
     (dt) => {
       leerFuentes(fuentes, acciones);
-      pila.update(dt, acciones);
+      partida.pila.update(dt, acciones);
     },
-    (alpha) => pila.draw(ctx, alpha),
+    (alpha) => partida.pila.draw(ctx, alpha),
   );
 }
 
-/** Carga la zona `indice` y crea su escena; su portal carga la siguiente y la entrega a `cambiar`. */
+/** Carga la zona `indice` y crea su escena; su portal carga la siguiente y la pone en su lugar. */
 async function crearZona(
+  partida: Partida,
   indice: number,
-  semilla: number,
-  heroina: Heroina,
-  sprite: Sprite,
   entrarDesdeNegro: boolean,
-  cambiar: (escena: Escena) => void,
 ): Promise<EscenaMapa> {
   const nombre = ORDEN[indice];
   if (!nombre) throw new Error(`No hay zona número ${indice}`);
   const { tilesets, imagenes } = await cargarTilesets(nombre);
+  const datos = zonas.zonas[nombre];
   // Cada zona con su propia semilla, derivada de la de la partida.
   const zona = generarZona(
-    { ...zonas.generacion, salas: zonas.zonas[nombre].salas },
-    semilla + indice * 7919,
+    { ...zonas.generacion, salas: datos.salas },
+    partida.semilla + indice * 7919,
   );
   console.info(`Zona ${nombre}, semilla ${zona.semilla}`);
   const hayOtra = indice + 1 < ORDEN.length;
@@ -92,19 +109,40 @@ async function crearZona(
     catalogo: crearCatalogo(tilesets),
     imagenes,
     tam: tilesets[0]?.tileSize ?? 32,
-    heroina,
-    sprite,
+    heroina: partida.heroina,
+    sprite: partida.sprite,
     duracionFundido: zonas.transicionSalas,
     rejilla: zonas.generacion.rejilla,
     // shortcut: el portal de la última zona no lleva a nada hasta que exista el jefe final.
     alUsarPortal: hayOtra
       ? () => {
-          crearZona(indice + 1, semilla, heroina, sprite, true, cambiar)
-            .then(cambiar)
+          crearZona(partida, indice + 1, true)
+            .then((siguiente) => partida.pila.cambiar(siguiente))
             .catch(mostrarError);
         }
       : null,
     entrarDesdeNegro,
+    monstruos: datos.monstruos.map((m) => {
+      const monstruo = MONSTRUOS[m];
+      if (!monstruo) throw new Error(`Monstruo desconocido en zonas.json: ${m}`);
+      return monstruo;
+    }),
+    monstruosPorSala: zonas.monstruos.porSala,
+    distanciaMonstruos: zonas.monstruos.distanciaEntradas,
+    invulnerabilidad: REGLAS.invulnerabilidadTrasCombate,
+    iniciarCombate: (monstruo, alTerminar) => {
+      const { pila, luchadora } = partida;
+      const azar = crearAzar(partida.semilla * 31 + ++partida.combates);
+      const combate = crearCombate(luchadora, [luchadorDeMonstruo(monstruo)], REGLAS, azar);
+      pila.apilar(
+        new EscenaCombate(combate, partida.sprite, (resultado) => {
+          pila.desapilar();
+          if (resultado !== 'derrota') alTerminar(resultado);
+          // Si mueres, empiezas otra partida con un mapa nuevo (sin la semilla de la URL).
+          else pila.cambiar(new EscenaFin(() => location.assign(location.pathname)));
+        }),
+      );
+    },
   });
 }
 

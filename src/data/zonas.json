@@ -3,9 +3,13 @@
   "generacion": {
     "rejilla": 7
   },
+  "monstruos": {
+    "porSala": 1,
+    "distanciaEntradas": 3
+  },
   "zonas": {
-    "bosque": { "salas": 8 },
-    "ruinas": { "salas": 11 },
-    "cripta": { "salas": 14 }
+    "bosque": { "salas": 8, "monstruos": ["limo"] },
+    "ruinas": { "salas": 11, "monstruos": ["limo"] },
+    "cripta": { "salas": 14, "monstruos": ["limo"] }
   }
 }

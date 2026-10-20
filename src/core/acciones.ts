@@ -6,4 +6,20 @@ export interface Acciones {
   confirmar: boolean;
   cancelar: boolean;
   menu: boolean;
+  /** Dónde se tocó o se hizo clic en este paso, en píxeles lógicos; -1 si no hubo toque. */
+  toqueX: number;
+  toqueY: number;
+}
+
+/** Acciones en reposo: nada pulsado ni tocado. */
+export function crearAcciones(): Acciones {
+  return {
+    moverX: 0,
+    moverY: 0,
+    confirmar: false,
+    cancelar: false,
+    menu: false,
+    toqueX: -1,
+    toqueY: -1,
+  };
 }

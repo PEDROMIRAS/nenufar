@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
-import type { Acciones } from '../src/core/acciones';
+import { crearAcciones } from '../src/core/acciones';
 import type { Escena } from '../src/escenas/escena';
 import { PilaEscenas } from '../src/escenas/pila';
 
-const acciones: Acciones = { moverX: 0, moverY: 0, confirmar: false, cancelar: false, menu: false };
+const acciones = crearAcciones();
 const registro: string[] = [];
 const escena = (nombre: string): Escena => ({
   enter: () => registro.push(`${nombre}.enter`),

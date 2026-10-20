@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'vitest';
-import type { Acciones } from '../src/core/acciones';
+import { crearAcciones } from '../src/core/acciones';
 import { fijarDireccion } from '../src/core/direccion';
 
 function mover(x: number, y: number, zonaMuerta = 0): [number, number] {
-  const a: Acciones = { moverX: 0, moverY: 0, confirmar: false, cancelar: false, menu: false };
+  const a = crearAcciones();
   fijarDireccion(a, x, y, zonaMuerta);
   return [a.moverX, a.moverY];
 }

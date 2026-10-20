@@ -4,5 +4,6 @@
   "defensaFisica": 0.5,
   "defensaMagica": 0.25,
   "defender": { "factorDanio": 0.5, "pm": 2 },
-  "huida": { "base": 0.6, "porIntento": 0.1 }
+  "huida": { "base": 0.6, "porIntento": 0.1 },
+  "invulnerabilidadTrasCombate": 1.5
 }

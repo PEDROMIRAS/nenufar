@@ -1,16 +1,14 @@
 import { describe, expect, test } from 'vitest';
-import type { Acciones } from '../src/core/acciones';
+import { crearAcciones, type Acciones } from '../src/core/acciones';
 import { actualizarHeroina, crearHeroina } from '../src/core/heroina';
 import heroes from '../src/data/heroes.json';
 
 const datos = { ...heroes.ronin, velocidad: 60 };
 const libre = { ancho: 10, alto: 10, solido: new Array<boolean>(100).fill(false) };
 const acciones = (moverX: number, moverY: number): Acciones => ({
+  ...crearAcciones(),
   moverX,
   moverY,
-  confirmar: false,
-  cancelar: false,
-  menu: false,
 });
 
 describe('actualizarHeroina', () => {

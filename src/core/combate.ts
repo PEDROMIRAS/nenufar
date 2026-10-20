@@ -88,6 +88,9 @@ export function crearCombate(
   reglas: ReglasCombate,
   azar: () => number,
 ): Combate {
+  // La heroína llega de combates anteriores: no arrastra su defensa.
+  heroina.defendiendo = false;
+  heroina.cargando = false;
   return {
     heroina,
     enemigos,
