@@ -66,6 +66,8 @@ export interface HeroeJson {
   /** Píxeles que se la empuja de lado para que no se enganche en la esquina de un hueco. */
   margenEsquina: number;
   estadisticas: Estadisticas;
+  /** Lo que suma cada estadística al subir de nivel. */
+  porNivel: Estadisticas;
 }
 
 /** Un monstruo de `src/data/monstruos.json`. */
@@ -77,6 +79,8 @@ export interface MonstruoJson {
   /** Golpe fuerte que anuncia un turno antes con la acción "cargar". */
   cargado?: { poder: number; aviso: string };
   jefe: boolean;
+  /** Experiencia que da al vencerlo. */
+  experiencia: number;
   /** Caja de colisión en el mapa, anclada en los pies. */
   caja: { ancho: number; alto: number };
   /** Color del rectángulo que lo representa hasta que tenga sprite (hito 6). */
@@ -94,4 +98,13 @@ export interface ReglasCombate {
   huida: { base: number; porIntento: number };
   /** Segundos sin poder empezar otro combate en el mapa tras huir o vencer. */
   invulnerabilidadTrasCombate: number;
+  experiencia: ReglasProgresion;
+}
+
+/** Subida de nivel: hacen falta `porNivel` × n PX para pasar del nivel n al n + 1. */
+export interface ReglasProgresion {
+  porNivel: number;
+  nivelMaximo: number;
+  /** Fracción de PV y PM máximos que se recupera al subir. */
+  restaurarAlSubir: number;
 }

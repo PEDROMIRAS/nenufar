@@ -142,6 +142,8 @@ async function crearZona(
     monstruosPorSala: zonas.monstruos.porSala,
     distanciaMonstruos: zonas.monstruos.distanciaEntradas,
     invulnerabilidad: REGLAS.invulnerabilidadTrasCombate,
+    luchadora: partida.luchadora,
+    nombreZona: datos.nombre,
     iniciarCombate: (monstruo, alTerminar) => {
       const { pila, luchadora } = partida;
       const azar = crearAzar(partida.semilla * 31 + ++partida.combates);

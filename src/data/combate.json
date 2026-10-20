@@ -5,5 +5,6 @@
   "defensaMagica": 0.25,
   "defender": { "factorDanio": 0.5, "pm": 2 },
   "huida": { "base": 0.6, "porIntento": 0.1 },
-  "invulnerabilidadTrasCombate": 1.5
+  "invulnerabilidadTrasCombate": 1.5,
+  "experiencia": { "porNivel": 20, "nivelMaximo": 10, "restaurarAlSubir": 0.3 }
 }

@@ -5,7 +5,8 @@
     "velocidad": 96,
     "caja": { "ancho": 14, "alto": 8 },
     "margenEsquina": 8,
-    "estadisticas": { "pv": 42, "pm": 8, "ataque": 9, "magia": 3, "defensa": 6, "velocidad": 6 }
+    "estadisticas": { "pv": 42, "pm": 8, "ataque": 9, "magia": 3, "defensa": 6, "velocidad": 6 },
+    "porNivel": { "pv": 8, "pm": 1, "ataque": 2, "magia": 1, "defensa": 1, "velocidad": 1 }
   },
   "maga": {
     "nombre": "Rana maga",
@@ -13,6 +14,7 @@
     "velocidad": 96,
     "caja": { "ancho": 14, "alto": 8 },
     "margenEsquina": 8,
-    "estadisticas": { "pv": 30, "pm": 18, "ataque": 5, "magia": 10, "defensa": 4, "velocidad": 7 }
+    "estadisticas": { "pv": 30, "pm": 18, "ataque": 5, "magia": 10, "defensa": 4, "velocidad": 7 },
+    "porNivel": { "pv": 6, "pm": 3, "ataque": 1, "magia": 3, "defensa": 1, "velocidad": 1 }
   }
 }

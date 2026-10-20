@@ -112,7 +112,10 @@ function dibujarOrden(ctx: CanvasRenderingContext2D, c: Combate): void {
   }
 }
 
-function barra(
+/** Colores de las barras de vida y maná, compartidos con el HUD del mapa. */
+export const COLOR_BARRA = { pv: COLOR.pv, pm: COLOR.pm };
+
+export function barra(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,

@@ -1,5 +1,5 @@
 import type { Acciones } from '../core/acciones';
-import type { Resultado } from '../core/combate';
+import type { Luchador, Resultado } from '../core/combate';
 import { crearAzar } from '../core/azar';
 import { actualizarHeroina, type Heroina } from '../core/heroina';
 import { opuesto, portalPisado, posicionEntrada, salaVecina, salidaPisada } from '../core/mapa';
@@ -16,6 +16,7 @@ import {
 import type { MonstruoJson, PlantillasJson } from '../core/types';
 import type { SalaZona, Zona } from '../core/zona';
 import { dibujarHeroina } from '../render/heroina';
+import { dibujarHud, type TextosHud } from '../render/hud';
 import { pintarMinimapa } from '../render/minimapa';
 import { dibujarMonstruoMapa } from '../render/monstruo';
 import type { Sprite } from '../render/recursos';
@@ -60,6 +61,9 @@ export interface OpcionesMapa {
   invulnerabilidad: number;
   /** Abre el combate contra `monstruo` y avisa de su resultado al terminar (salvo derrota). */
   iniciarCombate: (monstruo: MonstruoJson, alTerminar: (r: Resultado) => void) => void;
+  /** Estadísticas de combate de la heroína y nombre de la zona, para el HUD. */
+  luchadora: Luchador;
+  nombreZona: string;
 }
 
 /** Exploración de una zona: la sala actual, la heroína y el paso de una sala a otra o a la zona siguiente. */
@@ -78,6 +82,9 @@ export class EscenaMapa implements Escena {
   private portalUsado = false;
   /** Segundos que quedan sin poder empezar otro combate. */
   private invulnerable = 0;
+  private readonly hud: TextosHud = { cabecera: '', pv: '', pm: '' };
+  /** Valores con los que se escribieron los textos del HUD, para rehacerlos solo si cambian. */
+  private hudFirma = -1;
 
   constructor(private readonly o: OpcionesMapa) {
     const inicio = o.zona.salas.find((s) => s.tipo === 'inicio');
@@ -168,8 +175,21 @@ export class EscenaMapa implements Escena {
       ctx.fillRect(0, 0, this.vineta.width, this.vineta.height);
       ctx.globalAlpha = 1;
     }
+    this.refrescarHud();
+    dibujarHud(ctx, this.o.luchadora, this.hud);
     // El minimapa va encima del fundido: es interfaz, no parte de la sala.
     ctx.drawImage(this.minimapa, this.vineta.width - this.minimapa.width - MARGEN_HUD, MARGEN_HUD);
+  }
+
+  private refrescarHud(): void {
+    const l = this.o.luchadora;
+    // Firma numérica de lo que se muestra: si no cambia, los textos siguen valiendo.
+    const firma = ((l.nivel * 1000 + l.pv) * 1000 + l.pvMax) * 1000000 + l.pm * 1000 + l.pmMax;
+    if (firma === this.hudFirma) return;
+    this.hudFirma = firma;
+    this.hud.cabecera = `${this.o.nombreZona} · Nv ${l.nivel}`;
+    this.hud.pv = `${l.pv}/${l.pvMax}`;
+    this.hud.pm = `${l.pm}/${l.pmMax}`;
   }
 
   private luchar(m: MonstruoMapa): void {

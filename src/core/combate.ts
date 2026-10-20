@@ -1,4 +1,5 @@
-import type { HeroeJson, MonstruoJson, ReglasCombate } from './types';
+import { ganarExperiencia } from './progresion';
+import type { Estadisticas, HeroeJson, MonstruoJson, ReglasCombate } from './types';
 
 export interface Luchador {
   nombre: string;
@@ -11,10 +12,14 @@ export interface Luchador {
   defensa: number;
   velocidad: number;
   esHeroina: boolean;
+  nivel: number;
+  /** Experiencia acumulada dentro del nivel actual. */
+  experiencia: number;
   /** Recibe menos daño hasta el comienzo de su próximo turno. */
   defendiendo: boolean;
   /** Anunció un golpe cargado: lo descarga en su próximo turno. */
   cargando: boolean;
+  heroe: HeroeJson | null;
   monstruo: MonstruoJson | null;
 }
 
@@ -35,6 +40,8 @@ export type Evento =
   | { tipo: 'carga'; actor: Luchador; aviso: string }
   | { tipo: 'huida'; exito: boolean }
   | { tipo: 'muerte'; objetivo: Luchador }
+  | { tipo: 'experiencia'; cantidad: number }
+  | { tipo: 'nivel'; nivel: number }
   | { tipo: 'fin'; resultado: Resultado };
 
 export type AccionHeroina =
@@ -56,8 +63,8 @@ export interface Combate {
 
 function luchador(
   nombre: string,
-  e: HeroeJson['estadisticas'],
-  esHeroina: boolean,
+  e: Estadisticas,
+  heroe: HeroeJson | null,
   monstruo: MonstruoJson | null,
 ): Luchador {
   return {
@@ -70,17 +77,20 @@ function luchador(
     magia: e.magia,
     defensa: e.defensa,
     velocidad: e.velocidad,
-    esHeroina,
+    esHeroina: heroe !== null,
+    nivel: 1,
+    experiencia: 0,
     defendiendo: false,
     cargando: false,
+    heroe,
     monstruo,
   };
 }
 
 export const luchadorDeHeroe = (h: HeroeJson): Luchador =>
-  luchador(h.nombre, h.estadisticas, true, null);
+  luchador(h.nombre, h.estadisticas, h, null);
 export const luchadorDeMonstruo = (m: MonstruoJson): Luchador =>
-  luchador(m.nombre, m.estadisticas, false, m);
+  luchador(m.nombre, m.estadisticas, null, m);
 
 export function crearCombate(
   heroina: Luchador,
@@ -226,6 +236,13 @@ function golpear(
 function terminar(c: Combate, resultado: Resultado, eventos: Evento[]): void {
   c.resultado = resultado;
   c.esperando = false;
+  if (resultado === 'victoria') {
+    const px = c.enemigos.reduce((suma, e) => suma + (e.monstruo?.experiencia ?? 0), 0);
+    eventos.push({ tipo: 'experiencia', cantidad: px });
+    for (const nivel of ganarExperiencia(c.heroina, px, c.reglas.experiencia)) {
+      eventos.push({ tipo: 'nivel', nivel });
+    }
+  }
   eventos.push({ tipo: 'fin', resultado });
 }
 

@@ -20,6 +20,8 @@ const DURACION: Record<Evento['tipo'], number> = {
   carga: 1.0,
   huida: 0.7,
   muerte: 0.6,
+  experiencia: 0.8,
+  nivel: 1.2,
   fin: 0,
 };
 /** Segundos que parpadea quien recibe un golpe y flota su número. */
@@ -140,6 +142,18 @@ export class EscenaCombate implements Escena {
       case 'muerte':
         this.registrar(`${e.objetivo.nombre} cae.`);
         break;
+      case 'experiencia':
+        this.registrar(`+${e.cantidad} PX`);
+        break;
+      case 'nivel': {
+        // Las estadísticas ya son las del nivel nuevo: la vista se pone al día de golpe.
+        const h = this.combate.heroina;
+        v.pv.set(h, h.pv);
+        v.textoPv.set(h, textoVida(h.pv, h.pvMax));
+        v.textoPm = textoVida(h.pm, h.pmMax);
+        this.registrar(`¡${h.nombre} sube a nivel ${e.nivel}!`);
+        break;
+      }
       case 'fin':
         v.titulo = TITULO[e.resultado];
         v.menuActivo = false;

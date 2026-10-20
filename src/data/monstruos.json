@@ -8,6 +8,7 @@
     ],
     "cargado": { "poder": 3, "aviso": "El Limo se hincha..." },
     "jefe": false,
+    "experiencia": 6,
     "caja": { "ancho": 20, "alto": 12 },
     "color": "#7fc46a"
   }

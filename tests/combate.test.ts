@@ -141,15 +141,18 @@ describe('acciones', () => {
 });
 
 describe('final', () => {
-  test('al dejar al Limo sin vida se gana', () => {
+  test('al dejar al Limo sin vida se gana y se cobra su experiencia', () => {
     const c = combate(cola());
     avanzar(c);
     let eventos = actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
     while (!c.resultado) eventos = actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
-    expect(eventos.slice(-2)).toEqual([
+    // Tras la muerte llega la experiencia del Limo; con 6 PX todavía no se sube de nivel.
+    expect(eventos.slice(-3)).toEqual([
       { tipo: 'muerte', objetivo: c.enemigos[0] },
+      { tipo: 'experiencia', cantidad: 6 },
       { tipo: 'fin', resultado: 'victoria' },
     ]);
+    expect(c.heroina.experiencia).toBe(6);
     expect(c.esperando).toBe(false);
   });
 

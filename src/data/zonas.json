@@ -8,8 +8,8 @@
     "distanciaEntradas": 3
   },
   "zonas": {
-    "bosque": { "salas": 8, "monstruos": ["limo"] },
-    "ruinas": { "salas": 11, "monstruos": ["limo"] },
-    "cripta": { "salas": 14, "monstruos": ["limo"] }
+    "bosque": { "nombre": "Bosque", "salas": 8, "monstruos": ["limo"] },
+    "ruinas": { "nombre": "Ruinas", "salas": 11, "monstruos": ["limo"] },
+    "cripta": { "nombre": "Cripta", "salas": 14, "monstruos": ["limo"] }
   }
 }
