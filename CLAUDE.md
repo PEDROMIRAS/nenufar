@@ -10,8 +10,9 @@ Si el diseño y este archivo discrepan, manda el documento; avisa de la discrepa
 ## Estado
 
 - Diseño y arte cerrados.
-- Hitos 1 (base, sala y movimiento) y 2 (zona generada) hechos y publicados en https://pedromiras.github.io/nenufar/.
-- **Siguiente: hito 3** (combate prototipo). Hecho cuando se puede ganar, perder y huir, y el combate ya tiene una decisión interesante.
+- Hitos 1 (base, sala y movimiento), 2 (zona generada) y 3 (combate prototipo) hechos y publicados en https://pedromiras.github.io/nenufar/.
+- **Siguiente: hito 4** (contenido y progresión): los 6 monstruos, experiencia, niveles, las 8 habilidades, estados alterados y los 4 jefes con sus fases. Hecho cuando se puede completar una partida entera de principio a fin.
+- La "decisión interesante" del combate es el golpe cargado que el monstruo anuncia un turno antes (Limo, poder 3); defender solo si no se puede rematar antes es la mejor estrategia (simulado).
 - Zonas en "ramas de 3" (8/11/14 salas): el inicio con 1 puerta y cada sala de paso con la de llegada + 3 nuevas. Decidido en el hito 2 y ya reflejado en el documento.
 - Atajos provisionales marcados con `shortcut:` en el código (portal de la Cripta sin destino, monstruos y combate dibujados con rectángulos, objetivo de ataque automático); se quitan en el hito que indica cada uno.
 - `?semilla=N` en la URL repite una partida; la semilla de cada zona sale en la consola.

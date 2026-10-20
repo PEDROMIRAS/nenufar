@@ -16,7 +16,7 @@ import ruinasTiles from '../public/assets/tilesets/ruinas.json';
 
 const ZONAS: Record<string, PlantillasJson> = { bosque, ruinas, cripta };
 const TIPOS: TipoSala[] = ['inicio', 'combate', 'tesoro', 'descanso', 'jefe'];
-// Los JSON de assets traen 'layer' como string; aquÃ­ se tratan como el tipo que documentan.
+// Los JSON de assets traen 'layer' como string; aquí se tratan como el tipo que documentan.
 const TILESETS = {
   bosque: [bosqueTiles, bosqueAuto],
   ruinas: [ruinasTiles, ruinasAuto],
@@ -39,7 +39,7 @@ describe.each(Object.entries(ZONAS))('plantillas de %s', (zona, plantillas) => {
       const exteriores = salidas(sala.ancho, sala.alto).map((s) => s.celdas[0]!);
       for (const [x, y] of exteriores) expect(libre(x, y), `salida (${x}, ${y})`).toBe(true);
 
-      // Relleno por inundaciÃ³n desde la primera salida sobre las casillas libres.
+      // Relleno por inundación desde la primera salida sobre las casillas libres.
       const [x0, y0] = exteriores[0]!;
       const vistas = new Set([y0 * sala.ancho + x0]);
       const cola: [number, number][] = [[x0, y0]];
