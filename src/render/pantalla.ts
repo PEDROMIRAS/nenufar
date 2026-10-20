@@ -6,13 +6,14 @@ export const ALTO = 352;
 /** Fondo común de las pantallas de menú (título aparte, que tiene su sala). */
 export const FONDO = '#10161a';
 
-// En vertical, en el móvil, se recomienda girarlo; quien elige jugar así ve el juego a todo el ancho.
-const MOVIL_VERTICAL = window.matchMedia('(orientation: portrait) and (pointer: coarse)');
+// En pantallas táctiles (móvil y tableta) el juego llena todo lo que cabe, sin esperar a un
+// múltiplo entero: con él se quedaba en dos tercios del ancho en vertical y con franjas en horizontal.
+const TACTIL = window.matchMedia('(pointer: coarse)');
 
 /**
- * Fija la resolución lógica y escala el canvas al mayor múltiplo entero que quepa en la ventana.
- * En un móvil en vertical, si se ha elegido jugar así, la escala no es entera: con ella el juego
- * se quedaría a dos tercios del ancho y el texto no se leería.
+ * Fija la resolución lógica y escala el canvas para que la sala se vea entera y lo más grande posible.
+ * En el ordenador, al mayor múltiplo entero (pixel art perfecto); en táctil, a todo lo que cabe,
+ * aunque algunos píxeles salgan un poco desiguales.
  */
 export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
   canvas.width = ANCHO;
@@ -21,20 +22,18 @@ export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingCont
   if (!ctx) throw new Error('El navegador no soporta Canvas 2D');
   ctx.imageSmoothingEnabled = false;
 
-  let vertical = cargarAjustes().jugarEnVertical;
-  document.body.classList.toggle('vertical', vertical);
+  // En vertical se recomienda girar el móvil; quien elige jugar así no vuelve a ver el aviso.
+  document.body.classList.toggle('vertical', cargarAjustes().jugarEnVertical);
   document.getElementById('jugar-vertical')?.addEventListener('click', () => {
-    vertical = true;
     document.body.classList.add('vertical');
     guardarAjustes({ jugarEnVertical: true });
-    ajustar();
   });
 
   const ajustar = (): void => {
     const dpr = window.devicePixelRatio || 1;
-    // Múltiplo entero en píxeles físicos, no CSS: en un móvil con dpr 3 cada píxel lógico ocupa N×N píxeles reales.
+    // En píxeles físicos, no CSS: en un móvil con dpr 3 cada píxel lógico ocupa N×N píxeles reales.
     const cabe = Math.min((innerWidth * dpr) / ANCHO, (innerHeight * dpr) / ALTO);
-    const escala = vertical && MOVIL_VERTICAL.matches ? cabe : Math.max(1, Math.floor(cabe));
+    const escala = TACTIL.matches ? cabe : Math.max(1, Math.floor(cabe));
     canvas.style.width = `${(ANCHO * escala) / dpr}px`;
     canvas.style.height = `${(ALTO * escala) / dpr}px`;
   };
