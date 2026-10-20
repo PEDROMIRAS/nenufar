@@ -66,6 +66,9 @@ const TITULO: Record<Resultado, string> = {
 const PRINCIPAL = ['Atacar', 'Habilidad', 'Objeto', 'Defender', 'Huir'] as const;
 type Modo = 'principal' | 'habilidades' | 'objetos' | 'objetivo';
 
+/** Segundos que se ve «¡Aparece…!» en el registro al empezar el combate. */
+const SEGUNDOS_APARECE = 2.5;
+
 /** Modo información de la sesión: si se enciende en un combate, sigue encendido en los siguientes. */
 let infoActiva = false;
 
@@ -94,6 +97,8 @@ export class EscenaCombate implements Escena {
   /** Quién hizo el último golpe enseñado, para no repetir su animación en un ataque a varios. */
   private ultimoAtacante: Luchador | null = null;
   private readonly pista: string;
+  /** «¡Aparece Limo!»: se ve unos segundos al empezar y luego se quita del registro. */
+  private readonly textoAparece: string;
   private readonly ayudaAcciones: readonly (readonly string[])[];
 
   constructor(
@@ -104,6 +109,7 @@ export class EscenaCombate implements Escena {
     private readonly alTerminar: (resultado: Resultado) => void,
   ) {
     this.ayudaAcciones = describirAcciones(combate.reglas).map(ayuda);
+    this.textoAparece = `¡Aparece ${combate.enemigos.map((e) => e.nombre).join(' y ')}!`;
     this.pista = combate.enemigos.some((e) => e.monstruo?.jefe) ? 'jefe' : 'combate';
     const todos = [combate.heroina, ...combate.enemigos];
     const h = combate.heroina;
@@ -118,7 +124,7 @@ export class EscenaCombate implements Escena {
       pmHeroina: h.pm,
       textoPm: textoVida(h.pm, h.pmMax),
       estados: new Map(),
-      registro: ['', `¡Aparece ${combate.enemigos.map((e) => e.nombre).join(' y ')}!`],
+      registro: ['', this.textoAparece],
       menu: null,
       apuntado: null,
       golpeado: null,
@@ -151,6 +157,10 @@ export class EscenaCombate implements Escena {
     // Música de combate (de jefe si hay alguno) hasta que se decide; luego, silencio para la fanfarria.
     ponerMusica(this.combate.resultado ? null : this.pista);
     v.tiempo += dt;
+    if (v.tiempo > SEGUNDOS_APARECE) {
+      if (v.registro[0] === this.textoAparece) v.registro[0] = '';
+      if (v.registro[1] === this.textoAparece) v.registro[1] = '';
+    }
     if (acciones.info || (acciones.toqueX >= 0 && tocaInfo(acciones.toqueX, acciones.toqueY))) {
       this.alternarInfo();
       return;
@@ -278,7 +288,7 @@ export class EscenaCombate implements Escena {
         break;
       case 'carga':
         v.cargando.add(e.actor);
-        this.registrar(e.aviso);
+        this.registrar(`${e.actor.nombre} ${e.aviso}`);
         break;
       case 'huida':
         this.registrar(e.exito ? 'Huyes del combate.' : 'No consigues huir.');

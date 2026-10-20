@@ -102,7 +102,7 @@ describe('acciones', () => {
     expect(ronda1[1]).toEqual({
       tipo: 'carga',
       actor: c.enemigos[0],
-      aviso: 'El Limo se hincha...',
+      aviso: 'se hincha...',
     });
     actuar(c, { tipo: 'defender' });
     // Golpe cargado: (6 × 3 − 3) = 15 → a la mitad = 7.

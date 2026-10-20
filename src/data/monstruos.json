@@ -22,7 +22,7 @@
     ],
     "cargado": {
       "poder": 3,
-      "aviso": "El Limo se hincha..."
+      "aviso": "se hincha..."
     },
     "jefe": false,
     "experiencia": 6,
@@ -268,7 +268,7 @@
     ],
     "cargado": {
       "poder": 2.2,
-      "aviso": "El Caballero alza su espada..."
+      "aviso": "alza su espada..."
     },
     "jefe": false,
     "experiencia": 30,
@@ -412,7 +412,7 @@
     ],
     "cargado": {
       "poder": 2.5,
-      "aviso": "El Rey Limo se infla..."
+      "aviso": "se infla..."
     },
     "fases": [
       {
@@ -467,7 +467,7 @@
     ],
     "cargado": {
       "poder": 2.5,
-      "aviso": "El Limo grande se hincha..."
+      "aviso": "se hincha..."
     },
     "jefe": true,
     "experiencia": 10,
@@ -500,7 +500,7 @@
     ],
     "cargado": {
       "poder": 4.5,
-      "aviso": "El Golem carga un puñetazo..."
+      "aviso": "carga un puñetazo..."
     },
     "fases": [
       {
@@ -645,7 +645,7 @@
     ],
     "cargado": {
       "poder": 3.5,
-      "aviso": "El Señor de la Cripta alza su guadaña..."
+      "aviso": "alza su guadaña..."
     },
     "habilidades": [
       {

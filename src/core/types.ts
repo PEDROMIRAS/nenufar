@@ -184,7 +184,7 @@ export interface MonstruoJson {
   acciones: AccionMonstruoJson[];
   /** Habilidades propias, usadas por nombre desde `acciones`. */
   habilidades?: HabilidadJson[];
-  /** Golpe fuerte que anuncia un turno antes con la acción "cargar". */
+  /** Golpe fuerte que anuncia un turno antes con la acción "cargar"; `aviso` va tras su nombre («Limo A se hincha...»). */
   cargado?: { poder: number; aviso: string };
   /** Acción "invocar": trae a estos monstruos (claves de monstruos.json) mientras haya menos enemigos vivos que `maximo`. */
   invocacion?: { monstruos: string[]; maximo: number; aviso: string };

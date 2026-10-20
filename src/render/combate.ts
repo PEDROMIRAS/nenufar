@@ -327,7 +327,8 @@ function dibujarEnemigo(
   escribir(ctx, v.textoPv.get(e) ?? '', x, y + 18, '#e8efe4', 'center');
   escribir(ctx, v.estados.get(e) ?? '', x, y + 32, COLOR.estado, 'center');
   if (v.cargando.has(e)) {
-    escribir(ctx, '¡Prepara un golpe fuerte!', x, tope - 36, COLOR.aviso, 'center');
+    // Corto: con dos o tres enemigos a la vez, los avisos no deben pisarse (los separa 140 px).
+    escribir(ctx, '¡Golpe fuerte!', x, tope - 36, COLOR.aviso, 'center');
   }
 }
 
