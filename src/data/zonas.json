@@ -1,0 +1,12 @@
+{
+  "generacion": {
+    "rejilla": 7,
+    "maxVecinas": 2,
+    "distanciaMinimaJefe": 4
+  },
+  "zonas": {
+    "bosque": { "salas": 8 },
+    "ruinas": { "salas": 10 },
+    "cripta": { "salas": 12 }
+  }
+}
