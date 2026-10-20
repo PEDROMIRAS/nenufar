@@ -31,6 +31,9 @@ export class EscenaMapa implements Escena {
   private actual: SalaZona;
   private montada: SalaMontada;
   private tiempo = 0;
+  /** Segundos que lleva el fundido entre salas (0 = sin fundido) y lado por el que se sale. */
+  private fundido = 0;
+  private ladoPendiente = 0;
 
   constructor(
     private readonly zona: Zona,
@@ -40,6 +43,8 @@ export class EscenaMapa implements Escena {
     private readonly tam: number,
     private readonly heroina: Heroina,
     private readonly sprite: Sprite,
+    /** Duración total del fundido a negro y vuelta al cambiar de sala, en segundos. */
+    private readonly duracionFundido: number,
   ) {
     const inicio = zona.salas.find((s) => s.tipo === 'inicio');
     if (!inicio) throw new Error('La zona no tiene sala de inicio');
@@ -58,6 +63,18 @@ export class EscenaMapa implements Escena {
   update(dt: number, acciones: Acciones): void {
     this.tiempo += dt;
     const h = this.heroina;
+    if (this.fundido > 0) {
+      // Durante el fundido la heroína espera; a mitad, con la pantalla en negro, se cambia de sala.
+      this.fundido += dt;
+      if (this.ladoPendiente && this.fundido >= this.duracionFundido / 2) {
+        this.cruzar(this.ladoPendiente);
+        this.ladoPendiente = 0;
+      }
+      if (this.fundido >= this.duracionFundido) this.fundido = 0;
+      h.xAnterior = h.cuerpo.x;
+      h.yAnterior = h.cuerpo.y;
+      return;
+    }
     actualizarHeroina(h, acciones, dt, this.montada.sala, this.tam);
     const salida = salidaPisada(
       this.salidas,
@@ -66,7 +83,10 @@ export class EscenaMapa implements Escena {
       h.cuerpo.x,
       h.cuerpo.y,
     );
-    if (salida) this.cruzar(salida.lado);
+    if (salida) {
+      this.ladoPendiente = salida.lado;
+      this.fundido = Number.EPSILON;
+    }
   }
 
   draw(ctx: CanvasRenderingContext2D, alpha: number): void {
@@ -79,6 +99,14 @@ export class EscenaMapa implements Escena {
     dibujarHeroina(ctx, this.sprite, h, alpha);
     dibujarObjetos(ctx, sala, this.imagenes, this.tam, this.tiempo, pies, Infinity);
     ctx.drawImage(this.vineta, 0, 0);
+    if (this.fundido > 0) {
+      // Sube a negro y baja otra vez, con suavizado en los extremos.
+      const t = 1 - Math.abs((2 * this.fundido) / this.duracionFundido - 1);
+      ctx.globalAlpha = t * t * (3 - 2 * t);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, this.vineta.width, this.vineta.height);
+      ctx.globalAlpha = 1;
+    }
   }
 
   private cruzar(lado: number): void {

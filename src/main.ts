@@ -55,6 +55,7 @@ async function iniciar(): Promise<void> {
     tam,
     heroina,
     sprite,
+    zonas.transicionSalas,
   );
   escena.enter();
 

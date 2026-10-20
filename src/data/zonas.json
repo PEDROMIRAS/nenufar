@@ -1,4 +1,5 @@
 {
+  "transicionSalas": 0.4,
   "generacion": {
     "rejilla": 7,
     "maxVecinas": 2,
