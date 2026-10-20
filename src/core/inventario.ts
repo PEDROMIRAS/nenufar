@@ -1,10 +1,12 @@
-/** Lo que lleva la heroína: consumibles por clave de objetos.json, con su cantidad. */
+/** Lo que lleva la heroína: consumibles con su cantidad y el equipo puesto (claves de objetos.json). */
 export interface Inventario {
   consumibles: Record<string, number>;
+  arma: string | null;
+  armadura: string | null;
 }
 
 export function crearInventario(): Inventario {
-  return { consumibles: {} };
+  return { consumibles: {}, arma: null, armadura: null };
 }
 
 /** Guarda un consumible si no se ha llegado al máximo de ese tipo. Devuelve si cupo. */

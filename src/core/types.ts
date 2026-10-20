@@ -68,6 +68,8 @@ export interface HeroeJson {
   estadisticas: Estadisticas;
   /** Lo que suma cada estadística al subir de nivel. */
   porNivel: Estadisticas;
+  /** Sus armas por nivel (1, 2, 3): claves de equipo en objetos.json. */
+  armas: string[];
   habilidades: HabilidadJson[];
 }
 
@@ -120,15 +122,29 @@ export interface ConsumibleJson {
   quitaEstado?: string;
 }
 
+/** Una pieza de equipo de objetos.json: suma estadísticas planas y, a veces, tiene un efecto. */
+export interface EquipoJson {
+  nombre: string;
+  hueco: 'arma' | 'armadura';
+  bonos: Partial<Estadisticas>;
+  /** Al golpear, probabilidad de aplicar un estado de combate.json. */
+  efecto?: { estado: string; probabilidad: number };
+}
+
 /** `src/data/objetos.json` */
 export interface ObjetosJson {
   maximoPorTipo: number;
   consumibles: Record<string, ConsumibleJson>;
+  equipo: Record<string, EquipoJson>;
+  /** Armaduras por nivel (1, 2, 3); las armas de cada heroína están en heroes.json. */
+  armaduras: string[];
 }
 
 /** Una entrada de la tabla de botín de un monstruo; `objeto: "nada"` es no soltar nada. */
 export interface BotinJson {
+  /** Clave de un consumible, "arma" o "armadura" (con `nivel`), o "nada". */
   objeto: string;
+  nivel?: number;
   peso: number;
 }
 

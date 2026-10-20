@@ -30,6 +30,7 @@ const DURACION: Record<Evento['tipo'], number> = {
   objeto: 0.6,
   mana: 0.6,
   botin: 0.8,
+  equipo: 0.9,
   iniciativa: 1.0,
   huida: 0.7,
   muerte: 0.6,
@@ -225,6 +226,9 @@ export class EscenaCombate implements Escena {
         break;
       case 'botin':
         this.registrar(e.guardado ? `Obtienes ${e.nombre}` : `${e.nombre}: no te caben más`);
+        break;
+      case 'equipo':
+        this.registrar(`¡Encuentras ${e.nombre}!`);
         break;
       case 'recupera': {
         const h = this.combate.heroina;

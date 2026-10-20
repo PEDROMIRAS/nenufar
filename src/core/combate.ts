@@ -1,4 +1,5 @@
 import { elegirConPeso } from './azar';
+import { piezaDeBotin } from './equipo';
 import { crearInventario, guardar, type Inventario } from './inventario';
 import { ganarExperiencia } from './progresion';
 import type {
@@ -78,6 +79,8 @@ export type Evento =
   | { tipo: 'mana'; objetivo: Luchador; cantidad: number }
   /** Un monstruo suelta un objeto; si ya se llevan los que caben de ese tipo, se pierde. */
   | { tipo: 'botin'; nombre: string; guardado: boolean }
+  /** Ha caído una pieza de equipo; al acabar el combate se compara con la que se lleva. */
+  | { tipo: 'equipo'; nombre: string }
   | { tipo: 'experiencia'; cantidad: number }
   /** PV y PM que recupera la heroína al ganar. */
   | { tipo: 'recupera'; pv: number; pm: number }
@@ -112,6 +115,8 @@ export interface Combate {
   /** Inventario de la heroína (se usa con Objeto y recibe el botín) y los objetos que existen. */
   inventario: Inventario;
   objetos: ObjetosJson;
+  /** Piezas de equipo que han caído al ganar, para ofrecérselas a la heroína al salir. */
+  equipoEncontrado: string[];
 }
 
 function luchador(
@@ -183,7 +188,8 @@ export function crearCombate(
     ronda: 0,
     iniciativa: null,
     inventario: crearInventario(),
-    objetos: { maximoPorTipo: 0, consumibles: {} },
+    objetos: { maximoPorTipo: 0, consumibles: {}, equipo: {}, armaduras: [] },
+    equipoEncontrado: [],
   };
 }
 
@@ -493,6 +499,11 @@ function golpear(
     : golpe.cantidad;
   objetivo.pv = Math.max(0, objetivo.pv - cantidad);
   eventos.push({ tipo: 'danio', origen, objetivo, cantidad, critico: golpe.critico, cargado });
+  // El arma de la heroína puede tener un efecto al golpear («10 % de envenenar»).
+  const efecto = origen.esHeroina ? c.objetos.equipo[c.inventario.arma ?? '']?.efecto : undefined;
+  if (efecto && objetivo.pv > 0 && c.azar() < efecto.probabilidad) {
+    aplicarEstado(c, objetivo, efecto.estado, false, eventos);
+  }
   if (!comprobarFase(c, objetivo, eventos)) comprobarMuerte(c, objetivo, eventos);
 }
 
@@ -550,14 +561,33 @@ function usarObjeto(c: Combate, clave: string, eventos: Evento[]): void {
   if (estado) quitarEstado(h, estado, eventos);
 }
 
-/** Una tirada de botín por monstruo vencido; lo que sale se guarda si cabe. */
+/**
+ * Una tirada de botín por monstruo vencido. Los consumibles se guardan si caben; el equipo se apunta
+ * en `equipoEncontrado` para que la heroína decida después si se lo pone.
+ */
 function repartirBotin(c: Combate, eventos: Evento[]): void {
   for (const e of c.enemigos) {
-    const clave = elegirConPeso(e.monstruo?.botin ?? [], c.azar)?.objeto;
-    const obj = clave ? c.objetos.consumibles[clave] : undefined;
-    if (!clave || !obj) continue; // «nada», o algo que no es un consumible
-    const guardado = guardar(c.inventario, clave, c.objetos.maximoPorTipo);
-    eventos.push({ tipo: 'botin', nombre: obj.nombre, guardado });
+    const entrada = elegirConPeso(e.monstruo?.botin ?? [], c.azar);
+    if (!entrada) continue;
+    const consumible = c.objetos.consumibles[entrada.objeto];
+    if (consumible) {
+      const guardado = guardar(c.inventario, entrada.objeto, c.objetos.maximoPorTipo);
+      eventos.push({ tipo: 'botin', nombre: consumible.nombre, guardado });
+      continue;
+    }
+    const pieza = piezaDeBotin(entrada.objeto, entrada.nivel, c.heroina.heroe, c.objetos);
+    const datos = pieza ? c.objetos.equipo[pieza] : undefined;
+    // Lo que ya lleva puesto (o ya ha salido en este combate) no se vuelve a ofrecer.
+    if (
+      !pieza ||
+      !datos ||
+      c.inventario[datos.hueco] === pieza ||
+      c.equipoEncontrado.includes(pieza)
+    ) {
+      continue;
+    }
+    c.equipoEncontrado.push(pieza);
+    eventos.push({ tipo: 'equipo', nombre: datos.nombre });
   }
 }
 

@@ -37,6 +37,16 @@
       {
         "objeto": "nada",
         "peso": 75
+      },
+      {
+        "objeto": "arma",
+        "nivel": 1,
+        "peso": 4
+      },
+      {
+        "objeto": "armadura",
+        "nivel": 1,
+        "peso": 4
       }
     ],
     "caja": {
@@ -81,6 +91,11 @@
       {
         "objeto": "nada",
         "peso": 75
+      },
+      {
+        "objeto": "armadura",
+        "nivel": 1,
+        "peso": 4
       }
     ],
     "caja": {
@@ -136,6 +151,16 @@
       {
         "objeto": "nada",
         "peso": 60
+      },
+      {
+        "objeto": "arma",
+        "nivel": 2,
+        "peso": 5
+      },
+      {
+        "objeto": "armadura",
+        "nivel": 2,
+        "peso": 3
       }
     ],
     "caja": {
@@ -197,6 +222,11 @@
       {
         "objeto": "nada",
         "peso": 60
+      },
+      {
+        "objeto": "armadura",
+        "nivel": 2,
+        "peso": 4
       }
     ],
     "caja": {
@@ -249,6 +279,16 @@
       {
         "objeto": "nada",
         "peso": 55
+      },
+      {
+        "objeto": "arma",
+        "nivel": 2,
+        "peso": 6
+      },
+      {
+        "objeto": "armadura",
+        "nivel": 2,
+        "peso": 6
       }
     ],
     "caja": {
@@ -324,6 +364,11 @@
       {
         "objeto": "nada",
         "peso": 40
+      },
+      {
+        "objeto": "arma",
+        "nivel": 2,
+        "peso": 5
       }
     ],
     "caja": {
@@ -376,8 +421,14 @@
     "experiencia": 30,
     "botin": [
       {
-        "objeto": "pocion",
-        "peso": 100
+        "objeto": "arma",
+        "nivel": 1,
+        "peso": 50
+      },
+      {
+        "objeto": "armadura",
+        "nivel": 1,
+        "peso": 50
       }
     ],
     "caja": {
@@ -462,11 +513,13 @@
     "experiencia": 90,
     "botin": [
       {
-        "objeto": "pocion",
+        "objeto": "arma",
+        "nivel": 3,
         "peso": 50
       },
       {
-        "objeto": "eter",
+        "objeto": "armadura",
+        "nivel": 3,
         "peso": 50
       }
     ],

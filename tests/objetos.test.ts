@@ -8,6 +8,7 @@ import {
   luchadorDeMonstruo,
   type Combate,
 } from '../src/core/combate';
+import { describirPieza, equipar, piezaDeBotin } from '../src/core/equipo';
 import { crearInventario, guardar } from '../src/core/inventario';
 import type { MonstruoJson } from '../src/core/types';
 import { HEROES, MONSTRUOS, OBJETOS, REGLAS } from '../src/data/datos';
@@ -93,14 +94,62 @@ describe('botín', () => {
     expect(c.inventario.consumibles.pocion).toBe(5);
   });
 
-  test('todas las tablas de botín usan objetos que existen', () => {
+  test('todas las tablas de botín usan objetos o niveles de equipo que existen', () => {
     for (const [clave, m] of Object.entries(MONSTRUOS)) {
       for (const b of m.botin ?? []) {
-        expect(
-          b.objeto === 'nada' || b.objeto in OBJETOS.consumibles,
-          `${clave}: ${b.objeto}`,
-        ).toBe(true);
+        const valido =
+          b.objeto === 'nada' ||
+          b.objeto in OBJETOS.consumibles ||
+          Object.values(HEROES).every((h) => piezaDeBotin(b.objeto, b.nivel, h, OBJETOS) !== null);
+        expect(valido, `${clave}: ${b.objeto} ${b.nivel ?? ''}`).toBe(true);
       }
     }
   });
+});
+
+describe('equipo', () => {
+  test('las armas y armaduras de los datos existen en objetos.json', () => {
+    const claves = [...OBJETOS.armaduras, ...Object.values(HEROES).flatMap((h) => h.armas)];
+    for (const c of claves) expect(OBJETOS.equipo[c], c).toBeDefined();
+  });
+
+  test('el botín «arma» es el arma de la heroína que se juega', () => {
+    expect(piezaDeBotin('arma', 2, HEROES.ronin, OBJETOS)).toBe('katana_acero');
+    expect(piezaDeBotin('arma', 2, HEROES.maga, OBJETOS)).toBe('baston_amatista');
+    expect(piezaDeBotin('armadura', 3, HEROES.maga, OBJETOS)).toBe('armadura_placas');
+    expect(piezaDeBotin('pocion', undefined, HEROES.maga, OBJETOS)).toBeNull();
+  });
+
+  test('equipar suma los bonos y, al cambiar, quita los de la pieza anterior', () => {
+    const h = luchadorDeHeroe(HEROES.ronin);
+    const inv = crearInventario();
+    equipar(h, inv, OBJETOS, 'katana_madera');
+    expect([h.ataque, inv.arma]).toEqual([9 + 3, 'katana_madera']);
+    equipar(h, inv, OBJETOS, 'hoja_runica');
+    expect([h.ataque, inv.arma]).toEqual([9 + 10, 'hoja_runica']);
+    equipar(h, inv, OBJETOS, 'cota_malla');
+    expect([h.defensa, inv.armadura]).toEqual([6 + 5, 'cota_malla']);
+  });
+
+  test('al ganar, una pieza que cae queda pendiente de decidir, y la que ya se lleva no', () => {
+    const c = combate();
+    c.enemigos[0]!.monstruo = { ...muneco, botin: [{ objeto: 'arma', nivel: 1, peso: 1 }] };
+    const eventos = actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
+    expect(eventos).toContainEqual({ tipo: 'equipo', nombre: 'Katana de madera' });
+    expect(c.equipoEncontrado).toEqual(['katana_madera']);
+
+    const otro = combate();
+    otro.inventario.arma = 'katana_madera';
+    otro.enemigos[0]!.monstruo = c.enemigos[0]!.monstruo;
+    actuar(otro, { tipo: 'atacar', objetivo: otro.enemigos[0]! });
+    expect(otro.equipoEncontrado).toEqual([]);
+  });
+});
+
+test('describirPieza: bonos y efecto en texto', () => {
+  expect(describirPieza(OBJETOS.equipo.hoja_runica!, REGLAS.estados)).toEqual([
+    '+10 Ataque',
+    '10 % de Veneno al golpear',
+  ]);
+  expect(describirPieza(OBJETOS.equipo.tunica!, REGLAS.estados)).toEqual(['+2 Defensa']);
 });

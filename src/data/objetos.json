@@ -1,8 +1,95 @@
 {
   "maximoPorTipo": 5,
   "consumibles": {
-    "pocion": { "nombre": "Poción", "pv": 25 },
-    "eter": { "nombre": "Éter", "pm": 10 },
-    "antidoto": { "nombre": "Antídoto", "quitaEstado": "veneno" }
+    "pocion": {
+      "nombre": "Poción",
+      "pv": 25
+    },
+    "eter": {
+      "nombre": "Éter",
+      "pm": 10
+    },
+    "antidoto": {
+      "nombre": "Antídoto",
+      "quitaEstado": "veneno"
+    }
+  },
+  "armaduras": [
+    "tunica",
+    "cota_malla",
+    "armadura_placas"
+  ],
+  "equipo": {
+    "katana_madera": {
+      "nombre": "Katana de madera",
+      "hueco": "arma",
+      "bonos": {
+        "ataque": 3
+      }
+    },
+    "katana_acero": {
+      "nombre": "Katana de acero",
+      "hueco": "arma",
+      "bonos": {
+        "ataque": 6
+      }
+    },
+    "hoja_runica": {
+      "nombre": "Hoja rúnica",
+      "hueco": "arma",
+      "bonos": {
+        "ataque": 10
+      },
+      "efecto": {
+        "estado": "veneno",
+        "probabilidad": 0.1
+      }
+    },
+    "baston_aprendiz": {
+      "nombre": "Bastón de aprendiz",
+      "hueco": "arma",
+      "bonos": {
+        "magia": 3
+      }
+    },
+    "baston_amatista": {
+      "nombre": "Bastón de amatista",
+      "hueco": "arma",
+      "bonos": {
+        "magia": 6
+      }
+    },
+    "cetro_luna": {
+      "nombre": "Cetro de la luna",
+      "hueco": "arma",
+      "bonos": {
+        "magia": 10
+      },
+      "efecto": {
+        "estado": "aturdido",
+        "probabilidad": 0.1
+      }
+    },
+    "tunica": {
+      "nombre": "Túnica",
+      "hueco": "armadura",
+      "bonos": {
+        "defensa": 2
+      }
+    },
+    "cota_malla": {
+      "nombre": "Cota de malla",
+      "hueco": "armadura",
+      "bonos": {
+        "defensa": 5
+      }
+    },
+    "armadura_placas": {
+      "nombre": "Armadura de placas",
+      "hueco": "armadura",
+      "bonos": {
+        "defensa": 8
+      }
+    }
   }
 }

@@ -19,6 +19,7 @@ import plantillasCripta from './data/salas/plantillas_cripta.json';
 import plantillasRuinas from './data/salas/plantillas_ruinas.json';
 import zonas from './data/zonas.json';
 import { EscenaCombate } from './escenas/combate';
+import { EscenaEquipo } from './escenas/equipo';
 import { EscenaFin } from './escenas/fin';
 import { EscenaMapa } from './escenas/mapa';
 import { PilaEscenas } from './escenas/pila';
@@ -162,6 +163,28 @@ function monstruo(clave: string): MonstruoJson {
   return m;
 }
 
+/** Enseña, una tras otra, las piezas de equipo encontradas para decidir si se cambian; después sigue. */
+function ofrecerEquipo(partida: Partida, piezas: readonly string[], alFinal: () => void): void {
+  const [primera, ...resto] = piezas;
+  if (!primera) {
+    alFinal();
+    return;
+  }
+  partida.pila.apilar(
+    new EscenaEquipo(
+      partida.luchadora,
+      partida.inventario,
+      OBJETOS,
+      REGLAS.estados,
+      primera,
+      () => {
+        partida.pila.desapilar();
+        ofrecerEquipo(partida, resto, alFinal);
+      },
+    ),
+  );
+}
+
 /** Otra partida con un mapa nuevo (sin la semilla de la URL). */
 const empezarOtra = (): void => location.assign(location.pathname);
 
@@ -181,7 +204,8 @@ function luchar(
   pila.apilar(
     new EscenaCombate(combate, partida.sprite, (resultado) => {
       pila.desapilar();
-      if (resultado !== 'derrota') alTerminar(resultado);
+      if (resultado !== 'derrota')
+        ofrecerEquipo(partida, combate.equipoEncontrado, () => alTerminar(resultado));
       else pila.cambiar(new EscenaFin('Fin de la partida', '#d8584a', empezarOtra));
     }),
   );
