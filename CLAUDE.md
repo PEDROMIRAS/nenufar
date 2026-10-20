@@ -12,7 +12,8 @@ Si el diseño y este archivo discrepan, manda el documento; avisa de la discrepa
 - Diseño y arte cerrados.
 - Hito 1 (base, sala y movimiento) hecho y publicado en https://pedromiras.github.io/nenufar/.
 - **Siguiente: hito 2** (zona generada). Hecho cuando los tests de 1.000 semillas pasan y se pueden recorrer las tres zonas.
-- Atajos provisionales marcados con `shortcut:` en el código (sala y semilla fijas, salidas cerradas, heroína fija); se quitan en el hito que indica cada uno.
+- Atajos provisionales marcados con `shortcut:` en el código (heroína fija, portal de la Cripta sin destino); se quitan en el hito que indica cada uno.
+- `?semilla=N` en la URL repite una partida; la semilla de cada zona sale en la consola.
 - Hitos 2-7 en el documento. Hasta el hito 5 la lógica puede probarse con rectángulos, pero el arte ya existe y se puede usar desde el hito 1.
 
 ## Stack y decisiones fijas
