@@ -205,6 +205,18 @@ export interface MonstruoJson {
   color: string;
 }
 
+/** Una dificultad de `src/data/dificultades.json`: multiplicadores sobre los monstruos y la recuperación. */
+export interface DificultadJson {
+  nombre: string;
+  descripcion: string;
+  /** Multiplica el ataque y la magia de todos los monstruos. */
+  ataque: number;
+  /** Multiplica sus PV. */
+  vida: number;
+  /** Multiplica lo que la heroína recupera tras cada victoria. */
+  recuperacion: number;
+}
+
 /** `src/data/combate.json`: reglas comunes de todos los combates. */
 export interface ReglasCombate {
   varianza: { min: number; max: number };

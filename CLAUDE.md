@@ -12,6 +12,7 @@ Si el diseño y este archivo discrepan, manda el documento; avisa de la discrepa
 - Diseño y arte cerrados.
 - Hitos 1 a 6 hechos y publicados en https://pedromiras.github.io/nenufar/ (Pedro los probó en el móvil). Del 6: sprites de monstruos y efectos generados por script, animaciones de combate, la sala como fondo del combate y sonido sintetizado con Web Audio desde `src/data/sonido.json` (silencio en la pausa, guardado como ajuste).
 - **Siguiente: hito 7** (ver documento).
+- Al entrar en una sala de combate con monstruos se cierran todas las puertas, también la de entrada. Tras elegir rana se elige dificultad (`src/data/dificultades.json`: multiplicadores de ataque y vida de los monstruos y de la recuperación tras ganar). Objetivo de partidas completas, comprobado por `tests/equilibrado.test.ts`: Fácil 85-90 %, Normal 70-75 %, Difícil 50-55 %, con menos de 5 puntos entre heroínas.
 - La "decisión interesante" del combate es el golpe cargado que el monstruo anuncia un turno antes (Limo, poder 3); defender solo si no se puede rematar antes es la mejor estrategia (simulado).
 - Zonas en "ramas de 3" (8/11/14 salas): el inicio con 1 puerta y cada sala de paso con la de llegada + 3 nuevas. Decidido en el hito 2 y ya reflejado en el documento.
 - Atajos provisionales marcados con `shortcut:` en el código; se quitan en el hito que indica cada uno.

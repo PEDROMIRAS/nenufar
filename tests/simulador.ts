@@ -12,9 +12,10 @@ import {
 } from '../src/core/combate';
 import { abrirCofre, equipar } from '../src/core/equipo';
 import { crearInventario, type Inventario } from '../src/core/inventario';
-import type { EquipoJson } from '../src/core/types';
+import type { DificultadJson, EquipoJson, MonstruoJson, ReglasCombate } from '../src/core/types';
 import { generarZona } from '../src/core/zona';
-import { HEROES, MONSTRUOS, OBJETOS, REGLAS } from '../src/data/datos';
+import { bestiarioCon, reglasCon } from '../src/core/dificultad';
+import { DIFICULTADES, HEROES, MONSTRUOS, OBJETOS, REGLAS } from '../src/data/datos';
 import zonas from '../src/data/zonas.json';
 
 /** Simulador de partidas enteras jugadas con una política razonable (para el equilibrado). */
@@ -55,13 +56,25 @@ function quizaEquipar(h: Luchador, inv: Inventario, clave: string): void {
   }
 }
 
-function pelear(h: Luchador, inv: Inventario, grupo: string[], azar: () => number): boolean {
+/** Monstruos y reglas con la dificultad de la partida ya aplicada. */
+interface Mundo {
+  bestiario: Record<string, MonstruoJson>;
+  reglas: ReglasCombate;
+}
+
+function pelear(
+  h: Luchador,
+  inv: Inventario,
+  grupo: string[],
+  azar: () => number,
+  { bestiario, reglas }: Mundo,
+): boolean {
   const c = crearCombate(
     h,
-    luchadoresDeGrupo(grupo.map((k) => MONSTRUOS[k]!)),
-    REGLAS,
+    luchadoresDeGrupo(grupo.map((k) => bestiario[k]!)),
+    reglas,
     azar,
-    MONSTRUOS,
+    bestiario,
   );
   c.inventario = inv;
   c.objetos = OBJETOS;
@@ -78,7 +91,15 @@ export interface Cuenta {
 export const pct = (c: Cuenta): number =>
   c.jugados ? Math.round((c.ganados / c.jugados) * 1000) / 10 : 0;
 
-export function simular(nombre: string, partidas = 300) {
+export function simular(
+  nombre: string,
+  partidas = 300,
+  dificultad: DificultadJson = DIFICULTADES.normal,
+) {
+  const mundo: Mundo = {
+    bestiario: bestiarioCon(MONSTRUOS, dificultad),
+    reglas: reglasCon(REGLAS, dificultad),
+  };
   const heroe = HEROES[nombre as keyof typeof HEROES];
   const claves = Object.keys(zonas.zonas) as (keyof typeof zonas.zonas)[];
   const sueltos: Record<string, Cuenta> = {};
@@ -122,9 +143,9 @@ export function simular(nombre: string, partidas = 300) {
           contar(
             sueltos,
             clave,
-            pelear(copia, structuredClone(inv), grupo, crearAzar(s * 131 + g)),
+            pelear(copia, structuredClone(inv), grupo, crearAzar(s * 131 + g), mundo),
           );
-          viva = pelear(h, inv, grupo, azar);
+          viva = pelear(h, inv, grupo, azar, mundo);
           contar(reales, clave, viva);
         }
         if (!viva) break;
@@ -134,12 +155,12 @@ export function simular(nombre: string, partidas = 300) {
         h.pv = h.pvMax;
         h.pm = h.pmMax;
       }
-      viva = pelear(h, inv, [z.jefe], azar);
+      viva = pelear(h, inv, [z.jefe], azar, mundo);
       contar(jefes, clave, viva);
       if (!viva) break;
     }
     if (viva) {
-      viva = pelear(h, inv, [zonas.jefeFinal], azar);
+      viva = pelear(h, inv, [zonas.jefeFinal], azar, mundo);
       contar(jefes, 'final', viva);
     }
     if (viva) completas++;

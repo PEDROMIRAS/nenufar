@@ -1,0 +1,23 @@
+{
+  "facil": {
+    "nombre": "Fácil",
+    "descripcion": "Para disfrutar de la historia: los monstruos pegan algo menos y te recuperas un poco más al ganar.",
+    "ataque": 1.07,
+    "vida": 1,
+    "recuperacion": 0.9
+  },
+  "normal": {
+    "nombre": "Normal",
+    "descripcion": "El reto pensado para una primera partida: hay que usar bien Defender, las habilidades y los objetos.",
+    "ataque": 1.11,
+    "vida": 1,
+    "recuperacion": 0.88
+  },
+  "dificil": {
+    "nombre": "Difícil",
+    "descripcion": "Para quien ya lo ha terminado: apenas te recuperas entre combates, cada golpe cuenta.",
+    "ataque": 1.06,
+    "vida": 1,
+    "recuperacion": 0.435
+  }
+}

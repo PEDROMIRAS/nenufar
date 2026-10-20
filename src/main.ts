@@ -13,15 +13,23 @@ import { crearInventario, type Inventario } from './core/inventario';
 import { cambiosDeNivel, instantanea } from './core/progresion';
 import { actualizarRecords, formatearTiempo, type Resumen } from './core/records';
 import { crearCatalogo } from './core/sala';
-import type { MonstruoJson, PlantillasJson } from './core/types';
+import { bestiarioCon, monstruoCon, reglasCon } from './core/dificultad';
+import type {
+  DificultadJson,
+  HeroeJson,
+  MonstruoJson,
+  PlantillasJson,
+  ReglasCombate,
+} from './core/types';
 import { generarZona } from './core/zona';
 import controles from './data/controles.json';
-import { HEROES, MONSTRUOS, OBJETOS, REGLAS } from './data/datos';
+import { DIFICULTADES, HEROES, MONSTRUOS, OBJETOS, REGLAS } from './data/datos';
 import plantillasBosque from './data/salas/plantillas_bosque.json';
 import plantillasCripta from './data/salas/plantillas_cripta.json';
 import plantillasRuinas from './data/salas/plantillas_ruinas.json';
 import zonas from './data/zonas.json';
 import { EscenaCombate } from './escenas/combate';
+import { EscenaDificultad } from './escenas/dificultad';
 import { EscenaEquipo } from './escenas/equipo';
 import { EscenaMensaje } from './escenas/mensaje';
 import { EscenaMapa } from './escenas/mapa';
@@ -66,6 +74,10 @@ interface Partida {
   inicio: number;
   vencidos: number;
   zona: string;
+  /** Dificultad elegida, y monstruos y reglas de combate con ella ya aplicada. */
+  dificultad: DificultadJson;
+  bestiario: Record<string, MonstruoJson>;
+  reglas: ReglasCombate;
 }
 
 async function iniciar(): Promise<void> {
@@ -99,7 +111,18 @@ async function iniciar(): Promise<void> {
     ...Object.values(HEROES).flatMap((h) => (h.combate.proyectil ? [h.combate.proyectil] : [])),
     'efectos',
   ]);
-  const seleccion = new EscenaSeleccion(opciones, ({ heroe, sprite }) => {
+  const seleccion: EscenaSeleccion = new EscenaSeleccion(opciones, ({ heroe, sprite }) =>
+    pila.cambiar(
+      new EscenaDificultad(
+        Object.values(DIFICULTADES),
+        `Con la ${heroe.nombre}`,
+        (dificultad) => empezar(heroe, sprite, dificultad),
+        () => pila.cambiar(seleccion),
+      ),
+    ),
+  );
+  /** Crea la partida con la heroína y la dificultad elegidas y carga la primera zona. */
+  const empezar = (heroe: HeroeJson, sprite: Sprite, dificultad: DificultadJson): void => {
     const partida: Partida = {
       semilla,
       pila,
@@ -114,11 +137,14 @@ async function iniciar(): Promise<void> {
       inicio: performance.now(),
       vencidos: 0,
       zona: '',
+      dificultad,
+      bestiario: bestiarioCon(MONSTRUOS, dificultad),
+      reglas: reglasCon(REGLAS, dificultad),
     };
     crearZona(partida, 0, true)
       .then((zona) => pila.cambiar(zona))
       .catch(mostrarError);
-  });
+  };
   pila.apilar(new EscenaTitulo(cargarRecords(), () => pila.cambiar(seleccion)));
 
   iniciarBucle(
@@ -262,7 +288,7 @@ function terminarPartida(partida: Partida, victoria: boolean): void {
   };
   guardarRecords(actualizarRecords(cargarRecords(), resumen));
   const lineas = [
-    `${resumen.heroina}, nivel ${resumen.nivel}`,
+    `${resumen.heroina}, nivel ${resumen.nivel} (${partida.dificultad.nombre})`,
     victoria ? 'Has derrotado al Señor de la Cripta' : `Caíste en: ${resumen.zona}`,
     `Monstruos vencidos: ${resumen.vencidos}`,
     `Tiempo: ${formatearTiempo(resumen.segundos)}`,
@@ -286,7 +312,13 @@ function luchar(
   const { pila, luchadora } = partida;
   const antes = instantanea(luchadora);
   const azar = crearAzar(partida.semilla * 31 + ++partida.combates);
-  const combate = crearCombate(luchadora, luchadoresDeGrupo(grupo), REGLAS, azar, MONSTRUOS);
+  const combate = crearCombate(
+    luchadora,
+    luchadoresDeGrupo(grupo.map((m) => monstruoCon(m, partida.dificultad))),
+    partida.reglas,
+    azar,
+    partida.bestiario,
+  );
   combate.iniciativa = iniciativa;
   combate.inventario = partida.inventario;
   combate.objetos = OBJETOS;

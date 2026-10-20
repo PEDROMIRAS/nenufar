@@ -145,8 +145,6 @@ export class EscenaMapa implements Escena {
   private portalUsado = false;
   /** Segundos que quedan sin poder empezar otro combate. */
   private invulnerable = 0;
-  /** Lado por el que se entró en la sala actual (bit N/E/S/O; 0 en la de inicio). */
-  private ladoEntrada = 0;
   /** Salidas cerradas mientras queden monstruos (bits), y casillas marcadas sólidas por ello. */
   private cerradas = 0;
   private bloqueadas: number[] = [];
@@ -398,7 +396,6 @@ export class EscenaMapa implements Escena {
     if (!vecina || !entrada) return;
     this.soltarCierre();
     this.actual = vecina;
-    this.ladoEntrada = entrada.lado;
     this.montada = this.montar(vecina);
     this.minimapa = this.visitar(vecina);
     this.colocar(posicionEntrada(entrada, this.o.tam, this.o.heroina.cuerpo.alto));
@@ -406,13 +403,13 @@ export class EscenaMapa implements Escena {
   }
 
   /**
-   * En una sala de combate con monstruos vivos se cierran todas las salidas menos la de entrada
-   * (documento: «las puertas se cierran hasta vencerlos o salir por donde entraste»).
+   * En una sala de combate con monstruos vivos se cierran todas las salidas, también la de entrada:
+   * no se sale hasta vencerlos (decisión de Pedro; la dificultad se elige al empezar).
    */
   private aplicarCierre(): void {
     const { sala, monstruos } = this.montada;
     const hayMonstruos = this.actual.tipo === 'combate' && monstruos.some((m) => m.vivo);
-    this.cerradas = hayMonstruos ? this.actual.puertas & ~this.ladoEntrada : 0;
+    this.cerradas = hayMonstruos ? this.actual.puertas : 0;
     this.bloqueadas.push(...cerrarSalidas(sala, this.salidas, this.cerradas));
   }
 

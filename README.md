@@ -1,6 +1,6 @@
 # Nenúfar
 
-Dungeon crawler 2D para navegador y móvil: exploras zonas de salas en tiempo real y, al tocar un monstruo, luchas en un combate por turnos estilo JRPG. Al empezar eliges heroína: una **rana ronin** de cuerpo a cuerpo o una **rana maga** de fuego morado. Tres zonas (Bosque, Ruinas y Cripta), un jefe por zona y un jefe final.
+Dungeon crawler 2D para navegador y móvil: exploras zonas de salas en tiempo real y, al tocar un monstruo, luchas en un combate por turnos estilo JRPG. Al empezar eliges heroína (una **rana ronin** de cuerpo a cuerpo o una **rana maga** de fuego morado) y dificultad (Fácil, Normal o Difícil). Tres zonas (Bosque, Ruinas y Cripta), un jefe por zona y un jefe final.
 
 ### ▶ [Jugar en el navegador](https://pedromiras.github.io/nenufar/)
 
@@ -24,7 +24,7 @@ Cada zona se genera al entrar (`?semilla=N` en la URL repite una partida). Los m
 - **Sin motor:** TypeScript `strict` y Canvas 2D a mano, bucle a 60 Hz fijos con dibujado interpolado y escalado de píxel entero.
 - **Lógica pura y testeada:** `src/core/` no toca el navegador. El combate es una máquina de estados que emite eventos y la escena solo los anima. Vitest cubre generación de zonas, combate, IA, jefes, objetos y progresión.
 - **Datos, no números en el código:** estadísticas, habilidades, monstruos, zonas, botín, música y efectos de sonido viven en `src/data/*.json`.
-- **Equilibrado medido:** un test juega 300 partidas enteras con cada heroína y exige que entre el 85 % y el 95 % lleguen al final, sin más de 5 puntos entre ellas ([tests/equilibrado.test.ts](tests/equilibrado.test.ts)).
+- **Equilibrado medido:** un test juega 300 partidas enteras con cada heroína en cada dificultad y exige que lleguen al final el 85-90 % en Fácil, el 70-75 % en Normal y el 50-55 % en Difícil, sin más de 5 puntos entre ellas ([tests/equilibrado.test.ts](tests/equilibrado.test.ts)).
 - **Todo el arte generado por script:** heroínas, monstruos, efectos y tilesets salen de scripts deterministas en Python ([tools/generadores/](tools/generadores/)).
 - **Sonido sintetizado:** música por zona y efectos con Web Audio a partir de notas en JSON; ningún archivo de audio.
 - **Accesible:** se juega entero con teclado; lo que pasa en pantalla se lee en una región `aria-live` para lectores de pantalla; respeta `prefers-reduced-motion`.

@@ -25,6 +25,7 @@ export class EscenaSeleccion implements Escena {
   ) {}
 
   enter(): void {
+    this.elegida = false; // al volver desde la dificultad se puede elegir otra vez
     anunciar(`Elige heroína con las flechas: ${this.opciones[0]?.heroe.nombre ?? ''}`);
   }
   exit(): void {}
