@@ -78,6 +78,8 @@ const COLOR = {
   boton: '#2b3a33',
   botonActivo: '#4f6b5a',
   borde: '#8fa88a',
+  /** Fondo del recuadro del final del combate. */
+  cartel: '#141c18',
   apagado: '#6b6b6b',
   aviso: '#ffd27a',
   estado: '#c89bff',
@@ -164,11 +166,13 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
 
   const enRejilla = v.menu !== null && v.menu.opciones.length > 5;
   if (!enRejilla) {
-    // Registro de las dos últimas acciones.
-    ctx.fillStyle = COLOR.panel;
-    ctx.fillRect(8, 256, ANCHO - 16, 32);
-    // En modo información, la ayuda de la opción elegida ocupa el panel (si cabe en una línea, debajo sigue el registro).
+    // Registro de las dos últimas acciones; en modo información, la ayuda de la opción elegida ocupa
+    // el panel (si cabe en una línea, debajo sigue el registro). Sin nada que leer, no hay panel.
     const ayuda = v.info ? v.menu?.opciones[v.menu.seleccion]?.ayuda : undefined;
+    if (ayuda?.[0] || v.registro[0] || v.registro[1]) {
+      ctx.fillStyle = COLOR.panel;
+      ctx.fillRect(8, 256, ANCHO - 16, 32);
+    }
     if (ayuda?.[0]) {
       escribir(ctx, ayuda[0], 16, 259, COLOR.aviso);
       escribir(ctx, ayuda[1] ?? v.registro[1], 16, 273, ayuda[1] ? COLOR.aviso : undefined);
@@ -181,10 +185,16 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   dibujarMenu(ctx, v.menu);
 
   if (v.titulo) {
+    // Velo y un recuadro propio, para que el título no se monte sobre la ficha de la heroína.
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
     ctx.fillRect(0, 0, ANCHO, ALTO);
-    escribir(ctx, v.titulo, ANCHO / 2, 140, COLOR.aviso, 'center', FUENTE_GRANDE);
-    escribir(ctx, 'Pulsa o toca para continuar', ANCHO / 2, 180, '#e8efe4', 'center');
+    ctx.fillStyle = COLOR.cartel;
+    ctx.fillRect(ANCHO / 2 - 140, 112, 280, 92);
+    ctx.fillStyle = COLOR.borde;
+    ctx.fillRect(ANCHO / 2 - 140, 112, 280, 2);
+    ctx.fillRect(ANCHO / 2 - 140, 202, 280, 2);
+    escribir(ctx, v.titulo, ANCHO / 2, 128, COLOR.aviso, 'center', FUENTE_GRANDE);
+    escribir(ctx, 'Pulsa o toca para continuar', ANCHO / 2, 172, '#e8efe4', 'center');
   }
 }
 
@@ -217,8 +227,9 @@ function dibujarBotonInfo(ctx: CanvasRenderingContext2D, activo: boolean): void 
 }
 
 export function dibujarMenu(ctx: CanvasRenderingContext2D, menu: MenuVista | null): void {
-  // Sin menú se dejan los cinco huecos apagados, para que la pantalla no salte.
-  const n = menu?.opciones.length ?? 5;
+  // Sin menú (mientras se animan los turnos o al acabar) no se dibujan botones.
+  if (!menu) return;
+  const n = menu.opciones.length;
   for (let i = 0; i < n; i++) {
     const r = rectOpcion(i, n);
     const opcion = menu?.opciones[i];
