@@ -23,6 +23,7 @@ describe('colocarMonstruos', () => {
     alto: 11,
     base: [],
     solido: Array.from({ length: 165 }, (_, i) => i % 15 === 10),
+    cajas: [],
     objetos: [{ x: 5, y: 5, inf: tile, sup: null }],
   };
   const lista = salidas(15, 11);

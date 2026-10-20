@@ -6,13 +6,25 @@
       "name": "cofre_cerrado",
       "index": 0,
       "layer": "objeto",
-      "solid": true
+      "solid": true,
+      "caja": [
+        4,
+        19,
+        28,
+        31
+      ]
     },
     {
       "name": "cofre_abierto",
       "index": 1,
       "layer": "objeto",
-      "solid": true
+      "solid": true,
+      "caja": [
+        4,
+        19,
+        28,
+        31
+      ]
     },
     {
       "name": "fuente",
@@ -20,7 +32,13 @@
       "layer": "objeto",
       "solid": true,
       "frames": 2,
-      "fps": 4
+      "fps": 4,
+      "caja": [
+        1,
+        19,
+        31,
+        31
+      ]
     },
     {
       "name": "portal",
@@ -36,7 +54,13 @@
       "layer": "objeto",
       "solid": true,
       "frames": 2,
-      "fps": 4
+      "fps": 4,
+      "caja": [
+        3,
+        19,
+        29,
+        31
+      ]
     }
   ]
 }

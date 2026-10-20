@@ -15,7 +15,8 @@ export function opuesto(lado: number): number {
 }
 
 /**
- * Salida con puerta cuya casilla del borde contiene los pies en (x, y), o null.
+ * Salida con puerta en alguna de cuyas casillas están los pies en (x, y), o null. La norte cruza un
+ * muro de dos filas: salta ya en la de dentro, para no ver a la heroína subida a las copas.
  * `lista` es `salidas(ancho, alto)` calculada una vez, para no crear arrays en cada paso.
  */
 export function salidaPisada(
@@ -28,8 +29,8 @@ export function salidaPisada(
   const col = Math.floor(x / tam);
   const fila = Math.ceil(y / tam) - 1; // fila de la casilla sobre la que están los pies
   for (const s of lista) {
-    const [sx, sy] = s.celdas[0]!;
-    if (puertas & s.lado && sx === col && sy === fila) return s;
+    if (!(puertas & s.lado)) continue;
+    for (const [sx, sy] of s.celdas) if (sx === col && sy === fila) return s;
   }
   return null;
 }

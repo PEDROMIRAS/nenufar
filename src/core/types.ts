@@ -8,6 +8,8 @@ export interface TileJson {
   index: number;
   layer: Capa;
   solid: boolean;
+  /** En los objetos sólidos, la base que choca [x0, y0, x1, y1) en píxeles del tile; sin ella, el tile entero. */
+  caja?: [number, number, number, number];
   weight?: number;
   frames?: number;
   fps?: number;

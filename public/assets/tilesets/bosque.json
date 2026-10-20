@@ -96,7 +96,13 @@
       "name": "arbol_inf",
       "index": 14,
       "layer": "objeto",
-      "solid": true
+      "solid": true,
+      "caja": [
+        5,
+        19,
+        27,
+        31
+      ]
     },
     {
       "name": "pino_sup",
@@ -108,25 +114,49 @@
       "name": "pino_inf",
       "index": 16,
       "layer": "objeto",
-      "solid": true
+      "solid": true,
+      "caja": [
+        6,
+        19,
+        26,
+        31
+      ]
     },
     {
       "name": "roca",
       "index": 17,
       "layer": "objeto",
-      "solid": true
+      "solid": true,
+      "caja": [
+        4,
+        19,
+        28,
+        31
+      ]
     },
     {
       "name": "arbusto",
       "index": 18,
       "layer": "objeto",
-      "solid": true
+      "solid": true,
+      "caja": [
+        3,
+        18,
+        29,
+        30
+      ]
     },
     {
       "name": "tocon",
       "index": 19,
       "layer": "objeto",
-      "solid": true
+      "solid": true,
+      "caja": [
+        6,
+        18,
+        27,
+        30
+      ]
     },
     {
       "name": "barrera_h",

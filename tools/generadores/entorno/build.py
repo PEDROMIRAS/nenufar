@@ -8,6 +8,22 @@ from base import S
 COLS = 8
 
 
+# Alto, en píxeles, de la base de un objeto que choca: lo de encima se puede pisar por detrás.
+ALTO_BASE = 12
+
+
+def base_solida(img):
+    """Caja [x0, y0, x1, y1) de la base del objeto (sus últimas filas con píxeles), que es lo que choca.
+
+    Así la heroína puede ponerse detrás de una roca o un árbol en lugar de chocar con una pared invisible.
+    """
+    alfa = img.getchannel("A").point(lambda a: 255 if a else 0)
+    _, arriba, _, abajo = alfa.getbbox()
+    y0 = max(arriba, abajo - ALTO_BASE)
+    x0, _, x1, _ = alfa.crop((0, y0, S, abajo)).getbbox()
+    return [x0, y0, x1, abajo]
+
+
 def build_sheet(name, entries, out):
     frames_total = sum(len(e[3]) for e in entries)
     rows = (frames_total + COLS - 1) // COLS
@@ -29,6 +45,8 @@ def build_sheet(name, entries, out):
             item["fps"] = 4
         if weight:
             item["weight"] = weight
+        if solid and layer == "objeto" and not tname.startswith("barrera"):
+            item["caja"] = base_solida(imgs[0])
         meta["tiles"].append(item)
         lookup[tname] = imgs
     sheet.save(f"{out}/{name}.png")

@@ -89,19 +89,37 @@
       "name": "pilar_inf",
       "index": 13,
       "layer": "objeto",
-      "solid": true
+      "solid": true,
+      "caja": [
+        4,
+        19,
+        28,
+        31
+      ]
     },
     {
       "name": "lapida",
       "index": 14,
       "layer": "objeto",
-      "solid": true
+      "solid": true,
+      "caja": [
+        6,
+        20,
+        26,
+        32
+      ]
     },
     {
       "name": "sarcofago",
       "index": 15,
       "layer": "objeto",
-      "solid": true
+      "solid": true,
+      "caja": [
+        4,
+        19,
+        28,
+        31
+      ]
     },
     {
       "name": "candelabro",
@@ -109,7 +127,13 @@
       "layer": "objeto",
       "solid": true,
       "frames": 2,
-      "fps": 4
+      "fps": 4,
+      "caja": [
+        9,
+        18,
+        23,
+        30
+      ]
     },
     {
       "name": "barrera_h",

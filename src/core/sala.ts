@@ -23,6 +23,8 @@ export interface Sala {
   objetos: ObjetoSala[];
   /** Casillas que no se pueden pisar, fila a fila. */
   solido: boolean[];
+  /** Por casilla sólida con objeto, la base que choca (null = la casilla entera). */
+  cajas: (readonly [number, number, number, number] | null)[];
 }
 
 // Símbolos que, además de sí mismos, enlazan un autotile: el camino entra en puertas y portales (como en plantilla.py).
@@ -85,6 +87,7 @@ export function construirSala(
   const base: Tile[] = [];
   const objetos: ObjetoSala[] = [];
   const solido: boolean[] = [];
+  const cajas: (readonly [number, number, number, number] | null)[] = [];
   for (let y = 0; y < alto; y++) {
     for (let x = 0; x < ancho; x++) {
       const ch = celda(x, y) ?? '';
@@ -126,10 +129,11 @@ export function construirSala(
       }
       base.push(fondo);
       solido.push(fondo.solid || (objeto?.inf.solid ?? false));
+      cajas.push(!fondo.solid && objeto?.inf.solid ? (objeto.inf.caja ?? null) : null);
       if (objeto) objetos.push(objeto);
     }
   }
-  return { ancho, alto, base, objetos, solido };
+  return { ancho, alto, base, objetos, solido, cajas };
 }
 
 export interface Salida {

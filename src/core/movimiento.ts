@@ -8,9 +8,50 @@ export interface Cuerpo {
   alto: number;
 }
 
-export type Rejilla = Pick<Sala, 'ancho' | 'alto' | 'solido'>;
+export type Rejilla = Pick<Sala, 'ancho' | 'alto' | 'solido'> & Partial<Pick<Sala, 'cajas'>>;
 
-/** ¿La caja con los pies en (x, y) pisa algún tile sólido? Fuera del mapa cuenta como sólido. */
+/**
+ * Borde de lo primero con que choca la caja con los pies en (x, y) en el sentido del movimiento
+ * (en X: el lado izquierdo de lo que hay a la derecha si `sentido` > 0…), o NaN si no choca con nada.
+ * Los muros chocan con la casilla entera; los objetos, con su base. Fuera del mapa cuenta como muro.
+ */
+function choque(
+  rejilla: Rejilla,
+  tam: number,
+  x: number,
+  y: number,
+  ancho: number,
+  alto: number,
+  enX: boolean,
+  sentido: number,
+): number {
+  const izq = x - ancho / 2;
+  const der = x + ancho / 2;
+  const arr = y - alto;
+  const c0 = Math.floor(izq / tam);
+  const c1 = Math.ceil(der / tam) - 1;
+  const f0 = Math.floor(arr / tam);
+  const f1 = Math.ceil(y / tam) - 1;
+  let borde = NaN;
+  for (let f = f0; f <= f1; f++) {
+    for (let c = c0; c <= c1; c++) {
+      const fuera = c < 0 || f < 0 || c >= rejilla.ancho || f >= rejilla.alto;
+      const i = f * rejilla.ancho + c;
+      if (!fuera && !rejilla.solido[i]) continue;
+      const caja = fuera ? null : (rejilla.cajas?.[i] ?? null);
+      const bx0 = c * tam + (caja ? caja[0] : 0);
+      const bx1 = c * tam + (caja ? caja[2] : tam);
+      const by0 = f * tam + (caja ? caja[1] : 0);
+      const by1 = f * tam + (caja ? caja[3] : tam);
+      if (izq >= bx1 || der <= bx0 || arr >= by1 || y <= by0) continue;
+      const b = enX ? (sentido > 0 ? bx0 : bx1) : sentido > 0 ? by0 : by1;
+      if (Number.isNaN(borde) || (sentido > 0 ? b < borde : b > borde)) borde = b;
+    }
+  }
+  return borde;
+}
+
+/** ¿La caja con los pies en (x, y) choca con algo? Fuera del mapa cuenta como sólido. */
 export function colisiona(
   rejilla: Rejilla,
   tam: number,
@@ -19,17 +60,7 @@ export function colisiona(
   ancho: number,
   alto: number,
 ): boolean {
-  const c0 = Math.floor((x - ancho / 2) / tam);
-  const c1 = Math.ceil((x + ancho / 2) / tam) - 1;
-  const f0 = Math.floor((y - alto) / tam);
-  const f1 = Math.ceil(y / tam) - 1;
-  for (let f = f0; f <= f1; f++) {
-    for (let c = c0; c <= c1; c++) {
-      if (c < 0 || f < 0 || c >= rejilla.ancho || f >= rejilla.alto) return true;
-      if (rejilla.solido[f * rejilla.ancho + c]) return true;
-    }
-  }
-  return false;
+  return !Number.isNaN(choque(rejilla, tam, x, y, ancho, alto, true, 1));
 }
 
 /**
@@ -50,7 +81,7 @@ export function moverCuerpo(
   if (chocaY && dx === 0) esquivar(cuerpo, false, dy, rejilla, tam, margenEsquina);
 }
 
-/** Mueve en un eje; si choca, se queda pegado al borde del tile. Supone |paso| < tam. Devuelve si chocó. */
+/** Mueve en un eje; si choca, se queda pegado a lo que choca. Supone |paso| < tam. Devuelve si chocó. */
 function moverEje(c: Cuerpo, enX: boolean, paso: number, rejilla: Rejilla, tam: number): boolean {
   if (paso === 0) return false;
   const nx = enX ? c.x + paso : c.x;
@@ -60,17 +91,10 @@ function moverEje(c: Cuerpo, enX: boolean, paso: number, rejilla: Rejilla, tam: 
     c.y = ny;
     return false;
   }
-  if (enX) {
-    c.x =
-      paso > 0
-        ? (Math.ceil((nx + c.ancho / 2) / tam) - 1) * tam - c.ancho / 2
-        : (Math.floor((nx - c.ancho / 2) / tam) + 1) * tam + c.ancho / 2;
-  } else {
-    c.y =
-      paso > 0
-        ? (Math.ceil(ny / tam) - 1) * tam
-        : (Math.floor((ny - c.alto) / tam) + 1) * tam + c.alto;
-  }
+  // Se queda pegada al borde de lo que choca (sin retroceder si ya lo estaba tocando).
+  const borde = choque(rejilla, tam, nx, ny, c.ancho, c.alto, enX, paso);
+  if (enX) c.x = paso > 0 ? Math.max(c.x, borde - c.ancho / 2) : Math.min(c.x, borde + c.ancho / 2);
+  else c.y = paso > 0 ? Math.max(c.y, borde) : Math.min(c.y, borde + c.alto);
   return true;
 }
 

@@ -66,3 +66,26 @@ describe('buscarInicio', () => {
     expect([inicio.x, inicio.y]).toEqual([T + 16, T + 20]);
   });
 });
+
+describe('objetos con base', () => {
+  // Sala de 5×5 con una roca en el centro (2, 2) que solo choca en su base [4, 19, 28, 31).
+  const r = { ...rejilla(SALA), cajas: [] as ([number, number, number, number] | null)[] };
+  r.solido[2 * 5 + 2] = true;
+  r.cajas[2 * 5 + 2] = [4, 19, 28, 31];
+
+  test('desde arriba se llega hasta su base, sin pared invisible en lo alto de la casilla', () => {
+    const c = cuerpo(2 * T + 16, T + 20);
+    andar(c, r, 0, 1.6);
+    expect(c.y).toBe(2 * T + 19);
+  });
+
+  test('de lado se queda pegada a la base, no al borde de la casilla', () => {
+    const c = cuerpo(T + 10, 2 * T + 30); // de frente: demasiado solapada para que la ayuda de esquinas la desvíe
+    andar(c, r, 1.6, 0);
+    expect(c.x + c.ancho / 2).toBe(2 * T + 4);
+  });
+
+  test('por detrás, a la altura de lo alto de la roca, se pasa sin chocar', () => {
+    expect(colisiona(r, T, 2 * T + 16, 2 * T + 12, 14, 8)).toBe(false);
+  });
+});

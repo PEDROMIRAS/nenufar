@@ -89,25 +89,49 @@
       "name": "columna_inf",
       "index": 13,
       "layer": "objeto",
-      "solid": true
+      "solid": true,
+      "caja": [
+        4,
+        19,
+        28,
+        31
+      ]
     },
     {
       "name": "columna_rota",
       "index": 14,
       "layer": "objeto",
-      "solid": true
+      "solid": true,
+      "caja": [
+        2,
+        19,
+        31,
+        31
+      ]
     },
     {
       "name": "escombros",
       "index": 15,
       "layer": "objeto",
-      "solid": true
+      "solid": true,
+      "caja": [
+        3,
+        19,
+        30,
+        31
+      ]
     },
     {
       "name": "vasija",
       "index": 16,
       "layer": "objeto",
-      "solid": true
+      "solid": true,
+      "caja": [
+        7,
+        19,
+        25,
+        31
+      ]
     },
     {
       "name": "barrera_h",

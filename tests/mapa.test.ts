@@ -24,10 +24,10 @@ describe('salidaPisada', () => {
     expect(salidaPisada(lista, E, T, 7 * T + 16, 20)).toBeNull();
   });
 
-  test('los pies en el borde superior de la casilla siguiente siguen contando como la de arriba', () => {
-    // y = 32 es justo el borde entre la fila 0 y la 1: los pies apoyan en la fila 0.
-    expect(salidaPisada(lista, N, T, 7 * T + 16, T)?.lado).toBe(N);
-    expect(salidaPisada(lista, N, T, 7 * T + 16, T + 1)).toBeNull();
+  test('la norte salta ya en la segunda fila del muro, y no antes', () => {
+    // y = 64 es justo el borde entre la fila 1 y la 2: los pies apoyan en la fila 1.
+    expect(salidaPisada(lista, N, T, 7 * T + 16, 2 * T)?.lado).toBe(N);
+    expect(salidaPisada(lista, N, T, 7 * T + 16, 2 * T + 1)).toBeNull();
   });
 });
 
@@ -64,6 +64,7 @@ test('portalPisado solo se activa con los pies en la casilla del portal', () => 
     alto: 11,
     base: [],
     solido: [],
+    cajas: [],
     objetos: [
       { x: 2, y: 2, inf: roca, sup: null },
       { x: 11, y: 3, inf: portal, sup: null },
@@ -81,6 +82,7 @@ test('objetoAlAlcance: pegada a la fuente sí, a un paso de distancia no', () =>
     alto: 11,
     base: [],
     solido: [],
+    cajas: [],
     objetos: [{ x: 10, y: 7, inf: fuente, sup: null }],
   };
   const cuerpo = (x: number, y: number) => ({ x, y, ancho: 14, alto: 8 });
