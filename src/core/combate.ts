@@ -63,7 +63,8 @@ export type Evento =
     }
   | { tipo: 'defensa'; actor: Luchador; pm: number }
   | { tipo: 'carga'; actor: Luchador; aviso: string }
-  | { tipo: 'habilidad'; actor: Luchador; nombre: string }
+  /** `pm`: los que le quedan al actor tras pagarla (la vista no puede leerlos del luchador, que ya va por delante). */
+  | { tipo: 'habilidad'; actor: Luchador; nombre: string; pm: number }
   | { tipo: 'cura'; objetivo: Luchador; cantidad: number }
   | { tipo: 'estado'; objetivo: Luchador; estado: string; activo: boolean }
   | { tipo: 'danioEstado'; objetivo: Luchador; cantidad: number; estado: string }
@@ -448,7 +449,7 @@ function usarHabilidad(
   eventos: Evento[],
 ): void {
   actor.pm -= hab.pm;
-  eventos.push({ tipo: 'habilidad', actor, nombre: hab.nombre });
+  eventos.push({ tipo: 'habilidad', actor, nombre: hab.nombre, pm: actor.pm });
   const vivos = rivales(c, actor).filter((l) => l.pv > 0);
   const objetivos = (
     hab.objetivo === 'propio'

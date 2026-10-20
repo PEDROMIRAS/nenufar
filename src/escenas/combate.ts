@@ -115,6 +115,7 @@ export class EscenaCombate implements Escena {
       tiempo: 0,
       pv: new Map(todos.map((l) => [l, l.pv])),
       textoPv: new Map(todos.map((l) => [l, textoVida(l.pv, l.pvMax)])),
+      pmHeroina: h.pm,
       textoPm: textoVida(h.pm, h.pmMax),
       estados: new Map(),
       registro: ['', `¡Aparece ${combate.enemigos.map((e) => e.nombre).join(' y ')}!`],
@@ -231,7 +232,7 @@ export class EscenaCombate implements Escena {
         sonar('cura');
         break;
       case 'habilidad':
-        if (e.actor.esHeroina) v.textoPm = textoVida(e.actor.pm, e.actor.pmMax);
+        if (e.actor.esHeroina) this.verPm(e.pm);
         this.registrar(`${e.actor.nombre} usa ${e.nombre}`);
         break;
       case 'estado': {
@@ -272,7 +273,7 @@ export class EscenaCombate implements Escena {
         break;
       case 'defensa':
         v.defendiendo = true;
-        v.textoPm = textoVida(e.actor.pm, e.actor.pmMax);
+        if (e.actor.esHeroina) this.verPm(v.pmHeroina + e.pm);
         this.registrar(`${e.actor.nombre} se defiende (+${e.pm} PM)`);
         break;
       case 'carga':
@@ -294,7 +295,7 @@ export class EscenaCombate implements Escena {
         this.registrar(`${e.actor.nombre} usa ${e.nombre}`);
         break;
       case 'mana':
-        v.textoPm = textoVida(e.objetivo.pm, e.objetivo.pmMax);
+        this.verPm(v.pmHeroina + e.cantidad);
         this.registrar(`${e.objetivo.nombre} recupera ${e.cantidad} PM`);
         break;
       case 'botin':
@@ -305,9 +306,11 @@ export class EscenaCombate implements Escena {
         break;
       case 'recupera': {
         const h = this.combate.heroina;
-        v.pv.set(h, h.pv);
-        v.textoPv.set(h, textoVida(h.pv, h.pvMax));
-        v.textoPm = textoVida(h.pm, h.pmMax);
+        // Lo que se ve más lo recuperado (los valores finales ya incluyen la subida de nivel que viene después).
+        const pv = (v.pv.get(h) ?? h.pv) + e.pv;
+        v.pv.set(h, pv);
+        v.textoPv.set(h, textoVida(pv, h.pvMax));
+        this.verPm(v.pmHeroina + e.pm);
         this.registrar(`Recuperas ${e.pv} PV y ${e.pm} PM`);
         break;
       }
@@ -319,7 +322,7 @@ export class EscenaCombate implements Escena {
         const h = this.combate.heroina;
         v.pv.set(h, h.pv);
         v.textoPv.set(h, textoVida(h.pv, h.pvMax));
-        v.textoPm = textoVida(h.pm, h.pmMax);
+        this.verPm(h.pm);
         this.registrar(`¡${h.nombre} sube a nivel ${e.nivel}!`);
         sonar('nivel');
         break;
@@ -356,6 +359,12 @@ export class EscenaCombate implements Escena {
   private anunciarOpcion(): void {
     const o = this.v.menu?.opciones[this.v.menu.seleccion];
     if (o) anunciar(o.ayuda ? `${o.texto}. ${o.ayuda.join(' ')}` : o.texto);
+  }
+
+  /** Pone al día los PM que se ven de la heroína (barra y texto). */
+  private verPm(pm: number): void {
+    this.v.pmHeroina = pm;
+    this.v.textoPm = textoVida(pm, this.combate.heroina.pmMax);
   }
 
   private registrar(texto: string): void {

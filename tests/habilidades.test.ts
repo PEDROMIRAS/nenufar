@@ -56,6 +56,17 @@ describe('habilidades', () => {
     expect(c.heroina.pm).toBe(8 - 3);
   });
 
+  test('si la habilidad gana el combate, su evento lleva los PM tras pagarla, no los recuperados después', () => {
+    const c = combate(heroes.ronin);
+    c.enemigos[0]!.pv = 1;
+    c.heroina.pm = 3;
+    const eventos = usar(c, 'Corte rápido', heroes.ronin);
+    expect(eventos).toContainEqual(expect.objectContaining({ tipo: 'habilidad', pm: 0 }));
+    // Al ganar recupera parte de los PM: el luchador ya va por delante de lo que se anima.
+    expect(c.resultado).toBe('victoria');
+    expect(c.heroina.pm).toBeGreaterThan(0);
+  });
+
   test('Fuego morado: daño mágico con Magia; el objetivo solo resta DEF × 0,25', () => {
     const c = combate(heroes.maga);
     usar(c, 'Fuego morado', heroes.maga);

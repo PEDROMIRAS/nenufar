@@ -30,6 +30,8 @@ export interface VistaCombate {
   /** PV y textos que se ven (van por detrás del combate mientras se animan los eventos). */
   pv: Map<Luchador, number>;
   textoPv: Map<Luchador, string>;
+  /** PM de la heroína que se ven: avanzan con los eventos, no con el valor final del combate. */
+  pmHeroina: number;
   textoPm: string;
   /** Estados activos que se ven, como texto («Veneno · Furia»). */
   estados: Map<Luchador, string>;
@@ -350,7 +352,7 @@ function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   escribir(ctx, v.estados.get(h) ?? '', bx + 112, 176, COLOR.estado);
   barra(ctx, bx, 194, 120, (v.pv.get(h) ?? h.pv) / h.pvMax, COLOR.pv);
   escribir(ctx, v.textoPv.get(h) ?? '', bx + 128, 190);
-  barra(ctx, bx, 212, 120, h.pm / Math.max(1, h.pmMax), COLOR.pm);
+  barra(ctx, bx, 212, 120, v.pmHeroina / Math.max(1, h.pmMax), COLOR.pm);
   escribir(ctx, v.textoPm, bx + 128, 208);
 }
 
