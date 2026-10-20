@@ -1,5 +1,7 @@
+import { elegirConPeso } from './azar';
 import { ganarExperiencia } from './progresion';
 import type {
+  AccionMonstruoJson,
   EstadoJson,
   Estadisticas,
   HabilidadJson,
@@ -118,6 +120,17 @@ export const luchadorDeHeroe = (h: HeroeJson): Luchador =>
   luchador(h.nombre, h.estadisticas, h, null);
 export const luchadorDeMonstruo = (m: MonstruoJson): Luchador =>
   luchador(m.nombre, m.estadisticas, null, m);
+
+/** Luchadores de un grupo; los repetidos se distinguen con una letra («Limo A», «Limo B»). */
+export function luchadoresDeGrupo(grupo: readonly MonstruoJson[]): Luchador[] {
+  return grupo.map((m, i) => {
+    const l = luchadorDeMonstruo(m);
+    const iguales = grupo.filter((o) => o.nombre === m.nombre).length;
+    const antes = grupo.slice(0, i).filter((o) => o.nombre === m.nombre).length;
+    if (iguales > 1) l.nombre += ` ${String.fromCharCode(65 + antes)}`;
+    return l;
+  });
+}
 
 export function crearCombate(
   heroina: Luchador,
@@ -274,13 +287,57 @@ function actuarMonstruo(c: Combate, m: Luchador, eventos: Evento[]): void {
     golpear(c, m, c.heroina, datos.cargado.poder, true, false, false, eventos);
     return;
   }
-  const accion = elegirPorPeso(datos?.acciones ?? [], c.azar);
+  // Solo cuentan las acciones cuya condición se cumple y que puede pagar.
+  const posibles = (datos?.acciones ?? []).filter(
+    (a) => cumple(c, m, a) && sePuede(c, m, a.accion),
+  );
+  const accion = elegirConPeso(posibles, c.azar)?.accion;
+  const habilidad = datos?.habilidades?.find((h) => h.nombre === accion);
   if (accion === 'cargar' && datos?.cargado) {
     m.cargando = true;
     eventos.push({ tipo: 'carga', actor: m, aviso: datos.cargado.aviso });
+  } else if (accion === 'defender') {
+    m.defendiendo = true;
+    eventos.push({ tipo: 'defensa', actor: m, pm: 0 });
+  } else if (habilidad) {
+    usarHabilidad(c, m, habilidad, c.heroina, eventos);
   } else {
     golpear(c, m, c.heroina, 1, false, false, false, eventos);
   }
+}
+
+function cumple(c: Combate, m: Luchador, a: AccionMonstruoJson): boolean {
+  const { pvPropioMenorQue, pvAliadoMenorQue } = a.condicion ?? {};
+  if (pvPropioMenorQue !== undefined && m.pv >= m.pvMax * pvPropioMenorQue) return false;
+  if (
+    pvAliadoMenorQue !== undefined &&
+    !aliados(c, m).some((l) => l.pv > 0 && l.pv < l.pvMax * pvAliadoMenorQue)
+  ) {
+    return false;
+  }
+  return true;
+}
+
+/** ¿Puede hacer esa acción ahora? Una habilidad necesita sus PM y, si es de apoyo, un aliado al que ayudar. */
+function sePuede(c: Combate, m: Luchador, accion: string): boolean {
+  const hab = m.monstruo?.habilidades?.find((h) => h.nombre === accion);
+  if (!hab) return true;
+  return hab.pm <= m.pm && (hab.objetivo !== 'aliado' || elegirAliado(c, m, hab) !== undefined);
+}
+
+function aliados(c: Combate, actor: Luchador): Luchador[] {
+  return actor.esHeroina ? [c.heroina] : c.enemigos;
+}
+
+/** El aliado vivo más herido si la habilidad cura; si aplica un estado, el primero que no lo tenga. */
+function elegirAliado(c: Combate, actor: Luchador, hab: HabilidadJson): Luchador | undefined {
+  const vivos = aliados(c, actor).filter((l) => l.pv > 0);
+  if (hab.cura) {
+    const heridos = vivos.filter((l) => l.pv < l.pvMax);
+    return heridos.sort((a, b) => a.pv / a.pvMax - b.pv / b.pvMax)[0];
+  }
+  if (hab.estado) return vivos.find((l) => !l.estados.some((e) => e.id === hab.estado));
+  return vivos[0];
 }
 
 function rivales(c: Combate, actor: Luchador): Luchador[] {
@@ -297,12 +354,15 @@ function usarHabilidad(
   actor.pm -= hab.pm;
   eventos.push({ tipo: 'habilidad', actor, nombre: hab.nombre });
   const vivos = rivales(c, actor).filter((l) => l.pv > 0);
-  const objetivos =
+  const objetivos = (
     hab.objetivo === 'propio'
       ? [actor]
       : hab.objetivo === 'todos'
         ? vivos
-        : [elegido && elegido.pv > 0 ? elegido : vivos[0]].filter((l) => l !== undefined);
+        : hab.objetivo === 'aliado'
+          ? [elegirAliado(c, actor, hab)]
+          : [elegido && elegido.pv > 0 ? elegido : vivos[0]]
+  ).filter((l) => l !== undefined);
   for (const o of objetivos) {
     if (c.resultado) return;
     if (hab.danio) {
@@ -390,17 +450,4 @@ function terminar(c: Combate, resultado: Resultado, eventos: Evento[]): void {
     }
   }
   eventos.push({ tipo: 'fin', resultado });
-}
-
-function elegirPorPeso<T extends { peso: number }>(
-  tabla: readonly (T & { accion: string })[],
-  azar: () => number,
-): string | undefined {
-  const total = tabla.reduce((s, a) => s + a.peso, 0);
-  let r = azar() * total;
-  for (const a of tabla) {
-    r -= a.peso;
-    if (r < 0) return a.accion;
-  }
-  return tabla[tabla.length - 1]?.accion;
 }

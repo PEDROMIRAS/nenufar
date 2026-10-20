@@ -11,5 +11,78 @@
     "experiencia": 6,
     "caja": { "ancho": 20, "alto": 12 },
     "color": "#7fc46a"
+  },
+  "murcielago": {
+    "nombre": "Murciélago",
+    "estadisticas": { "pv": 12, "pm": 0, "ataque": 7, "magia": 0, "defensa": 2, "velocidad": 12 },
+    "acciones": [{ "accion": "atacar", "peso": 100 }],
+    "jefe": false,
+    "experiencia": 7,
+    "caja": { "ancho": 18, "alto": 10 },
+    "color": "#8a6fa8"
+  },
+  "esqueleto": {
+    "nombre": "Esqueleto",
+    "estadisticas": { "pv": 34, "pm": 0, "ataque": 12, "magia": 0, "defensa": 8, "velocidad": 6 },
+    "acciones": [
+      { "accion": "atacar", "peso": 100 },
+      { "accion": "defender", "peso": 80, "condicion": { "pvPropioMenorQue": 0.3 } }
+    ],
+    "jefe": false,
+    "experiencia": 16,
+    "caja": { "ancho": 18, "alto": 12 },
+    "color": "#d8d2bf"
+  },
+  "arana": {
+    "nombre": "Araña",
+    "estadisticas": { "pv": 30, "pm": 12, "ataque": 11, "magia": 0, "defensa": 6, "velocidad": 9 },
+    "acciones": [
+      { "accion": "atacar", "peso": 50 },
+      { "accion": "Picadura", "peso": 50 }
+    ],
+    "habilidades": [
+      {
+        "nombre": "Picadura",
+        "nivel": 1,
+        "pm": 3,
+        "objetivo": "uno",
+        "danio": { "tipo": "fisico", "poder": 0.7 },
+        "estado": "veneno"
+      }
+    ],
+    "jefe": false,
+    "experiencia": 16,
+    "caja": { "ancho": 22, "alto": 12 },
+    "color": "#7a3b3b"
+  },
+  "caballero": {
+    "nombre": "Caballero oscuro",
+    "estadisticas": { "pv": 60, "pm": 0, "ataque": 17, "magia": 0, "defensa": 18, "velocidad": 5 },
+    "acciones": [
+      { "accion": "atacar", "peso": 70 },
+      { "accion": "cargar", "peso": 30 }
+    ],
+    "cargado": { "poder": 2.2, "aviso": "El Caballero alza su espada..." },
+    "jefe": false,
+    "experiencia": 30,
+    "caja": { "ancho": 20, "alto": 12 },
+    "color": "#3b4560"
+  },
+  "chaman": {
+    "nombre": "Chamán goblin",
+    "estadisticas": { "pv": 36, "pm": 20, "ataque": 10, "magia": 12, "defensa": 8, "velocidad": 8 },
+    "acciones": [
+      { "accion": "atacar", "peso": 40 },
+      { "accion": "Ungüento", "peso": 60, "condicion": { "pvAliadoMenorQue": 0.6 } },
+      { "accion": "Grito de guerra", "peso": 30 }
+    ],
+    "habilidades": [
+      { "nombre": "Ungüento", "nivel": 1, "pm": 5, "objetivo": "aliado", "cura": 0.3 },
+      { "nombre": "Grito de guerra", "nivel": 1, "pm": 4, "objetivo": "aliado", "estado": "furia" }
+    ],
+    "jefe": false,
+    "experiencia": 26,
+    "caja": { "ancho": 18, "alto": 12 },
+    "color": "#6b8f3a"
   }
 }

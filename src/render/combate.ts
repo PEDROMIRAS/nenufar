@@ -31,6 +31,8 @@ export interface VistaCombate {
   registro: [string, string];
   /** Menú de la heroína; null mientras no le toca elegir. */
   menu: MenuVista | null;
+  /** Enemigo señalado mientras se elige objetivo. */
+  apuntado: Luchador | null;
   /** Luchador que parpadea porque acaba de recibir un golpe (o una cura), y número que flota sobre él. */
   golpeado: Luchador | null;
   flotante: string;
@@ -193,6 +195,16 @@ function dibujarEnemigo(
     );
   }
   escribir(ctx, e.nombre, x, y - alto - hinchado - 18, '#e8efe4', 'center');
+  if (v.apuntado === e) {
+    escribir(
+      ctx,
+      '▼',
+      x,
+      y - alto - hinchado - 34 + Math.round(Math.sin(v.tiempo * 8) * 2),
+      COLOR.aviso,
+      'center',
+    );
+  }
   barra(ctx, x - 40, y + 8, 80, pv / e.pvMax, COLOR.pv);
   escribir(ctx, v.textoPv.get(e) ?? '', x, y + 18, '#e8efe4', 'center');
   escribir(ctx, v.estados.get(e) ?? '', x, y + 32, COLOR.estado, 'center');

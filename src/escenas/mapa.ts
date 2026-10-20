@@ -1,6 +1,6 @@
 import type { Acciones } from '../core/acciones';
 import type { Luchador, Resultado } from '../core/combate';
-import { crearAzar } from '../core/azar';
+import { crearAzar, elegirConPeso } from '../core/azar';
 import { actualizarHeroina, type Heroina } from '../core/heroina';
 import { opuesto, portalPisado, posicionEntrada, salaVecina, salidaPisada } from '../core/mapa';
 import { colocarMonstruos, seTocan, type Caja } from '../core/monstruos';
@@ -26,8 +26,9 @@ import type { Escena } from './escena';
 /** Separación del minimapa respecto al borde de la pantalla, en píxeles lógicos. */
 const MARGEN_HUD = 6;
 
+/** Un grupo de monstruos en el mapa: se ve y choca como el primero, y se lucha contra todos. */
 interface MonstruoMapa extends Caja {
-  datos: MonstruoJson;
+  grupo: MonstruoJson[];
   vivo: boolean;
 }
 
@@ -54,13 +55,13 @@ export interface OpcionesMapa {
   /** Empieza saliendo de negro, como segunda mitad de un fundido (al llegar desde otra zona). */
   entrarDesdeNegro: boolean;
   /** Tipos de monstruo de la zona; cuántos hay por sala de combate y a cuántas casillas de las entradas. */
-  monstruos: readonly MonstruoJson[];
-  monstruosPorSala: number;
+  grupos: readonly { monstruos: MonstruoJson[]; peso: number }[];
+  gruposPorSala: { min: number; max: number };
   distanciaMonstruos: number;
   /** Segundos sin poder empezar otro combate tras huir o vencer. */
   invulnerabilidad: number;
   /** Abre el combate contra `monstruo` y avisa de su resultado al terminar (salvo derrota). */
-  iniciarCombate: (monstruo: MonstruoJson, alTerminar: (r: Resultado) => void) => void;
+  iniciarCombate: (grupo: MonstruoJson[], alTerminar: (r: Resultado) => void) => void;
   /** Estadísticas de combate de la heroína y nombre de la zona, para el HUD. */
   luchadora: Luchador;
   nombreZona: string;
@@ -158,12 +159,12 @@ export class EscenaMapa implements Escena {
     const { monstruos } = this.montada;
     dibujarObjetos(ctx, sala, imagenes, tam, this.tiempo, -Infinity, pies);
     for (const m of monstruos) {
-      if (m.vivo && m.y <= pies) dibujarMonstruoMapa(ctx, m, m.datos.color, this.tiempo);
+      if (m.vivo && m.y <= pies) dibujarMonstruoMapa(ctx, m, m.grupo, this.tiempo);
     }
     // Parpadea mientras no se puede empezar otro combate.
     if (Math.floor(this.invulnerable * 10) % 2 === 0) dibujarHeroina(ctx, sprite, h, alpha);
     for (const m of monstruos) {
-      if (m.vivo && m.y > pies) dibujarMonstruoMapa(ctx, m, m.datos.color, this.tiempo);
+      if (m.vivo && m.y > pies) dibujarMonstruoMapa(ctx, m, m.grupo, this.tiempo);
     }
     dibujarObjetos(ctx, sala, imagenes, tam, this.tiempo, pies, Infinity);
     ctx.drawImage(this.vineta, 0, 0);
@@ -193,7 +194,7 @@ export class EscenaMapa implements Escena {
   }
 
   private luchar(m: MonstruoMapa): void {
-    this.o.iniciarCombate(m.datos, (resultado) => {
+    this.o.iniciarCombate(m.grupo, (resultado) => {
       if (resultado === 'victoria') m.vivo = false;
       this.invulnerable = this.o.invulnerabilidad;
     });
@@ -247,22 +248,21 @@ export class EscenaMapa implements Escena {
     return montada;
   }
 
-  /** Monstruos de una sala de combate, en casillas libres lejos de las entradas. */
+  /** Grupos de monstruos de una sala de combate, en casillas libres lejos de las entradas. */
   private poblar(s: SalaZona, sala: Sala, azar: () => number): MonstruoMapa[] {
-    const { monstruos, monstruosPorSala, distanciaMonstruos, tam } = this.o;
-    if (s.tipo !== 'combate' || monstruos.length === 0) return [];
-    return colocarMonstruos(sala, this.salidas, monstruosPorSala, distanciaMonstruos, azar).map(
+    const { grupos, gruposPorSala, distanciaMonstruos, tam } = this.o;
+    if (s.tipo !== 'combate' || grupos.length === 0) return [];
+    const { min, max } = gruposPorSala;
+    const cuantos = min + Math.floor(azar() * (max - min + 1));
+    return colocarMonstruos(sala, this.salidas, cuantos, distanciaMonstruos, azar).flatMap(
       ([c, f]) => {
-        const datos = monstruos[Math.floor(azar() * monstruos.length)]!;
-        const { ancho, alto } = datos.caja;
-        return {
-          x: c * tam + tam / 2,
-          y: f * tam + (tam + alto) / 2,
-          ancho,
-          alto,
-          datos,
-          vivo: true,
-        };
+        const grupo = elegirConPeso(grupos, azar)?.monstruos;
+        const primero = grupo?.[0];
+        if (!grupo || !primero) return [];
+        const { ancho, alto } = primero.caja;
+        return [
+          { x: c * tam + tam / 2, y: f * tam + (tam + alto) / 2, ancho, alto, grupo, vivo: true },
+        ];
       },
     );
   }

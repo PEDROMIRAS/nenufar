@@ -1,6 +1,6 @@
 import { crearAcciones } from './core/acciones';
 import { crearAzar } from './core/azar';
-import { crearCombate, luchadorDeHeroe, luchadorDeMonstruo, type Luchador } from './core/combate';
+import { crearCombate, luchadorDeHeroe, luchadoresDeGrupo, type Luchador } from './core/combate';
 import { crearHeroina, type Heroina } from './core/heroina';
 import { crearCatalogo } from './core/sala';
 import type { PlantillasJson } from './core/types';
@@ -130,20 +130,23 @@ async function crearZona(
         }
       : null,
     entrarDesdeNegro,
-    monstruos: datos.monstruos.map((m) => {
-      const monstruo = MONSTRUOS[m];
-      if (!monstruo) throw new Error(`Monstruo desconocido en zonas.json: ${m}`);
-      return monstruo;
-    }),
-    monstruosPorSala: zonas.monstruos.porSala,
+    grupos: datos.grupos.map(({ monstruos, peso }) => ({
+      peso,
+      monstruos: monstruos.map((m) => {
+        const monstruo = MONSTRUOS[m];
+        if (!monstruo) throw new Error(`Monstruo desconocido en zonas.json: ${m}`);
+        return monstruo;
+      }),
+    })),
+    gruposPorSala: zonas.monstruos.gruposPorSala,
     distanciaMonstruos: zonas.monstruos.distanciaEntradas,
     invulnerabilidad: REGLAS.invulnerabilidadTrasCombate,
     luchadora: partida.luchadora,
     nombreZona: datos.nombre,
-    iniciarCombate: (monstruo, alTerminar) => {
+    iniciarCombate: (grupo, alTerminar) => {
       const { pila, luchadora } = partida;
       const azar = crearAzar(partida.semilla * 31 + ++partida.combates);
-      const combate = crearCombate(luchadora, [luchadorDeMonstruo(monstruo)], REGLAS, azar);
+      const combate = crearCombate(luchadora, luchadoresDeGrupo(grupo), REGLAS, azar);
       pila.apilar(
         new EscenaCombate(combate, partida.sprite, (resultado) => {
           pila.desapilar();

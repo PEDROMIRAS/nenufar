@@ -50,7 +50,9 @@ export class EscenaCombate implements Escena {
   /** Dirección del paso anterior, para mover la selección una vez por pulsación. */
   private ultimoX = 0;
   private ultimoY = 0;
-  private modo: 'principal' | 'habilidades' = 'principal';
+  private modo: 'principal' | 'habilidades' | 'objetivo' = 'principal';
+  /** Acción a la que solo le falta el objetivo, mientras se elige. */
+  private pendiente: ((objetivo: Luchador) => AccionHeroina) | null = null;
   /** Opción elegida la última vez en el menú principal, para volver a ella. */
   private seleccionPrincipal = 0;
   /** Estados que se ven sobre cada luchador, en el orden en que aparecieron. */
@@ -74,6 +76,7 @@ export class EscenaCombate implements Escena {
       estados: new Map(),
       registro: ['', `¡Aparece ${combate.enemigos.map((e) => e.nombre).join(' y ')}!`],
       menu: null,
+      apuntado: null,
       golpeado: null,
       flotante: '',
       flotanteCura: false,
@@ -220,7 +223,11 @@ export class EscenaCombate implements Escena {
     this.v.registro[1] = texto;
   }
 
-  private abrir(modo: 'principal' | 'habilidades'): void {
+  private vivos(): Luchador[] {
+    return this.combate.enemigos.filter((e) => e.pv > 0);
+  }
+
+  private abrir(modo: 'principal' | 'habilidades' | 'objetivo'): void {
     this.modo = modo;
     const h = this.combate.heroina;
     let menu: MenuVista;
@@ -234,6 +241,14 @@ export class EscenaCombate implements Escena {
       menu = {
         opciones: PRINCIPAL.map((texto, i) => ({ texto, detalle: '', disponible: disponible[i]! })),
         seleccion: this.seleccionPrincipal,
+      };
+    } else if (modo === 'objetivo') {
+      menu = {
+        opciones: [
+          ...this.vivos().map((e) => ({ texto: e.nombre, detalle: '', disponible: true })),
+          { texto: 'Volver', detalle: '', disponible: true },
+        ],
+        seleccion: 0,
       };
     } else {
       menu = {
@@ -272,7 +287,7 @@ export class EscenaCombate implements Escena {
       }
       return;
     }
-    if (a.cancelar && this.modo === 'habilidades') {
+    if (a.cancelar && this.modo !== 'principal') {
       this.abrir('principal');
       return;
     }
@@ -283,27 +298,34 @@ export class EscenaCombate implements Escena {
     if (salto !== 0) menu.seleccion = (((menu.seleccion + salto) % n) + n) % n;
     this.ultimoX = dx;
     this.ultimoY = dy;
+    this.v.apuntado = this.modo === 'objetivo' ? (this.vivos()[menu.seleccion] ?? null) : null;
     if (a.confirmar) this.elegir(menu.seleccion);
   }
 
   private elegir(i: number): void {
     const h = this.combate.heroina;
-    // shortcut: siempre al primer enemigo vivo; elegir objetivo llega con los grupos de monstruos (hito 4).
-    const objetivo = this.combate.enemigos.find((e) => e.pv > 0) ?? null;
+    if (this.modo === 'objetivo') {
+      const objetivo = this.vivos()[i];
+      if (objetivo && this.pendiente) this.usar(this.pendiente(objetivo));
+      else this.abrir('principal'); // «Volver»
+      return;
+    }
     if (this.modo === 'habilidades') {
       const hab = habilidadesDisponibles(h)[i];
       if (!hab) {
         this.abrir('principal'); // «Volver»
       } else if (hab.pm > h.pm) {
         this.registrar(`No quedan PM para ${hab.nombre}`);
+      } else if (hab.objetivo === 'uno') {
+        this.apuntar((o) => ({ tipo: 'habilidad', habilidad: hab, objetivo: o }));
       } else {
-        this.usar({ tipo: 'habilidad', habilidad: hab, objetivo });
+        this.usar({ tipo: 'habilidad', habilidad: hab, objetivo: null });
       }
       return;
     }
     this.seleccionPrincipal = i;
     const opcion = PRINCIPAL[i];
-    if (opcion === 'Atacar' && objetivo) this.usar({ tipo: 'atacar', objetivo });
+    if (opcion === 'Atacar') this.apuntar((o) => ({ tipo: 'atacar', objetivo: o }));
     else if (opcion === 'Habilidad' && habilidadesDisponibles(h).length > 0)
       this.abrir('habilidades');
     else if (opcion === 'Defender') this.usar({ tipo: 'defender' });
@@ -313,9 +335,22 @@ export class EscenaCombate implements Escena {
     }
   }
 
+  /** Con un solo enemigo vivo la acción va directa; con varios, se elige a quién. */
+  private apuntar(accion: (objetivo: Luchador) => AccionHeroina): void {
+    const vivos = this.vivos();
+    if (vivos.length === 1) {
+      this.usar(accion(vivos[0]!));
+    } else if (vivos.length > 1) {
+      this.pendiente = accion;
+      this.abrir('objetivo');
+    }
+  }
+
   private usar(accion: AccionHeroina): void {
     this.v.menu = null;
+    this.v.apuntado = null;
     this.modo = 'principal';
+    this.pendiente = null;
     this.cola.push(...actuar(this.combate, accion));
   }
 }

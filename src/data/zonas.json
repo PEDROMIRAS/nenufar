@@ -4,12 +4,41 @@
     "rejilla": 7
   },
   "monstruos": {
-    "porSala": 1,
+    "gruposPorSala": { "min": 1, "max": 3 },
     "distanciaEntradas": 3
   },
   "zonas": {
-    "bosque": { "nombre": "Bosque", "salas": 8, "monstruos": ["limo"] },
-    "ruinas": { "nombre": "Ruinas", "salas": 11, "monstruos": ["limo"] },
-    "cripta": { "nombre": "Cripta", "salas": 14, "monstruos": ["limo"] }
+    "bosque": {
+      "nombre": "Bosque",
+      "salas": 8,
+      "grupos": [
+        { "monstruos": ["limo"], "peso": 3 },
+        { "monstruos": ["limo", "limo"], "peso": 3 },
+        { "monstruos": ["murcielago"], "peso": 2 },
+        { "monstruos": ["limo", "murcielago"], "peso": 2 }
+      ]
+    },
+    "ruinas": {
+      "nombre": "Ruinas",
+      "salas": 11,
+      "grupos": [
+        { "monstruos": ["esqueleto"], "peso": 3 },
+        { "monstruos": ["arana"], "peso": 2 },
+        { "monstruos": ["murcielago", "murcielago"], "peso": 2 },
+        { "monstruos": ["esqueleto", "murcielago"], "peso": 2 },
+        { "monstruos": ["arana", "esqueleto"], "peso": 1 }
+      ]
+    },
+    "cripta": {
+      "nombre": "Cripta",
+      "salas": 14,
+      "grupos": [
+        { "monstruos": ["caballero"], "peso": 2 },
+        { "monstruos": ["arana", "arana"], "peso": 2 },
+        { "monstruos": ["chaman", "caballero"], "peso": 2 },
+        { "monstruos": ["chaman", "arana"], "peso": 2 },
+        { "monstruos": ["caballero", "arana"], "peso": 1 }
+      ]
+    }
   }
 }

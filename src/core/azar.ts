@@ -9,3 +9,17 @@ export function crearAzar(semilla: number): () => number {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+
+/** Elige un elemento de la lista con probabilidad proporcional a su `peso`; undefined si está vacía. */
+export function elegirConPeso<T extends { peso: number }>(
+  lista: readonly T[],
+  azar: () => number,
+): T | undefined {
+  const total = lista.reduce((s, x) => s + x.peso, 0);
+  let r = azar() * total;
+  for (const x of lista) {
+    r -= x.peso;
+    if (r < 0) return x;
+  }
+  return lista[lista.length - 1];
+}

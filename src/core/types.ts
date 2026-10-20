@@ -76,8 +76,11 @@ export interface HabilidadJson {
   nombre: string;
   nivel: number;
   pm: number;
-  /** A quién afecta: un enemigo elegido, todos los enemigos o quien la usa. */
-  objetivo: 'uno' | 'todos' | 'propio';
+  /**
+   * A quién afecta: un rival elegido, todos los rivales, quien la usa o un aliado (el más herido si
+   * cura; si aplica un estado, uno que aún no lo tenga).
+   */
+  objetivo: 'uno' | 'todos' | 'propio' | 'aliado';
   danio?: { tipo: 'fisico' | 'magico'; poder: number; criticoSeguro?: boolean };
   /** Fracción de los PV máximos del objetivo que cura. */
   cura?: number;
@@ -99,12 +102,22 @@ export interface EstadoJson {
   defensa?: number;
 }
 
+/** Una entrada de la tabla de acciones de un monstruo: 'atacar', 'cargar', 'defender' o el nombre de una habilidad suya. */
+export interface AccionMonstruoJson {
+  accion: string;
+  peso: number;
+  /** Solo puede elegirla si se cumple: sus PV, o los de algún aliado, por debajo de esa fracción. */
+  condicion?: { pvPropioMenorQue?: number; pvAliadoMenorQue?: number };
+}
+
 /** Un monstruo de `src/data/monstruos.json`. */
 export interface MonstruoJson {
   nombre: string;
   estadisticas: Estadisticas;
   /** Qué hace en su turno, elegido al azar según los pesos. */
-  acciones: { accion: 'atacar' | 'cargar'; peso: number }[];
+  acciones: AccionMonstruoJson[];
+  /** Habilidades propias, usadas por nombre desde `acciones`. */
+  habilidades?: HabilidadJson[];
   /** Golpe fuerte que anuncia un turno antes con la acción "cargar". */
   cargado?: { poder: number; aviso: string };
   jefe: boolean;

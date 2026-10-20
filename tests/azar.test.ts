@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { crearAzar } from '../src/core/azar';
+import { crearAzar, elegirConPeso } from '../src/core/azar';
 
 test('la misma semilla repite la secuencia y otra semilla la cambia', () => {
   const a = crearAzar(42);
@@ -16,4 +16,18 @@ test('los valores quedan en [0, 1)', () => {
     expect(v).toBeGreaterThanOrEqual(0);
     expect(v).toBeLessThan(1);
   }
+});
+
+test('elegirConPeso reparte según los pesos y no elige nada en una lista vacía', () => {
+  const lista = [
+    { nombre: 'a', peso: 1 },
+    { nombre: 'b', peso: 3 },
+  ];
+  expect(elegirConPeso(lista, () => 0.2)?.nombre).toBe('a'); // 0,2 × 4 = 0,8 < 1
+  expect(elegirConPeso(lista, () => 0.3)?.nombre).toBe('b'); // 1,2 ≥ 1
+  expect(elegirConPeso([], () => 0.5)).toBeUndefined();
+  const azar = crearAzar(3);
+  let b = 0;
+  for (let i = 0; i < 4000; i++) if (elegirConPeso(lista, azar)?.nombre === 'b') b++;
+  expect(b / 4000).toBeCloseTo(0.75, 1);
 });
