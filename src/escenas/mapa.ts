@@ -200,7 +200,8 @@ export class EscenaMapa implements Escena {
       if (this.fundido >= duracionFundido) this.fundido = 0;
       return;
     }
-    if (acciones.menu || dentro(acciones.toqueX, acciones.toqueY, BOTON_MENU)) {
+    // Escape, la tecla I o la mochila abren el inventario.
+    if (acciones.menu || acciones.info || dentro(acciones.toqueX, acciones.toqueY, BOTON_MENU)) {
       this.o.abrirPausa();
       return;
     }

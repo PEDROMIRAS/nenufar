@@ -59,7 +59,7 @@ export class EscenaPausa implements Escena {
 
   update(dt: number, a: Acciones): void {
     this.tiempo += dt;
-    if (a.cancelar || a.menu) {
+    if (a.cancelar || a.menu || a.info) {
       this.alSeguir();
       return;
     }

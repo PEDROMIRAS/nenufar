@@ -6,7 +6,7 @@ export interface Acciones {
   confirmar: boolean;
   cancelar: boolean;
   menu: boolean;
-  /** Enseñar u ocultar la ayuda de las opciones. */
+  /** Tecla I: en combate enseña u oculta la ayuda de las opciones; en el mapa abre y cierra el inventario. */
   info: boolean;
   /** Dónde se tocó o se hizo clic en este paso, en píxeles lógicos; -1 si no hubo toque. */
   toqueX: number;
