@@ -1,4 +1,4 @@
-import type { SpriteJson, TilesetJson } from '../core/types';
+import type { Direccion, SpriteJson, TilesetJson } from '../core/types';
 
 export interface Sprite {
   /** La hoja (o una copia recoloreada, como la heroína con su equipo). */
@@ -46,4 +46,34 @@ export async function cargarSprite(nombre: string): Promise<Sprite> {
     cargarJson<SpriteJson>(`assets/sprites/${nombre}.json`),
   ]);
   return { imagen, datos };
+}
+
+/** Dibuja el fotograma de `animacion` que toca a los `tiempo` segundos, con el ancla en (x, y). */
+export function dibujarFotograma(
+  ctx: CanvasRenderingContext2D,
+  { imagen, datos }: Sprite,
+  animacion: string,
+  direccion: Direccion,
+  tiempo: number,
+  x: number,
+  y: number,
+  escala = 1,
+): void {
+  const anim = datos.animations[animacion];
+  if (!anim) return;
+  const n = Math.floor(tiempo * anim.fps);
+  const columna = anim.startColumn + (anim.loop ? n % anim.frames : Math.min(n, anim.frames - 1));
+  const w = datos.frameWidth;
+  const a = datos.frameHeight;
+  ctx.drawImage(
+    imagen,
+    columna * w,
+    datos.directions[direccion] * a,
+    w,
+    a,
+    Math.round(x - datos.anchor.x * escala),
+    Math.round(y - datos.anchor.y * escala),
+    w * escala,
+    a * escala,
+  );
 }

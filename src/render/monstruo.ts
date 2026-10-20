@@ -1,35 +1,5 @@
 import type { Direccion, MonstruoJson } from '../core/types';
-import type { Sprite } from './recursos';
-
-/** Dibuja el fotograma de `animacion` que toca a los `tiempo` segundos, con el ancla en (x, y). */
-export function dibujarFotograma(
-  ctx: CanvasRenderingContext2D,
-  { imagen, datos }: Sprite,
-  animacion: string,
-  direccion: Direccion,
-  tiempo: number,
-  x: number,
-  y: number,
-  escala = 1,
-): void {
-  const anim = datos.animations[animacion];
-  if (!anim) return;
-  const n = Math.floor(tiempo * anim.fps);
-  const columna = anim.startColumn + (anim.loop ? n % anim.frames : Math.min(n, anim.frames - 1));
-  const w = datos.frameWidth;
-  const a = datos.frameHeight;
-  ctx.drawImage(
-    imagen,
-    columna * w,
-    datos.directions[direccion] * a,
-    w,
-    a,
-    Math.round(x - datos.anchor.x * escala),
-    Math.round(y - datos.anchor.y * escala),
-    w * escala,
-    a * escala,
-  );
-}
+import { dibujarFotograma, type Sprite } from './recursos';
 
 /** Dirección del sprite más cercana a un vector. */
 export function direccionDe(dx: number, dy: number): Direccion {

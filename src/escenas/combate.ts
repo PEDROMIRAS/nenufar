@@ -13,7 +13,7 @@ import {
 import {
   anticipoAtaque,
   dibujarCombate,
-  rectOpcion,
+  opcionTocada,
   tocaInfo,
   type MenuVista,
   type VistaCombate,
@@ -445,24 +445,15 @@ export class EscenaCombate implements Escena {
     // Tocar una opción la elige y la usa a la vez; en modo información, el primer toque solo la
     // elige (y enseña qué hace) y el segundo la usa.
     if (a.toqueX >= 0) {
-      for (let i = 0; i < n; i++) {
-        const r = rectOpcion(i, n);
-        if (
-          a.toqueX >= r.x &&
-          a.toqueX < r.x + r.ancho &&
-          a.toqueY >= r.y &&
-          a.toqueY < r.y + r.alto
-        ) {
-          if (this.v.info && i !== menu.seleccion) {
-            menu.seleccion = i;
-            sonar('cursor');
-            this.anunciarOpcion();
-            return;
-          }
-          menu.seleccion = i;
-          this.elegir(i);
-          return;
-        }
+      const i = opcionTocada(a.toqueX, a.toqueY, n);
+      if (i < 0) return;
+      const soloElegir = this.v.info && i !== menu.seleccion;
+      menu.seleccion = i;
+      if (soloElegir) {
+        sonar('cursor');
+        this.anunciarOpcion();
+      } else {
+        this.elegir(i);
       }
       return;
     }

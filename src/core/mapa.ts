@@ -83,3 +83,29 @@ export function objetoAlAlcance(
   }
   return null;
 }
+
+/**
+ * Cierra las salidas de los `lados` (bits N/E/S/O): vuelve sólidas sus casillas que estaban libres y
+ * devuelve cuáles ha tocado, para devolverlas luego con `abrirSalidas` sin abrir nada que ya fuera muro.
+ */
+export function cerrarSalidas(
+  sala: Pick<Sala, 'ancho' | 'solido'>,
+  lista: readonly Salida[],
+  lados: number,
+): number[] {
+  const tocadas: number[] = [];
+  for (const s of lista) {
+    if (!(lados & s.lado)) continue;
+    for (const [x, y] of s.celdas) {
+      const i = y * sala.ancho + x;
+      if (sala.solido[i]) continue;
+      sala.solido[i] = true;
+      tocadas.push(i);
+    }
+  }
+  return tocadas;
+}
+
+export function abrirSalidas(sala: Pick<Sala, 'solido'>, tocadas: readonly number[]): void {
+  for (const i of tocadas) sala.solido[i] = false;
+}

@@ -11,6 +11,8 @@ import {
 import type { MonstruoJson, ReglasCombate } from '../src/core/types';
 import { HEROES as heroes, MONSTRUOS, REGLAS } from '../src/data/datos';
 
+const PV_RONIN = heroes.ronin.estadisticas.pv;
+
 const reglas: ReglasCombate = REGLAS;
 // Limo con estadísticas fijas: los tests no deben romperse al equilibrar monstruos.json.
 const limo: MonstruoJson = {
@@ -83,7 +85,7 @@ describe('acciones', () => {
     actuar(c, { tipo: 'defender' });
     expect(c.heroina.pm).toBe(5);
     // Golpe del Limo: (6 − 6 × 0,5) = 3 → a la mitad = 1.
-    expect(c.heroina.pv).toBe(42 - 1);
+    expect(c.heroina.pv).toBe(PV_RONIN - 1);
   });
 
   test('los PM recuperados no pasan del máximo', () => {
@@ -104,14 +106,14 @@ describe('acciones', () => {
     });
     actuar(c, { tipo: 'defender' });
     // Golpe cargado: (6 × 3 − 3) = 15 → a la mitad = 7.
-    expect(c.heroina.pv).toBe(42 - 7);
+    expect(c.heroina.pv).toBe(PV_RONIN - 7);
   });
 
   test('sin defender, el golpe cargado entra entero', () => {
     const c = combate(cola(0.5, 0.5, 0.8), { velocidad: 10, pv: 100 });
     avanzar(c);
     actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
-    expect(c.heroina.pv).toBe(42 - 15);
+    expect(c.heroina.pv).toBe(PV_RONIN - 15);
   });
 
   test('Huir falla con 0,65 la primera vez (60 %) y lo logra con 0,65 la segunda (70 %)', () => {
@@ -151,10 +153,10 @@ describe('final', () => {
     // Tras la muerte: recupera el 30 % de lo que le falta (sin pasarse) y cobra la experiencia del
     // Limo; con 6 PX todavía no sube de nivel.
     const herida =
-      42 - (c.heroina.pv - (eventos.find((e) => e.tipo === 'recupera') as { pv: number }).pv);
+      PV_RONIN - (c.heroina.pv - (eventos.find((e) => e.tipo === 'recupera') as { pv: number }).pv);
     expect(eventos.slice(-4)).toEqual([
       { tipo: 'muerte', objetivo: c.enemigos[0] },
-      { tipo: 'recupera', pv: Math.min(herida, Math.round(42 * 0.3)), pm: 0 },
+      { tipo: 'recupera', pv: Math.min(herida, Math.round(PV_RONIN * 0.3)), pm: 0 },
       { tipo: 'experiencia', cantidad: 6 },
       { tipo: 'fin', resultado: 'victoria' },
     ]);

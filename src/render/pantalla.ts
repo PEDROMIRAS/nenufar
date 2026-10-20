@@ -24,3 +24,12 @@ export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingCont
   addEventListener('resize', ajustar);
   return ctx;
 }
+
+/** ¿El punto (x, y), en píxeles lógicos, cae dentro del rectángulo? */
+export function dentro(
+  x: number,
+  y: number,
+  r: { x: number; y: number; ancho: number; alto: number },
+): boolean {
+  return x >= r.x && x < r.x + r.ancho && y >= r.y && y < r.y + r.alto;
+}

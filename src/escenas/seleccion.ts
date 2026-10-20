@@ -4,6 +4,7 @@ import type { Sprite } from '../render/recursos';
 import { dibujarSeleccion, TARJETAS } from '../render/seleccion';
 import { ponerMusica } from '../render/sonido';
 import { anunciar } from '../render/accesibilidad';
+import { dentro } from '../render/pantalla';
 import type { Escena } from './escena';
 
 export interface OpcionHeroina {
@@ -33,10 +34,7 @@ export class EscenaSeleccion implements Escena {
     this.tiempo += dt;
     if (this.elegida) return; // la partida se está cargando
     if (a.toqueX >= 0) {
-      const i = TARJETAS.findIndex(
-        (t) =>
-          a.toqueX >= t.x && a.toqueX < t.x + t.ancho && a.toqueY >= t.y && a.toqueY < t.y + t.alto,
-      );
+      const i = TARJETAS.findIndex((t) => dentro(a.toqueX, a.toqueY, t));
       if (i >= 0 && i < this.opciones.length) {
         this.seleccion = i;
         this.elegir();

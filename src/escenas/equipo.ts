@@ -3,7 +3,7 @@ import type { Luchador } from '../core/combate';
 import { describirPieza, equipar } from '../core/equipo';
 import type { Inventario } from '../core/inventario';
 import type { EstadoJson, ObjetosJson } from '../core/types';
-import { rectOpcion } from '../render/combate';
+import { opcionTocada } from '../render/combate';
 import { dibujarComparacion, OPCIONES_EQUIPO, type FichaPieza } from '../render/equipo';
 import { anunciar } from '../render/accesibilidad';
 import type { Escena } from './escena';
@@ -44,18 +44,8 @@ export class EscenaEquipo implements Escena {
 
   update(_dt: number, a: Acciones): void {
     if (a.toqueX >= 0) {
-      for (let i = 0; i < OPCIONES_EQUIPO.length; i++) {
-        const r = rectOpcion(i, OPCIONES_EQUIPO.length);
-        if (
-          a.toqueX >= r.x &&
-          a.toqueX < r.x + r.ancho &&
-          a.toqueY >= r.y &&
-          a.toqueY < r.y + r.alto
-        ) {
-          this.decidir(i === 0);
-          return;
-        }
-      }
+      const i = opcionTocada(a.toqueX, a.toqueY, OPCIONES_EQUIPO.length);
+      if (i >= 0) this.decidir(i === 0);
       return;
     }
     const dir = Math.sign(a.moverX);

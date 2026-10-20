@@ -3,6 +3,8 @@ import type { Luchador, Resultado } from '../core/combate';
 import { crearAzar, elegirConPeso } from '../core/azar';
 import { actualizarHeroina, type Heroina } from '../core/heroina';
 import {
+  abrirSalidas,
+  cerrarSalidas,
   objetoAlAlcance,
   opuesto,
   portalPisado,
@@ -46,6 +48,7 @@ import type { Sprite } from '../render/recursos';
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
 import { ponerMusica, sonar } from '../render/sonido';
 import { dibujarObjetos, dibujarTile, pintarFondo, pintarVineta } from '../render/sala';
+import { dentro } from '../render/pantalla';
 import type { Escena } from './escena';
 
 /** Vector hacia el que mira la heroína según su dirección. */
@@ -199,13 +202,7 @@ export class EscenaMapa implements Escena {
       if (this.fundido >= duracionFundido) this.fundido = 0;
       return;
     }
-    const { toqueX: tx, toqueY: ty } = acciones;
-    const enBoton =
-      tx >= BOTON_MENU.x &&
-      tx < BOTON_MENU.x + BOTON_MENU.ancho &&
-      ty >= BOTON_MENU.y &&
-      ty < BOTON_MENU.y + BOTON_MENU.alto;
-    if (acciones.menu || enBoton) {
+    if (acciones.menu || dentro(acciones.toqueX, acciones.toqueY, BOTON_MENU)) {
       this.o.abrirPausa();
       return;
     }
@@ -416,21 +413,12 @@ export class EscenaMapa implements Escena {
     const { sala, monstruos } = this.montada;
     const hayMonstruos = this.actual.tipo === 'combate' && monstruos.some((m) => m.vivo);
     this.cerradas = hayMonstruos ? this.actual.puertas & ~this.ladoEntrada : 0;
-    for (const salida of this.salidas) {
-      if (!(this.cerradas & salida.lado)) continue;
-      for (const [x, y] of salida.celdas) {
-        const i = y * sala.ancho + x;
-        if (!sala.solido[i]) {
-          sala.solido[i] = true;
-          this.bloqueadas.push(i);
-        }
-      }
-    }
+    this.bloqueadas.push(...cerrarSalidas(sala, this.salidas, this.cerradas));
   }
 
   /** Devuelve a su estado las casillas que cerró aplicarCierre (antes de cambiar de sala o al vencer). */
   private soltarCierre(): void {
-    for (const i of this.bloqueadas) this.montada.sala.solido[i] = false;
+    abrirSalidas(this.montada.sala, this.bloqueadas);
     this.bloqueadas = [];
     this.cerradas = 0;
   }

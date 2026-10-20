@@ -11,6 +11,7 @@ import { HEROES as heroes, REGLAS as reglas } from '../src/data/datos';
 
 const r: ReglasProgresion = reglas.experiencia;
 const ronin = () => luchadorDeHeroe(heroes.ronin);
+const PV = heroes.ronin.estadisticas.pv;
 
 describe('ganarExperiencia', () => {
   test('hacen falta 20 × n PX para pasar del nivel n al siguiente', () => {
@@ -26,11 +27,16 @@ describe('ganarExperiencia', () => {
     h.pv = 10;
     h.pm = 0;
     ganarExperiencia(h, 20, r);
-    // Ronin: +8 PV, +1 PM, +2 Ataque…; recupera round(50 × 0,3) = 15 PV y round(9 × 0,3) = 3 PM.
+    // Ronin: +8 PV, +1 PM, +2 Ataque…; recupera el 30 % de los nuevos máximos (9 PM → 3).
     expect([h.pvMax, h.pmMax, h.ataque, h.magia, h.defensa, h.velocidad]).toEqual([
-      50, 9, 11, 4, 7, 7,
+      PV + 8,
+      9,
+      11,
+      4,
+      7,
+      7,
     ]);
-    expect([h.pv, h.pm]).toEqual([25, 3]);
+    expect([h.pv, h.pm]).toEqual([10 + Math.round((PV + 8) * 0.3), 3]);
   });
 
   test('mucha experiencia de golpe sube varios niveles y guarda el sobrante', () => {
@@ -60,7 +66,7 @@ test('cambiosDeNivel lista las estadísticas que suben y las habilidades nuevas'
   const antes = instantanea(h);
   ganarExperiencia(h, 20 + 40, r); // del 1 al 3
   expect(cambiosDeNivel(antes, h)).toEqual([
-    'PV 42 → 58',
+    `PV ${PV} → ${PV + 16}`,
     'PM 8 → 10',
     'Ataque 9 → 13',
     'Magia 3 → 5',

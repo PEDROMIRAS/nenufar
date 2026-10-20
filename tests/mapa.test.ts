@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import {
+  abrirSalidas,
+  cerrarSalidas,
   objetoAlAlcance,
   opuesto,
   portalPisado,
@@ -90,4 +92,22 @@ test('objetoAlAlcance: pegada a la fuente sí, a un paso de distancia no', () =>
   expect(objetoAlAlcance(sala, 'fuente', cuerpo(320 - 7, 7 * T + 20), T, 4)).not.toBeNull();
   expect(objetoAlAlcance(sala, 'fuente', cuerpo(320 - 7 - 10, 7 * T + 20), T, 4)).toBeNull();
   expect(objetoAlAlcance(sala, 'hoguera', cuerpo(320 - 7, 7 * T + 20), T, 4)).toBeNull();
+});
+
+describe('cerrarSalidas y abrirSalidas', () => {
+  test('cierra solo los lados pedidos y al abrir no toca lo que ya era muro', () => {
+    const sala = { ancho: 15, solido: Array.from({ length: 15 * 11 }, () => false) };
+    const norte = salida(N).celdas;
+    sala.solido[norte[0]![1] * 15 + norte[0]![0]] = true; // la casilla del borde ya era muro
+    const tocadas = cerrarSalidas(sala, lista, N | E);
+    const [ex, ey] = salida(E).celdas[0]!;
+    expect(sala.solido[ey * 15 + ex]).toBe(true);
+    expect(sala.solido[norte[1]![1] * 15 + norte[1]![0]]).toBe(true);
+    const [sx, sy] = salida(S).celdas[0]!;
+    expect(sala.solido[sy * 15 + sx]).toBe(false); // el sur no se pidió
+    abrirSalidas(sala, tocadas);
+    expect(sala.solido[ey * 15 + ex]).toBe(false);
+    expect(sala.solido[norte[1]![1] * 15 + norte[1]![0]]).toBe(false);
+    expect(sala.solido[norte[0]![1] * 15 + norte[0]![0]]).toBe(true);
+  });
 });

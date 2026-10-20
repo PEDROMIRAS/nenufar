@@ -1,7 +1,6 @@
 import { barra, COLOR_BARRA, dibujarMenu, type MenuVista } from './combate';
-import { dibujarFotograma } from './monstruo';
 import { ALTO, ANCHO } from './pantalla';
-import type { Sprite } from './recursos';
+import { dibujarFotograma, type Sprite } from './recursos';
 import { escribir, FUENTE_GRANDE } from './texto';
 
 /** Lo que enseña el inventario; la escena lo rehace al abrirlo y al usar algo. */

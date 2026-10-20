@@ -211,7 +211,6 @@ function monstruo(clave: string): MonstruoJson {
   return m;
 }
 
-/** Enseña, una tras otra, las piezas de equipo encontradas para decidir si se cambian; después sigue. */
 /** Recolorea la hoja de la heroína según el arma y la armadura que lleva. */
 function vestir(partida: Partida): void {
   const heroe = partida.luchadora.heroe;
@@ -222,6 +221,7 @@ function vestir(partida: Partida): void {
   );
 }
 
+/** Enseña, una tras otra, las piezas de equipo encontradas para decidir si se cambian; después sigue. */
 function ofrecerEquipo(partida: Partida, piezas: readonly string[], alFinal: () => void): void {
   const [primera, ...resto] = piezas;
   if (!primera) {

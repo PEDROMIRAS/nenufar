@@ -58,7 +58,7 @@ describe('objetos en combate', () => {
     const eventos = actuar(c, { tipo: 'objeto', clave: 'pocion' });
     expect(eventos.slice(0, 2)).toEqual([
       { tipo: 'objeto', actor: c.heroina, nombre: 'Poción' },
-      { tipo: 'cura', objetivo: c.heroina, cantidad: 12 },
+      { tipo: 'cura', objetivo: c.heroina, cantidad: Math.min(25, c.heroina.pvMax - 30) },
     ]);
     expect(c.inventario.consumibles.pocion).toBe(1);
   });
@@ -181,6 +181,19 @@ describe('cofres', () => {
     );
     expect(hallazgo).toEqual({ tipo: 'consumible', nombre: 'Éter', guardado: true });
     expect(inv.consumibles.eter).toBe(1);
+  });
+
+  test('un cofre no ofrece la pieza que ya se lleva: sale lo otro de su tabla', () => {
+    const inv = crearInventario();
+    inv.arma = 'katana_acero';
+    const tabla = [
+      { objeto: 'arma', nivel: 2, peso: 99 },
+      { objeto: 'armadura', nivel: 2, peso: 1 },
+    ];
+    expect(abrirCofre(tabla, () => 0, HEROES.ronin, OBJETOS, inv)).toEqual({
+      tipo: 'equipo',
+      clave: 'cota_malla',
+    });
   });
 
   test('los cofres de zonas.json solo tienen cosas que existen, y el de la Cripta es de nivel 3', () => {

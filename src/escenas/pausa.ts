@@ -1,10 +1,10 @@
 import type { Acciones } from '../core/acciones';
 import { habilidadesDisponibles, type Luchador } from '../core/combate';
 import { aplicarConsumible, type Inventario } from '../core/inventario';
-import { describirPieza } from '../core/equipo';
+import { describirEfecto } from '../core/equipo';
 import { experienciaParaSubir } from '../core/progresion';
 import type { EquipoJson, EstadoJson, ObjetosJson, ReglasProgresion } from '../core/types';
-import { rectOpcion, type MenuVista } from '../render/combate';
+import { opcionTocada, type MenuVista } from '../render/combate';
 import { dibujarInventario, type FichaInventario } from '../render/pausa';
 import type { Sprite } from '../render/recursos';
 import { estaSilenciado, silenciar, sonar } from '../render/sonido';
@@ -65,18 +65,10 @@ export class EscenaPausa implements Escena {
     }
     const n = this.menu.opciones.length;
     if (a.toqueX >= 0) {
-      for (let i = 0; i < n; i++) {
-        const r = rectOpcion(i, n);
-        if (
-          a.toqueX >= r.x &&
-          a.toqueX < r.x + r.ancho &&
-          a.toqueY >= r.y &&
-          a.toqueY < r.y + r.alto
-        ) {
-          this.menu.seleccion = i;
-          this.elegir(i);
-          return;
-        }
+      const i = opcionTocada(a.toqueX, a.toqueY, n);
+      if (i >= 0) {
+        this.menu.seleccion = i;
+        this.elegir(i);
       }
       return;
     }
@@ -132,8 +124,7 @@ export class EscenaPausa implements Escena {
     };
     const pieza = (etiqueta: string, p: EquipoJson | undefined): string[] => [
       `${etiqueta}: ${p?.nombre ?? 'Nada'}`,
-      // El efecto especial (veneno al golpear…) es la última línea de su descripción.
-      ...(p?.efecto ? describirPieza(p, this.estados).slice(-1) : []),
+      ...(p?.efecto ? [describirEfecto(p.efecto, this.estados)] : []),
     ];
     const siguiente = experienciaParaSubir(l.nivel, this.progresion);
     this.ficha = {

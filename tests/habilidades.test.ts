@@ -14,6 +14,8 @@ import {
 import type { HabilidadJson, HeroeJson, MonstruoJson, ReglasCombate } from '../src/core/types';
 import { HEROES as heroes, MONSTRUOS, REGLAS } from '../src/data/datos';
 
+const PV_RONIN = heroes.ronin.estadisticas.pv;
+
 const reglas: ReglasCombate = REGLAS;
 // Limo con estadísticas fijas: los tests no deben romperse al equilibrar monstruos.json.
 const limo: MonstruoJson = {
@@ -101,7 +103,7 @@ describe('estados', () => {
     usar(c, 'Postura de hierro', heroes.ronin);
     expect(efectiva(c.heroina, 'defensa')).toBe(9);
     // Golpe del Limo con la postura: (6 − 9 × 0,5) = 1,5 → 1.
-    expect(c.heroina.pv).toBe(42 - 1);
+    expect(c.heroina.pv).toBe(PV_RONIN - 1);
     const ataque = () => actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
     // El turno en que se lanza no cuenta: protege de los 3 ataques siguientes y se acaba al
     // final del tercer turno de la heroína después de lanzarla.
@@ -139,7 +141,7 @@ describe('estados', () => {
     aplicarEstado(c, c.enemigos[0]!, 'aturdido', false, []);
     const eventos = actuar(c, { tipo: 'defender' });
     expect(tipos(eventos)).toEqual(['defensa', 'turno', 'estado', 'pierdeTurno', 'turno']);
-    expect(c.heroina.pv).toBe(42);
+    expect(c.heroina.pv).toBe(PV_RONIN);
   });
 
   test('Furia: +50 % de Ataque y −30 % de Defensa', () => {

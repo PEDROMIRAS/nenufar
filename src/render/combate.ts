@@ -1,8 +1,7 @@
 import type { Combate, Luchador } from '../core/combate';
-import { ALTO, ANCHO } from './pantalla';
+import { ALTO, ANCHO, dentro } from './pantalla';
 import { movimientoReducido } from './accesibilidad';
-import { dibujarFotograma } from './monstruo';
-import type { Sprite } from './recursos';
+import { dibujarFotograma, type Sprite } from './recursos';
 import { escribir, FUENTE_GRANDE } from './texto';
 
 export interface OpcionMenu {
@@ -138,6 +137,12 @@ export function rectOpcion(
   return { x: 16 + (i % 3) * (ancho + 8), y: 252 + Math.floor(i / 3) * 46, ancho, alto: 40 };
 }
 
+/** Opción de un menú de `n` que hay bajo el toque (x, y), o -1 si no hay ninguna. */
+export function opcionTocada(x: number, y: number, n: number): number {
+  for (let i = 0; i < n; i++) if (dentro(x, y, rectOpcion(i, n))) return i;
+  return -1;
+}
+
 export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   const { combate } = v;
   ctx.drawImage(v.fondo, 0, 0);
@@ -185,7 +190,7 @@ export const BOTON_INFO = { x: ANCHO - 38, y: 258, lado: 28, margenToque: 8 };
 /** ¿El toque (x, y) cae en el botón «i»? */
 export function tocaInfo(x: number, y: number): boolean {
   const { x: bx, y: by, lado, margenToque: m } = BOTON_INFO;
-  return x >= bx - m && x < bx + lado + m && y >= by - m && y < by + lado + m;
+  return dentro(x, y, { x: bx - m, y: by - m, ancho: lado + 2 * m, alto: lado + 2 * m });
 }
 
 function dibujarBotonInfo(ctx: CanvasRenderingContext2D, activo: boolean): void {
