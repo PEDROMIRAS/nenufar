@@ -62,6 +62,10 @@ def main():
         if f.startswith("plantilla_") and f.endswith(".png"):
             copy(f, PREVIEWS)
     copy("objetos_animados.gif", PREVIEWS)
+    copy("portada_sala.png", os.path.join(REPO, "public", "assets"), "portada.png")
+
+    # 3. Portada: imagen para compartir e icono, a partir de la sala de la portada y los sprites
+    run("portada.py", HERE)
     print("Listo: sprites, tilesets, plantillas y vistas previas actualizados.")
 
 

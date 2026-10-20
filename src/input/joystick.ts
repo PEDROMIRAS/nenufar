@@ -8,7 +8,10 @@ interface Ajustes {
   zonaMuerta: number;
 }
 
-/** Joystick flotante: aparece donde se pone el dedo (mitad izquierda) y mide el arrastre desde ese punto. */
+/**
+ * Joystick flotante: nace donde se pone el dedo, en cualquier punto de la pantalla, y mide el arrastre
+ * desde ahí. Solo se dibuja al arrastrar: un toque en un botón no lo hace aparecer.
+ */
 export function crearJoystick(raiz: HTMLElement, { radio, zonaMuerta }: Ajustes): FuenteEntrada {
   const base = circulo(radio * 2, 'rgba(255,255,255,0.12)');
   const mando = circulo(radio, 'rgba(255,255,255,0.35)');
@@ -19,6 +22,7 @@ export function crearJoystick(raiz: HTMLElement, { radio, zonaMuerta }: Ajustes)
   let origenY = 0;
   let dx = 0;
   let dy = 0;
+  let visible = false;
 
   const colocar = (): void => {
     base.style.transform = `translate(${origenX - radio}px, ${origenY - radio}px)`;
@@ -29,25 +33,27 @@ export function crearJoystick(raiz: HTMLElement, { radio, zonaMuerta }: Ajustes)
   const soltar = (e: PointerEvent): void => {
     if (e.pointerId !== dedo) return;
     dedo = null;
+    visible = false;
     base.style.display = mando.style.display = 'none';
   };
 
   raiz.addEventListener('pointerdown', (e) => {
-    // Solo en la mitad izquierda: la derecha queda para los botones táctiles.
-    if (dedo !== null || e.pointerType === 'mouse' || e.clientX > innerWidth / 2) return;
+    if (dedo !== null || e.pointerType === 'mouse') return;
     dedo = e.pointerId;
     origenX = e.clientX;
     origenY = e.clientY;
     dx = dy = 0;
     raiz.setPointerCapture(e.pointerId);
-    base.style.display = mando.style.display = 'block';
-    colocar();
   });
   raiz.addEventListener('pointermove', (e) => {
     if (e.pointerId !== dedo) return;
     dx = e.clientX - origenX;
     dy = e.clientY - origenY;
-    colocar();
+    if (!visible && Math.hypot(dx, dy) > radio * zonaMuerta) {
+      visible = true;
+      base.style.display = mando.style.display = 'block';
+    }
+    if (visible) colocar();
   });
   raiz.addEventListener('pointerup', soltar);
   raiz.addEventListener('pointercancel', soltar);

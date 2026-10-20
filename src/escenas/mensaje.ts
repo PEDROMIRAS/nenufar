@@ -1,5 +1,5 @@
 import type { Acciones } from '../core/acciones';
-import { ALTO, ANCHO } from '../render/pantalla';
+import { ALTO, ANCHO, FONDO } from '../render/pantalla';
 import { escribir, FUENTE_GRANDE } from '../render/texto';
 import { anunciar } from '../render/accesibilidad';
 import type { Escena } from './escena';
@@ -24,7 +24,7 @@ export class EscenaMensaje implements Escena {
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
-    ctx.fillStyle = '#0b0d10';
+    ctx.fillStyle = FONDO;
     ctx.fillRect(0, 0, ANCHO, ALTO);
     escribir(ctx, this.titulo, ANCHO / 2, 40, this.color, 'center', FUENTE_GRANDE);
     this.lineas.forEach((linea, i) =>

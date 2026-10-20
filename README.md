@@ -2,6 +2,8 @@
 
 Dungeon crawler 2D para navegador y móvil: exploras zonas de salas en tiempo real y, al tocar un monstruo, luchas en un combate por turnos estilo JRPG. Al empezar eliges heroína (una **rana ronin** de cuerpo a cuerpo o una **rana maga** de fuego morado) y dificultad (Fácil, Normal o Difícil). Tres zonas (Bosque, Ruinas y Cripta), un jefe por zona y un jefe final.
 
+![Las dos ranas junto a la hoguera de una sala del Bosque](public/og.png)
+
 ### ▶ [Jugar en el navegador](https://pedromiras.github.io/nenufar/)
 
 | Elige heroína | Explora | Lucha |
@@ -16,6 +18,8 @@ Dungeon crawler 2D para navegador y móvil: exploras zonas de salas en tiempo re
 | Aceptar | Enter, Espacio o Z | Tocar la opción |
 | Inventario (pausa) y volver | Escape (X también vuelve) | Botón de la mochila |
 | Qué hace cada opción del combate | I | Botón i (después, un toque elige y otro usa) |
+
+En el móvil se juega en horizontal: en vertical el juego pide girarlo, porque se vería a un tercio de su tamaño.
 
 Cada zona se genera al entrar (`?semilla=N` en la URL repite una partida). Los monstruos patrullan y te persiguen; si los pillas por la espalda, atacas primero. En combate, fíjate en el golpe cargado que anuncian: es el momento de Defender. Sube de nivel, encuentra equipo en el botín y los cofres, y bebe de la fuente una vez por zona.
 

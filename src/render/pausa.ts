@@ -25,7 +25,13 @@ export interface FichaInventario {
 const PANEL = { y: 48, ancho: 216, alto: 236 };
 const IZQUIERDA = 16;
 const DERECHA = 248;
-const COLOR = { panel: '#1f2a24', titulo: '#aab8a6', texto: '#e8efe4', px: '#c89bff' };
+const COLOR = {
+  panel: '#1f2a24',
+  apartado: '#ffd27a',
+  titulo: '#aab8a6',
+  texto: '#e8efe4',
+  px: '#c89bff',
+};
 
 /** Inventario (y pausa): la heroína con sus barras y habilidades, sus estadísticas, equipo y objetos, y el menú. */
 export function dibujarInventario(
@@ -54,18 +60,16 @@ export function dibujarInventario(
   barraConTexto(ctx, x, 168, 'PV', f.pv / f.pvMax, COLOR_BARRA.pv, f.textoPv);
   barraConTexto(ctx, x, 184, 'PM', f.pm / Math.max(1, f.pmMax), COLOR_BARRA.pm, f.textoPm);
   barraConTexto(ctx, x, 200, 'PX', f.px / Math.max(1, f.pxSiguiente), COLOR.px, f.textoPx);
-  escribir(ctx, 'Habilidades:', x, 220, COLOR.titulo);
+  escribir(ctx, 'Habilidades:', x, 220, COLOR.apartado);
   f.habilidades.forEach((h, i) => escribir(ctx, h, x, 236 + i * 12, COLOR.texto));
 
-  f.derecha.forEach((linea, i) =>
-    escribir(
-      ctx,
-      linea,
-      DERECHA + 10,
-      PANEL.y + 8 + i * 16,
-      linea.endsWith(':') ? COLOR.titulo : COLOR.texto,
-    ),
-  );
+  let y = PANEL.y + 8;
+  f.derecha.forEach((linea, i) => {
+    const apartado = linea.endsWith(':');
+    if (apartado && i > 0) y += 6; // aire antes de cada apartado
+    escribir(ctx, linea, DERECHA + 10, y, apartado ? COLOR.apartado : COLOR.texto);
+    y += 15;
+  });
   dibujarMenu(ctx, menu);
 }
 

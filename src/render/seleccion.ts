@@ -1,5 +1,5 @@
 import type { HeroeJson } from '../core/types';
-import { ALTO, ANCHO } from './pantalla';
+import { ALTO, ANCHO, FONDO } from './pantalla';
 import type { Sprite } from './recursos';
 import { escribir, FUENTE_GRANDE } from './texto';
 
@@ -25,7 +25,7 @@ export function dibujarSeleccion(
   seleccion: number,
   tiempo: number,
 ): void {
-  ctx.fillStyle = '#141a1f';
+  ctx.fillStyle = FONDO;
   ctx.fillRect(0, 0, ANCHO, ALTO);
   escribir(ctx, 'Elige heroína', ANCHO / 2, 14, '#ffd27a', 'center', FUENTE_GRANDE);
 
@@ -69,5 +69,5 @@ export function dibujarSeleccion(
     });
   });
 
-  escribir(ctx, '← → para elegir · Enter o toca para empezar', ANCHO / 2, 316, '#aab8a6', 'center');
+  escribir(ctx, '← → para elegir · Enter o toca para seguir', ANCHO / 2, 316, '#aab8a6', 'center');
 }

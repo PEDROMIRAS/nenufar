@@ -29,6 +29,9 @@ for id_, tipo, rows in con_ids('bosque'):
     img = render(rows, lk, auto, ACTORES.get(id_, []), seed=3)
     img.convert('RGB').resize((img.width * 2, img.height * 2), Image.NEAREST).save(f'out/plantilla_{id_}.png')
     plantillas.append({"id": id_, "tipo": tipo, "mapa": rows})
+    if id_ == 'bosque_descanso_01':
+        # Fondo de la portada del juego: la misma sala, sin personajes (el título los anima encima).
+        render(rows, lk, auto, [], seed=3).convert('RGB').save('out/portada_sala.png')
 print('ok')
 
 sheet = Image.new('RGBA', (16 * 32, 2 * 32))

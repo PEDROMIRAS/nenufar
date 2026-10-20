@@ -69,6 +69,8 @@ const COLOR = {
   panel: 'rgba(0, 0, 0, 0.45)',
   pv: '#d8584a',
   pm: '#5a8bd8',
+  /** Texto pequeño bajo una opción: el azul de PM, más claro para que se lea sobre el botón. */
+  detalle: '#8fb4f0',
   cura: '#7fd88a',
   barraFondo: '#3a2a2a',
   boton: '#2b3a33',
@@ -185,7 +187,8 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
 }
 
 /** Botón «i» en la esquina del panel del registro. El área que responde al toque es mayor que el dibujo. */
-export const BOTON_INFO = { x: ANCHO - 38, y: 258, lado: 28, margenToque: 8 };
+// Ocupa el alto del panel del registro (256-288); el margen de toque no llega a los botones (292).
+export const BOTON_INFO = { x: ANCHO - 42, y: 256, lado: 32, margenToque: 4 };
 
 /** ¿El toque (x, y) cae en el botón «i»? */
 export function tocaInfo(x: number, y: number): boolean {
@@ -204,7 +207,7 @@ function dibujarBotonInfo(ctx: CanvasRenderingContext2D, activo: boolean): void 
     ctx,
     'i',
     x + lado / 2,
-    y + 2,
+    y + 4,
     activo ? COLOR.aviso : '#e8efe4',
     'center',
     FUENTE_GRANDE,
@@ -230,7 +233,8 @@ export function dibujarMenu(ctx: CanvasRenderingContext2D, menu: MenuVista | nul
     const conDetalle = opcion.detalle !== '';
     const y = r.y + r.alto / 2 - (conDetalle ? 13 : 7);
     escribir(ctx, opcion.texto, r.x + r.ancho / 2, y, color, 'center');
-    if (conDetalle) escribir(ctx, opcion.detalle, r.x + r.ancho / 2, y + 14, COLOR.pm, 'center');
+    if (conDetalle)
+      escribir(ctx, opcion.detalle, r.x + r.ancho / 2, y + 14, COLOR.detalle, 'center');
   }
 }
 

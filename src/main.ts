@@ -46,7 +46,13 @@ import { prepararPantalla } from './render/pantalla';
 import { prepararSonido } from './render/sonido';
 import { recolorear } from './render/tinte';
 import { cargarRecords, guardarRecords } from './render/almacen';
-import { cargarSprite, cargarSprites, cargarTilesets, type Sprite } from './render/recursos';
+import {
+  cargarImagen,
+  cargarSprite,
+  cargarSprites,
+  cargarTilesets,
+  type Sprite,
+} from './render/recursos';
 
 type NombreZona = keyof typeof zonas.zonas;
 /** Orden de las zonas: el de zonas.json. */
@@ -145,7 +151,20 @@ async function iniciar(): Promise<void> {
       .then((zona) => pila.cambiar(zona))
       .catch(mostrarError);
   };
-  pila.apilar(new EscenaTitulo(cargarRecords(), () => pila.cambiar(seleccion)));
+  const [ronin, maga] = opciones.map((o) => o.sprite);
+  pila.apilar(
+    new EscenaTitulo(
+      cargarRecords(),
+      {
+        fondo: await cargarImagen('assets/portada.png'),
+        ronin: ronin!,
+        maga: maga!,
+        limo: hojas.get('monstruos/limo'),
+        murcielago: hojas.get('monstruos/murcielago'),
+      },
+      () => pila.cambiar(seleccion),
+    ),
+  );
 
   iniciarBucle(
     (dt) => {

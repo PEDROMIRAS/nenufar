@@ -1,5 +1,5 @@
 import { rectOpcion } from './combate';
-import { ALTO, ANCHO } from './pantalla';
+import { ALTO, ANCHO, FONDO } from './pantalla';
 import { escribir, FUENTE_GRANDE } from './texto';
 
 export interface FichaPieza {
@@ -17,7 +17,7 @@ export function dibujarComparacion(
   nueva: FichaPieza,
   seleccion: number,
 ): void {
-  ctx.fillStyle = '#141a1f';
+  ctx.fillStyle = FONDO;
   ctx.fillRect(0, 0, ANCHO, ALTO);
   escribir(ctx, titulo, ANCHO / 2, 16, '#ffd27a', 'center', FUENTE_GRANDE);
   ficha(ctx, 'Llevas', actual, 24);

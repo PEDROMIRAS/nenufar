@@ -8,6 +8,20 @@
       name="description"
       content="Dungeon crawler de ranas con combate por turnos, para navegador y móvil."
     />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+    <!-- Vista previa al compartir el enlace (WhatsApp, LinkedIn, portafolio...) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Nenúfar" />
+    <meta
+      property="og:description"
+      content="Dungeon crawler de ranas con combate por turnos estilo JRPG. Juega en el navegador o el móvil."
+    />
+    <meta property="og:url" content="https://pedromiras.github.io/nenufar/" />
+    <meta property="og:image" content="https://pedromiras.github.io/nenufar/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
     <style>
       html,
       body {
@@ -29,6 +43,29 @@
       canvas {
         image-rendering: pixelated;
       }
+      /* En un móvil en vertical el juego quedaría a un tercio de su tamaño: se pide girarlo. */
+      #girar {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        place-content: center;
+        gap: 16px;
+        padding: 24px;
+        background: #10161a;
+        color: #e8efe4;
+        font: bold 18px monospace;
+        text-align: center;
+      }
+      #girar span {
+        font-size: 48px;
+        color: #ffd27a;
+      }
+      @media (orientation: portrait) and (pointer: coarse) {
+        #girar {
+          display: grid;
+        }
+      }
       /* Solo para lectores de pantalla: no se ve, pero se lee. */
       .solo-lector {
         position: absolute;
@@ -47,6 +84,7 @@
       aria-label="Nenúfar. Se juega con las flechas o WASD, Enter para aceptar, Escape para volver o abrir el inventario e I para ver qué hace cada opción del combate; también tocando la pantalla."
     ></canvas>
     <div id="anuncios" class="solo-lector" aria-live="polite"></div>
+    <div id="girar"><span aria-hidden="true">⟳</span>Gira el móvil para jugar</div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -1,6 +1,8 @@
 /** Resolución lógica: una sala de 15×11 tiles de 32 px. */
 export const ANCHO = 480;
 export const ALTO = 352;
+/** Fondo común de las pantallas de menú (título aparte, que tiene su sala). */
+export const FONDO = '#10161a';
 
 /** Fija la resolución lógica y escala el canvas al mayor múltiplo entero que quepa en la ventana. */
 export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingContext2D {

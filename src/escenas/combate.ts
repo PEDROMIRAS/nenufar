@@ -383,7 +383,8 @@ export class EscenaCombate implements Escena {
       menu = {
         opciones: PRINCIPAL.map((texto, i) => ({
           texto,
-          detalle: '',
+          // Si no hay objetos, se dice por qué «Objeto» está apagado.
+          detalle: i === 2 && !disponible[i] ? 'sin objetos' : '',
           disponible: disponible[i]!,
           ayuda: this.ayudaAcciones[i],
         })),

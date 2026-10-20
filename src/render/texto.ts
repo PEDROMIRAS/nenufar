@@ -1,6 +1,7 @@
 // Fuentes fijas: construir el texto de la fuente en cada fotograma crearía cadenas en el bucle.
 export const FUENTE = 'bold 12px monospace';
 export const FUENTE_GRANDE = 'bold 24px monospace';
+export const FUENTE_LOGO = 'bold 48px monospace';
 
 /** Texto con sombra de 1 px, legible sobre cualquier fondo. */
 export function escribir(

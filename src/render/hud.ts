@@ -32,7 +32,7 @@ export function dibujarAviso(ctx: CanvasRenderingContext2D, texto: string): void
 const MOCHILA = { oscuro: '#4a2c1a', cuerpo: '#8a5a34', solapa: '#b07a44', hebilla: '#e2b648' };
 
 /** Botón de la mochila (abre el inventario), arriba a la derecha. */
-export const BOTON_MENU = { x: ANCHO - 6 - 36, y: 6, ancho: 36, alto: 36 };
+export const BOTON_MENU = { x: ANCHO - 6 - 44, y: 6, ancho: 44, alto: 44 };
 
 export function dibujarBotonMenu(ctx: CanvasRenderingContext2D): void {
   const { x, y, ancho, alto } = BOTON_MENU;
