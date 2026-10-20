@@ -18,6 +18,7 @@ import {
   type VistaCombate,
 } from '../render/combate';
 import type { Sprite } from '../render/recursos';
+import { ponerMusica, sonar } from '../render/sonido';
 import type { Escena } from './escena';
 
 /** Segundos que se muestra cada tipo de evento antes de pasar al siguiente. */
@@ -77,6 +78,7 @@ export class EscenaCombate implements Escena {
   private readonly v: VistaCombate;
   /** Quién hizo el último golpe enseñado, para no repetir su animación en un ataque a varios. */
   private ultimoAtacante: Luchador | null = null;
+  private readonly pista: string;
 
   constructor(
     private readonly combate: Combate,
@@ -85,6 +87,7 @@ export class EscenaCombate implements Escena {
     fondo: HTMLCanvasElement,
     private readonly alTerminar: (resultado: Resultado) => void,
   ) {
+    this.pista = combate.enemigos.some((e) => e.monstruo?.jefe) ? 'jefe' : 'combate';
     const todos = [combate.heroina, ...combate.enemigos];
     const h = combate.heroina;
     this.v = {
@@ -125,6 +128,8 @@ export class EscenaCombate implements Escena {
 
   update(dt: number, acciones: Acciones): void {
     const v = this.v;
+    // Música de combate (de jefe si hay alguno) hasta que se decide; luego, silencio para la fanfarria.
+    ponerMusica(this.combate.resultado ? null : this.pista);
     v.tiempo += dt;
     v.tiempoAtaque += dt;
     v.tiempoEfecto += dt;
@@ -144,6 +149,8 @@ export class EscenaCombate implements Escena {
       v.atacante = siguiente.origen;
       v.objetivoAtaque = siguiente.objetivo;
       v.tiempoAtaque = 0;
+      const sonido = siguiente.origen.heroe?.combate.sonido;
+      if (sonido) sonar(sonido);
       this.espera = anticipoAtaque(v, siguiente.origen);
       return;
     }
@@ -181,6 +188,7 @@ export class EscenaCombate implements Escena {
           e.critico ? `${e.cantidad}!` : String(e.cantidad),
         );
         if (e.cargado) v.cargando.delete(e.origen);
+        sonar(e.critico ? 'critico' : 'golpe');
         v.efecto = e.origen.heroe?.combate.efecto ?? EFECTO_MONSTRUO;
         v.efectoEn = e.objetivo;
         v.tiempoEfecto = 0;
@@ -197,6 +205,7 @@ export class EscenaCombate implements Escena {
       case 'cura':
         this.cambiarVida(e.objetivo, e.cantidad, `+${e.cantidad}`);
         this.registrar(`${e.objetivo.nombre} recupera ${e.cantidad} PV`);
+        sonar('cura');
         break;
       case 'habilidad':
         if (e.actor.esHeroina) v.textoPm = textoVida(e.actor.pm, e.actor.pmMax);
@@ -249,12 +258,14 @@ export class EscenaCombate implements Escena {
         break;
       case 'huida':
         this.registrar(e.exito ? 'Huyes del combate.' : 'No consigues huir.');
+        if (e.exito) sonar('huida');
         break;
       case 'muerte':
         if (e.objetivo.esHeroina) v.tiempoCaida = 0;
         v.estados.delete(e.objetivo);
         this.estadosVistos.delete(e.objetivo);
         this.registrar(`${e.objetivo.nombre} cae.`);
+        sonar('muerte');
         break;
       case 'objeto':
         this.registrar(`${e.actor.nombre} usa ${e.nombre}`);
@@ -287,10 +298,12 @@ export class EscenaCombate implements Escena {
         v.textoPv.set(h, textoVida(h.pv, h.pvMax));
         v.textoPm = textoVida(h.pm, h.pmMax);
         this.registrar(`¡${h.nombre} sube a nivel ${e.nivel}!`);
+        sonar('nivel');
         break;
       }
       case 'fin':
         v.titulo = TITULO[e.resultado];
+        if (e.resultado !== 'huida') sonar(e.resultado);
         v.menu = null;
         break;
     }
@@ -398,7 +411,10 @@ export class EscenaCombate implements Escena {
     const dy = Math.sign(a.moverY);
     // En la rejilla de 3 columnas, arriba y abajo saltan una fila.
     const salto = (dx !== this.ultimoX ? dx : 0) + (n > 5 && dy !== this.ultimoY ? dy * 3 : 0);
-    if (salto !== 0) menu.seleccion = (((menu.seleccion + salto) % n) + n) % n;
+    if (salto !== 0) {
+      menu.seleccion = (((menu.seleccion + salto) % n) + n) % n;
+      sonar('cursor');
+    }
     this.ultimoX = dx;
     this.ultimoY = dy;
     this.v.apuntado = this.modo === 'objetivo' ? (this.vivos()[menu.seleccion] ?? null) : null;
@@ -406,6 +422,7 @@ export class EscenaCombate implements Escena {
   }
 
   private elegir(i: number): void {
+    sonar('confirmar');
     const h = this.combate.heroina;
     if (this.modo === 'objetivo') {
       const objetivo = this.vivos()[i];

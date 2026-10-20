@@ -12,7 +12,8 @@ Si el diseño y este archivo discrepan, manda el documento; avisa de la discrepa
 - Diseño y arte cerrados.
 - Hitos 1 (base, sala y movimiento), 2 (zona generada) y 3 (combate prototipo) hechos y publicados en https://pedromiras.github.io/nenufar/.
 - Hitos 4 (contenido y progresión) y 5 (objetos, equipo, menús) hechos en código; **sin marcar hasta que Pedro confirme una partida entera en el móvil**.
-- **En curso: hito 6** (arte y sonido). Sprites de monstruos, efectos y animaciones de combate de las ranas hechos; faltan el fondo de combate por zona y el sonido (sintetizado con Web Audio desde JSON, con botón de silencio).
+- Hito 6 (arte y sonido) hecho en código, pendiente de que Pedro lo oiga y lo vea en el móvil: sprites de monstruos y efectos generados por script, animaciones de combate, la sala como fondo del combate y sonido sintetizado con Web Audio desde `src/data/sonido.json` (silencio en la pausa, guardado como ajuste).
+- **Siguiente: hito 7** (ver documento).
 - La "decisión interesante" del combate es el golpe cargado que el monstruo anuncia un turno antes (Limo, poder 3); defender solo si no se puede rematar antes es la mejor estrategia (simulado).
 - Zonas en "ramas de 3" (8/11/14 salas): el inicio con 1 puerta y cada sala de paso con la de llegada + 3 nuevas. Decidido en el hito 2 y ya reflejado en el documento.
 - Atajos provisionales marcados con `shortcut:` en el código; se quitan en el hito que indica cada uno.

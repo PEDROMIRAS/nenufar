@@ -5,9 +5,10 @@ import { experienciaParaSubir } from '../core/progresion';
 import type { ObjetosJson, ReglasProgresion } from '../core/types';
 import { rectOpcion, type MenuVista } from '../render/combate';
 import { dibujarPausa } from '../render/pausa';
+import { estaSilenciado, silenciar, sonar } from '../render/sonido';
 import type { Escena } from './escena';
 
-/** Pausa en el mapa: estadísticas, equipo e inventario; se pueden usar pociones y éteres. */
+/** Pausa en el mapa: estadísticas, equipo e inventario; se pueden usar pociones y éteres y quitar el sonido. */
 export class EscenaPausa implements Escena {
   /** Consumibles que sirven fuera de combate (los que restauran PV o PM). */
   private readonly usables: string[];
@@ -58,8 +59,10 @@ export class EscenaPausa implements Escena {
       return;
     }
     const dir = Math.sign(a.moverX);
-    if (dir !== 0 && dir !== this.ultimoX)
+    if (dir !== 0 && dir !== this.ultimoX) {
       this.menu.seleccion = (this.menu.seleccion + dir + n) % n;
+      sonar('cursor');
+    }
     this.ultimoX = dir;
     if (a.confirmar) this.elegir(this.menu.seleccion);
   }
@@ -70,11 +73,14 @@ export class EscenaPausa implements Escena {
 
   private elegir(i: number): void {
     const n = this.menu.opciones.length;
+    sonar('confirmar');
     if (i === 0) {
       this.alSeguir();
     } else if (i === n - 1) {
       if (this.salirPulsado) this.alSalir();
       this.salirPulsado = true;
+    } else if (i === n - 2) {
+      silenciar(!estaSilenciado());
     } else {
       const clave = this.usables[i - 1]!;
       const obj = this.objetos.consumibles[clave];
@@ -121,6 +127,7 @@ export class EscenaPausa implements Escena {
           disponible: cuantos > 0,
         };
       }),
+      { texto: 'Sonido', detalle: estaSilenciado() ? 'No' : 'Sí', disponible: true },
       { texto: 'Salir', detalle: this.salirPulsado ? '¿Seguro?' : '', disponible: true },
     ];
   }

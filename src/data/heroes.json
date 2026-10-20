@@ -4,7 +4,8 @@
     "sprite": "rana_ronin",
     "combate": {
       "ataque": "atacar",
-      "efecto": "corte"
+      "efecto": "corte",
+      "sonido": "corte"
     },
     "velocidad": 96,
     "caja": {
@@ -80,6 +81,7 @@
     "combate": {
       "ataque": "cast",
       "efecto": "llamarada",
+      "sonido": "fuego",
       "proyectil": "fuego_morado"
     },
     "velocidad": 96,

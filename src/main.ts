@@ -34,6 +34,7 @@ import { crearTeclado } from './input/teclado';
 import { crearToque } from './input/toque';
 import { iniciarBucle } from './render/bucle';
 import { prepararPantalla } from './render/pantalla';
+import { prepararSonido } from './render/sonido';
 import { cargarRecords, guardarRecords } from './render/almacen';
 import { cargarSprite, cargarSprites, cargarTilesets, type Sprite } from './render/recursos';
 
@@ -67,6 +68,7 @@ async function iniciar(): Promise<void> {
   const canvas = document.querySelector<HTMLCanvasElement>('#juego');
   if (!canvas) throw new Error('Falta el canvas #juego');
   const ctx = prepararPantalla(canvas);
+  prepararSonido();
 
   // ?semilla=N repite una partida; sin ella, cada carga es distinta.
   const pedida = Number(new URLSearchParams(location.search).get('semilla'));
@@ -149,6 +151,7 @@ async function crearZona(
     tam: tilesets[0]?.tileSize ?? 32,
     heroina: partida.heroina,
     sprite: partida.sprite,
+    musica: nombre,
     spritesMonstruos: partida.hojas,
     duracionFundido: zonas.transicionSalas,
     rejilla: zonas.generacion.rejilla,

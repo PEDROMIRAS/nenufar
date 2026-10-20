@@ -12,6 +12,29 @@ export function cargarRecords(): Records {
   }
 }
 
+const CLAVE_AJUSTES = 'nenufar.ajustes';
+
+export interface Ajustes {
+  silencio: boolean;
+}
+
+export function cargarAjustes(): Ajustes {
+  try {
+    const a = JSON.parse(localStorage.getItem(CLAVE_AJUSTES) ?? '{}') as Partial<Ajustes>;
+    return { silencio: a.silencio === true };
+  } catch {
+    return { silencio: false };
+  }
+}
+
+export function guardarAjustes(a: Ajustes): void {
+  try {
+    localStorage.setItem(CLAVE_AJUSTES, JSON.stringify(a));
+  } catch {
+    // Sin almacenamiento, el ajuste dura lo que dure la partida.
+  }
+}
+
 export function guardarRecords(r: Records): void {
   try {
     localStorage.setItem(CLAVE, JSON.stringify(r));

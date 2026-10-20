@@ -2,6 +2,7 @@ import type { Acciones } from '../core/acciones';
 import { formatearTiempo, type Records } from '../core/records';
 import { ALTO, ANCHO } from '../render/pantalla';
 import { escribir, FUENTE_GRANDE } from '../render/texto';
+import { ponerMusica } from '../render/sonido';
 import type { Escena } from './escena';
 
 /** Pantalla de título con los récords guardados. */
@@ -29,6 +30,7 @@ export class EscenaTitulo implements Escena {
   exit(): void {}
 
   update(dt: number, acciones: Acciones): void {
+    ponerMusica(null);
     this.tiempo += dt;
     if (acciones.confirmar || acciones.toqueX >= 0) this.alEmpezar();
   }

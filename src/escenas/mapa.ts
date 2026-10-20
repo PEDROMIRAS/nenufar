@@ -43,6 +43,7 @@ import {
 import { pintarMinimapa } from '../render/minimapa';
 import { dibujarMonstruoMapa, direccionDe } from '../render/monstruo';
 import type { Sprite } from '../render/recursos';
+import { ponerMusica, sonar } from '../render/sonido';
 import { dibujarObjetos, dibujarTile, pintarFondo, pintarVineta } from '../render/sala';
 import type { Escena } from './escena';
 
@@ -85,6 +86,8 @@ export interface OpcionesMapa {
   tam: number;
   heroina: Heroina;
   sprite: Sprite;
+  /** Pista de sonido.json que suena en la zona. */
+  musica: string;
   /** Hojas de los monstruos, por el nombre de `sprite` de cada uno. */
   spritesMonstruos: ReadonlyMap<string, Sprite>;
   /** Duración total del fundido a negro y vuelta al cambiar de sala, en segundos. */
@@ -175,6 +178,7 @@ export class EscenaMapa implements Escena {
 
   update(dt: number, acciones: Acciones): void {
     const { heroina: h, tam, duracionFundido } = this.o;
+    ponerMusica(this.o.musica);
     this.tiempo += dt;
     if (this.fundido > 0) {
       // Durante el fundido la heroína espera; a mitad, con la pantalla en negro, pasa lo pendiente.
@@ -215,6 +219,7 @@ export class EscenaMapa implements Escena {
       l.pv = l.pvMax;
       l.pm = l.pmMax;
       this.fuenteUsada = true;
+      sonar('cura');
       this.avisar('La fuente te restaura los PV y los PM');
     }
     if (this.actual.tipo === 'tesoro') {
@@ -256,6 +261,7 @@ export class EscenaMapa implements Escena {
       portalPisado(this.montada.sala, tam, h.cuerpo.x, h.cuerpo.y)
     ) {
       this.pendiente = 'portal';
+      sonar('portal');
       this.fundido = Number.EPSILON;
     }
   }
@@ -305,6 +311,7 @@ export class EscenaMapa implements Escena {
     const { catalogo, cofre: tabla, luchadora, objetos, inventario } = this.o;
     const abierto = catalogo.get('cofre_abierto');
     if (abierto) cofre.inf = abierto;
+    sonar('cofre');
     const hallazgo = abrirCofre(tabla, this.azarMapa, luchadora.heroe, objetos, inventario);
     if (!hallazgo) {
       this.avisar('El cofre está vacío');

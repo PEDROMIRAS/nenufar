@@ -1,0 +1,134 @@
+{
+  "volumen": { "efectos": 0.3, "musica": 0.09 },
+  "efectos": {
+    "cursor": [{ "onda": "square", "desde": 660, "duracion": 0.04, "volumen": 0.4 }],
+    "confirmar": [{ "onda": "square", "desde": 520, "hasta": 1040, "duracion": 0.08, "volumen": 0.5 }],
+    "golpe": [
+      { "onda": "ruido", "duracion": 0.1, "volumen": 0.6 },
+      { "onda": "square", "desde": 180, "hasta": 60, "duracion": 0.12 }
+    ],
+    "critico": [
+      { "onda": "ruido", "duracion": 0.18, "volumen": 0.8 },
+      { "onda": "square", "desde": 320, "hasta": 50, "duracion": 0.22 },
+      { "onda": "square", "desde": 1200, "duracion": 0.05, "volumen": 0.4 }
+    ],
+    "corte": [
+      { "onda": "ruido", "duracion": 0.09, "volumen": 0.5 },
+      { "onda": "triangle", "desde": 1400, "hasta": 300, "duracion": 0.1 }
+    ],
+    "fuego": [
+      { "onda": "sawtooth", "desde": 180, "hasta": 620, "duracion": 0.25, "volumen": 0.4 },
+      { "onda": "ruido", "duracion": 0.3, "volumen": 0.35 }
+    ],
+    "cura": [
+      { "onda": "triangle", "desde": 523, "duracion": 0.1 },
+      { "onda": "triangle", "desde": 659, "duracion": 0.1, "retardo": 0.08 },
+      { "onda": "triangle", "desde": 784, "duracion": 0.18, "retardo": 0.16 }
+    ],
+    "muerte": [{ "onda": "square", "desde": 420, "hasta": 50, "duracion": 0.4, "volumen": 0.6 }],
+    "huida": [{ "onda": "triangle", "desde": 300, "hasta": 900, "duracion": 0.25 }],
+    "cofre": [
+      { "onda": "square", "desde": 523, "duracion": 0.08, "volumen": 0.5 },
+      { "onda": "square", "desde": 659, "duracion": 0.08, "volumen": 0.5, "retardo": 0.08 },
+      { "onda": "square", "desde": 784, "duracion": 0.08, "volumen": 0.5, "retardo": 0.16 },
+      { "onda": "square", "desde": 1047, "duracion": 0.25, "volumen": 0.5, "retardo": 0.24 }
+    ],
+    "portal": [{ "onda": "sine", "desde": 200, "hasta": 1200, "duracion": 0.8 }],
+    "nivel": [
+      { "onda": "square", "desde": 523, "duracion": 0.1, "volumen": 0.5 },
+      { "onda": "square", "desde": 659, "duracion": 0.1, "volumen": 0.5, "retardo": 0.1 },
+      { "onda": "square", "desde": 784, "duracion": 0.1, "volumen": 0.5, "retardo": 0.2 },
+      { "onda": "square", "desde": 1047, "duracion": 0.35, "volumen": 0.5, "retardo": 0.3 }
+    ],
+    "victoria": [
+      { "onda": "square", "desde": 784, "duracion": 0.12, "volumen": 0.5 },
+      { "onda": "square", "desde": 784, "duracion": 0.12, "volumen": 0.5, "retardo": 0.14 },
+      { "onda": "square", "desde": 784, "duracion": 0.12, "volumen": 0.5, "retardo": 0.28 },
+      { "onda": "square", "desde": 1047, "duracion": 0.5, "volumen": 0.5, "retardo": 0.42 },
+      { "onda": "triangle", "desde": 262, "duracion": 0.9, "retardo": 0.42 }
+    ],
+    "derrota": [
+      { "onda": "triangle", "desde": 392, "duracion": 0.25 },
+      { "onda": "triangle", "desde": 349, "duracion": 0.25, "retardo": 0.25 },
+      { "onda": "triangle", "desde": 311, "duracion": 0.25, "retardo": 0.5 },
+      { "onda": "triangle", "desde": 262, "duracion": 0.7, "retardo": 0.75 }
+    ]
+  },
+  "musica": {
+    "bosque": {
+      "tempo": 120,
+      "voces": [
+        {
+          "onda": "square",
+          "volumen": 0.35,
+          "notas": "E5 ~ G5 ~ A5 ~ G5 E5 D5 ~ E5 ~ C5 ~ - - E5 ~ G5 ~ A5 ~ C6 A5 G5 ~ E5 ~ D5 ~ - -"
+        },
+        {
+          "onda": "triangle",
+          "volumen": 0.8,
+          "notas": "C3 - G3 - C3 - G3 - A2 - E3 - A2 - E3 - F2 - C3 - F2 - C3 - G2 - D3 - G2 - D3 -"
+        }
+      ]
+    },
+    "ruinas": {
+      "tempo": 100,
+      "voces": [
+        {
+          "onda": "square",
+          "volumen": 0.3,
+          "notas": "D5 ~ F5 ~ A5 ~ G5 ~ F5 ~ E5 ~ D5 ~ ~ ~ C5 ~ D5 ~ F5 ~ E5 ~ C5 ~ D5 ~ ~ ~ - -"
+        },
+        {
+          "onda": "triangle",
+          "volumen": 0.8,
+          "notas": "D3 - - - A2 - - - D3 - - - C3 - - - A#2 - - - F2 - - - A2 - - - A2 - G2 -"
+        }
+      ]
+    },
+    "cripta": {
+      "tempo": 84,
+      "voces": [
+        {
+          "onda": "triangle",
+          "volumen": 0.6,
+          "notas": "A4 ~ ~ - C5 ~ B4 ~ A4 ~ ~ - E4 ~ ~ ~ F4 ~ ~ - A4 ~ G#4 ~ A4 ~ ~ ~ - - - -"
+        },
+        {
+          "onda": "sine",
+          "volumen": 0.9,
+          "notas": "A2 ~ ~ ~ ~ ~ ~ ~ F2 ~ ~ ~ ~ ~ ~ ~ D2 ~ ~ ~ ~ ~ ~ ~ E2 ~ ~ ~ ~ ~ ~ ~"
+        }
+      ]
+    },
+    "combate": {
+      "tempo": 150,
+      "voces": [
+        {
+          "onda": "square",
+          "volumen": 0.3,
+          "notas": "A4 - A4 C5 - A4 D5 - C5 - A4 - G4 - E4 - A4 - A4 C5 - A4 E5 - D5 - C5 - B4 - G#4 -"
+        },
+        {
+          "onda": "triangle",
+          "volumen": 0.8,
+          "notas": "A2 A3 A2 A3 A2 A3 A2 A3 F2 F3 F2 F3 G2 G3 G2 G3 A2 A3 A2 A3 A2 A3 A2 A3 E2 E3 E2 E3 E2 E3 E2 E3"
+        }
+      ]
+    },
+    "jefe": {
+      "tempo": 160,
+      "voces": [
+        {
+          "onda": "sawtooth",
+          "volumen": 0.22,
+          "notas": "D5 - D5 - F5 - D5 - G#5 - G5 - F5 - D5 - C5 - C5 - D#5 - C5 - D5 ~ ~ ~ - - - -"
+        },
+        {
+          "onda": "triangle",
+          "volumen": 0.9,
+          "notas": "D2 D2 D3 D2 D2 D2 D3 D2 D2 D2 D3 D2 D#2 D#2 D#3 D#2 C2 C2 C3 C2 C2 C2 C3 C2 D2 D2 D3 D2 D2 D2 D3 D2"
+        }
+      ]
+    }
+  }
+}

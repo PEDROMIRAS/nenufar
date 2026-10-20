@@ -2,6 +2,7 @@ import type { Acciones } from '../core/acciones';
 import type { HeroeJson } from '../core/types';
 import type { Sprite } from '../render/recursos';
 import { dibujarSeleccion, TARJETAS } from '../render/seleccion';
+import { ponerMusica } from '../render/sonido';
 import type { Escena } from './escena';
 
 export interface OpcionHeroina {
@@ -25,6 +26,7 @@ export class EscenaSeleccion implements Escena {
   exit(): void {}
 
   update(dt: number, a: Acciones): void {
+    ponerMusica(null);
     this.tiempo += dt;
     if (this.elegida) return; // la partida se está cargando
     if (a.toqueX >= 0) {
