@@ -68,6 +68,35 @@ export interface HeroeJson {
   estadisticas: Estadisticas;
   /** Lo que suma cada estadística al subir de nivel. */
   porNivel: Estadisticas;
+  habilidades: HabilidadJson[];
+}
+
+/** Una habilidad: cuesta PM, se desbloquea en un nivel y hace daño, cura o aplica un estado. */
+export interface HabilidadJson {
+  nombre: string;
+  nivel: number;
+  pm: number;
+  /** A quién afecta: un enemigo elegido, todos los enemigos o quien la usa. */
+  objetivo: 'uno' | 'todos' | 'propio';
+  danio?: { tipo: 'fisico' | 'magico'; poder: number; criticoSeguro?: boolean };
+  /** Fracción de los PV máximos del objetivo que cura. */
+  cura?: number;
+  /** Clave de un estado de combate.json que aplica al objetivo. */
+  estado?: string;
+}
+
+/** Un estado alterado de combate.json: dura unos turnos del afectado y cambia sus estadísticas o su turno. */
+export interface EstadoJson {
+  nombre: string;
+  turnos: number;
+  /** Fracción de PV máximos que pierde al final de cada turno suyo. */
+  danioPorTurno?: number;
+  /** Pierde su siguiente turno. */
+  pierdeTurno?: boolean;
+  /** Multiplicadores de estadísticas mientras dura. */
+  ataque?: number;
+  magia?: number;
+  defensa?: number;
 }
 
 /** Un monstruo de `src/data/monstruos.json`. */
@@ -99,6 +128,7 @@ export interface ReglasCombate {
   /** Segundos sin poder empezar otro combate en el mapa tras huir o vencer. */
   invulnerabilidadTrasCombate: number;
   experiencia: ReglasProgresion;
+  estados: Record<string, EstadoJson>;
 }
 
 /** Subida de nivel: hacen falta `porNivel` × n PX para pasar del nivel n al n + 1. */

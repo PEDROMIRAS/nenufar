@@ -3,12 +3,10 @@ import { crearAzar } from './core/azar';
 import { crearCombate, luchadorDeHeroe, luchadorDeMonstruo, type Luchador } from './core/combate';
 import { crearHeroina, type Heroina } from './core/heroina';
 import { crearCatalogo } from './core/sala';
-import type { MonstruoJson, PlantillasJson, ReglasCombate } from './core/types';
+import type { PlantillasJson } from './core/types';
 import { generarZona } from './core/zona';
-import reglasCombate from './data/combate.json';
 import controles from './data/controles.json';
-import heroes from './data/heroes.json';
-import monstruos from './data/monstruos.json';
+import { HEROES, MONSTRUOS, REGLAS } from './data/datos';
 import plantillasBosque from './data/salas/plantillas_bosque.json';
 import plantillasCripta from './data/salas/plantillas_cripta.json';
 import plantillasRuinas from './data/salas/plantillas_ruinas.json';
@@ -34,8 +32,6 @@ const PLANTILLAS: Record<NombreZona, PlantillasJson> = {
   ruinas: plantillasRuinas,
   cripta: plantillasCripta,
 };
-const MONSTRUOS = monstruos as Record<string, MonstruoJson>;
-const REGLAS: ReglasCombate = reglasCombate;
 
 /** Lo que comparten todas las zonas de una partida. */
 interface Partida {
@@ -67,7 +63,7 @@ async function iniciar(): Promise<void> {
   const acciones = crearAcciones();
   const pila = new PilaEscenas();
   const opciones = await Promise.all(
-    Object.values(heroes).map(async (heroe) => ({
+    Object.values(HEROES).map(async (heroe) => ({
       heroe,
       sprite: await cargarSprite(heroe.sprite),
     })),

@@ -6,7 +6,13 @@
     "caja": { "ancho": 14, "alto": 8 },
     "margenEsquina": 8,
     "estadisticas": { "pv": 42, "pm": 8, "ataque": 9, "magia": 3, "defensa": 6, "velocidad": 6 },
-    "porNivel": { "pv": 8, "pm": 1, "ataque": 2, "magia": 1, "defensa": 1, "velocidad": 1 }
+    "porNivel": { "pv": 8, "pm": 1, "ataque": 2, "magia": 1, "defensa": 1, "velocidad": 1 },
+    "habilidades": [
+      { "nombre": "Corte rápido", "nivel": 1, "pm": 3, "objetivo": "uno", "danio": { "tipo": "fisico", "poder": 1.6 } },
+      { "nombre": "Postura de hierro", "nivel": 3, "pm": 3, "objetivo": "propio", "estado": "postura" },
+      { "nombre": "Tajo del viento", "nivel": 5, "pm": 5, "objetivo": "todos", "danio": { "tipo": "fisico", "poder": 0.9 } },
+      { "nombre": "Iaido", "nivel": 7, "pm": 7, "objetivo": "uno", "danio": { "tipo": "fisico", "poder": 2.5, "criticoSeguro": true } }
+    ]
   },
   "maga": {
     "nombre": "Rana maga",
@@ -15,6 +21,12 @@
     "caja": { "ancho": 14, "alto": 8 },
     "margenEsquina": 8,
     "estadisticas": { "pv": 30, "pm": 18, "ataque": 5, "magia": 10, "defensa": 4, "velocidad": 7 },
-    "porNivel": { "pv": 6, "pm": 3, "ataque": 1, "magia": 3, "defensa": 1, "velocidad": 1 }
+    "porNivel": { "pv": 6, "pm": 3, "ataque": 1, "magia": 3, "defensa": 1, "velocidad": 1 },
+    "habilidades": [
+      { "nombre": "Fuego morado", "nivel": 1, "pm": 3, "objetivo": "uno", "danio": { "tipo": "magico", "poder": 1.5 } },
+      { "nombre": "Curar", "nivel": 3, "pm": 4, "objetivo": "propio", "cura": 0.35 },
+      { "nombre": "Fuego fatuo", "nivel": 5, "pm": 5, "objetivo": "uno", "danio": { "tipo": "magico", "poder": 0.8 }, "estado": "veneno" },
+      { "nombre": "Tormenta morada", "nivel": 7, "pm": 8, "objetivo": "todos", "danio": { "tipo": "magico", "poder": 1.2 } }
+    ]
   }
 }

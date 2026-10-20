@@ -2,8 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { luchadorDeHeroe } from '../src/core/combate';
 import { experienciaParaSubir, ganarExperiencia } from '../src/core/progresion';
 import type { ReglasProgresion } from '../src/core/types';
-import reglas from '../src/data/combate.json';
-import heroes from '../src/data/heroes.json';
+import { HEROES as heroes, REGLAS as reglas } from '../src/data/datos';
 
 const r: ReglasProgresion = reglas.experiencia;
 const ronin = () => luchadorDeHeroe(heroes.ronin);

@@ -2,13 +2,15 @@ import type { Acciones } from '../core/acciones';
 import {
   actuar,
   avanzar,
+  habilidadesDisponibles,
   puedeHuir,
+  type AccionHeroina,
   type Combate,
   type Evento,
   type Luchador,
   type Resultado,
 } from '../core/combate';
-import { BOTONES, dibujarCombate, type AccionMenu, type VistaCombate } from '../render/combate';
+import { dibujarCombate, rectOpcion, type MenuVista, type VistaCombate } from '../render/combate';
 import type { Sprite } from '../render/recursos';
 import type { Escena } from './escena';
 
@@ -18,6 +20,11 @@ const DURACION: Record<Evento['tipo'], number> = {
   danio: 0.7,
   defensa: 0.6,
   carga: 1.0,
+  habilidad: 0.6,
+  cura: 0.7,
+  estado: 0.6,
+  danioEstado: 0.7,
+  pierdeTurno: 0.7,
   huida: 0.7,
   muerte: 0.6,
   experiencia: 0.8,
@@ -31,6 +38,7 @@ const TITULO: Record<Resultado, string> = {
   derrota: 'Has caído...',
   huida: 'Has huido',
 };
+const PRINCIPAL = ['Atacar', 'Habilidad', 'Defender', 'Huir'] as const;
 
 const textoVida = (pv: number, max: number): string => `${pv}/${max}`;
 
@@ -39,8 +47,14 @@ export class EscenaCombate implements Escena {
   private readonly cola: Evento[] = [];
   /** Segundos que faltan para pasar al siguiente evento. */
   private espera = 0;
-  /** Dirección horizontal del paso anterior, para mover la selección una vez por pulsación. */
+  /** Dirección del paso anterior, para mover la selección una vez por pulsación. */
   private ultimoX = 0;
+  private ultimoY = 0;
+  private modo: 'principal' | 'habilidades' = 'principal';
+  /** Opción elegida la última vez en el menú principal, para volver a ella. */
+  private seleccionPrincipal = 0;
+  /** Estados que se ven sobre cada luchador, en el orden en que aparecieron. */
+  private readonly estadosVistos = new Map<Luchador, string[]>();
   private readonly v: VistaCombate;
 
   constructor(
@@ -57,12 +71,12 @@ export class EscenaCombate implements Escena {
       pv: new Map(todos.map((l) => [l, l.pv])),
       textoPv: new Map(todos.map((l) => [l, textoVida(l.pv, l.pvMax)])),
       textoPm: textoVida(h.pm, h.pmMax),
+      estados: new Map(),
       registro: ['', `¡Aparece ${combate.enemigos.map((e) => e.nombre).join(' y ')}!`],
-      seleccion: 0,
-      menuActivo: false,
-      puedeHuir: puedeHuir(combate),
+      menu: null,
       golpeado: null,
       flotante: '',
+      flotanteCura: false,
       tiempoGolpe: 0,
       cargando: new Set(),
       defendiendo: false,
@@ -114,12 +128,11 @@ export class EscenaCombate implements Escena {
         if (e.actor.esHeroina) v.defendiendo = false;
         break;
       case 'danio': {
-        const pv = Math.max(0, (v.pv.get(e.objetivo) ?? 0) - e.cantidad);
-        v.pv.set(e.objetivo, pv);
-        v.textoPv.set(e.objetivo, textoVida(pv, e.objetivo.pvMax));
-        v.golpeado = e.objetivo;
-        v.tiempoGolpe = 0;
-        v.flotante = e.critico ? `${e.cantidad}!` : String(e.cantidad);
+        this.cambiarVida(
+          e.objetivo,
+          -e.cantidad,
+          e.critico ? `${e.cantidad}!` : String(e.cantidad),
+        );
         if (e.cargado) v.cargando.delete(e.origen);
         const como = e.cargado ? 'descarga su golpe sobre' : 'golpea a';
         this.registrar(
@@ -127,6 +140,33 @@ export class EscenaCombate implements Escena {
         );
         break;
       }
+      case 'danioEstado':
+        this.cambiarVida(e.objetivo, -e.cantidad, String(e.cantidad));
+        this.registrar(`${e.objetivo.nombre} pierde ${e.cantidad} PV por ${e.estado}`);
+        break;
+      case 'cura':
+        this.cambiarVida(e.objetivo, e.cantidad, `+${e.cantidad}`);
+        this.registrar(`${e.objetivo.nombre} recupera ${e.cantidad} PV`);
+        break;
+      case 'habilidad':
+        if (e.actor.esHeroina) v.textoPm = textoVida(e.actor.pm, e.actor.pmMax);
+        this.registrar(`${e.actor.nombre} usa ${e.nombre}`);
+        break;
+      case 'estado': {
+        const lista = (this.estadosVistos.get(e.objetivo) ?? []).filter((n) => n !== e.estado);
+        if (e.activo) lista.push(e.estado);
+        this.estadosVistos.set(e.objetivo, lista);
+        v.estados.set(e.objetivo, lista.join(' · '));
+        this.registrar(
+          e.activo
+            ? `${e.estado} en ${e.objetivo.nombre}`
+            : `Se acaba ${e.estado} en ${e.objetivo.nombre}`,
+        );
+        break;
+      }
+      case 'pierdeTurno':
+        this.registrar(`${e.actor.nombre} pierde el turno`);
+        break;
       case 'defensa':
         v.defendiendo = true;
         v.textoPm = textoVida(e.actor.pm, e.actor.pmMax);
@@ -140,6 +180,8 @@ export class EscenaCombate implements Escena {
         this.registrar(e.exito ? 'Huyes del combate.' : 'No consigues huir.');
         break;
       case 'muerte':
+        v.estados.delete(e.objetivo);
+        this.estadosVistos.delete(e.objetivo);
         this.registrar(`${e.objetivo.nombre} cae.`);
         break;
       case 'experiencia':
@@ -156,9 +198,21 @@ export class EscenaCombate implements Escena {
       }
       case 'fin':
         v.titulo = TITULO[e.resultado];
-        v.menuActivo = false;
+        v.menu = null;
         break;
     }
+  }
+
+  /** Cambia la vida que se ve y hace flotar el número (rojo/blanco si es daño, verde si es cura). */
+  private cambiarVida(l: Luchador, cambio: number, flotante: string): void {
+    const v = this.v;
+    const pv = Math.min(l.pvMax, Math.max(0, (v.pv.get(l) ?? 0) + cambio));
+    v.pv.set(l, pv);
+    v.textoPv.set(l, textoVida(pv, l.pvMax));
+    v.golpeado = l;
+    v.tiempoGolpe = 0;
+    v.flotante = flotante;
+    v.flotanteCura = cambio > 0;
   }
 
   private registrar(texto: string): void {
@@ -166,43 +220,102 @@ export class EscenaCombate implements Escena {
     this.v.registro[1] = texto;
   }
 
+  private abrir(modo: 'principal' | 'habilidades'): void {
+    this.modo = modo;
+    const h = this.combate.heroina;
+    let menu: MenuVista;
+    if (modo === 'principal') {
+      const disponible = [
+        true,
+        habilidadesDisponibles(h).length > 0,
+        true,
+        puedeHuir(this.combate),
+      ];
+      menu = {
+        opciones: PRINCIPAL.map((texto, i) => ({ texto, detalle: '', disponible: disponible[i]! })),
+        seleccion: this.seleccionPrincipal,
+      };
+    } else {
+      menu = {
+        opciones: [
+          ...habilidadesDisponibles(h).map((hab) => ({
+            texto: hab.nombre,
+            detalle: `${hab.pm} PM`,
+            disponible: hab.pm <= h.pm,
+          })),
+          { texto: 'Volver', detalle: '', disponible: true },
+        ],
+        seleccion: 0,
+      };
+    }
+    this.v.menu = menu;
+  }
+
   private manejarMenu(a: Acciones): void {
-    const v = this.v;
-    v.menuActivo = true;
-    // Tocar un botón lo elige y lo usa a la vez.
+    if (!this.v.menu) this.abrir('principal');
+    const menu = this.v.menu!;
+    const n = menu.opciones.length;
+    // Tocar una opción la elige y la usa a la vez.
     if (a.toqueX >= 0) {
-      const i = BOTONES.findIndex(
-        (b) =>
-          a.toqueX >= b.x && a.toqueX < b.x + b.ancho && a.toqueY >= b.y && a.toqueY < b.y + b.alto,
-      );
-      if (i >= 0) {
-        v.seleccion = i;
-        this.elegir(BOTONES[i]!.accion);
+      for (let i = 0; i < n; i++) {
+        const r = rectOpcion(i, n);
+        if (
+          a.toqueX >= r.x &&
+          a.toqueX < r.x + r.ancho &&
+          a.toqueY >= r.y &&
+          a.toqueY < r.y + r.alto
+        ) {
+          menu.seleccion = i;
+          this.elegir(i);
+          return;
+        }
       }
       return;
     }
-    const dir = Math.sign(a.moverX);
-    if (dir !== 0 && dir !== this.ultimoX) {
-      v.seleccion = (v.seleccion + dir + BOTONES.length) % BOTONES.length;
-    }
-    this.ultimoX = dir;
-    if (a.confirmar) this.elegir(BOTONES[v.seleccion]!.accion);
-  }
-
-  private elegir(accion: AccionMenu): void {
-    if (accion === 'huir' && !this.v.puedeHuir) {
-      this.registrar('¡De este combate no se puede huir!');
+    if (a.cancelar && this.modo === 'habilidades') {
+      this.abrir('principal');
       return;
     }
+    const dx = Math.sign(a.moverX);
+    const dy = Math.sign(a.moverY);
+    // En la rejilla de 3 columnas, arriba y abajo saltan una fila.
+    const salto = (dx !== this.ultimoX ? dx : 0) + (n > 4 && dy !== this.ultimoY ? dy * 3 : 0);
+    if (salto !== 0) menu.seleccion = (((menu.seleccion + salto) % n) + n) % n;
+    this.ultimoX = dx;
+    this.ultimoY = dy;
+    if (a.confirmar) this.elegir(menu.seleccion);
+  }
+
+  private elegir(i: number): void {
+    const h = this.combate.heroina;
     // shortcut: siempre al primer enemigo vivo; elegir objetivo llega con los grupos de monstruos (hito 4).
-    const objetivo = this.combate.enemigos.find((e: Luchador) => e.pv > 0);
-    if (accion === 'atacar' && !objetivo) return;
-    this.v.menuActivo = false;
-    this.cola.push(
-      ...actuar(
-        this.combate,
-        accion === 'atacar' ? { tipo: 'atacar', objetivo: objetivo! } : { tipo: accion },
-      ),
-    );
+    const objetivo = this.combate.enemigos.find((e) => e.pv > 0) ?? null;
+    if (this.modo === 'habilidades') {
+      const hab = habilidadesDisponibles(h)[i];
+      if (!hab) {
+        this.abrir('principal'); // «Volver»
+      } else if (hab.pm > h.pm) {
+        this.registrar(`No quedan PM para ${hab.nombre}`);
+      } else {
+        this.usar({ tipo: 'habilidad', habilidad: hab, objetivo });
+      }
+      return;
+    }
+    this.seleccionPrincipal = i;
+    const opcion = PRINCIPAL[i];
+    if (opcion === 'Atacar' && objetivo) this.usar({ tipo: 'atacar', objetivo });
+    else if (opcion === 'Habilidad' && habilidadesDisponibles(h).length > 0)
+      this.abrir('habilidades');
+    else if (opcion === 'Defender') this.usar({ tipo: 'defender' });
+    else if (opcion === 'Huir') {
+      if (puedeHuir(this.combate)) this.usar({ tipo: 'huir' });
+      else this.registrar('¡De este combate no se puede huir!');
+    }
+  }
+
+  private usar(accion: AccionHeroina): void {
+    this.v.menu = null;
+    this.modo = 'principal';
+    this.cola.push(...actuar(this.combate, accion));
   }
 }

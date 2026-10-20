@@ -9,12 +9,10 @@ import {
   puedeHuir,
 } from '../src/core/combate';
 import type { MonstruoJson, ReglasCombate } from '../src/core/types';
-import reglasJson from '../src/data/combate.json';
-import heroes from '../src/data/heroes.json';
-import monstruos from '../src/data/monstruos.json';
+import { HEROES as heroes, MONSTRUOS, REGLAS } from '../src/data/datos';
 
-const reglas: ReglasCombate = reglasJson;
-const limo = monstruos.limo as MonstruoJson;
+const reglas: ReglasCombate = REGLAS;
+const limo = MONSTRUOS.limo!;
 /** Azar controlado: devuelve los valores dados en orden y después 0,5 (varianza 1, sin crítico, el Limo ataca). */
 const cola =
   (...valores: number[]) =>

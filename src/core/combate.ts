@@ -1,5 +1,22 @@
 import { ganarExperiencia } from './progresion';
-import type { Estadisticas, HeroeJson, MonstruoJson, ReglasCombate } from './types';
+import type {
+  EstadoJson,
+  Estadisticas,
+  HabilidadJson,
+  HeroeJson,
+  MonstruoJson,
+  ReglasCombate,
+} from './types';
+
+/** Un estado alterado activo sobre un luchador. */
+export interface EstadoActivo {
+  id: string;
+  def: EstadoJson;
+  /** Turnos del afectado que le quedan. */
+  turnos: number;
+  /** Se aplicó durante el turno del propio afectado: ese turno no cuenta. */
+  nuevo: boolean;
+}
 
 export interface Luchador {
   nombre: string;
@@ -19,6 +36,7 @@ export interface Luchador {
   defendiendo: boolean;
   /** Anunció un golpe cargado: lo descarga en su próximo turno. */
   cargando: boolean;
+  estados: EstadoActivo[];
   heroe: HeroeJson | null;
   monstruo: MonstruoJson | null;
 }
@@ -38,6 +56,11 @@ export type Evento =
     }
   | { tipo: 'defensa'; actor: Luchador; pm: number }
   | { tipo: 'carga'; actor: Luchador; aviso: string }
+  | { tipo: 'habilidad'; actor: Luchador; nombre: string }
+  | { tipo: 'cura'; objetivo: Luchador; cantidad: number }
+  | { tipo: 'estado'; objetivo: Luchador; estado: string; activo: boolean }
+  | { tipo: 'danioEstado'; objetivo: Luchador; cantidad: number; estado: string }
+  | { tipo: 'pierdeTurno'; actor: Luchador }
   | { tipo: 'huida'; exito: boolean }
   | { tipo: 'muerte'; objetivo: Luchador }
   | { tipo: 'experiencia'; cantidad: number }
@@ -45,7 +68,10 @@ export type Evento =
   | { tipo: 'fin'; resultado: Resultado };
 
 export type AccionHeroina =
-  { tipo: 'atacar'; objetivo: Luchador } | { tipo: 'defender' } | { tipo: 'huir' };
+  | { tipo: 'atacar'; objetivo: Luchador }
+  | { tipo: 'habilidad'; habilidad: HabilidadJson; objetivo: Luchador | null }
+  | { tipo: 'defender' }
+  | { tipo: 'huir' };
 
 export interface Combate {
   heroina: Luchador;
@@ -82,6 +108,7 @@ function luchador(
     experiencia: 0,
     defendiendo: false,
     cargando: false,
+    estados: [],
     heroe,
     monstruo,
   };
@@ -98,9 +125,10 @@ export function crearCombate(
   reglas: ReglasCombate,
   azar: () => number,
 ): Combate {
-  // La heroína llega de combates anteriores: no arrastra su defensa.
+  // La heroína llega de combates anteriores: no arrastra defensa ni estados.
   heroina.defendiendo = false;
   heroina.cargando = false;
+  heroina.estados = [];
   return {
     heroina,
     enemigos,
@@ -119,6 +147,18 @@ export function puedeHuir(c: Combate): boolean {
   return !c.enemigos.some((e) => e.monstruo?.jefe);
 }
 
+/** Habilidades que la heroína ya ha desbloqueado por nivel. */
+export function habilidadesDisponibles(h: Luchador): HabilidadJson[] {
+  return (h.heroe?.habilidades ?? []).filter((hab) => hab.nivel <= h.nivel);
+}
+
+/** Estadística con los multiplicadores de los estados activos (Furia, Postura de hierro…). */
+export function efectiva(l: Luchador, clave: 'ataque' | 'magia' | 'defensa'): number {
+  let valor = l[clave];
+  for (const e of l.estados) valor *= e.def[clave] ?? 1;
+  return valor;
+}
+
 /** daño = max(1, ⌊(ATQ × poder − DEF × factor) × varianza × crítico⌋), como en el documento de diseño. */
 export function calcularDanio(
   ataque: number,
@@ -127,13 +167,34 @@ export function calcularDanio(
   factorDefensa: number,
   reglas: ReglasCombate,
   azar: () => number,
+  criticoSeguro = false,
 ): { cantidad: number; critico: boolean } {
   const { varianza, critico } = reglas;
   const v = varianza.min + azar() * (varianza.max - varianza.min);
-  const esCritico = azar() < critico.probabilidad;
+  const esCritico = criticoSeguro || azar() < critico.probabilidad;
   const bruto =
     (ataque * poder - defensa * factorDefensa) * v * (esCritico ? critico.multiplicador : 1);
   return { cantidad: Math.max(1, Math.floor(bruto)), critico: esCritico };
+}
+
+/** Aplica (o renueva) un estado de combate.json a un luchador. */
+export function aplicarEstado(
+  c: Combate,
+  objetivo: Luchador,
+  id: string,
+  enSuTurno: boolean,
+  eventos: Evento[],
+): void {
+  const def = c.reglas.estados[id];
+  if (!def) throw new Error(`Estado desconocido: ${id}`);
+  const activo = objetivo.estados.find((e) => e.id === id);
+  if (activo) {
+    activo.turnos = def.turnos;
+    activo.nuevo = enSuTurno;
+  } else {
+    objetivo.estados.push({ id, def, turnos: def.turnos, nuevo: enSuTurno });
+  }
+  eventos.push({ tipo: 'estado', objetivo, estado: def.nombre, activo: true });
 }
 
 /** Juega turnos de monstruos hasta que le toca a la heroína o se acaba el combate. */
@@ -143,8 +204,17 @@ export function avanzar(c: Combate): Evento[] {
     const actor = siguienteActor(c);
     actor.defendiendo = false; // la defensa dura hasta el comienzo de su propio turno
     eventos.push({ tipo: 'turno', actor });
-    if (actor.esHeroina) c.esperando = true;
-    else actuarMonstruo(c, actor, eventos);
+    const aturdido = actor.estados.find((e) => e.def.pierdeTurno);
+    if (aturdido) {
+      quitarEstado(actor, aturdido, eventos);
+      eventos.push({ tipo: 'pierdeTurno', actor });
+      finDeTurno(c, actor, eventos);
+    } else if (actor.esHeroina) {
+      c.esperando = true;
+    } else {
+      actuarMonstruo(c, actor, eventos);
+      finDeTurno(c, actor, eventos);
+    }
   }
   return eventos;
 }
@@ -152,23 +222,31 @@ export function avanzar(c: Combate): Evento[] {
 /** La heroína hace su acción; después se juega hasta su siguiente turno o el final. */
 export function actuar(c: Combate, accion: AccionHeroina): Evento[] {
   if (!c.esperando) throw new Error('No es el turno de la heroína');
-  c.esperando = false;
   const h = c.heroina;
+  if (accion.tipo === 'habilidad') {
+    const { habilidad } = accion;
+    if (habilidad.nivel > h.nivel) throw new Error(`${habilidad.nombre} aún no está disponible`);
+    if (habilidad.pm > h.pm) throw new Error(`No hay PM para ${habilidad.nombre}`);
+  }
+  if (accion.tipo === 'huir' && !puedeHuir(c)) throw new Error('No se puede huir de este combate');
+  c.esperando = false;
   const eventos: Evento[] = [];
   if (accion.tipo === 'atacar') {
-    golpear(c, h, accion.objetivo, 1, false, eventos);
+    golpear(c, h, accion.objetivo, 1, false, false, false, eventos);
+  } else if (accion.tipo === 'habilidad') {
+    usarHabilidad(c, h, accion.habilidad, accion.objetivo, eventos);
   } else if (accion.tipo === 'defender') {
     h.defendiendo = true;
     const pm = Math.min(h.pmMax, h.pm + c.reglas.defender.pm) - h.pm;
     h.pm += pm;
     eventos.push({ tipo: 'defensa', actor: h, pm });
   } else {
-    if (!puedeHuir(c)) throw new Error('No se puede huir de este combate');
     const exito = c.azar() < c.reglas.huida.base + c.reglas.huida.porIntento * c.intentosHuida;
     eventos.push({ tipo: 'huida', exito });
     if (exito) terminar(c, 'huida', eventos);
     else c.intentosHuida++;
   }
+  if (!c.resultado) finDeTurno(c, h, eventos);
   eventos.push(...avanzar(c));
   return eventos;
 }
@@ -193,7 +271,7 @@ function actuarMonstruo(c: Combate, m: Luchador, eventos: Evento[]): void {
   const datos = m.monstruo;
   if (m.cargando && datos?.cargado) {
     m.cargando = false;
-    golpear(c, m, c.heroina, datos.cargado.poder, true, eventos);
+    golpear(c, m, c.heroina, datos.cargado.poder, true, false, false, eventos);
     return;
   }
   const accion = elegirPorPeso(datos?.acciones ?? [], c.azar);
@@ -201,7 +279,42 @@ function actuarMonstruo(c: Combate, m: Luchador, eventos: Evento[]): void {
     m.cargando = true;
     eventos.push({ tipo: 'carga', actor: m, aviso: datos.cargado.aviso });
   } else {
-    golpear(c, m, c.heroina, 1, false, eventos);
+    golpear(c, m, c.heroina, 1, false, false, false, eventos);
+  }
+}
+
+function rivales(c: Combate, actor: Luchador): Luchador[] {
+  return actor.esHeroina ? c.enemigos : [c.heroina];
+}
+
+function usarHabilidad(
+  c: Combate,
+  actor: Luchador,
+  hab: HabilidadJson,
+  elegido: Luchador | null,
+  eventos: Evento[],
+): void {
+  actor.pm -= hab.pm;
+  eventos.push({ tipo: 'habilidad', actor, nombre: hab.nombre });
+  const vivos = rivales(c, actor).filter((l) => l.pv > 0);
+  const objetivos =
+    hab.objetivo === 'propio'
+      ? [actor]
+      : hab.objetivo === 'todos'
+        ? vivos
+        : [elegido && elegido.pv > 0 ? elegido : vivos[0]].filter((l) => l !== undefined);
+  for (const o of objetivos) {
+    if (c.resultado) return;
+    if (hab.danio) {
+      const { tipo, poder, criticoSeguro = false } = hab.danio;
+      golpear(c, actor, o, poder, false, tipo === 'magico', criticoSeguro, eventos);
+    }
+    if (hab.cura) {
+      const cantidad = Math.min(o.pvMax - o.pv, Math.round(o.pvMax * hab.cura));
+      o.pv += cantidad;
+      eventos.push({ tipo: 'cura', objetivo: o, cantidad });
+    }
+    if (hab.estado && o.pv > 0) aplicarEstado(c, o, hab.estado, o === actor, eventos);
   }
 }
 
@@ -211,26 +324,59 @@ function golpear(
   objetivo: Luchador,
   poder: number,
   cargado: boolean,
+  magico: boolean,
+  criticoSeguro: boolean,
   eventos: Evento[],
 ): void {
   const { reglas } = c;
   const golpe = calcularDanio(
-    origen.ataque,
+    efectiva(origen, magico ? 'magia' : 'ataque'),
     poder,
-    objetivo.defensa,
-    reglas.defensaFisica,
+    efectiva(objetivo, 'defensa'),
+    magico ? reglas.defensaMagica : reglas.defensaFisica,
     reglas,
     c.azar,
+    criticoSeguro,
   );
   const cantidad = objetivo.defendiendo
     ? Math.max(1, Math.floor(golpe.cantidad * reglas.defender.factorDanio))
     : golpe.cantidad;
   objetivo.pv = Math.max(0, objetivo.pv - cantidad);
   eventos.push({ tipo: 'danio', origen, objetivo, cantidad, critico: golpe.critico, cargado });
-  if (objetivo.pv > 0) return;
+  comprobarMuerte(c, objetivo, eventos);
+}
+
+/** Final del turno de `actor`: daño de los estados (Veneno) y cuenta atrás de su duración. */
+function finDeTurno(c: Combate, actor: Luchador, eventos: Evento[]): void {
+  for (const e of [...actor.estados]) {
+    if (c.resultado || actor.pv <= 0) return;
+    if (e.def.danioPorTurno) {
+      const cantidad = Math.max(1, Math.floor(actor.pvMax * e.def.danioPorTurno));
+      actor.pv = Math.max(0, actor.pv - cantidad);
+      eventos.push({ tipo: 'danioEstado', objetivo: actor, cantidad, estado: e.def.nombre });
+      if (comprobarMuerte(c, actor, eventos)) return;
+    }
+    if (e.nuevo) {
+      e.nuevo = false;
+      continue;
+    }
+    if (--e.turnos <= 0) quitarEstado(actor, e, eventos);
+  }
+}
+
+function quitarEstado(l: Luchador, e: EstadoActivo, eventos: Evento[]): void {
+  l.estados.splice(l.estados.indexOf(e), 1);
+  eventos.push({ tipo: 'estado', objetivo: l, estado: e.def.nombre, activo: false });
+}
+
+/** Si el luchador ha caído, lo anuncia y cierra el combate cuando toca. Devuelve si cayó. */
+function comprobarMuerte(c: Combate, objetivo: Luchador, eventos: Evento[]): boolean {
+  if (objetivo.pv > 0) return false;
+  objetivo.estados = [];
   eventos.push({ tipo: 'muerte', objetivo });
   if (objetivo.esHeroina) terminar(c, 'derrota', eventos);
   else if (c.enemigos.every((e) => e.pv <= 0)) terminar(c, 'victoria', eventos);
+  return true;
 }
 
 function terminar(c: Combate, resultado: Resultado, eventos: Evento[]): void {

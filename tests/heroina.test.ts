@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { crearAcciones, type Acciones } from '../src/core/acciones';
 import { actualizarHeroina, crearHeroina } from '../src/core/heroina';
-import heroes from '../src/data/heroes.json';
+import { HEROES as heroes } from '../src/data/datos';
 
 const datos = { ...heroes.ronin, velocidad: 60 };
 const libre = { ancho: 10, alto: 10, solido: new Array<boolean>(100).fill(false) };
