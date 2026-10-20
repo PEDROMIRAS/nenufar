@@ -10,6 +10,8 @@ export interface OpcionMenu {
   /** Texto pequeño bajo la opción (el coste en PM de una habilidad…). */
   detalle: string;
   disponible: boolean;
+  /** Qué hace, ya partido en líneas; se ve en el panel del registro mientras está elegida. */
+  ayuda?: readonly string[];
 }
 
 export interface MenuVista {
@@ -154,8 +156,15 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
     // Registro de las dos últimas acciones.
     ctx.fillStyle = COLOR.panel;
     ctx.fillRect(8, 256, ANCHO - 16, 32);
-    escribir(ctx, v.registro[0], 16, 259, '#aab8a6');
-    escribir(ctx, v.registro[1], 16, 273);
+    // Con una opción elegida, su ayuda ocupa el panel (y si cabe en una línea, debajo sigue el registro).
+    const ayuda = v.menu?.opciones[v.menu.seleccion]?.ayuda;
+    if (ayuda?.[0]) {
+      escribir(ctx, ayuda[0], 16, 259, COLOR.aviso);
+      escribir(ctx, ayuda[1] ?? v.registro[1], 16, 273, ayuda[1] ? COLOR.aviso : undefined);
+    } else {
+      escribir(ctx, v.registro[0], 16, 259, '#aab8a6');
+      escribir(ctx, v.registro[1], 16, 273);
+    }
   }
   dibujarMenu(ctx, v.menu);
 

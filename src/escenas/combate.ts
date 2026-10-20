@@ -17,6 +17,12 @@ import {
   type MenuVista,
   type VistaCombate,
 } from '../render/combate';
+import {
+  describirAcciones,
+  describirConsumible,
+  describirHabilidad,
+  partirEnLineas,
+} from '../core/descripciones';
 import { anunciar } from '../render/accesibilidad';
 import type { Sprite } from '../render/recursos';
 import { ponerMusica, sonar } from '../render/sonido';
@@ -59,6 +65,10 @@ const TITULO: Record<Resultado, string> = {
 const PRINCIPAL = ['Atacar', 'Habilidad', 'Objeto', 'Defender', 'Huir'] as const;
 type Modo = 'principal' | 'habilidades' | 'objetos' | 'objetivo';
 
+/** Líneas que caben en el panel del registro. */
+const LARGO_LINEA = 62;
+const ayuda = (texto: string): string[] => partirEnLineas(texto, LARGO_LINEA);
+
 const textoVida = (pv: number, max: number): string => `${pv}/${max}`;
 
 /** Pantalla de combate: anima los eventos de `core/combate` uno a uno y recoge la acción de la heroína. */
@@ -80,6 +90,7 @@ export class EscenaCombate implements Escena {
   /** Quién hizo el último golpe enseñado, para no repetir su animación en un ataque a varios. */
   private ultimoAtacante: Luchador | null = null;
   private readonly pista: string;
+  private readonly ayudaAcciones: readonly (readonly string[])[];
 
   constructor(
     private readonly combate: Combate,
@@ -88,6 +99,7 @@ export class EscenaCombate implements Escena {
     fondo: HTMLCanvasElement,
     private readonly alTerminar: (resultado: Resultado) => void,
   ) {
+    this.ayudaAcciones = describirAcciones(combate.reglas).map(ayuda);
     this.pista = combate.enemigos.some((e) => e.monstruo?.jefe) ? 'jefe' : 'combate';
     const todos = [combate.heroina, ...combate.enemigos];
     const h = combate.heroina;
@@ -347,7 +359,12 @@ export class EscenaCombate implements Escena {
         puedeHuir(this.combate),
       ];
       menu = {
-        opciones: PRINCIPAL.map((texto, i) => ({ texto, detalle: '', disponible: disponible[i]! })),
+        opciones: PRINCIPAL.map((texto, i) => ({
+          texto,
+          detalle: '',
+          disponible: disponible[i]!,
+          ayuda: this.ayudaAcciones[i],
+        })),
         seleccion: this.seleccionPrincipal,
       };
     } else if (modo === 'objetos') {
@@ -357,6 +374,12 @@ export class EscenaCombate implements Escena {
             texto: this.combate.objetos.consumibles[clave]!.nombre,
             detalle: `x${this.cuantos(clave)}`,
             disponible: this.cuantos(clave) > 0,
+            ayuda: ayuda(
+              describirConsumible(
+                this.combate.objetos.consumibles[clave]!,
+                this.combate.reglas.estados,
+              ),
+            ),
           })),
           { texto: 'Volver', detalle: '', disponible: true },
         ],
@@ -377,6 +400,7 @@ export class EscenaCombate implements Escena {
             texto: hab.nombre,
             detalle: `${hab.pm} PM`,
             disponible: hab.pm <= h.pm,
+            ayuda: ayuda(describirHabilidad(hab, this.combate.reglas.estados)),
           })),
           { texto: 'Volver', detalle: '', disponible: true },
         ],
@@ -424,7 +448,8 @@ export class EscenaCombate implements Escena {
     if (salto !== 0) {
       menu.seleccion = (((menu.seleccion + salto) % n) + n) % n;
       sonar('cursor');
-      anunciar(menu.opciones[menu.seleccion]?.texto ?? '');
+      const o = menu.opciones[menu.seleccion];
+      anunciar(o ? [o.texto, ...(o.ayuda ?? [])].join('. ') : '');
     }
     this.ultimoX = dx;
     this.ultimoY = dy;
