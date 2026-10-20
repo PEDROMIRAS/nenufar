@@ -31,7 +31,7 @@ import type {
   ObjetosJson,
   PlantillasJson,
 } from '../core/types';
-import type { SalaZona, Zona } from '../core/zona';
+import { N, S, type SalaZona, type Zona } from '../core/zona';
 import { dibujarHeroina } from '../render/heroina';
 import {
   BOTON_MENU,
@@ -43,7 +43,7 @@ import {
 import { pintarMinimapa } from '../render/minimapa';
 import { dibujarMonstruoMapa } from '../render/monstruo';
 import type { Sprite } from '../render/recursos';
-import { dibujarObjetos, pintarFondo, pintarVineta } from '../render/sala';
+import { dibujarObjetos, dibujarTile, pintarFondo, pintarVineta } from '../render/sala';
 import type { Escena } from './escena';
 
 /** Vector hacia el que mira la heroína según su dirección. */
@@ -136,6 +136,11 @@ export class EscenaMapa implements Escena {
   private portalUsado = false;
   /** Segundos que quedan sin poder empezar otro combate. */
   private invulnerable = 0;
+  /** Lado por el que se entró en la sala actual (bit N/E/S/O; 0 en la de inicio). */
+  private ladoEntrada = 0;
+  /** Salidas cerradas mientras queden monstruos (bits), y casillas marcadas sólidas por ello. */
+  private cerradas = 0;
+  private bloqueadas: number[] = [];
   /** Azar de la patrulla de los monstruos. */
   private readonly azarMapa: () => number;
   /** La fuente de la sala de descanso restaura una sola vez por zona. */
@@ -239,7 +244,8 @@ export class EscenaMapa implements Escena {
         }
       }
     }
-    const salida = salidaPisada(this.salidas, this.actual.puertas, tam, h.cuerpo.x, h.cuerpo.y);
+    const abiertas = this.actual.puertas & ~this.cerradas;
+    const salida = salidaPisada(this.salidas, abiertas, tam, h.cuerpo.x, h.cuerpo.y);
     if (salida) {
       this.pendiente = salida.lado;
       this.fundido = Number.EPSILON;
@@ -258,6 +264,7 @@ export class EscenaMapa implements Escena {
     // Los objetos con la base por encima de los pies quedan detrás de la heroína; el resto, delante.
     const pies = Math.round(h.yAnterior + (h.cuerpo.y - h.yAnterior) * alpha);
     ctx.drawImage(fondo, 0, 0);
+    this.dibujarCierre(ctx);
     const { monstruos } = this.montada;
     dibujarObjetos(ctx, sala, imagenes, tam, this.tiempo, -Infinity, pies);
     for (const m of monstruos) {
@@ -345,6 +352,8 @@ export class EscenaMapa implements Escena {
         if (resultado === 'victoria') {
           m.vivo = false;
           if (m.grupo[0]?.jefe) this.abrirPortal(sala);
+          this.soltarCierre();
+          this.aplicarCierre();
         }
         this.invulnerable = this.o.invulnerabilidad;
       },
@@ -356,10 +365,55 @@ export class EscenaMapa implements Escena {
     const vecina = salaVecina(this.o.zona, this.actual, lado);
     const entrada = this.salidas.find((s) => s.lado === opuesto(lado));
     if (!vecina || !entrada) return;
+    this.soltarCierre();
     this.actual = vecina;
+    this.ladoEntrada = entrada.lado;
     this.montada = this.montar(vecina);
     this.minimapa = this.visitar(vecina);
     this.colocar(posicionEntrada(entrada, this.o.tam, this.o.heroina.cuerpo.alto));
+    this.aplicarCierre();
+  }
+
+  /**
+   * En una sala de combate con monstruos vivos se cierran todas las salidas menos la de entrada
+   * (documento: «las puertas se cierran hasta vencerlos o salir por donde entraste»).
+   */
+  private aplicarCierre(): void {
+    const { sala, monstruos } = this.montada;
+    const hayMonstruos = this.actual.tipo === 'combate' && monstruos.some((m) => m.vivo);
+    this.cerradas = hayMonstruos ? this.actual.puertas & ~this.ladoEntrada : 0;
+    for (const salida of this.salidas) {
+      if (!(this.cerradas & salida.lado)) continue;
+      for (const [x, y] of salida.celdas) {
+        const i = y * sala.ancho + x;
+        if (!sala.solido[i]) {
+          sala.solido[i] = true;
+          this.bloqueadas.push(i);
+        }
+      }
+    }
+  }
+
+  /** Devuelve a su estado las casillas que cerró aplicarCierre (antes de cambiar de sala o al vencer). */
+  private soltarCierre(): void {
+    for (const i of this.bloqueadas) this.montada.sala.solido[i] = false;
+    this.bloqueadas = [];
+    this.cerradas = 0;
+  }
+
+  /** La puerta norte cerrada o una barrera en cada salida cerrada. */
+  private dibujarCierre(ctx: CanvasRenderingContext2D): void {
+    if (!this.cerradas) return;
+    const { catalogo, imagenes, tam } = this.o;
+    for (const salida of this.salidas) {
+      if (!(this.cerradas & salida.lado)) continue;
+      const norte = salida.lado === N;
+      const tile = catalogo.get(
+        norte ? 'puerta_norte_cerrada' : salida.lado === S ? 'barrera_h' : 'barrera_v',
+      );
+      const [x, y] = salida.celdas[norte ? 1 : 0]!;
+      if (tile) dibujarTile(ctx, imagenes, tile, tam, x * tam, y * tam);
+    }
   }
 
   /** Marca la sala como visitada y devuelve el minimapa al día. */
