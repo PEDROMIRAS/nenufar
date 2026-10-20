@@ -423,16 +423,15 @@ export class EscenaMapa implements Escena {
     this.cerradas = 0;
   }
 
-  /** La puerta norte cerrada o una barrera en cada salida cerrada. */
+  /** Una barrera en cada salida cerrada. */
   private dibujarCierre(ctx: CanvasRenderingContext2D): void {
     if (!this.cerradas) return;
     const { catalogo, imagenes, tam } = this.o;
     for (const salida of this.salidas) {
       if (!(this.cerradas & salida.lado)) continue;
       const norte = salida.lado === N;
-      const tile = catalogo.get(
-        norte ? 'puerta_norte_cerrada' : salida.lado === S ? 'barrera_h' : 'barrera_v',
-      );
+      const tile = catalogo.get(norte || salida.lado === S ? 'barrera_h' : 'barrera_v');
+      // La norte cruza el muro de dos filas: la barrera va en la de dentro, junto al suelo.
       const [x, y] = salida.celdas[norte ? 1 : 0]!;
       if (tile) dibujarTile(ctx, imagenes, tile, tam, x * tam, y * tam);
     }

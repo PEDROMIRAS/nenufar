@@ -2,7 +2,7 @@
 
 Reglas de diseño (documento de desarrollo):
   - Borde de al menos dos tiles en el norte y esquinas irregulares; objetos junto a los bordes y centro despejado.
-  - Las cuatro salidas siempre abiertas, en el centro de cada lado: norte en (7,0) camino + (7,1) puerta D,
+  - Las cuatro salidas siempre abiertas, en el centro de cada lado: norte en (7,0) y (7,1) camino (como las demás),
     sur en (7,10), oeste en (0,5) y este en (14,5). El juego tapia las que no llevan a otra sala.
   - Un camino que una las salidas y un elemento natural (agua, claro, ruinas) que dé identidad.
   - Cofres y portales fuera del camino de entrada, para no chocar con ellos al cruzar una puerta.
@@ -13,7 +13,7 @@ PLANTILLAS = {
     "bosque": [
         ("combate", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##T....:....P##",
             "#T.b...:..r..P#",
             "#......:::::::#",
@@ -26,7 +26,7 @@ PLANTILLAS = {
         ]),
         ("combate", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##P.b..:...TP##",
             "#~~....:.....T#",
             "#~~.r..:..b...#",
@@ -39,7 +39,7 @@ PLANTILLAS = {
         ]),
         ("combate", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##TT...:...PP##",
             "#T..b..:..b..P#",
             "#.r....:....r.#",
@@ -52,7 +52,7 @@ PLANTILLAS = {
         ]),
         ("descanso", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##P....:....T##",
             "#T..f..:..f..P#",
             "#..b...:...b..#",
@@ -65,7 +65,7 @@ PLANTILLAS = {
         ]),
         ("inicio", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##T.f..:..s.T##",
             "#P.....:.....b#",
             "#..f...:...f..#",
@@ -78,7 +78,7 @@ PLANTILLAS = {
         ]),
         ("tesoro", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##P..b.:.b..T##",
             "#T.....:..X..P#",
             "#..r...:......#",
@@ -91,7 +91,7 @@ PLANTILLAS = {
         ]),
         ("jefe", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##T..P.:..b.T##",
             "#P.....:...>.P#",
             "#......:......#",
@@ -106,7 +106,7 @@ PLANTILLAS = {
     "ruinas": [
         ("combate", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##,,..v:.....##",
             "#,,I...:...I,,#",
             "#,.....:::::::#",
@@ -119,7 +119,7 @@ PLANTILLAS = {
         ]),
         ("combate", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##v,...:..,,v##",
             "#,,.i..:......#",
             "#,.....:..I...#",
@@ -132,7 +132,7 @@ PLANTILLAS = {
         ]),
         ("combate", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##,,.e.:.e.,,##",
             "#,I.~~.:....I,#",
             "#,..~~.:......#",
@@ -145,7 +145,7 @@ PLANTILLAS = {
         ]),
         ("tesoro", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##,v...:..IXI##",
             "#,,....:....,,#",
             "#,.i...:...e..#",
@@ -158,7 +158,7 @@ PLANTILLAS = {
         ]),
         ("inicio", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##,,...:...,,##",
             "#,I....:....I,#",
             "#,.....:.....,#",
@@ -171,7 +171,7 @@ PLANTILLAS = {
         ]),
         ("descanso", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##,v...:...v,##",
             "#,,....:..F.,,#",
             "#,..I..:...I..#",
@@ -184,7 +184,7 @@ PLANTILLAS = {
         ]),
         ("jefe", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##I.I..:..I.I##",
             "#,.....:...>.,#",
             "#,.....:......#",
@@ -199,7 +199,7 @@ PLANTILLAS = {
     "cripta": [
         ("combate", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##L.L..:..L.L##",
             "#......:..S...#",
             "#.~~...:::::::#",
@@ -212,7 +212,7 @@ PLANTILLAS = {
         ]),
         ("combate", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##..L..:..L..##",
             "#.S....:....S.#",
             "#....Y.:.Y....#",
@@ -225,7 +225,7 @@ PLANTILLAS = {
         ]),
         ("combate", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##c.S..:..S.c##",
             "#......:......#",
             "#.L.~~.:.~~.L.#",
@@ -238,7 +238,7 @@ PLANTILLAS = {
         ]),
         ("jefe", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##c.Y..:..Y.c##",
             "#L.....:...>.L#",
             "#....Y.:.Y....#",
@@ -251,7 +251,7 @@ PLANTILLAS = {
         ]),
         ("inicio", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##L.L..:..L.L##",
             "#c.....:.....c#",
             "#......:......#",
@@ -264,7 +264,7 @@ PLANTILLAS = {
         ]),
         ("descanso", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##c.L..:..L.c##",
             "#......:..F...#",
             "#.Y....:....Y.#",
@@ -277,7 +277,7 @@ PLANTILLAS = {
         ]),
         ("tesoro", [
             "#######:#######",
-            "NNNNNNNDNNNNNNN",
+            "NNNNNNN:NNNNNNN",
             "##Y.c..:..cXY##",
             "#L.....:.....L#",
             "#......:......#",

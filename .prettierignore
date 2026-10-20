@@ -5,3 +5,9 @@ src/data
 docs
 *.md
 package-lock.json
+
+# Herramientas locales (no son parte del juego)
+.agents
+.claude
+graphify-out
+skills-lock.json

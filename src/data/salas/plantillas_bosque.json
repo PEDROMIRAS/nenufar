@@ -42,7 +42,7 @@
       "tipo": "combate",
       "mapa": [
         "#######:#######",
-        "NNNNNNNDNNNNNNN",
+        "NNNNNNN:NNNNNNN",
         "##T....:....P##",
         "#T.b...:..r..P#",
         "#......:::::::#",
@@ -59,7 +59,7 @@
       "tipo": "combate",
       "mapa": [
         "#######:#######",
-        "NNNNNNNDNNNNNNN",
+        "NNNNNNN:NNNNNNN",
         "##P.b..:...TP##",
         "#~~....:.....T#",
         "#~~.r..:..b...#",
@@ -76,7 +76,7 @@
       "tipo": "combate",
       "mapa": [
         "#######:#######",
-        "NNNNNNNDNNNNNNN",
+        "NNNNNNN:NNNNNNN",
         "##TT...:...PP##",
         "#T..b..:..b..P#",
         "#.r....:....r.#",
@@ -93,7 +93,7 @@
       "tipo": "descanso",
       "mapa": [
         "#######:#######",
-        "NNNNNNNDNNNNNNN",
+        "NNNNNNN:NNNNNNN",
         "##P....:....T##",
         "#T..f..:..f..P#",
         "#..b...:...b..#",
@@ -110,7 +110,7 @@
       "tipo": "inicio",
       "mapa": [
         "#######:#######",
-        "NNNNNNNDNNNNNNN",
+        "NNNNNNN:NNNNNNN",
         "##T.f..:..s.T##",
         "#P.....:.....b#",
         "#..f...:...f..#",
@@ -127,7 +127,7 @@
       "tipo": "tesoro",
       "mapa": [
         "#######:#######",
-        "NNNNNNNDNNNNNNN",
+        "NNNNNNN:NNNNNNN",
         "##P..b.:.b..T##",
         "#T.....:..X..P#",
         "#..r...:......#",
@@ -144,7 +144,7 @@
       "tipo": "jefe",
       "mapa": [
         "#######:#######",
-        "NNNNNNNDNNNNNNN",
+        "NNNNNNN:NNNNNNN",
         "##T..P.:..b.T##",
         "#P.....:...>.P#",
         "#......:......#",
