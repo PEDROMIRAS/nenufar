@@ -25,6 +25,20 @@
     },
     "jefe": false,
     "experiencia": 6,
+    "botin": [
+      {
+        "objeto": "pocion",
+        "peso": 20
+      },
+      {
+        "objeto": "eter",
+        "peso": 5
+      },
+      {
+        "objeto": "nada",
+        "peso": 75
+      }
+    ],
     "caja": {
       "ancho": 20,
       "alto": 12
@@ -55,6 +69,20 @@
     ],
     "jefe": false,
     "experiencia": 7,
+    "botin": [
+      {
+        "objeto": "pocion",
+        "peso": 15
+      },
+      {
+        "objeto": "eter",
+        "peso": 10
+      },
+      {
+        "objeto": "nada",
+        "peso": 75
+      }
+    ],
     "caja": {
       "ancho": 18,
       "alto": 10
@@ -92,6 +120,24 @@
     ],
     "jefe": false,
     "experiencia": 16,
+    "botin": [
+      {
+        "objeto": "pocion",
+        "peso": 25
+      },
+      {
+        "objeto": "eter",
+        "peso": 10
+      },
+      {
+        "objeto": "antidoto",
+        "peso": 5
+      },
+      {
+        "objeto": "nada",
+        "peso": 60
+      }
+    ],
     "caja": {
       "ancho": 18,
       "alto": 12
@@ -139,6 +185,20 @@
     ],
     "jefe": false,
     "experiencia": 16,
+    "botin": [
+      {
+        "objeto": "pocion",
+        "peso": 15
+      },
+      {
+        "objeto": "antidoto",
+        "peso": 25
+      },
+      {
+        "objeto": "nada",
+        "peso": 60
+      }
+    ],
     "caja": {
       "ancho": 22,
       "alto": 12
@@ -177,6 +237,20 @@
     },
     "jefe": false,
     "experiencia": 30,
+    "botin": [
+      {
+        "objeto": "pocion",
+        "peso": 30
+      },
+      {
+        "objeto": "eter",
+        "peso": 15
+      },
+      {
+        "objeto": "nada",
+        "peso": 55
+      }
+    ],
     "caja": {
       "ancho": 20,
       "alto": 12
@@ -234,6 +308,24 @@
     ],
     "jefe": false,
     "experiencia": 26,
+    "botin": [
+      {
+        "objeto": "pocion",
+        "peso": 20
+      },
+      {
+        "objeto": "eter",
+        "peso": 30
+      },
+      {
+        "objeto": "antidoto",
+        "peso": 10
+      },
+      {
+        "objeto": "nada",
+        "peso": 40
+      }
+    ],
     "caja": {
       "ancho": 18,
       "alto": 12
@@ -282,6 +374,12 @@
     ],
     "jefe": true,
     "experiencia": 30,
+    "botin": [
+      {
+        "objeto": "pocion",
+        "peso": 100
+      }
+    ],
     "caja": {
       "ancho": 28,
       "alto": 16
@@ -362,6 +460,16 @@
     ],
     "jefe": true,
     "experiencia": 90,
+    "botin": [
+      {
+        "objeto": "pocion",
+        "peso": 50
+      },
+      {
+        "objeto": "eter",
+        "peso": 50
+      }
+    ],
     "caja": {
       "ancho": 28,
       "alto": 16
@@ -435,6 +543,16 @@
     ],
     "jefe": true,
     "experiencia": 150,
+    "botin": [
+      {
+        "objeto": "antidoto",
+        "peso": 50
+      },
+      {
+        "objeto": "pocion",
+        "peso": 50
+      }
+    ],
     "caja": {
       "ancho": 28,
       "alto": 16

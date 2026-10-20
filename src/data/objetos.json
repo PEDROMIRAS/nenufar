@@ -1,0 +1,8 @@
+{
+  "maximoPorTipo": 5,
+  "consumibles": {
+    "pocion": { "nombre": "Poción", "pv": 25 },
+    "eter": { "nombre": "Éter", "pm": 10 },
+    "antidoto": { "nombre": "Antídoto", "quitaEstado": "veneno" }
+  }
+}

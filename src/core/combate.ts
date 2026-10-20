@@ -1,4 +1,5 @@
 import { elegirConPeso } from './azar';
+import { crearInventario, guardar, type Inventario } from './inventario';
 import { ganarExperiencia } from './progresion';
 import type {
   AccionMonstruoJson,
@@ -7,6 +8,7 @@ import type {
   HabilidadJson,
   HeroeJson,
   MonstruoJson,
+  ObjetosJson,
   ReglasCombate,
 } from './types';
 
@@ -72,6 +74,10 @@ export type Evento =
   | { tipo: 'iniciativa'; quien: 'heroina' | 'monstruos' }
   | { tipo: 'huida'; exito: boolean }
   | { tipo: 'muerte'; objetivo: Luchador }
+  | { tipo: 'objeto'; actor: Luchador; nombre: string }
+  | { tipo: 'mana'; objetivo: Luchador; cantidad: number }
+  /** Un monstruo suelta un objeto; si ya se llevan los que caben de ese tipo, se pierde. */
+  | { tipo: 'botin'; nombre: string; guardado: boolean }
   | { tipo: 'experiencia'; cantidad: number }
   /** PV y PM que recupera la heroína al ganar. */
   | { tipo: 'recupera'; pv: number; pm: number }
@@ -81,6 +87,7 @@ export type Evento =
 export type AccionHeroina =
   | { tipo: 'atacar'; objetivo: Luchador }
   | { tipo: 'habilidad'; habilidad: HabilidadJson; objetivo: Luchador | null }
+  | { tipo: 'objeto'; clave: string }
   | { tipo: 'defender' }
   | { tipo: 'huir' };
 
@@ -102,6 +109,9 @@ export interface Combate {
   ronda: number;
   /** Quién actúa antes que nadie en la primera ronda (por pillar al otro por la espalda). */
   iniciativa: 'heroina' | 'monstruos' | null;
+  /** Inventario de la heroína (se usa con Objeto y recibe el botín) y los objetos que existen. */
+  inventario: Inventario;
+  objetos: ObjetosJson;
 }
 
 function luchador(
@@ -172,6 +182,8 @@ export function crearCombate(
     bestiario,
     ronda: 0,
     iniciativa: null,
+    inventario: crearInventario(),
+    objetos: { maximoPorTipo: 0, consumibles: {} },
   };
 }
 
@@ -262,12 +274,17 @@ export function actuar(c: Combate, accion: AccionHeroina): Evento[] {
     if (habilidad.pm > h.pm) throw new Error(`No hay PM para ${habilidad.nombre}`);
   }
   if (accion.tipo === 'huir' && !puedeHuir(c)) throw new Error('No se puede huir de este combate');
+  if (accion.tipo === 'objeto' && !(c.inventario.consumibles[accion.clave]! > 0)) {
+    throw new Error(`No queda ${accion.clave}`);
+  }
   c.esperando = false;
   const eventos: Evento[] = [];
   if (accion.tipo === 'atacar') {
     golpear(c, h, accion.objetivo, 1, false, false, false, eventos);
   } else if (accion.tipo === 'habilidad') {
     usarHabilidad(c, h, accion.habilidad, accion.objetivo, eventos);
+  } else if (accion.tipo === 'objeto') {
+    usarObjeto(c, accion.clave, eventos);
   } else if (accion.tipo === 'defender') {
     h.defendiendo = true;
     const pm = Math.min(h.pmMax, h.pm + c.reglas.defender.pm) - h.pm;
@@ -512,6 +529,38 @@ function comprobarMuerte(c: Combate, objetivo: Luchador, eventos: Evento[]): boo
   return true;
 }
 
+/** Gasta un consumible del inventario y aplica lo que restaura o quita. */
+function usarObjeto(c: Combate, clave: string, eventos: Evento[]): void {
+  const h = c.heroina;
+  const obj = c.objetos.consumibles[clave];
+  if (!obj) throw new Error(`Objeto desconocido: ${clave}`);
+  c.inventario.consumibles[clave]! -= 1;
+  eventos.push({ tipo: 'objeto', actor: h, nombre: obj.nombre });
+  if (obj.pv) {
+    const cantidad = Math.min(h.pvMax - h.pv, obj.pv);
+    h.pv += cantidad;
+    eventos.push({ tipo: 'cura', objetivo: h, cantidad });
+  }
+  if (obj.pm) {
+    const cantidad = Math.min(h.pmMax - h.pm, obj.pm);
+    h.pm += cantidad;
+    eventos.push({ tipo: 'mana', objetivo: h, cantidad });
+  }
+  const estado = h.estados.find((e) => e.id === obj.quitaEstado);
+  if (estado) quitarEstado(h, estado, eventos);
+}
+
+/** Una tirada de botín por monstruo vencido; lo que sale se guarda si cabe. */
+function repartirBotin(c: Combate, eventos: Evento[]): void {
+  for (const e of c.enemigos) {
+    const clave = elegirConPeso(e.monstruo?.botin ?? [], c.azar)?.objeto;
+    const obj = clave ? c.objetos.consumibles[clave] : undefined;
+    if (!clave || !obj) continue; // «nada», o algo que no es un consumible
+    const guardado = guardar(c.inventario, clave, c.objetos.maximoPorTipo);
+    eventos.push({ tipo: 'botin', nombre: obj.nombre, guardado });
+  }
+}
+
 function terminar(c: Combate, resultado: Resultado, eventos: Evento[]): void {
   c.resultado = resultado;
   c.esperando = false;
@@ -528,6 +577,7 @@ function terminar(c: Combate, resultado: Resultado, eventos: Evento[]): void {
     for (const nivel of ganarExperiencia(c.heroina, px, c.reglas.experiencia)) {
       eventos.push({ tipo: 'nivel', nivel });
     }
+    repartirBotin(c, eventos);
   }
   eventos.push({ tipo: 'fin', resultado });
 }

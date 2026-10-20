@@ -8,11 +8,12 @@ import {
   type Resultado,
 } from './core/combate';
 import { crearHeroina, type Heroina } from './core/heroina';
+import { crearInventario, type Inventario } from './core/inventario';
 import { crearCatalogo } from './core/sala';
 import type { MonstruoJson, PlantillasJson } from './core/types';
 import { generarZona } from './core/zona';
 import controles from './data/controles.json';
-import { HEROES, MONSTRUOS, REGLAS } from './data/datos';
+import { HEROES, MONSTRUOS, OBJETOS, REGLAS } from './data/datos';
 import plantillasBosque from './data/salas/plantillas_bosque.json';
 import plantillasCripta from './data/salas/plantillas_cripta.json';
 import plantillasRuinas from './data/salas/plantillas_ruinas.json';
@@ -45,6 +46,7 @@ interface Partida {
   pila: PilaEscenas;
   heroina: Heroina;
   luchadora: Luchador;
+  inventario: Inventario;
   sprite: Sprite;
   combates: number;
 }
@@ -82,6 +84,7 @@ async function iniciar(): Promise<void> {
         heroina: crearHeroina(heroe, 0, 0), // cada escena la coloca en su sala de inicio
         // La misma luchadora en todos los combates: la vida perdida se arrastra.
         luchadora: luchadorDeHeroe(heroe),
+        inventario: crearInventario(),
         sprite,
         combates: 0,
       };
@@ -173,6 +176,8 @@ function luchar(
   const azar = crearAzar(partida.semilla * 31 + ++partida.combates);
   const combate = crearCombate(luchadora, luchadoresDeGrupo(grupo), REGLAS, azar, MONSTRUOS);
   combate.iniciativa = iniciativa;
+  combate.inventario = partida.inventario;
+  combate.objetos = OBJETOS;
   pila.apilar(
     new EscenaCombate(combate, partida.sprite, (resultado) => {
       pila.desapilar();

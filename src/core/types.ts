@@ -110,6 +110,28 @@ export interface AccionMonstruoJson {
   condicion?: { pvPropioMenorQue?: number; pvAliadoMenorQue?: number };
 }
 
+/** Un consumible de objetos.json. */
+export interface ConsumibleJson {
+  nombre: string;
+  /** PV y PM que restaura. */
+  pv?: number;
+  pm?: number;
+  /** Clave del estado que quita. */
+  quitaEstado?: string;
+}
+
+/** `src/data/objetos.json` */
+export interface ObjetosJson {
+  maximoPorTipo: number;
+  consumibles: Record<string, ConsumibleJson>;
+}
+
+/** Una entrada de la tabla de botín de un monstruo; `objeto: "nada"` es no soltar nada. */
+export interface BotinJson {
+  objeto: string;
+  peso: number;
+}
+
 /** Cómo se mueve un monstruo por el mapa, en píxeles y píxeles por segundo. */
 export interface MovimientoMapaJson {
   velocidad: number;
@@ -147,6 +169,8 @@ export interface MonstruoJson {
   jefe: boolean;
   /** Experiencia que da al vencerlo. */
   experiencia: number;
+  /** Lo que puede soltar al vencerlo, una tirada por monstruo. */
+  botin?: BotinJson[];
   /** Caja de colisión en el mapa, anclada en los pies. */
   caja: { ancho: number; alto: number };
   /** Patrulla y persecución en el mapa; sin este campo se queda quieto (los jefes). */

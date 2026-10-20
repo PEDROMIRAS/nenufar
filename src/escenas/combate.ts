@@ -27,6 +27,9 @@ const DURACION: Record<Evento['tipo'], number> = {
   pierdeTurno: 0.7,
   aviso: 1.1,
   aparece: 0.5,
+  objeto: 0.6,
+  mana: 0.6,
+  botin: 0.8,
   iniciativa: 1.0,
   huida: 0.7,
   muerte: 0.6,
@@ -42,7 +45,8 @@ const TITULO: Record<Resultado, string> = {
   derrota: 'Has caído...',
   huida: 'Has huido',
 };
-const PRINCIPAL = ['Atacar', 'Habilidad', 'Defender', 'Huir'] as const;
+const PRINCIPAL = ['Atacar', 'Habilidad', 'Objeto', 'Defender', 'Huir'] as const;
+type Modo = 'principal' | 'habilidades' | 'objetos' | 'objetivo';
 
 const textoVida = (pv: number, max: number): string => `${pv}/${max}`;
 
@@ -54,7 +58,7 @@ export class EscenaCombate implements Escena {
   /** Dirección del paso anterior, para mover la selección una vez por pulsación. */
   private ultimoX = 0;
   private ultimoY = 0;
-  private modo: 'principal' | 'habilidades' | 'objetivo' = 'principal';
+  private modo: Modo = 'principal';
   /** Acción a la que solo le falta el objetivo, mientras se elige. */
   private pendiente: ((objetivo: Luchador) => AccionHeroina) | null = null;
   /** Opción elegida la última vez en el menú principal, para volver a ella. */
@@ -212,6 +216,16 @@ export class EscenaCombate implements Escena {
         this.estadosVistos.delete(e.objetivo);
         this.registrar(`${e.objetivo.nombre} cae.`);
         break;
+      case 'objeto':
+        this.registrar(`${e.actor.nombre} usa ${e.nombre}`);
+        break;
+      case 'mana':
+        v.textoPm = textoVida(e.objetivo.pm, e.objetivo.pmMax);
+        this.registrar(`${e.objetivo.nombre} recupera ${e.cantidad} PM`);
+        break;
+      case 'botin':
+        this.registrar(e.guardado ? `Obtienes ${e.nombre}` : `${e.nombre}: no te caben más`);
+        break;
       case 'recupera': {
         const h = this.combate.heroina;
         v.pv.set(h, h.pv);
@@ -260,7 +274,7 @@ export class EscenaCombate implements Escena {
     return this.combate.enemigos.filter((e) => e.pv > 0);
   }
 
-  private abrir(modo: 'principal' | 'habilidades' | 'objetivo'): void {
+  private abrir(modo: Modo): void {
     this.modo = modo;
     const h = this.combate.heroina;
     let menu: MenuVista;
@@ -268,12 +282,25 @@ export class EscenaCombate implements Escena {
       const disponible = [
         true,
         habilidadesDisponibles(h).length > 0,
+        this.consumibles().some((clave) => this.cuantos(clave) > 0),
         true,
         puedeHuir(this.combate),
       ];
       menu = {
         opciones: PRINCIPAL.map((texto, i) => ({ texto, detalle: '', disponible: disponible[i]! })),
         seleccion: this.seleccionPrincipal,
+      };
+    } else if (modo === 'objetos') {
+      menu = {
+        opciones: [
+          ...this.consumibles().map((clave) => ({
+            texto: this.combate.objetos.consumibles[clave]!.nombre,
+            detalle: `x${this.cuantos(clave)}`,
+            disponible: this.cuantos(clave) > 0,
+          })),
+          { texto: 'Volver', detalle: '', disponible: true },
+        ],
+        seleccion: 0,
       };
     } else if (modo === 'objetivo') {
       menu = {
@@ -327,7 +354,7 @@ export class EscenaCombate implements Escena {
     const dx = Math.sign(a.moverX);
     const dy = Math.sign(a.moverY);
     // En la rejilla de 3 columnas, arriba y abajo saltan una fila.
-    const salto = (dx !== this.ultimoX ? dx : 0) + (n > 4 && dy !== this.ultimoY ? dy * 3 : 0);
+    const salto = (dx !== this.ultimoX ? dx : 0) + (n > 5 && dy !== this.ultimoY ? dy * 3 : 0);
     if (salto !== 0) menu.seleccion = (((menu.seleccion + salto) % n) + n) % n;
     this.ultimoX = dx;
     this.ultimoY = dy;
@@ -341,6 +368,14 @@ export class EscenaCombate implements Escena {
       const objetivo = this.vivos()[i];
       if (objetivo && this.pendiente) this.usar(this.pendiente(objetivo));
       else this.abrir('principal'); // «Volver»
+      return;
+    }
+    if (this.modo === 'objetos') {
+      const clave = this.consumibles()[i];
+      if (!clave)
+        this.abrir('principal'); // «Volver»
+      else if (this.cuantos(clave) === 0) this.registrar('No te queda ninguno');
+      else this.usar({ tipo: 'objeto', clave });
       return;
     }
     if (this.modo === 'habilidades') {
@@ -361,11 +396,21 @@ export class EscenaCombate implements Escena {
     if (opcion === 'Atacar') this.apuntar((o) => ({ tipo: 'atacar', objetivo: o }));
     else if (opcion === 'Habilidad' && habilidadesDisponibles(h).length > 0)
       this.abrir('habilidades');
+    else if (opcion === 'Objeto') this.abrir('objetos');
     else if (opcion === 'Defender') this.usar({ tipo: 'defender' });
     else if (opcion === 'Huir') {
       if (puedeHuir(this.combate)) this.usar({ tipo: 'huir' });
       else this.registrar('¡De este combate no se puede huir!');
     }
+  }
+
+  /** Claves de los consumibles que existen, en el orden de objetos.json. */
+  private consumibles(): string[] {
+    return Object.keys(this.combate.objetos.consumibles);
+  }
+
+  private cuantos(clave: string): number {
+    return this.combate.inventario.consumibles[clave] ?? 0;
   }
 
   /** Con un solo enemigo vivo la acción va directa; con varios, se elige a quién. */

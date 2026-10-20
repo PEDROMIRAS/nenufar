@@ -69,14 +69,14 @@ export function xEnemigo(i: number, n: number): number {
 }
 
 /**
- * Rectángulo del botón `i` de un menú de `n` opciones. Hasta 4 caben en una fila; más, en una
+ * Rectángulo del botón `i` de un menú de `n` opciones. Hasta 5 caben en una fila; más, en una
  * rejilla de 3 columnas que ocupa también el registro. Altos de sobra para un dedo.
  */
 export function rectOpcion(
   i: number,
   n: number,
 ): { x: number; y: number; ancho: number; alto: number } {
-  if (n <= 4) {
+  if (n <= 5) {
     const ancho = (ANCHO - 32 - (n - 1) * 8) / n;
     return { x: 16 + i * (ancho + 8), y: 292, ancho, alto: 48 };
   }
@@ -98,7 +98,7 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   dibujarHeroina(ctx, v);
   dibujarFlotante(ctx, v);
 
-  const enRejilla = v.menu !== null && v.menu.opciones.length > 4;
+  const enRejilla = v.menu !== null && v.menu.opciones.length > 5;
   if (!enRejilla) {
     // Registro de las dos últimas acciones.
     ctx.fillStyle = COLOR.panel;
@@ -117,8 +117,8 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
 }
 
 function dibujarMenu(ctx: CanvasRenderingContext2D, menu: MenuVista | null): void {
-  // Sin menú se dejan los cuatro huecos apagados, para que la pantalla no salte.
-  const n = menu?.opciones.length ?? 4;
+  // Sin menú se dejan los cinco huecos apagados, para que la pantalla no salte.
+  const n = menu?.opciones.length ?? 5;
   for (let i = 0; i < n; i++) {
     const r = rectOpcion(i, n);
     const opcion = menu?.opciones[i];
