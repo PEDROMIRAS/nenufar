@@ -37,8 +37,13 @@ export interface Luchador {
   nivel: number;
   /** Experiencia acumulada dentro del nivel actual. */
   experiencia: number;
-  /** Recibe menos daño hasta el comienzo de su próximo turno. */
+  /**
+   * Recibe menos daño. La heroína, hasta el comienzo de su próximo turno; un monstruo que decide
+   * defenderse lo hace al empezar la ronda (prioridad) y le dura esa ronda entera.
+   */
   defendiendo: boolean;
+  /** Lo que un monstruo decidió hacer al empezar la ronda; null si aún no ha decidido. */
+  plan: string | null;
   /** Anunció un golpe cargado: lo descarga en su próximo turno. */
   cargando: boolean;
   estados: EstadoActivo[];
@@ -141,6 +146,7 @@ function luchador(
     experiencia: 0,
     defendiendo: false,
     cargando: false,
+    plan: null,
     estados: [],
     fase: 0,
     heroe,
@@ -254,7 +260,8 @@ export function avanzar(c: Combate): Evento[] {
   const eventos: Evento[] = [];
   while (!c.resultado && !c.esperando) {
     const actor = siguienteActor(c, eventos);
-    actor.defendiendo = false; // la defensa dura hasta el comienzo de su propio turno
+    // La defensa de la heroína dura hasta el comienzo de su propio turno (la de los monstruos, la ronda).
+    if (actor.esHeroina) actor.defendiendo = false;
     eventos.push({ tipo: 'turno', actor });
     const aturdido = actor.estados.find((e) => e.def.pierdeTurno);
     if (aturdido) {
@@ -326,6 +333,7 @@ function siguienteActor(c: Combate, eventos: Evento[]): Luchador {
         c.orden = c.iniciativa === 'heroina' ? [h, ...resto] : [...resto, h];
         eventos.push({ tipo: 'iniciativa', quien: c.iniciativa });
       }
+      planearRonda(c, eventos);
     }
     const actor = c.orden[c.turno++]!;
     if (actor.pv > 0) return actor;
@@ -339,12 +347,10 @@ function actuarMonstruo(c: Combate, m: Luchador, eventos: Evento[]): void {
     golpear(c, m, c.heroina, datos.cargado.poder, true, false, false, eventos);
     return;
   }
-  // La tabla de la última fase alcanzada que tenga una; si no, la de siempre.
-  const fases = (datos?.fases ?? []).slice(0, m.fase);
-  const tabla = fases.reverse().find((f) => f.acciones)?.acciones ?? datos?.acciones ?? [];
-  // Solo cuentan las acciones cuya condición se cumple y que puede pagar.
-  const posibles = tabla.filter((a) => cumple(c, m, a) && sePuede(c, m, a.accion));
-  const accion = elegirConPeso(posibles, c.azar)?.accion;
+  // Lo decidido al empezar la ronda, si aún se puede hacer; si no (o si apareció a mitad de ronda), se decide ahora.
+  const planeada = m.plan;
+  m.plan = null;
+  const accion = planeada && sePuede(c, m, planeada) ? planeada : elegirAccion(c, m);
   const habilidad = datos?.habilidades?.find((h) => h.nombre === accion);
   if (accion === 'cargar' && datos?.cargado) {
     m.cargando = true;
@@ -356,12 +362,44 @@ function actuarMonstruo(c: Combate, m: Luchador, eventos: Evento[]): void {
       sumarEnemigo(c, clave, eventos);
     }
   } else if (accion === 'defender') {
-    m.defendiendo = true;
-    eventos.push({ tipo: 'defensa', actor: m, pm: 0 });
+    // Normalmente ya se puso en guardia al empezar la ronda; si no (lo pillaron por la espalda), ahora.
+    if (!m.defendiendo) {
+      m.defendiendo = true;
+      eventos.push({ tipo: 'defensa', actor: m, pm: 0 });
+    }
   } else if (habilidad) {
     usarHabilidad(c, m, habilidad, c.heroina, eventos);
   } else {
     golpear(c, m, c.heroina, 1, false, false, false, eventos);
+  }
+}
+
+/** Qué hace un monstruo: de su tabla (la de su última fase, si tiene), entre lo que cumple sus condiciones y puede pagar. */
+function elegirAccion(c: Combate, m: Luchador): string | undefined {
+  const datos = m.monstruo;
+  const fases = (datos?.fases ?? []).slice(0, m.fase);
+  const tabla = fases.reverse().find((f) => f.acciones)?.acciones ?? datos?.acciones ?? [];
+  const posibles = tabla.filter((a) => cumple(c, m, a) && sePuede(c, m, a.accion));
+  return elegirConPeso(posibles, c.azar)?.accion;
+}
+
+/**
+ * Al empezar la ronda cada monstruo decide qué hará. Defender tiene prioridad: quien va a defenderse
+ * se pone en guardia ya, antes de que nadie actúe, y le dura toda la ronda. Así nunca se defiende
+ * después de que le hayan pegado. Si la heroína los pilló por la espalda, en esa primera ronda no
+ * les da tiempo: se defienden en su turno.
+ */
+function planearRonda(c: Combate, eventos: Evento[]): void {
+  const sorprendidos = c.ronda === 1 && c.iniciativa === 'heroina';
+  for (const m of c.orden) {
+    if (m.esHeroina || m.pv <= 0) continue;
+    m.defendiendo = false;
+    // Quien anunció un golpe cargado lo descarga en su turno: no decide nada más.
+    m.plan = m.cargando ? null : (elegirAccion(c, m) ?? null);
+    if (m.plan === 'defender' && !sorprendidos) {
+      m.defendiendo = true;
+      eventos.push({ tipo: 'defensa', actor: m, pm: 0 });
+    }
   }
 }
 

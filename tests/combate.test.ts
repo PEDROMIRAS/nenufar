@@ -117,7 +117,8 @@ describe('acciones', () => {
   });
 
   test('Huir falla con 0,65 la primera vez (60 %) y lo logra con 0,65 la segunda (70 %)', () => {
-    const c = combate(cola(0.5, 0.5, 0.65));
+    // Desempate (2 valores), el Limo decide su acción de la ronda (1) y la tirada de huida.
+    const c = combate(cola(0.5, 0.5, 0.5, 0.65));
     avanzar(c);
     const primero = actuar(c, { tipo: 'huir' });
     expect(primero[0]).toEqual({ tipo: 'huida', exito: false });
@@ -181,5 +182,35 @@ describe('final', () => {
     avanzar(c);
     actuar(c, { tipo: 'defender' });
     expect(() => actuar(c, { tipo: 'defender' })).toThrow('No es el turno');
+  });
+});
+
+describe('prioridad de Defender', () => {
+  /** Limo que siempre se defiende y es más lento que la ronin. */
+  const guardian = (iniciativa: 'heroina' | null) => {
+    const enemigo = luchadorDeMonstruo({
+      ...limo,
+      estadisticas: { ...limo.estadisticas, pv: 100, velocidad: 1 },
+      acciones: [{ accion: 'defender', peso: 1 }],
+    });
+    const c = crearCombate(luchadorDeHeroe(heroes.ronin), [enemigo], reglas, cola());
+    c.iniciativa = iniciativa;
+    return c;
+  };
+
+  test('el monstruo que va a defenderse se pone en guardia al empezar la ronda, antes de que le peguen', () => {
+    const c = guardian(null);
+    const eventos = avanzar(c);
+    expect(eventos[0]).toEqual({ tipo: 'defensa', actor: c.enemigos[0], pm: 0 });
+    const golpe = actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
+    // Sin defender serían (9 − 3 × 0,5) = 7,5 → 7; en guardia, la mitad → 3.
+    expect(golpe[0]).toMatchObject({ tipo: 'danio', cantidad: 3 });
+  });
+
+  test('si lo pillan por la espalda, en la primera ronda no le da tiempo a ponerse en guardia', () => {
+    const c = guardian('heroina');
+    expect(avanzar(c).some((e) => e.tipo === 'defensa')).toBe(false);
+    const golpe = actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
+    expect(golpe[0]).toMatchObject({ tipo: 'danio', cantidad: 7 });
   });
 });
