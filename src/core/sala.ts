@@ -1,3 +1,4 @@
+import { E, N, O, S } from './zona';
 import type { PlantillasJson, TileJson, TilesetJson } from './types';
 
 /** Tile del catálogo: recuerda de qué hoja viene (posición en la lista de tilesets cargados). */
@@ -129,4 +130,45 @@ export function construirSala(
     }
   }
   return { ancho, alto, base, objetos, solido };
+}
+
+export interface Salida {
+  /** Lado (bit N/E/S/O de `SalaZona.puertas`). */
+  lado: number;
+  /** Casillas de la salida, empezando por la del borde del mapa. */
+  celdas: [number, number][];
+  /** Símbolo con que se tapia cada casilla si el lado no lleva a otra sala. */
+  tapia: string[];
+}
+
+/** Las cuatro salidas de una sala, en el centro de cada lado (la norte cruza el muro de dos filas). */
+export function salidas(ancho: number, alto: number): Salida[] {
+  const cx = Math.floor(ancho / 2);
+  const cy = Math.floor(alto / 2);
+  return [
+    {
+      lado: N,
+      celdas: [
+        [cx, 0],
+        [cx, 1],
+      ],
+      tapia: ['#', 'N'],
+    },
+    { lado: E, celdas: [[ancho - 1, cy]], tapia: ['#'] },
+    { lado: S, celdas: [[cx, alto - 1]], tapia: ['#'] },
+    { lado: O, celdas: [[0, cy]], tapia: ['#'] },
+  ];
+}
+
+/** Copia del mapa con tapiadas las salidas de los lados que no están en `puertas`. */
+export function aplicarPuertas(mapa: readonly string[], puertas: number): string[] {
+  const filas = mapa.map((fila) => fila.split(''));
+  for (const s of salidas(mapa[0]?.length ?? 0, mapa.length)) {
+    if (puertas & s.lado) continue;
+    s.celdas.forEach(([x, y], i) => {
+      const fila = filas[y];
+      if (fila) fila[x] = s.tapia[i] ?? '#';
+    });
+  }
+  return filas.map((f) => f.join(''));
 }

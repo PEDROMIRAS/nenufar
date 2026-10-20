@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { crearAzar } from '../src/core/azar';
-import { construirSala, crearCatalogo } from '../src/core/sala';
+import { aplicarPuertas, construirSala, crearCatalogo } from '../src/core/sala';
+import { N, O } from '../src/core/zona';
 import type { TileJson } from '../src/core/types';
 
 const tile = (
@@ -79,5 +80,24 @@ describe('construirSala', () => {
 
   test('un símbolo sin leyenda falla con un mensaje claro', () => {
     expect(() => montar(['.?.'])).toThrow("Símbolo desconocido '?' en (1, 0)");
+  });
+});
+
+describe('aplicarPuertas', () => {
+  const abierta = ['###:###', 'NNNDNNN', '#.....#', ':.....:', '#.....#', '###:###'];
+
+  test('tapia los lados sin puerta y deja los demás', () => {
+    expect(aplicarPuertas(abierta, N | O)).toEqual([
+      '###:###',
+      'NNNDNNN',
+      '#.....#',
+      ':.....#',
+      '#.....#',
+      '#######',
+    ]);
+  });
+
+  test('sin puertas la puerta norte pasa a ser muro norte', () => {
+    expect(aplicarPuertas(abierta, 0).slice(0, 2)).toEqual(['#######', 'NNNNNNN']);
   });
 });

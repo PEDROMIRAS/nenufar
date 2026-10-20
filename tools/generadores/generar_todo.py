@@ -34,6 +34,11 @@ def copy(name, dest, rename=None):
 def main():
     for d in (SPRITES, TILESETS, SALAS, PREVIEWS):
         os.makedirs(d, exist_ok=True)
+    # Las vistas previas de plantillas se rehacen enteras: así no quedan las de plantillas renombradas o borradas.
+    for d in (OUT, PREVIEWS):
+        for f in os.listdir(d) if os.path.isdir(d) else ():
+            if f.startswith("plantilla_") and f.endswith(".png"):
+                os.remove(os.path.join(d, f))
 
     # 1. Personajes (escriben directamente en public/assets/sprites y docs/previews)
     run("rana_ronin.py", PERSONAJES)

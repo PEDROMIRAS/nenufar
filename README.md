@@ -11,7 +11,7 @@ Dungeon crawler 2D para navegador: exploras zonas de salas en tiempo real y, al 
 | --- | --- |
 | ![Ronin](docs/previews/ronin_animada.gif) | ![Maga](docs/previews/maga_animada.gif) |
 
-![Sala de descanso del Bosque](docs/previews/plantilla_bosque_descanso.png)
+![Sala de descanso del Bosque](docs/previews/plantilla_bosque_descanso_01.png)
 
 ## Estado
 
