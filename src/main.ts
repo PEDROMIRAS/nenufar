@@ -24,6 +24,7 @@ import { EscenaEquipo } from './escenas/equipo';
 import { EscenaFin } from './escenas/fin';
 import { EscenaMapa } from './escenas/mapa';
 import { PilaEscenas } from './escenas/pila';
+import { EscenaPausa } from './escenas/pausa';
 import { EscenaSeleccion } from './escenas/seleccion';
 import { EscenaTitulo } from './escenas/titulo';
 import { leerFuentes } from './input/fuente';
@@ -160,6 +161,17 @@ async function crearZona(
     inventario: partida.inventario,
     objetos: OBJETOS,
     ofrecerEquipo: (clave, alFinal) => ofrecerEquipo(partida, [clave], alFinal),
+    abrirPausa: () =>
+      partida.pila.apilar(
+        new EscenaPausa(
+          partida.luchadora,
+          partida.inventario,
+          OBJETOS,
+          REGLAS.experiencia,
+          () => partida.pila.desapilar(),
+          empezarOtra,
+        ),
+      ),
     distanciaMonstruos: zonas.monstruos.distanciaEntradas,
     invulnerabilidad: REGLAS.invulnerabilidadTrasCombate,
     luchadora: partida.luchadora,

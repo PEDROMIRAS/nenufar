@@ -1,6 +1,6 @@
 import { elegirConPeso } from './azar';
 import { piezaDeBotin } from './equipo';
-import { crearInventario, guardar, type Inventario } from './inventario';
+import { aplicarConsumible, crearInventario, guardar, type Inventario } from './inventario';
 import { ganarExperiencia } from './progresion';
 import type {
   AccionMonstruoJson,
@@ -547,16 +547,9 @@ function usarObjeto(c: Combate, clave: string, eventos: Evento[]): void {
   if (!obj) throw new Error(`Objeto desconocido: ${clave}`);
   c.inventario.consumibles[clave]! -= 1;
   eventos.push({ tipo: 'objeto', actor: h, nombre: obj.nombre });
-  if (obj.pv) {
-    const cantidad = Math.min(h.pvMax - h.pv, obj.pv);
-    h.pv += cantidad;
-    eventos.push({ tipo: 'cura', objetivo: h, cantidad });
-  }
-  if (obj.pm) {
-    const cantidad = Math.min(h.pmMax - h.pm, obj.pm);
-    h.pm += cantidad;
-    eventos.push({ tipo: 'mana', objetivo: h, cantidad });
-  }
+  const { pv, pm } = aplicarConsumible(h, obj);
+  if (obj.pv) eventos.push({ tipo: 'cura', objetivo: h, cantidad: pv });
+  if (obj.pm) eventos.push({ tipo: 'mana', objetivo: h, cantidad: pm });
   const estado = h.estados.find((e) => e.id === obj.quitaEstado);
   if (estado) quitarEstado(h, estado, eventos);
 }

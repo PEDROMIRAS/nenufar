@@ -27,3 +27,15 @@ export function dibujarAviso(ctx: CanvasRenderingContext2D, texto: string): void
   ctx.fillRect(ANCHO / 2 - 170, 306, 340, 26);
   escribir(ctx, texto, ANCHO / 2, 312, '#ffd27a', 'center');
 }
+
+/** Botón de menú en la esquina superior derecha del mapa (para el móvil; con teclado es Escape). */
+export const BOTON_MENU = { x: ANCHO - 6 - 36, y: 6, ancho: 36, alto: 36 };
+
+export function dibujarBotonMenu(ctx: CanvasRenderingContext2D): void {
+  const { x, y, ancho, alto } = BOTON_MENU;
+  ctx.fillStyle = 'rgba(8, 14, 10, 0.6)';
+  ctx.fillRect(x, y, ancho, alto);
+  // Tres rayas: el icono habitual de menú.
+  ctx.fillStyle = '#e8efe4';
+  for (let i = 0; i < 3; i++) ctx.fillRect(x + 9, y + 10 + i * 7, ancho - 18, 3);
+}

@@ -33,7 +33,13 @@ import type {
 } from '../core/types';
 import type { SalaZona, Zona } from '../core/zona';
 import { dibujarHeroina } from '../render/heroina';
-import { dibujarAviso, dibujarHud, type TextosHud } from '../render/hud';
+import {
+  BOTON_MENU,
+  dibujarAviso,
+  dibujarBotonMenu,
+  dibujarHud,
+  type TextosHud,
+} from '../render/hud';
 import { pintarMinimapa } from '../render/minimapa';
 import { dibujarMonstruoMapa } from '../render/monstruo';
 import type { Sprite } from '../render/recursos';
@@ -110,6 +116,8 @@ export interface OpcionesMapa {
   objetos: ObjetosJson;
   /** Enseña la comparación de una pieza de equipo encontrada y avisa al decidir. */
   ofrecerEquipo: (clave: string, alFinal: () => void) => void;
+  /** Abre la pausa (MENU o el botón de la esquina). */
+  abrirPausa: () => void;
 }
 
 /** Exploración de una zona: la sala actual, la heroína y el paso de una sala a otra o a la zona siguiente. */
@@ -177,6 +185,16 @@ export class EscenaMapa implements Escena {
         this.pendiente = null;
       }
       if (this.fundido >= duracionFundido) this.fundido = 0;
+      return;
+    }
+    const { toqueX: tx, toqueY: ty } = acciones;
+    const enBoton =
+      tx >= BOTON_MENU.x &&
+      tx < BOTON_MENU.x + BOTON_MENU.ancho &&
+      ty >= BOTON_MENU.y &&
+      ty < BOTON_MENU.y + BOTON_MENU.alto;
+    if (acciones.menu || enBoton) {
+      this.o.abrirPausa();
       return;
     }
     actualizarHeroina(h, acciones, dt, this.montada.sala, tam);
@@ -264,7 +282,8 @@ export class EscenaMapa implements Escena {
     dibujarHud(ctx, this.o.luchadora, this.hud);
     if (this.tiempoAviso > 0) dibujarAviso(ctx, this.aviso);
     // El minimapa va encima del fundido: es interfaz, no parte de la sala.
-    ctx.drawImage(this.minimapa, this.vineta.width - this.minimapa.width - MARGEN_HUD, MARGEN_HUD);
+    ctx.drawImage(this.minimapa, BOTON_MENU.x - MARGEN_HUD - this.minimapa.width, MARGEN_HUD);
+    dibujarBotonMenu(ctx);
   }
 
   private avisar(texto: string): void {

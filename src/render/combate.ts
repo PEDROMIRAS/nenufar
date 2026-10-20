@@ -116,7 +116,7 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   }
 }
 
-function dibujarMenu(ctx: CanvasRenderingContext2D, menu: MenuVista | null): void {
+export function dibujarMenu(ctx: CanvasRenderingContext2D, menu: MenuVista | null): void {
   // Sin menú se dejan los cinco huecos apagados, para que la pantalla no salte.
   const n = menu?.opciones.length ?? 5;
   for (let i = 0; i < n; i++) {
