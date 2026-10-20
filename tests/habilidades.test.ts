@@ -15,7 +15,11 @@ import type { HabilidadJson, HeroeJson, MonstruoJson, ReglasCombate } from '../s
 import { HEROES as heroes, MONSTRUOS, REGLAS } from '../src/data/datos';
 
 const reglas: ReglasCombate = REGLAS;
-const limo: MonstruoJson = MONSTRUOS.limo!;
+// Limo con estadísticas fijas: los tests no deben romperse al equilibrar monstruos.json.
+const limo: MonstruoJson = {
+  ...MONSTRUOS.limo!,
+  estadisticas: { pv: 16, pm: 0, ataque: 6, magia: 0, defensa: 3, velocidad: 4 },
+};
 /** Varianza 1, sin crítico, el Limo siempre ataca. */
 const neutro = () => 0.5;
 

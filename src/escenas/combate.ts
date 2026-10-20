@@ -25,6 +25,8 @@ const DURACION: Record<Evento['tipo'], number> = {
   estado: 0.6,
   danioEstado: 0.7,
   pierdeTurno: 0.7,
+  aviso: 1.1,
+  aparece: 0.5,
   huida: 0.7,
   muerte: 0.6,
   experiencia: 0.8,
@@ -169,6 +171,20 @@ export class EscenaCombate implements Escena {
       }
       case 'pierdeTurno':
         this.registrar(`${e.actor.nombre} pierde el turno`);
+        break;
+      case 'aviso':
+        // Un jefe que se transforma deja de verse sin «caer».
+        if (e.retira) {
+          v.pv.set(e.actor, 0);
+          v.estados.delete(e.actor);
+          v.cargando.delete(e.actor);
+        }
+        this.registrar(e.texto);
+        break;
+      case 'aparece':
+        v.pv.set(e.objetivo, e.objetivo.pv);
+        v.textoPv.set(e.objetivo, textoVida(e.objetivo.pv, e.objetivo.pvMax));
+        this.registrar(`¡Aparece ${e.objetivo.nombre}!`);
         break;
       case 'defensa':
         v.defendiendo = true;

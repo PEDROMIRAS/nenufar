@@ -110,6 +110,16 @@ export interface AccionMonstruoJson {
   condicion?: { pvPropioMenorQue?: number; pvAliadoMenorQue?: number };
 }
 
+/** Una fase de jefe: empieza cuando sus PV bajan de `pvMenorQue` × PV máximos. */
+export interface FaseJson {
+  pvMenorQue: number;
+  aviso: string;
+  /** Tabla de acciones desde esta fase (si falta, sigue con la anterior). */
+  acciones?: AccionMonstruoJson[];
+  /** Se retira del combate y en su lugar aparecen estos monstruos (claves de monstruos.json). */
+  transformarEn?: string[];
+}
+
 /** Un monstruo de `src/data/monstruos.json`. */
 export interface MonstruoJson {
   nombre: string;
@@ -120,6 +130,10 @@ export interface MonstruoJson {
   habilidades?: HabilidadJson[];
   /** Golpe fuerte que anuncia un turno antes con la acción "cargar". */
   cargado?: { poder: number; aviso: string };
+  /** Acción "invocar": trae a estos monstruos (claves de monstruos.json) mientras haya menos enemigos vivos que `maximo`. */
+  invocacion?: { monstruos: string[]; maximo: number; aviso: string };
+  /** Fases de jefe, de mayor a menor umbral: al bajar de cada una cambia de acciones o se transforma. */
+  fases?: FaseJson[];
   jefe: boolean;
   /** Experiencia que da al vencerlo. */
   experiencia: number;

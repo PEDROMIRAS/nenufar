@@ -10,6 +10,7 @@ import {
   construirSala,
   salidas,
   type Sala,
+  type ObjetoSala,
   type Salida,
   type Tile,
 } from '../core/sala';
@@ -36,6 +37,8 @@ interface SalaMontada {
   sala: Sala;
   fondo: HTMLCanvasElement;
   monstruos: MonstruoMapa[];
+  /** Portal de la sala del jefe, guardado fuera de la sala hasta que se vence al jefe. */
+  portal: ObjetoSala | null;
 }
 
 export interface OpcionesMapa {
@@ -57,6 +60,8 @@ export interface OpcionesMapa {
   /** Tipos de monstruo de la zona; cuántos hay por sala de combate y a cuántas casillas de las entradas. */
   grupos: readonly { monstruos: MonstruoJson[]; peso: number }[];
   gruposPorSala: { min: number; max: number };
+  /** Jefe de la zona: espera en el centro de su sala, y el portal no aparece hasta vencerlo. */
+  jefe: MonstruoJson | null;
   distanciaMonstruos: number;
   /** Segundos sin poder empezar otro combate tras huir o vencer. */
   invulnerabilidad: number;
@@ -194,8 +199,12 @@ export class EscenaMapa implements Escena {
   }
 
   private luchar(m: MonstruoMapa): void {
+    const sala = this.montada;
     this.o.iniciarCombate(m.grupo, (resultado) => {
-      if (resultado === 'victoria') m.vivo = false;
+      if (resultado === 'victoria') {
+        m.vivo = false;
+        if (m.grupo[0]?.jefe) this.abrirPortal(sala);
+      }
       this.invulnerable = this.o.invulnerabilidad;
     });
   }
@@ -239,18 +248,39 @@ export class EscenaMapa implements Escena {
       catalogo,
       azar,
     );
+    // Con jefe, el portal se saca de la sala antes de pintar el fondo (sin él ni su halo).
+    let portal: ObjetoSala | null = null;
+    if (s.tipo === 'jefe' && this.o.jefe) {
+      portal = sala.objetos.find((o) => o.inf.name === 'portal') ?? null;
+      sala.objetos = sala.objetos.filter((o) => o !== portal);
+    }
     const montada = {
       sala,
       fondo: pintarFondo(sala, imagenes, tam),
       monstruos: this.poblar(s, sala, azar),
+      portal,
     };
     this.montadas.set(s, montada);
     return montada;
   }
 
+  /** Tras vencer al jefe aparece el portal (con su halo de luz). */
+  private abrirPortal(m: SalaMontada): void {
+    if (!m.portal) return;
+    m.sala.objetos = [...m.sala.objetos, m.portal].sort((a, b) => a.y - b.y);
+    m.portal = null;
+    m.fondo = pintarFondo(m.sala, this.o.imagenes, this.o.tam);
+  }
+
   /** Grupos de monstruos de una sala de combate, en casillas libres lejos de las entradas. */
   private poblar(s: SalaZona, sala: Sala, azar: () => number): MonstruoMapa[] {
-    const { grupos, gruposPorSala, distanciaMonstruos, tam } = this.o;
+    const { grupos, gruposPorSala, distanciaMonstruos, tam, jefe } = this.o;
+    if (s.tipo === 'jefe' && jefe) {
+      const { ancho, alto } = jefe.caja;
+      const x = Math.floor(sala.ancho / 2) * tam + tam / 2;
+      const y = Math.floor(sala.alto / 2) * tam + (tam + alto) / 2;
+      return [{ x, y, ancho, alto, grupo: [jefe], vivo: true }];
+    }
     if (s.tipo !== 'combate' || grupos.length === 0) return [];
     const { min, max } = gruposPorSala;
     const cuantos = min + Math.floor(azar() * (max - min + 1));

@@ -39,6 +39,8 @@ export interface Luchador {
   /** Anunció un golpe cargado: lo descarga en su próximo turno. */
   cargando: boolean;
   estados: EstadoActivo[];
+  /** Fases de jefe ya alcanzadas (0 = ninguna). */
+  fase: number;
   heroe: HeroeJson | null;
   monstruo: MonstruoJson | null;
 }
@@ -63,6 +65,9 @@ export type Evento =
   | { tipo: 'estado'; objetivo: Luchador; estado: string; activo: boolean }
   | { tipo: 'danioEstado'; objetivo: Luchador; cantidad: number; estado: string }
   | { tipo: 'pierdeTurno'; actor: Luchador }
+  /** Anuncio de un monstruo (cambio de fase, invocación…); `retira` = deja el combate sin morir. */
+  | { tipo: 'aviso'; actor: Luchador; texto: string; retira: boolean }
+  | { tipo: 'aparece'; objetivo: Luchador }
   | { tipo: 'huida'; exito: boolean }
   | { tipo: 'muerte'; objetivo: Luchador }
   | { tipo: 'experiencia'; cantidad: number }
@@ -87,6 +92,8 @@ export interface Combate {
   resultado: Resultado | null;
   reglas: ReglasCombate;
   azar: () => number;
+  /** Monstruos que pueden aparecer a mitad de combate (invocaciones y transformaciones). */
+  bestiario: Readonly<Record<string, MonstruoJson>>;
 }
 
 function luchador(
@@ -111,6 +118,7 @@ function luchador(
     defendiendo: false,
     cargando: false,
     estados: [],
+    fase: 0,
     heroe,
     monstruo,
   };
@@ -137,6 +145,7 @@ export function crearCombate(
   enemigos: Luchador[],
   reglas: ReglasCombate,
   azar: () => number,
+  bestiario: Readonly<Record<string, MonstruoJson>> = {},
 ): Combate {
   // La heroína llega de combates anteriores: no arrastra defensa ni estados.
   heroina.defendiendo = false;
@@ -152,6 +161,7 @@ export function crearCombate(
     resultado: null,
     reglas,
     azar,
+    bestiario,
   };
 }
 
@@ -287,15 +297,22 @@ function actuarMonstruo(c: Combate, m: Luchador, eventos: Evento[]): void {
     golpear(c, m, c.heroina, datos.cargado.poder, true, false, false, eventos);
     return;
   }
+  // La tabla de la última fase alcanzada que tenga una; si no, la de siempre.
+  const fases = (datos?.fases ?? []).slice(0, m.fase);
+  const tabla = fases.reverse().find((f) => f.acciones)?.acciones ?? datos?.acciones ?? [];
   // Solo cuentan las acciones cuya condición se cumple y que puede pagar.
-  const posibles = (datos?.acciones ?? []).filter(
-    (a) => cumple(c, m, a) && sePuede(c, m, a.accion),
-  );
+  const posibles = tabla.filter((a) => cumple(c, m, a) && sePuede(c, m, a.accion));
   const accion = elegirConPeso(posibles, c.azar)?.accion;
   const habilidad = datos?.habilidades?.find((h) => h.nombre === accion);
   if (accion === 'cargar' && datos?.cargado) {
     m.cargando = true;
     eventos.push({ tipo: 'carga', actor: m, aviso: datos.cargado.aviso });
+  } else if (accion === 'invocar' && datos?.invocacion) {
+    eventos.push({ tipo: 'aviso', actor: m, texto: datos.invocacion.aviso, retira: false });
+    for (const clave of datos.invocacion.monstruos) {
+      if (vivos(c.enemigos) >= datos.invocacion.maximo) break;
+      sumarEnemigo(c, clave, eventos);
+    }
   } else if (accion === 'defender') {
     m.defendiendo = true;
     eventos.push({ tipo: 'defensa', actor: m, pm: 0 });
@@ -319,7 +336,45 @@ function cumple(c: Combate, m: Luchador, a: AccionMonstruoJson): boolean {
 }
 
 /** ¿Puede hacer esa acción ahora? Una habilidad necesita sus PM y, si es de apoyo, un aliado al que ayudar. */
+const vivos = (lista: readonly Luchador[]): number => lista.filter((l) => l.pv > 0).length;
+
+/** Añade al combate un monstruo del bestiario a mitad de pelea. */
+function sumarEnemigo(c: Combate, clave: string, eventos: Evento[]): void {
+  const datos = c.bestiario[clave];
+  if (!datos) throw new Error(`Monstruo desconocido en el bestiario: ${clave}`);
+  const nuevo = luchadorDeMonstruo(datos);
+  // Una letra para distinguirlo de los que ya hay del mismo tipo («Araña B»).
+  const iguales = c.enemigos.filter((e) => e.monstruo === datos).length;
+  if (iguales > 0) nuevo.nombre += ` ${String.fromCharCode(65 + iguales)}`;
+  c.enemigos.push(nuevo);
+  eventos.push({ tipo: 'aparece', objetivo: nuevo });
+}
+
+/**
+ * Si un jefe ha bajado de los umbrales de sus fases, entra en ellas: avisa, cambia de acciones o se
+ * transforma (se retira y aparecen otros). Devuelve si se ha retirado.
+ */
+function comprobarFase(c: Combate, m: Luchador, eventos: Evento[]): boolean {
+  const fases = m.monstruo?.fases ?? [];
+  while (m.pv > 0 && m.fase < fases.length && m.pv < m.pvMax * fases[m.fase]!.pvMenorQue) {
+    const fase = fases[m.fase++]!;
+    const retira = (fase.transformarEn?.length ?? 0) > 0;
+    eventos.push({ tipo: 'aviso', actor: m, texto: fase.aviso, retira });
+    if (retira) {
+      m.pv = 0;
+      m.estados = [];
+      for (const clave of fase.transformarEn!) sumarEnemigo(c, clave, eventos);
+      return true;
+    }
+  }
+  return false;
+}
+
 function sePuede(c: Combate, m: Luchador, accion: string): boolean {
+  if (accion === 'invocar') {
+    const inv = m.monstruo?.invocacion;
+    return inv !== undefined && vivos(c.enemigos) < inv.maximo;
+  }
   const hab = m.monstruo?.habilidades?.find((h) => h.nombre === accion);
   if (!hab) return true;
   return hab.pm <= m.pm && (hab.objetivo !== 'aliado' || elegirAliado(c, m, hab) !== undefined);
@@ -403,7 +458,7 @@ function golpear(
     : golpe.cantidad;
   objetivo.pv = Math.max(0, objetivo.pv - cantidad);
   eventos.push({ tipo: 'danio', origen, objetivo, cantidad, critico: golpe.critico, cargado });
-  comprobarMuerte(c, objetivo, eventos);
+  if (!comprobarFase(c, objetivo, eventos)) comprobarMuerte(c, objetivo, eventos);
 }
 
 /** Final del turno de `actor`: daño de los estados (Veneno) y cuenta atrás de su duración. */
@@ -414,7 +469,7 @@ function finDeTurno(c: Combate, actor: Luchador, eventos: Evento[]): void {
       const cantidad = Math.max(1, Math.floor(actor.pvMax * e.def.danioPorTurno));
       actor.pv = Math.max(0, actor.pv - cantidad);
       eventos.push({ tipo: 'danioEstado', objetivo: actor, cantidad, estado: e.def.nombre });
-      if (comprobarMuerte(c, actor, eventos)) return;
+      if (comprobarFase(c, actor, eventos) || comprobarMuerte(c, actor, eventos)) return;
     }
     if (e.nuevo) {
       e.nuevo = false;

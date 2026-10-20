@@ -12,7 +12,11 @@ import type { MonstruoJson, ReglasCombate } from '../src/core/types';
 import { HEROES as heroes, MONSTRUOS, REGLAS } from '../src/data/datos';
 
 const reglas: ReglasCombate = REGLAS;
-const limo = MONSTRUOS.limo!;
+// Limo con estadísticas fijas: los tests no deben romperse al equilibrar monstruos.json.
+const limo: MonstruoJson = {
+  ...MONSTRUOS.limo!,
+  estadisticas: { pv: 16, pm: 0, ataque: 6, magia: 0, defensa: 3, velocidad: 4 },
+};
 /** Azar controlado: devuelve los valores dados en orden y después 0,5 (varianza 1, sin crítico, el Limo ataca). */
 const cola =
   (...valores: number[]) =>

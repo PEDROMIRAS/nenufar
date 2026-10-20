@@ -1,9 +1,15 @@
 import { crearAcciones } from './core/acciones';
 import { crearAzar } from './core/azar';
-import { crearCombate, luchadorDeHeroe, luchadoresDeGrupo, type Luchador } from './core/combate';
+import {
+  crearCombate,
+  luchadorDeHeroe,
+  luchadoresDeGrupo,
+  type Luchador,
+  type Resultado,
+} from './core/combate';
 import { crearHeroina, type Heroina } from './core/heroina';
 import { crearCatalogo } from './core/sala';
-import type { PlantillasJson } from './core/types';
+import type { MonstruoJson, PlantillasJson } from './core/types';
 import { generarZona } from './core/zona';
 import controles from './data/controles.json';
 import { HEROES, MONSTRUOS, REGLAS } from './data/datos';
@@ -121,42 +127,57 @@ async function crearZona(
     sprite: partida.sprite,
     duracionFundido: zonas.transicionSalas,
     rejilla: zonas.generacion.rejilla,
-    // shortcut: el portal de la última zona no lleva a nada hasta que exista el jefe final.
+    // El portal de la última zona lleva al jefe final; vencerlo es ganar la partida.
     alUsarPortal: hayOtra
       ? () => {
           crearZona(partida, indice + 1, true)
             .then((siguiente) => partida.pila.cambiar(siguiente))
             .catch(mostrarError);
         }
-      : null,
+      : () =>
+          luchar(partida, [monstruo(zonas.jefeFinal)], () =>
+            partida.pila.cambiar(new EscenaFin('¡Victoria!', '#ffd27a', empezarOtra)),
+          ),
     entrarDesdeNegro,
     grupos: datos.grupos.map(({ monstruos, peso }) => ({
       peso,
-      monstruos: monstruos.map((m) => {
-        const monstruo = MONSTRUOS[m];
-        if (!monstruo) throw new Error(`Monstruo desconocido en zonas.json: ${m}`);
-        return monstruo;
-      }),
+      monstruos: monstruos.map(monstruo),
     })),
     gruposPorSala: zonas.monstruos.gruposPorSala,
+    jefe: monstruo(datos.jefe),
     distanciaMonstruos: zonas.monstruos.distanciaEntradas,
     invulnerabilidad: REGLAS.invulnerabilidadTrasCombate,
     luchadora: partida.luchadora,
     nombreZona: datos.nombre,
-    iniciarCombate: (grupo, alTerminar) => {
-      const { pila, luchadora } = partida;
-      const azar = crearAzar(partida.semilla * 31 + ++partida.combates);
-      const combate = crearCombate(luchadora, luchadoresDeGrupo(grupo), REGLAS, azar);
-      pila.apilar(
-        new EscenaCombate(combate, partida.sprite, (resultado) => {
-          pila.desapilar();
-          if (resultado !== 'derrota') alTerminar(resultado);
-          // Si mueres, empiezas otra partida con un mapa nuevo (sin la semilla de la URL).
-          else pila.cambiar(new EscenaFin(() => location.assign(location.pathname)));
-        }),
-      );
-    },
+    iniciarCombate: (grupo, alTerminar) => luchar(partida, grupo, alTerminar),
   });
+}
+
+function monstruo(clave: string): MonstruoJson {
+  const m = MONSTRUOS[clave];
+  if (!m) throw new Error(`Monstruo desconocido en zonas.json: ${clave}`);
+  return m;
+}
+
+/** Otra partida con un mapa nuevo (sin la semilla de la URL). */
+const empezarOtra = (): void => location.assign(location.pathname);
+
+/** Apila un combate contra `grupo`; al acabar lo quita y avisa, salvo derrota (fin de la partida). */
+function luchar(
+  partida: Partida,
+  grupo: MonstruoJson[],
+  alTerminar: (resultado: Resultado) => void,
+): void {
+  const { pila, luchadora } = partida;
+  const azar = crearAzar(partida.semilla * 31 + ++partida.combates);
+  const combate = crearCombate(luchadora, luchadoresDeGrupo(grupo), REGLAS, azar, MONSTRUOS);
+  pila.apilar(
+    new EscenaCombate(combate, partida.sprite, (resultado) => {
+      pila.desapilar();
+      if (resultado !== 'derrota') alTerminar(resultado);
+      else pila.cambiar(new EscenaFin('Fin de la partida', '#d8584a', empezarOtra));
+    }),
+  );
 }
 
 function mostrarError(error: unknown): void {

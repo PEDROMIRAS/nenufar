@@ -1,44 +1,110 @@
 {
   "limo": {
     "nombre": "Limo",
-    "estadisticas": { "pv": 16, "pm": 0, "ataque": 6, "magia": 0, "defensa": 3, "velocidad": 4 },
+    "estadisticas": {
+      "pv": 16,
+      "pm": 0,
+      "ataque": 5,
+      "magia": 0,
+      "defensa": 3,
+      "velocidad": 4
+    },
     "acciones": [
-      { "accion": "atacar", "peso": 70 },
-      { "accion": "cargar", "peso": 30 }
+      {
+        "accion": "atacar",
+        "peso": 70
+      },
+      {
+        "accion": "cargar",
+        "peso": 30
+      }
     ],
-    "cargado": { "poder": 3, "aviso": "El Limo se hincha..." },
+    "cargado": {
+      "poder": 3,
+      "aviso": "El Limo se hincha..."
+    },
     "jefe": false,
     "experiencia": 6,
-    "caja": { "ancho": 20, "alto": 12 },
+    "caja": {
+      "ancho": 20,
+      "alto": 12
+    },
     "color": "#7fc46a"
   },
   "murcielago": {
     "nombre": "Murciélago",
-    "estadisticas": { "pv": 12, "pm": 0, "ataque": 7, "magia": 0, "defensa": 2, "velocidad": 12 },
-    "acciones": [{ "accion": "atacar", "peso": 100 }],
+    "estadisticas": {
+      "pv": 12,
+      "pm": 0,
+      "ataque": 6,
+      "magia": 0,
+      "defensa": 2,
+      "velocidad": 12
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 100
+      }
+    ],
     "jefe": false,
     "experiencia": 7,
-    "caja": { "ancho": 18, "alto": 10 },
+    "caja": {
+      "ancho": 18,
+      "alto": 10
+    },
     "color": "#8a6fa8"
   },
   "esqueleto": {
     "nombre": "Esqueleto",
-    "estadisticas": { "pv": 34, "pm": 0, "ataque": 12, "magia": 0, "defensa": 8, "velocidad": 6 },
+    "estadisticas": {
+      "pv": 34,
+      "pm": 0,
+      "ataque": 10,
+      "magia": 0,
+      "defensa": 8,
+      "velocidad": 6
+    },
     "acciones": [
-      { "accion": "atacar", "peso": 100 },
-      { "accion": "defender", "peso": 80, "condicion": { "pvPropioMenorQue": 0.3 } }
+      {
+        "accion": "atacar",
+        "peso": 100
+      },
+      {
+        "accion": "defender",
+        "peso": 80,
+        "condicion": {
+          "pvPropioMenorQue": 0.3
+        }
+      }
     ],
     "jefe": false,
     "experiencia": 16,
-    "caja": { "ancho": 18, "alto": 12 },
+    "caja": {
+      "ancho": 18,
+      "alto": 12
+    },
     "color": "#d8d2bf"
   },
   "arana": {
     "nombre": "Araña",
-    "estadisticas": { "pv": 30, "pm": 12, "ataque": 11, "magia": 0, "defensa": 6, "velocidad": 9 },
+    "estadisticas": {
+      "pv": 30,
+      "pm": 12,
+      "ataque": 9,
+      "magia": 0,
+      "defensa": 6,
+      "velocidad": 9
+    },
     "acciones": [
-      { "accion": "atacar", "peso": 50 },
-      { "accion": "Picadura", "peso": 50 }
+      {
+        "accion": "atacar",
+        "peso": 50
+      },
+      {
+        "accion": "Picadura",
+        "peso": 50
+      }
     ],
     "habilidades": [
       {
@@ -46,43 +112,388 @@
         "nivel": 1,
         "pm": 3,
         "objetivo": "uno",
-        "danio": { "tipo": "fisico", "poder": 0.7 },
+        "danio": {
+          "tipo": "fisico",
+          "poder": 0.7
+        },
         "estado": "veneno"
       }
     ],
     "jefe": false,
     "experiencia": 16,
-    "caja": { "ancho": 22, "alto": 12 },
+    "caja": {
+      "ancho": 22,
+      "alto": 12
+    },
     "color": "#7a3b3b"
   },
   "caballero": {
     "nombre": "Caballero oscuro",
-    "estadisticas": { "pv": 60, "pm": 0, "ataque": 17, "magia": 0, "defensa": 18, "velocidad": 5 },
+    "estadisticas": {
+      "pv": 60,
+      "pm": 0,
+      "ataque": 14,
+      "magia": 0,
+      "defensa": 18,
+      "velocidad": 5
+    },
     "acciones": [
-      { "accion": "atacar", "peso": 70 },
-      { "accion": "cargar", "peso": 30 }
+      {
+        "accion": "atacar",
+        "peso": 70
+      },
+      {
+        "accion": "cargar",
+        "peso": 30
+      }
     ],
-    "cargado": { "poder": 2.2, "aviso": "El Caballero alza su espada..." },
+    "cargado": {
+      "poder": 2.2,
+      "aviso": "El Caballero alza su espada..."
+    },
     "jefe": false,
     "experiencia": 30,
-    "caja": { "ancho": 20, "alto": 12 },
+    "caja": {
+      "ancho": 20,
+      "alto": 12
+    },
     "color": "#3b4560"
   },
   "chaman": {
     "nombre": "Chamán goblin",
-    "estadisticas": { "pv": 36, "pm": 20, "ataque": 10, "magia": 12, "defensa": 8, "velocidad": 8 },
+    "estadisticas": {
+      "pv": 36,
+      "pm": 20,
+      "ataque": 9,
+      "magia": 10,
+      "defensa": 8,
+      "velocidad": 8
+    },
     "acciones": [
-      { "accion": "atacar", "peso": 40 },
-      { "accion": "Ungüento", "peso": 60, "condicion": { "pvAliadoMenorQue": 0.6 } },
-      { "accion": "Grito de guerra", "peso": 30 }
+      {
+        "accion": "atacar",
+        "peso": 40
+      },
+      {
+        "accion": "Ungüento",
+        "peso": 60,
+        "condicion": {
+          "pvAliadoMenorQue": 0.6
+        }
+      },
+      {
+        "accion": "Grito de guerra",
+        "peso": 30
+      }
     ],
     "habilidades": [
-      { "nombre": "Ungüento", "nivel": 1, "pm": 5, "objetivo": "aliado", "cura": 0.3 },
-      { "nombre": "Grito de guerra", "nivel": 1, "pm": 4, "objetivo": "aliado", "estado": "furia" }
+      {
+        "nombre": "Ungüento",
+        "nivel": 1,
+        "pm": 5,
+        "objetivo": "aliado",
+        "cura": 0.3
+      },
+      {
+        "nombre": "Grito de guerra",
+        "nivel": 1,
+        "pm": 4,
+        "objetivo": "aliado",
+        "estado": "furia"
+      }
     ],
     "jefe": false,
     "experiencia": 26,
-    "caja": { "ancho": 18, "alto": 12 },
+    "caja": {
+      "ancho": 18,
+      "alto": 12
+    },
     "color": "#6b8f3a"
+  },
+  "rey_limo": {
+    "nombre": "Rey Limo",
+    "estadisticas": {
+      "pv": 36,
+      "pm": 0,
+      "ataque": 6,
+      "magia": 0,
+      "defensa": 5,
+      "velocidad": 5
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 60
+      },
+      {
+        "accion": "cargar",
+        "peso": 40
+      }
+    ],
+    "cargado": {
+      "poder": 2.5,
+      "aviso": "El Rey Limo se infla..."
+    },
+    "fases": [
+      {
+        "pvMenorQue": 0.5,
+        "aviso": "¡El Rey Limo se divide en dos!",
+        "transformarEn": [
+          "limo_grande",
+          "limo_grande"
+        ]
+      }
+    ],
+    "jefe": true,
+    "experiencia": 30,
+    "caja": {
+      "ancho": 28,
+      "alto": 16
+    },
+    "color": "#4fae4a"
+  },
+  "limo_grande": {
+    "nombre": "Limo grande",
+    "estadisticas": {
+      "pv": 13,
+      "pm": 0,
+      "ataque": 6,
+      "magia": 0,
+      "defensa": 4,
+      "velocidad": 4
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 70
+      },
+      {
+        "accion": "cargar",
+        "peso": 30
+      }
+    ],
+    "cargado": {
+      "poder": 2.5,
+      "aviso": "El Limo grande se hincha..."
+    },
+    "jefe": true,
+    "experiencia": 10,
+    "caja": {
+      "ancho": 22,
+      "alto": 14
+    },
+    "color": "#6fc46a"
+  },
+  "golem": {
+    "nombre": "Golem de piedra",
+    "estadisticas": {
+      "pv": 84,
+      "pm": 0,
+      "ataque": 11,
+      "magia": 0,
+      "defensa": 14,
+      "velocidad": 4
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 65
+      },
+      {
+        "accion": "cargar",
+        "peso": 35
+      }
+    ],
+    "cargado": {
+      "poder": 4.5,
+      "aviso": "El Golem carga un puñetazo..."
+    },
+    "fases": [
+      {
+        "pvMenorQue": 0.5,
+        "aviso": "¡El Golem se agrieta y se enfurece!",
+        "acciones": [
+          {
+            "accion": "atacar",
+            "peso": 50
+          },
+          {
+            "accion": "cargar",
+            "peso": 50
+          }
+        ]
+      }
+    ],
+    "jefe": true,
+    "experiencia": 90,
+    "caja": {
+      "ancho": 28,
+      "alto": 16
+    },
+    "color": "#8a8478"
+  },
+  "reina_arana": {
+    "nombre": "Reina Araña",
+    "estadisticas": {
+      "pv": 96,
+      "pm": 40,
+      "ataque": 13,
+      "magia": 0,
+      "defensa": 12,
+      "velocidad": 10
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 40
+      },
+      {
+        "accion": "Lluvia de veneno",
+        "peso": 30
+      },
+      {
+        "accion": "invocar",
+        "peso": 30
+      }
+    ],
+    "habilidades": [
+      {
+        "nombre": "Lluvia de veneno",
+        "nivel": 1,
+        "pm": 6,
+        "objetivo": "todos",
+        "danio": {
+          "tipo": "fisico",
+          "poder": 0.6
+        },
+        "estado": "veneno"
+      }
+    ],
+    "invocacion": {
+      "monstruos": [
+        "arana",
+        "arana"
+      ],
+      "maximo": 3,
+      "aviso": "La Reina Araña llama a sus crías"
+    },
+    "fases": [
+      {
+        "pvMenorQue": 0.5,
+        "aviso": "¡La Reina Araña chilla furiosa!",
+        "acciones": [
+          {
+            "accion": "atacar",
+            "peso": 30
+          },
+          {
+            "accion": "Lluvia de veneno",
+            "peso": 40
+          },
+          {
+            "accion": "invocar",
+            "peso": 30
+          }
+        ]
+      }
+    ],
+    "jefe": true,
+    "experiencia": 150,
+    "caja": {
+      "ancho": 28,
+      "alto": 16
+    },
+    "color": "#5a2a2a"
+  },
+  "senor_cripta": {
+    "nombre": "Señor de la Cripta",
+    "estadisticas": {
+      "pv": 156,
+      "pm": 60,
+      "ataque": 15,
+      "magia": 13,
+      "defensa": 16,
+      "velocidad": 9
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 60
+      },
+      {
+        "accion": "cargar",
+        "peso": 40
+      }
+    ],
+    "cargado": {
+      "poder": 3.5,
+      "aviso": "El Señor de la Cripta alza su guadaña..."
+    },
+    "habilidades": [
+      {
+        "nombre": "Niebla tóxica",
+        "nivel": 1,
+        "pm": 8,
+        "objetivo": "todos",
+        "danio": {
+          "tipo": "magico",
+          "poder": 0.6
+        },
+        "estado": "veneno"
+      }
+    ],
+    "invocacion": {
+      "monstruos": [
+        "esqueleto",
+        "esqueleto"
+      ],
+      "maximo": 3,
+      "aviso": "Las sombras se levantan"
+    },
+    "fases": [
+      {
+        "pvMenorQue": 0.66,
+        "aviso": "¡Las sombras despiertan a su señor!",
+        "acciones": [
+          {
+            "accion": "atacar",
+            "peso": 40
+          },
+          {
+            "accion": "invocar",
+            "peso": 30
+          },
+          {
+            "accion": "Niebla tóxica",
+            "peso": 30
+          }
+        ]
+      },
+      {
+        "pvMenorQue": 0.33,
+        "aviso": "¡El Señor de la Cripta se desata!",
+        "acciones": [
+          {
+            "accion": "atacar",
+            "peso": 40
+          },
+          {
+            "accion": "cargar",
+            "peso": 40
+          },
+          {
+            "accion": "Niebla tóxica",
+            "peso": 20
+          }
+        ]
+      }
+    ],
+    "jefe": true,
+    "experiencia": 0,
+    "caja": {
+      "ancho": 30,
+      "alto": 18
+    },
+    "color": "#2a1f3a"
   }
 }

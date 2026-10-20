@@ -3,6 +3,7 @@
   "generacion": {
     "rejilla": 7
   },
+  "jefeFinal": "senor_cripta",
   "monstruos": {
     "gruposPorSala": { "min": 1, "max": 3 },
     "distanciaEntradas": 3
@@ -11,6 +12,7 @@
     "bosque": {
       "nombre": "Bosque",
       "salas": 8,
+      "jefe": "rey_limo",
       "grupos": [
         { "monstruos": ["limo"], "peso": 3 },
         { "monstruos": ["limo", "limo"], "peso": 3 },
@@ -21,6 +23,7 @@
     "ruinas": {
       "nombre": "Ruinas",
       "salas": 11,
+      "jefe": "golem",
       "grupos": [
         { "monstruos": ["esqueleto"], "peso": 3 },
         { "monstruos": ["arana"], "peso": 2 },
@@ -32,6 +35,7 @@
     "cripta": {
       "nombre": "Cripta",
       "salas": 14,
+      "jefe": "reina_arana",
       "grupos": [
         { "monstruos": ["caballero"], "peso": 2 },
         { "monstruos": ["arana", "arana"], "peso": 2 },
