@@ -32,7 +32,7 @@ describe.each(Object.entries(ZONAS))('plantillas de %s', (zona, plantillas) => {
   });
 
   test.each(plantillas.plantillas.map((p) => [p.id, p.mapa] as const))(
-    '%s: las cuatro salidas se pisan y se llega de una a otra',
+    '%s: las salidas y sus entradas se pisan y se llega de una a otra',
     (_, mapa) => {
       const sala = construirSala(mapa, plantillas, catalogo, crearAzar(1));
       const libre = (x: number, y: number) => sala.solido[y * sala.ancho + x] === false;
@@ -60,7 +60,11 @@ describe.each(Object.entries(ZONAS))('plantillas de %s', (zona, plantillas) => {
           cola.push([nx, ny]);
         }
       }
-      for (const [x, y] of exteriores) expect(vistas.has(y * sala.ancho + x)).toBe(true);
+      // Las casillas donde aparece la heroína al entrar también tienen que estar libres y conectadas.
+      const entradas = salidas(sala.ancho, sala.alto).map((s) => s.entrada);
+      for (const [x, y] of [...exteriores, ...entradas]) {
+        expect(vistas.has(y * sala.ancho + x), `casilla (${x}, ${y})`).toBe(true);
+      }
     },
   );
 });

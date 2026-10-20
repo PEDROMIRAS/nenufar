@@ -139,6 +139,8 @@ export interface Salida {
   celdas: [number, number][];
   /** Símbolo con que se tapia cada casilla si el lado no lleva a otra sala. */
   tapia: string[];
+  /** Casilla donde aparece quien entra por este lado. */
+  entrada: [number, number];
 }
 
 /** Las cuatro salidas de una sala, en el centro de cada lado (la norte cruza el muro de dos filas). */
@@ -153,10 +155,11 @@ export function salidas(ancho: number, alto: number): Salida[] {
         [cx, 1],
       ],
       tapia: ['#', 'N'],
+      entrada: [cx, 2],
     },
-    { lado: E, celdas: [[ancho - 1, cy]], tapia: ['#'] },
-    { lado: S, celdas: [[cx, alto - 1]], tapia: ['#'] },
-    { lado: O, celdas: [[0, cy]], tapia: ['#'] },
+    { lado: E, celdas: [[ancho - 1, cy]], tapia: ['#'], entrada: [ancho - 2, cy] },
+    { lado: S, celdas: [[cx, alto - 1]], tapia: ['#'], entrada: [cx, alto - 2] },
+    { lado: O, celdas: [[0, cy]], tapia: ['#'], entrada: [1, cy] },
   ];
 }
 
