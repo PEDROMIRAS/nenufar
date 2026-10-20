@@ -9,6 +9,7 @@ import {
 } from './core/combate';
 import { crearHeroina, type Heroina } from './core/heroina';
 import { crearInventario, type Inventario } from './core/inventario';
+import { cambiosDeNivel, instantanea } from './core/progresion';
 import { actualizarRecords, formatearTiempo, type Resumen } from './core/records';
 import { crearCatalogo } from './core/sala';
 import type { MonstruoJson, PlantillasJson } from './core/types';
@@ -21,7 +22,7 @@ import plantillasRuinas from './data/salas/plantillas_ruinas.json';
 import zonas from './data/zonas.json';
 import { EscenaCombate } from './escenas/combate';
 import { EscenaEquipo } from './escenas/equipo';
-import { EscenaFin } from './escenas/fin';
+import { EscenaMensaje } from './escenas/mensaje';
 import { EscenaMapa } from './escenas/mapa';
 import { PilaEscenas } from './escenas/pila';
 import { EscenaPausa } from './escenas/pausa';
@@ -208,6 +209,8 @@ function ofrecerEquipo(partida: Partida, piezas: readonly string[], alFinal: () 
   );
 }
 
+const VOLVER_AL_TITULO = 'Pulsa o toca para volver al título';
+
 /** Vuelve al título para empezar otra partida con un mapa nuevo (sin la semilla de la URL). */
 const empezarOtra = (): void => location.assign(location.pathname);
 
@@ -231,8 +234,8 @@ function terminarPartida(partida: Partida, victoria: boolean): void {
   ];
   partida.pila.cambiar(
     victoria
-      ? new EscenaFin('¡Victoria!', '#ffd27a', lineas, empezarOtra)
-      : new EscenaFin('Fin de la partida', '#d8584a', lineas, empezarOtra),
+      ? new EscenaMensaje('¡Victoria!', '#ffd27a', lineas, VOLVER_AL_TITULO, empezarOtra)
+      : new EscenaMensaje('Fin de la partida', '#d8584a', lineas, VOLVER_AL_TITULO, empezarOtra),
   );
 }
 
@@ -244,6 +247,7 @@ function luchar(
   iniciativa: 'heroina' | 'monstruos' | null = null,
 ): void {
   const { pila, luchadora } = partida;
+  const antes = instantanea(luchadora);
   const azar = crearAzar(partida.semilla * 31 + ++partida.combates);
   const combate = crearCombate(luchadora, luchadoresDeGrupo(grupo), REGLAS, azar, MONSTRUOS);
   combate.iniciativa = iniciativa;
@@ -254,7 +258,25 @@ function luchar(
       pila.desapilar();
       if (resultado === 'victoria') partida.vencidos += combate.enemigos.length;
       if (resultado !== 'derrota') {
-        ofrecerEquipo(partida, combate.equipoEncontrado, () => alTerminar(resultado));
+        const seguir = (): void =>
+          ofrecerEquipo(partida, combate.equipoEncontrado, () => alTerminar(resultado));
+        if (luchadora.nivel > antes.nivel) {
+          // Primero la subida de nivel, luego el equipo encontrado, y de vuelta al mapa.
+          pila.apilar(
+            new EscenaMensaje(
+              `¡Nivel ${luchadora.nivel}!`,
+              '#ffd27a',
+              cambiosDeNivel(antes, luchadora),
+              'Pulsa o toca para seguir',
+              () => {
+                pila.desapilar();
+                seguir();
+              },
+            ),
+          );
+        } else {
+          seguir();
+        }
       } else {
         terminarPartida(partida, false);
       }

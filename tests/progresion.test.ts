@@ -1,6 +1,11 @@
 import { describe, expect, test } from 'vitest';
 import { luchadorDeHeroe } from '../src/core/combate';
-import { experienciaParaSubir, ganarExperiencia } from '../src/core/progresion';
+import {
+  cambiosDeNivel,
+  experienciaParaSubir,
+  ganarExperiencia,
+  instantanea,
+} from '../src/core/progresion';
 import type { ReglasProgresion } from '../src/core/types';
 import { HEROES as heroes, REGLAS as reglas } from '../src/data/datos';
 
@@ -48,4 +53,19 @@ describe('ganarExperiencia', () => {
     expect(ganarExperiencia(h, 500, r)).toEqual([]);
     expect(h.experiencia).toBe(0);
   });
+});
+
+test('cambiosDeNivel lista las estadísticas que suben y las habilidades nuevas', () => {
+  const h = ronin();
+  const antes = instantanea(h);
+  ganarExperiencia(h, 20 + 40, r); // del 1 al 3
+  expect(cambiosDeNivel(antes, h)).toEqual([
+    'PV 42 → 58',
+    'PM 8 → 10',
+    'Ataque 9 → 13',
+    'Magia 3 → 5',
+    'Defensa 6 → 8',
+    'Velocidad 6 → 8',
+    'Nueva habilidad: Postura de hierro',
+  ]);
 });

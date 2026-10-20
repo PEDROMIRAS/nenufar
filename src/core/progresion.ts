@@ -33,3 +33,45 @@ export function ganarExperiencia(h: Luchador, px: number, r: ReglasProgresion): 
   if (h.nivel >= r.nivelMaximo) h.experiencia = 0;
   return subidos;
 }
+
+/** Estadísticas de la heroína en un momento dado, para comparar antes y después de subir de nivel. */
+export interface Instantanea {
+  nivel: number;
+  pvMax: number;
+  pmMax: number;
+  ataque: number;
+  magia: number;
+  defensa: number;
+  velocidad: number;
+}
+
+export const instantanea = (l: Luchador): Instantanea => ({
+  nivel: l.nivel,
+  pvMax: l.pvMax,
+  pmMax: l.pmMax,
+  ataque: l.ataque,
+  magia: l.magia,
+  defensa: l.defensa,
+  velocidad: l.velocidad,
+});
+
+const NOMBRES: [keyof Omit<Instantanea, 'nivel'>, string][] = [
+  ['pvMax', 'PV'],
+  ['pmMax', 'PM'],
+  ['ataque', 'Ataque'],
+  ['magia', 'Magia'],
+  ['defensa', 'Defensa'],
+  ['velocidad', 'Velocidad'],
+];
+
+/** Líneas de la pantalla de subida de nivel: lo que ha cambiado y las habilidades nuevas. */
+export function cambiosDeNivel(antes: Instantanea, ahora: Luchador): string[] {
+  const lineas = NOMBRES.filter(([clave]) => ahora[clave] !== antes[clave]).map(
+    ([clave, nombre]) => `${nombre} ${antes[clave]} → ${ahora[clave]}`,
+  );
+  for (const h of ahora.heroe?.habilidades ?? []) {
+    if (h.nivel > antes.nivel && h.nivel <= ahora.nivel)
+      lineas.push(`Nueva habilidad: ${h.nombre}`);
+  }
+  return lineas;
+}

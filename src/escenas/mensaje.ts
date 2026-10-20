@@ -3,12 +3,13 @@ import { ALTO, ANCHO } from '../render/pantalla';
 import { escribir, FUENTE_GRANDE } from '../render/texto';
 import type { Escena } from './escena';
 
-/** Final de la partida (derrota o victoria) con su resumen; al continuar se vuelve al título. */
-export class EscenaFin implements Escena {
+/** Pantalla de texto que espera a que se pulse o toque: fin de partida, victoria, subida de nivel. */
+export class EscenaMensaje implements Escena {
   constructor(
     private readonly titulo: string,
     private readonly color: string,
     private readonly lineas: readonly string[],
+    private readonly pie: string,
     private readonly alContinuar: () => void,
   ) {}
 
@@ -26,6 +27,6 @@ export class EscenaFin implements Escena {
     this.lineas.forEach((linea, i) =>
       escribir(ctx, linea, ANCHO / 2, 96 + i * 20, '#e8efe4', 'center'),
     );
-    escribir(ctx, 'Pulsa o toca para volver al título', ANCHO / 2, 312, '#aab8a6', 'center');
+    escribir(ctx, this.pie, ANCHO / 2, 312, '#aab8a6', 'center');
   }
 }
