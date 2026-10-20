@@ -9,6 +9,7 @@ import {
 } from './core/combate';
 import { crearHeroina, type Heroina } from './core/heroina';
 import { crearInventario, type Inventario } from './core/inventario';
+import { actualizarRecords, formatearTiempo, type Resumen } from './core/records';
 import { crearCatalogo } from './core/sala';
 import type { MonstruoJson, PlantillasJson } from './core/types';
 import { generarZona } from './core/zona';
@@ -24,12 +25,14 @@ import { EscenaFin } from './escenas/fin';
 import { EscenaMapa } from './escenas/mapa';
 import { PilaEscenas } from './escenas/pila';
 import { EscenaSeleccion } from './escenas/seleccion';
+import { EscenaTitulo } from './escenas/titulo';
 import { leerFuentes } from './input/fuente';
 import { crearJoystick } from './input/joystick';
 import { crearTeclado } from './input/teclado';
 import { crearToque } from './input/toque';
 import { iniciarBucle } from './render/bucle';
 import { prepararPantalla } from './render/pantalla';
+import { cargarRecords, guardarRecords } from './render/almacen';
 import { cargarSprite, cargarTilesets, type Sprite } from './render/recursos';
 
 type NombreZona = keyof typeof zonas.zonas;
@@ -50,6 +53,10 @@ interface Partida {
   inventario: Inventario;
   sprite: Sprite;
   combates: number;
+  /** Para el resumen final: cuándo empezó (ms), monstruos vencidos y zona en la que está. */
+  inicio: number;
+  vencidos: number;
+  zona: string;
 }
 
 async function iniciar(): Promise<void> {
@@ -77,23 +84,25 @@ async function iniciar(): Promise<void> {
       sprite: await cargarSprite(heroe.sprite),
     })),
   );
-  pila.apilar(
-    new EscenaSeleccion(opciones, ({ heroe, sprite }) => {
-      const partida: Partida = {
-        semilla,
-        pila,
-        heroina: crearHeroina(heroe, 0, 0), // cada escena la coloca en su sala de inicio
-        // La misma luchadora en todos los combates: la vida perdida se arrastra.
-        luchadora: luchadorDeHeroe(heroe),
-        inventario: crearInventario(),
-        sprite,
-        combates: 0,
-      };
-      crearZona(partida, 0, true)
-        .then((zona) => pila.cambiar(zona))
-        .catch(mostrarError);
-    }),
-  );
+  const seleccion = new EscenaSeleccion(opciones, ({ heroe, sprite }) => {
+    const partida: Partida = {
+      semilla,
+      pila,
+      heroina: crearHeroina(heroe, 0, 0), // cada escena la coloca en su sala de inicio
+      // La misma luchadora en todos los combates: la vida perdida se arrastra.
+      luchadora: luchadorDeHeroe(heroe),
+      inventario: crearInventario(),
+      sprite,
+      combates: 0,
+      inicio: performance.now(),
+      vencidos: 0,
+      zona: '',
+    };
+    crearZona(partida, 0, true)
+      .then((zona) => pila.cambiar(zona))
+      .catch(mostrarError);
+  });
+  pila.apilar(new EscenaTitulo(cargarRecords(), () => pila.cambiar(seleccion)));
 
   iniciarBucle(
     (dt) => {
@@ -120,6 +129,7 @@ async function crearZona(
     partida.semilla + indice * 7919,
   );
   console.info(`Zona ${nombre}, semilla ${zona.semilla}`);
+  partida.zona = datos.nombre;
   const hayOtra = indice + 1 < ORDEN.length;
   return new EscenaMapa({
     zona,
@@ -138,10 +148,7 @@ async function crearZona(
             .then((siguiente) => partida.pila.cambiar(siguiente))
             .catch(mostrarError);
         }
-      : () =>
-          luchar(partida, [monstruo(zonas.jefeFinal)], () =>
-            partida.pila.cambiar(new EscenaFin('¡Victoria!', '#ffd27a', empezarOtra)),
-          ),
+      : () => luchar(partida, [monstruo(zonas.jefeFinal)], () => terminarPartida(partida, true)),
     entrarDesdeNegro,
     grupos: datos.grupos.map(({ monstruos, peso }) => ({
       peso,
@@ -189,8 +196,33 @@ function ofrecerEquipo(partida: Partida, piezas: readonly string[], alFinal: () 
   );
 }
 
-/** Otra partida con un mapa nuevo (sin la semilla de la URL). */
+/** Vuelve al título para empezar otra partida con un mapa nuevo (sin la semilla de la URL). */
 const empezarOtra = (): void => location.assign(location.pathname);
+
+/** Fin de la partida: guarda los récords y enseña el resumen. */
+function terminarPartida(partida: Partida, victoria: boolean): void {
+  const l = partida.luchadora;
+  const resumen: Resumen = {
+    victoria,
+    heroina: l.nombre,
+    nivel: l.nivel,
+    zona: partida.zona,
+    vencidos: partida.vencidos,
+    segundos: (performance.now() - partida.inicio) / 1000,
+  };
+  guardarRecords(actualizarRecords(cargarRecords(), resumen));
+  const lineas = [
+    `${resumen.heroina}, nivel ${resumen.nivel}`,
+    victoria ? 'Has derrotado al Señor de la Cripta' : `Caíste en: ${resumen.zona}`,
+    `Monstruos vencidos: ${resumen.vencidos}`,
+    `Tiempo: ${formatearTiempo(resumen.segundos)}`,
+  ];
+  partida.pila.cambiar(
+    victoria
+      ? new EscenaFin('¡Victoria!', '#ffd27a', lineas, empezarOtra)
+      : new EscenaFin('Fin de la partida', '#d8584a', lineas, empezarOtra),
+  );
+}
 
 /** Apila un combate contra `grupo`; al acabar lo quita y avisa, salvo derrota (fin de la partida). */
 function luchar(
@@ -208,9 +240,12 @@ function luchar(
   pila.apilar(
     new EscenaCombate(combate, partida.sprite, (resultado) => {
       pila.desapilar();
-      if (resultado !== 'derrota')
+      if (resultado === 'victoria') partida.vencidos += combate.enemigos.length;
+      if (resultado !== 'derrota') {
         ofrecerEquipo(partida, combate.equipoEncontrado, () => alTerminar(resultado));
-      else pila.cambiar(new EscenaFin('Fin de la partida', '#d8584a', empezarOtra));
+      } else {
+        terminarPartida(partida, false);
+      }
     }),
   );
 }

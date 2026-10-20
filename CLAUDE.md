@@ -14,7 +14,7 @@ Si el diseño y este archivo discrepan, manda el documento; avisa de la discrepa
 - **Siguiente: hito 4** (contenido y progresión): los 6 monstruos, experiencia, niveles, las 8 habilidades, estados alterados y los 4 jefes con sus fases. Hecho cuando se puede completar una partida entera de principio a fin.
 - La "decisión interesante" del combate es el golpe cargado que el monstruo anuncia un turno antes (Limo, poder 3); defender solo si no se puede rematar antes es la mejor estrategia (simulado).
 - Zonas en "ramas de 3" (8/11/14 salas): el inicio con 1 puerta y cada sala de paso con la de llegada + 3 nuevas. Decidido en el hito 2 y ya reflejado en el documento.
-- Atajos provisionales marcados con `shortcut:` en el código (monstruos y combate dibujados con rectángulos, pantallas de fin y victoria mínimas); se quitan en el hito que indica cada uno.
+- Atajos provisionales marcados con `shortcut:` en el código (monstruos y combate dibujados con rectángulos); se quitan en el hito que indica cada uno.
 - `?semilla=N` en la URL repite una partida; la semilla de cada zona sale en la consola.
 - Hitos 2-7 en el documento. Hasta el hito 5 la lógica puede probarse con rectángulos, pero el arte ya existe y se puede usar desde el hito 1.
 

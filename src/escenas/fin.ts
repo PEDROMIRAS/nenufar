@@ -3,12 +3,12 @@ import { ALTO, ANCHO } from '../render/pantalla';
 import { escribir, FUENTE_GRANDE } from '../render/texto';
 import type { Escena } from './escena';
 
-// shortcut: pantallas de fin y victoria mínimas; las de verdad (con estadísticas) son del hito 5.
-/** Final de la partida (derrota o victoria); al continuar se empieza otra con un mapa nuevo. */
+/** Final de la partida (derrota o victoria) con su resumen; al continuar se vuelve al título. */
 export class EscenaFin implements Escena {
   constructor(
     private readonly titulo: string,
     private readonly color: string,
+    private readonly lineas: readonly string[],
     private readonly alContinuar: () => void,
   ) {}
 
@@ -22,7 +22,10 @@ export class EscenaFin implements Escena {
   draw(ctx: CanvasRenderingContext2D): void {
     ctx.fillStyle = '#0b0d10';
     ctx.fillRect(0, 0, ANCHO, ALTO);
-    escribir(ctx, this.titulo, ANCHO / 2, 130, this.color, 'center', FUENTE_GRANDE);
-    escribir(ctx, 'Pulsa o toca para empezar otra', ANCHO / 2, 180, '#e8efe4', 'center');
+    escribir(ctx, this.titulo, ANCHO / 2, 40, this.color, 'center', FUENTE_GRANDE);
+    this.lineas.forEach((linea, i) =>
+      escribir(ctx, linea, ANCHO / 2, 96 + i * 20, '#e8efe4', 'center'),
+    );
+    escribir(ctx, 'Pulsa o toca para volver al título', ANCHO / 2, 312, '#aab8a6', 'center');
   }
 }
