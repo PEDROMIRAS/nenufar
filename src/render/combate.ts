@@ -4,8 +4,6 @@ import { dibujarFotograma } from './monstruo';
 import type { Sprite } from './recursos';
 import { escribir, FUENTE_GRANDE } from './texto';
 
-// shortcut: la heroína no anima ataques ni golpes y el fondo es liso hasta terminar el arte de combate del hito 6.
-
 export interface OpcionMenu {
   texto: string;
   /** Texto pequeño bajo la opción (el coste en PM de una habilidad…). */
@@ -24,6 +22,8 @@ export interface VistaCombate {
   sprite: Sprite;
   /** Hojas de monstruos, efectos y proyectiles, por nombre. */
   hojas: ReadonlyMap<string, Sprite>;
+  /** La sala donde empezó el combate, que se ve oscurecida detrás. */
+  fondo: HTMLCanvasElement;
   tiempo: number;
   /** PV y textos que se ven (van por detrás del combate mientras se animan los eventos). */
   pv: Map<Luchador, number>;
@@ -60,8 +60,8 @@ export interface VistaCombate {
 }
 
 const COLOR = {
-  fondo: '#141a1f',
-  suelo: '#1f2a24',
+  /** Oscurece la sala de fondo para que se lean los luchadores y los textos. */
+  velo: 'rgba(10, 12, 16, 0.6)',
   panel: 'rgba(0, 0, 0, 0.45)',
   pv: '#d8584a',
   pm: '#5a8bd8',
@@ -135,10 +135,9 @@ export function rectOpcion(
 
 export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   const { combate } = v;
-  ctx.fillStyle = COLOR.fondo;
+  ctx.drawImage(v.fondo, 0, 0);
+  ctx.fillStyle = COLOR.velo;
   ctx.fillRect(0, 0, ANCHO, ALTO);
-  ctx.fillStyle = COLOR.suelo;
-  ctx.fillRect(0, 150, ANCHO, 110);
 
   dibujarOrden(ctx, combate);
   combate.enemigos.forEach((e, i) =>
@@ -339,7 +338,7 @@ function dibujarFlotante(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   const sube = Math.round(v.tiempoGolpe * 30);
   const enemigos = v.combate.enemigos;
   const x = g.esHeroina ? HEROINA.x : xEnemigo(enemigos.indexOf(g), enemigos.length);
-  const y = (g.esHeroina ? HEROINA.y - 80 : topeEnemigo(v, g) - 22) - sube;
+  const y = (g.esHeroina ? HEROINA.y - 80 : topeEnemigo(v, g) - 36) - sube;
   const color = v.flotanteCura ? COLOR.cura : g.esHeroina ? COLOR.pv : '#ffffff';
   escribir(ctx, v.flotante, x, y, color, 'center', FUENTE_GRANDE);
 }

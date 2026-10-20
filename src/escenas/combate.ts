@@ -82,6 +82,7 @@ export class EscenaCombate implements Escena {
     private readonly combate: Combate,
     sprite: Sprite,
     hojas: ReadonlyMap<string, Sprite>,
+    fondo: HTMLCanvasElement,
     private readonly alTerminar: (resultado: Resultado) => void,
   ) {
     const todos = [combate.heroina, ...combate.enemigos];
@@ -90,6 +91,7 @@ export class EscenaCombate implements Escena {
       combate,
       sprite,
       hojas,
+      fondo,
       tiempo: 0,
       pv: new Map(todos.map((l) => [l, l.pv])),
       textoPv: new Map(todos.map((l) => [l, textoVida(l.pv, l.pvMax)])),

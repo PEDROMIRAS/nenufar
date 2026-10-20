@@ -141,7 +141,7 @@ async function crearZona(
   console.info(`Zona ${nombre}, semilla ${zona.semilla}`);
   partida.zona = datos.nombre;
   const hayOtra = indice + 1 < ORDEN.length;
-  return new EscenaMapa({
+  const escena: EscenaMapa = new EscenaMapa({
     zona,
     plantillas: PLANTILLAS[nombre],
     catalogo: crearCatalogo(tilesets),
@@ -159,7 +159,10 @@ async function crearZona(
             .then((siguiente) => partida.pila.cambiar(siguiente))
             .catch(mostrarError);
         }
-      : () => luchar(partida, [monstruo(zonas.jefeFinal)], () => terminarPartida(partida, true)),
+      : () =>
+          luchar(partida, [monstruo(zonas.jefeFinal)], escena.fondoSala, () =>
+            terminarPartida(partida, true),
+          ),
     entrarDesdeNegro,
     grupos: datos.grupos.map(({ monstruos, peso }) => ({
       peso,
@@ -186,8 +189,10 @@ async function crearZona(
     invulnerabilidad: REGLAS.invulnerabilidadTrasCombate,
     luchadora: partida.luchadora,
     nombreZona: datos.nombre,
-    iniciarCombate: (grupo, alTerminar, quien) => luchar(partida, grupo, alTerminar, quien),
+    iniciarCombate: (grupo, alTerminar, quien) =>
+      luchar(partida, grupo, escena.fondoSala, alTerminar, quien),
   });
+  return escena;
 }
 
 function monstruo(clave: string): MonstruoJson {
@@ -252,6 +257,8 @@ function terminarPartida(partida: Partida, victoria: boolean): void {
 function luchar(
   partida: Partida,
   grupo: MonstruoJson[],
+  /** Sala en la que empieza el combate, que se ve de fondo. */
+  fondo: HTMLCanvasElement,
   alTerminar: (resultado: Resultado) => void,
   iniciativa: 'heroina' | 'monstruos' | null = null,
 ): void {
@@ -263,7 +270,7 @@ function luchar(
   combate.inventario = partida.inventario;
   combate.objetos = OBJETOS;
   pila.apilar(
-    new EscenaCombate(combate, partida.sprite, partida.hojas, (resultado) => {
+    new EscenaCombate(combate, partida.sprite, partida.hojas, fondo, (resultado) => {
       pila.desapilar();
       if (resultado === 'victoria') partida.vencidos += combate.enemigos.length;
       if (resultado !== 'derrota') {

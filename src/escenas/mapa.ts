@@ -349,6 +349,11 @@ export class EscenaMapa implements Escena {
     );
   }
 
+  /** Fondo ya pintado de la sala actual (el combate lo usa de decorado). */
+  get fondoSala(): HTMLCanvasElement {
+    return this.montada.fondo;
+  }
+
   private luchar(m: MonstruoMapa): void {
     const sala = this.montada;
     const h = this.o.heroina;
