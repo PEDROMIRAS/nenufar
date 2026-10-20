@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { opuesto, posicionEntrada, salaVecina, salidaPisada } from '../src/core/mapa';
+import { opuesto, portalPisado, posicionEntrada, salaVecina, salidaPisada } from '../src/core/mapa';
 import { salidas } from '../src/core/sala';
 import { E, N, O, S, type Zona } from '../src/core/zona';
 
@@ -47,4 +47,22 @@ test('al entrar por el norte se aparece bajo la puerta, no encima de la salida',
   const pos = posicionEntrada(salida(N), T, 8);
   expect(pos).toEqual({ x: 7 * T + 16, y: 2 * T + 20 });
   expect(salidaPisada(lista, N, T, pos.x, pos.y)).toBeNull();
+});
+
+test('portalPisado solo se activa con los pies en la casilla del portal', () => {
+  const portal = { name: 'portal', index: 0, layer: 'objeto' as const, solid: false, hoja: 0 };
+  const roca = { ...portal, name: 'roca', solid: true };
+  const sala = {
+    ancho: 15,
+    alto: 11,
+    base: [],
+    solido: [],
+    objetos: [
+      { x: 2, y: 2, inf: roca, sup: null },
+      { x: 11, y: 3, inf: portal, sup: null },
+    ],
+  };
+  expect(portalPisado(sala, T, 11 * T + 16, 3 * T + 20)).toBe(true);
+  expect(portalPisado(sala, T, 10 * T + 16, 3 * T + 20)).toBe(false);
+  expect(portalPisado(sala, T, 2 * T + 16, 2 * T + 20)).toBe(false);
 });

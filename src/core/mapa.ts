@@ -1,4 +1,4 @@
-import type { Salida } from './sala';
+import type { Sala, Salida } from './sala';
 import { E, N, O, S, type SalaZona, type Zona } from './zona';
 
 const OPUESTO: Record<number, number> = { [N]: S, [E]: O, [S]: N, [O]: E };
@@ -46,4 +46,14 @@ export function posicionEntrada(
 ): { x: number; y: number } {
   const [cx, cy] = salida.entrada;
   return { x: cx * tam + tam / 2, y: cy * tam + (tam + altoCaja) / 2 };
+}
+
+/** ¿Están los pies en (x, y) sobre la casilla de un portal de la sala? */
+export function portalPisado(sala: Sala, tam: number, x: number, y: number): boolean {
+  const col = Math.floor(x / tam);
+  const fila = Math.ceil(y / tam) - 1;
+  for (const o of sala.objetos) {
+    if (o.inf.name === 'portal' && o.x === col && o.y === fila) return true;
+  }
+  return false;
 }

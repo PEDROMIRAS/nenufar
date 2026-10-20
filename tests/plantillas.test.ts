@@ -31,9 +31,9 @@ describe.each(Object.entries(ZONAS))('plantillas de %s', (zona, plantillas) => {
     for (const tipo of TIPOS) expect(plantillas.plantillas.some((p) => p.tipo === tipo)).toBe(true);
   });
 
-  test.each(plantillas.plantillas.map((p) => [p.id, p.mapa] as const))(
+  test.each(plantillas.plantillas.map((p) => [p.id, p.mapa, p.tipo] as const))(
     '%s: las salidas y sus entradas se pisan y se llega de una a otra',
-    (_, mapa) => {
+    (_, mapa, tipo) => {
       const sala = construirSala(mapa, plantillas, catalogo, crearAzar(1));
       const libre = (x: number, y: number) => sala.solido[y * sala.ancho + x] === false;
       const exteriores = salidas(sala.ancho, sala.alto).map((s) => s.celdas[0]!);
@@ -65,6 +65,10 @@ describe.each(Object.entries(ZONAS))('plantillas de %s', (zona, plantillas) => {
       for (const [x, y] of [...exteriores, ...entradas]) {
         expect(vistas.has(y * sala.ancho + x), `casilla (${x}, ${y})`).toBe(true);
       }
+      // La sala del jefe lleva el portal a la zona siguiente, y hay que poder llegar a él.
+      const portales = sala.objetos.filter((o) => o.inf.name === 'portal');
+      expect(portales).toHaveLength(tipo === 'jefe' ? 1 : 0);
+      for (const o of portales) expect(vistas.has(o.y * sala.ancho + o.x)).toBe(true);
     },
   );
 });
