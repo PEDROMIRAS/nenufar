@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>Nenúfar</title>
+    <meta
+      name="description"
+      content="Dungeon crawler de ranas con combate por turnos, para navegador y móvil."
+    />
     <style>
       html,
       body {
@@ -25,10 +29,24 @@
       canvas {
         image-rendering: pixelated;
       }
+      /* Solo para lectores de pantalla: no se ve, pero se lee. */
+      .solo-lector {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
     </style>
   </head>
   <body>
-    <canvas id="juego"></canvas>
+    <canvas
+      id="juego"
+      role="img"
+      aria-label="Nenúfar. Se juega con las flechas o WASD, Enter para aceptar y Escape para volver o abrir la pausa; también tocando la pantalla."
+    ></canvas>
+    <div id="anuncios" class="solo-lector" aria-live="polite"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

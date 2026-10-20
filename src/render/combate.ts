@@ -1,5 +1,6 @@
 import type { Combate, Luchador } from '../core/combate';
 import { ALTO, ANCHO } from './pantalla';
+import { movimientoReducido } from './accesibilidad';
 import { dibujarFotograma } from './monstruo';
 import type { Sprite } from './recursos';
 import { escribir, FUENTE_GRANDE } from './texto';
@@ -221,7 +222,9 @@ export function barra(
 }
 
 function parpadea(v: VistaCombate, l: Luchador): boolean {
-  return v.golpeado === l && !v.flotanteCura && Math.floor(v.tiempoGolpe * 16) % 2 === 0;
+  if (v.golpeado !== l || v.flotanteCura) return false;
+  // Con menos movimiento, el destello queda fijo en vez de parpadear 8 veces por segundo.
+  return movimientoReducido() || Math.floor(v.tiempoGolpe * 16) % 2 === 0;
 }
 
 /** Altura de la parte de arriba del enemigo, de donde cuelgan su nombre y los avisos. */

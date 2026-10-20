@@ -1,6 +1,7 @@
 import type { Acciones } from '../core/acciones';
 import { ALTO, ANCHO } from '../render/pantalla';
 import { escribir, FUENTE_GRANDE } from '../render/texto';
+import { anunciar } from '../render/accesibilidad';
 import type { Escena } from './escena';
 
 /** Pantalla de texto que espera a que se pulse o toque: fin de partida, victoria, subida de nivel. */
@@ -13,7 +14,9 @@ export class EscenaMensaje implements Escena {
     private readonly alContinuar: () => void,
   ) {}
 
-  enter(): void {}
+  enter(): void {
+    anunciar([this.titulo, ...this.lineas, this.pie].join('. '));
+  }
   exit(): void {}
 
   update(_dt: number, acciones: Acciones): void {

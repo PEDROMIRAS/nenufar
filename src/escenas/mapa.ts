@@ -43,6 +43,7 @@ import {
 import { pintarMinimapa } from '../render/minimapa';
 import { dibujarMonstruoMapa, direccionDe } from '../render/monstruo';
 import type { Sprite } from '../render/recursos';
+import { anunciar, movimientoReducido } from '../render/accesibilidad';
 import { ponerMusica, sonar } from '../render/sonido';
 import { dibujarObjetos, dibujarTile, pintarFondo, pintarVineta } from '../render/sala';
 import type { Escena } from './escena';
@@ -278,8 +279,14 @@ export class EscenaMapa implements Escena {
     for (const m of monstruos) {
       if (m.vivo && m.p.cuerpo.y <= pies) this.dibujarMonstruo(ctx, m, alpha);
     }
-    // Parpadea mientras no se puede empezar otro combate.
-    if (Math.floor(this.invulnerable * 10) % 2 === 0) dibujarHeroina(ctx, sprite, h, alpha);
+    // Parpadea mientras no se puede empezar otro combate (con menos movimiento, medio transparente).
+    if (movimientoReducido()) {
+      if (this.invulnerable > 0) ctx.globalAlpha = 0.5;
+      dibujarHeroina(ctx, sprite, h, alpha);
+      ctx.globalAlpha = 1;
+    } else if (Math.floor(this.invulnerable * 10) % 2 === 0) {
+      dibujarHeroina(ctx, sprite, h, alpha);
+    }
     for (const m of monstruos) {
       if (m.vivo && m.p.cuerpo.y > pies) this.dibujarMonstruo(ctx, m, alpha);
     }
@@ -303,6 +310,7 @@ export class EscenaMapa implements Escena {
 
   private avisar(texto: string): void {
     this.aviso = texto;
+    anunciar(texto);
     this.tiempoAviso = DURACION_AVISO;
   }
 

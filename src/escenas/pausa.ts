@@ -6,6 +6,7 @@ import type { ObjetosJson, ReglasProgresion } from '../core/types';
 import { rectOpcion, type MenuVista } from '../render/combate';
 import { dibujarPausa } from '../render/pausa';
 import { estaSilenciado, silenciar, sonar } from '../render/sonido';
+import { anunciar } from '../render/accesibilidad';
 import type { Escena } from './escena';
 
 /** Pausa en el mapa: estadísticas, equipo e inventario; se pueden usar pociones y éteres y quitar el sonido. */
@@ -33,7 +34,9 @@ export class EscenaPausa implements Escena {
     this.rehacer();
   }
 
-  enter(): void {}
+  enter(): void {
+    anunciar(['Pausa', ...this.izquierda, ...this.derecha].join('. '));
+  }
   exit(): void {}
 
   update(_dt: number, a: Acciones): void {
@@ -62,6 +65,8 @@ export class EscenaPausa implements Escena {
     if (dir !== 0 && dir !== this.ultimoX) {
       this.menu.seleccion = (this.menu.seleccion + dir + n) % n;
       sonar('cursor');
+      const o = this.menu.opciones[this.menu.seleccion];
+      if (o) anunciar(`${o.texto} ${o.detalle}`);
     }
     this.ultimoX = dir;
     if (a.confirmar) this.elegir(this.menu.seleccion);

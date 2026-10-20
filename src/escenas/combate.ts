@@ -17,6 +17,7 @@ import {
   type MenuVista,
   type VistaCombate,
 } from '../render/combate';
+import { anunciar } from '../render/accesibilidad';
 import type { Sprite } from '../render/recursos';
 import { ponerMusica, sonar } from '../render/sonido';
 import type { Escena } from './escena';
@@ -121,6 +122,7 @@ export class EscenaCombate implements Escena {
   }
 
   enter(): void {
+    anunciar(this.v.registro[1]);
     this.cola.push(...avanzar(this.combate));
   }
 
@@ -303,6 +305,7 @@ export class EscenaCombate implements Escena {
       }
       case 'fin':
         v.titulo = TITULO[e.resultado];
+        anunciar(`${v.titulo} Pulsa Enter para continuar.`);
         if (e.resultado !== 'huida') sonar(e.resultado);
         v.menu = null;
         break;
@@ -324,6 +327,7 @@ export class EscenaCombate implements Escena {
   private registrar(texto: string): void {
     this.v.registro[0] = this.v.registro[1];
     this.v.registro[1] = texto;
+    anunciar(texto);
   }
 
   private vivos(): Luchador[] {
@@ -383,7 +387,13 @@ export class EscenaCombate implements Escena {
   }
 
   private manejarMenu(a: Acciones): void {
-    if (!this.v.menu) this.abrir('principal');
+    if (!this.v.menu) {
+      this.abrir('principal');
+      const h = this.combate.heroina;
+      anunciar(
+        `Tu turno. PV ${h.pv} de ${h.pvMax}, PM ${h.pm} de ${h.pmMax}. ${this.v.menu!.opciones[0]?.texto ?? ''}`,
+      );
+    }
     const menu = this.v.menu!;
     const n = menu.opciones.length;
     // Tocar una opción la elige y la usa a la vez.
@@ -414,6 +424,7 @@ export class EscenaCombate implements Escena {
     if (salto !== 0) {
       menu.seleccion = (((menu.seleccion + salto) % n) + n) % n;
       sonar('cursor');
+      anunciar(menu.opciones[menu.seleccion]?.texto ?? '');
     }
     this.ultimoX = dx;
     this.ultimoY = dy;

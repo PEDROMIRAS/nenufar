@@ -3,6 +3,7 @@ import type { HeroeJson } from '../core/types';
 import type { Sprite } from '../render/recursos';
 import { dibujarSeleccion, TARJETAS } from '../render/seleccion';
 import { ponerMusica } from '../render/sonido';
+import { anunciar } from '../render/accesibilidad';
 import type { Escena } from './escena';
 
 export interface OpcionHeroina {
@@ -22,7 +23,9 @@ export class EscenaSeleccion implements Escena {
     private readonly alElegir: (opcion: OpcionHeroina) => void,
   ) {}
 
-  enter(): void {}
+  enter(): void {
+    anunciar(`Elige heroína con las flechas: ${this.opciones[0]?.heroe.nombre ?? ''}`);
+  }
   exit(): void {}
 
   update(dt: number, a: Acciones): void {
@@ -43,6 +46,7 @@ export class EscenaSeleccion implements Escena {
     const dir = Math.sign(a.moverX);
     if (dir !== 0 && dir !== this.ultimoX) {
       this.seleccion = (this.seleccion + dir + this.opciones.length) % this.opciones.length;
+      anunciar(this.opciones[this.seleccion]?.heroe.nombre ?? '');
     }
     this.ultimoX = dir;
     if (a.confirmar) this.elegir();

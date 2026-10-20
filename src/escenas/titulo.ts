@@ -3,6 +3,7 @@ import { formatearTiempo, type Records } from '../core/records';
 import { ALTO, ANCHO } from '../render/pantalla';
 import { escribir, FUENTE_GRANDE } from '../render/texto';
 import { ponerMusica } from '../render/sonido';
+import { anunciar } from '../render/accesibilidad';
 import type { Escena } from './escena';
 
 /** Pantalla de título con los récords guardados. */
@@ -26,7 +27,9 @@ export class EscenaTitulo implements Escena {
           ];
   }
 
-  enter(): void {}
+  enter(): void {
+    anunciar(['Nenúfar', ...this.lineas, 'Pulsa Enter o toca para empezar'].join('. '));
+  }
   exit(): void {}
 
   update(dt: number, acciones: Acciones): void {
@@ -43,7 +46,7 @@ export class EscenaTitulo implements Escena {
     this.lineas.forEach((linea, i) =>
       escribir(ctx, linea, ANCHO / 2, 170 + i * 20, '#e8efe4', 'center'),
     );
-    // Parpadeo lento del aviso para empezar.
+    // Parpadeo lento (una vez por segundo) del aviso para empezar.
     if (Math.floor(this.tiempo * 2) % 2 === 0) {
       escribir(ctx, 'Pulsa o toca para empezar', ANCHO / 2, 290, '#ffd27a', 'center');
     }

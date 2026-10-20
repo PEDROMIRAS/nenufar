@@ -5,6 +5,7 @@ import type { Inventario } from '../core/inventario';
 import type { EstadoJson, ObjetosJson } from '../core/types';
 import { rectOpcion } from '../render/combate';
 import { dibujarComparacion, OPCIONES_EQUIPO, type FichaPieza } from '../render/equipo';
+import { anunciar } from '../render/accesibilidad';
 import type { Escena } from './escena';
 
 /** Al encontrar una pieza de equipo: se compara con la que se lleva y la heroína decide si cambia. */
@@ -33,7 +34,12 @@ export class EscenaEquipo implements Escena {
     this.nueva = { nombre: pieza.nombre, lineas: describirPieza(pieza, estados) };
   }
 
-  enter(): void {}
+  enter(): void {
+    const ficha = (f: FichaPieza): string => [f.nombre, ...f.lineas].join(', ');
+    anunciar(
+      `${this.titulo} Llevas: ${ficha(this.actual)}. Nueva: ${ficha(this.nueva)}. Enter para cambiar, Escape para dejarla.`,
+    );
+  }
   exit(): void {}
 
   update(_dt: number, a: Acciones): void {
