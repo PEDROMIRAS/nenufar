@@ -20,9 +20,9 @@ Dungeon crawler 2D para navegador: exploras zonas de salas en tiempo real y, al 
 - [x] Hito 1: base, sala y movimiento ([jugar](https://pedromiras.github.io/nenufar/))
 - [x] Hito 2: zona generada
 - [x] Hito 3: combate prototipo
-- [ ] Hito 4: contenido y progresión
-- [ ] Hito 5: objetos y pantallas
-- [ ] Hito 6: arte de combate y sonido
+- [x] Hito 4: contenido y progresión
+- [x] Hito 5: objetos y pantallas
+- [x] Hito 6: arte de combate y sonido
 - [ ] Hito 7: equilibrado, pulido y publicación
 
 ## Estructura
