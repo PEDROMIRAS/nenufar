@@ -29,7 +29,14 @@ export function crearTeclado(): FuenteEntrada {
 
   addEventListener('keydown', (e) => {
     // Lo que se escribe en un campo de texto (el nombre de la rana) no es para el juego.
-    if (!PROPIAS.has(e.code) || e.target instanceof HTMLInputElement) return;
+    // Ni lo que se pulsa en un botón HTML (el de jugar en vertical).
+    if (
+      !PROPIAS.has(e.code) ||
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLButtonElement
+    ) {
+      return;
+    }
     e.preventDefault(); // que flechas y espacio no desplacen la página
     sostenidas.add(e.code);
     if (!e.repeat) nuevas.add(e.code);

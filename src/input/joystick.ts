@@ -38,8 +38,9 @@ export function crearJoystick(raiz: HTMLElement, { radio, zonaMuerta }: Ajustes)
   };
 
   raiz.addEventListener('pointerdown', (e) => {
-    // Tocar un campo de texto tiene que poder enfocarlo: ahí no nace el joystick.
-    if (dedo !== null || e.pointerType === 'mouse' || e.target instanceof HTMLInputElement) return;
+    // Tocar un campo de texto o un botón HTML tiene que funcionar: ahí no nace el joystick.
+    const control = e.target instanceof HTMLInputElement || e.target instanceof HTMLButtonElement;
+    if (dedo !== null || e.pointerType === 'mouse' || control) return;
     dedo = e.pointerId;
     origenX = e.clientX;
     origenY = e.clientY;

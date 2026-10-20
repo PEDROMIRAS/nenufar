@@ -21,6 +21,8 @@ export interface Ajustes {
    * queda para una mejora futura (Pedro prefiere pedir el nombre siempre).
    */
   nombres: Record<string, string>;
+  /** En el móvil en vertical, se eligió jugar así (sin girarlo): no se vuelve a pedir. */
+  jugarEnVertical: boolean;
 }
 
 /** Ajustes guardados; si faltan o están dañados, los de por defecto (nada de lo leído se da por bueno sin comprobarlo). */
@@ -30,9 +32,13 @@ export function cargarAjustes(): Ajustes {
     const nombres = Object.entries(a?.nombres ?? {}).filter(
       (par): par is [string, string] => typeof par[1] === 'string',
     );
-    return { silencio: a?.silencio === true, nombres: Object.fromEntries(nombres) };
+    return {
+      silencio: a?.silencio === true,
+      nombres: Object.fromEntries(nombres),
+      jugarEnVertical: a?.jugarEnVertical === true,
+    };
   } catch {
-    return { silencio: false, nombres: {} };
+    return { silencio: false, nombres: {}, jugarEnVertical: false };
   }
 }
 

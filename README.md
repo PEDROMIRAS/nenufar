@@ -19,7 +19,7 @@ Dungeon crawler 2D para navegador y móvil: exploras zonas de salas en tiempo re
 | Inventario (pausa) y volver | Escape o I (X también vuelve) | Botón de la mochila |
 | Qué hace cada opción del combate | I | Botón i (después, un toque elige y otro usa) |
 
-En el móvil se juega en horizontal: en vertical el juego pide girarlo, porque se vería a un tercio de su tamaño.
+En el móvil se juega mejor en horizontal. En vertical el juego lo recomienda, y con «Jugar así igualmente» se estira a todo el ancho de la pantalla.
 
 Cada zona se genera al entrar (`?semilla=N` en la URL repite una partida). Los monstruos patrullan y te persiguen; si los pillas por la espalda, atacas primero. En combate, fíjate en el golpe cargado que anuncian: es el momento de Defender. Sube de nivel, encuentra equipo en el botín y los cofres, y bebe de la fuente una vez por zona.
 

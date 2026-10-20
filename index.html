@@ -43,7 +43,7 @@
       canvas {
         image-rendering: pixelated;
       }
-      /* En un móvil en vertical el juego quedaría a un tercio de su tamaño: se pide girarlo. */
+      /* En un móvil en vertical el juego se ve pequeño: se recomienda girarlo, o jugar así igualmente. */
       #girar {
         display: none;
         position: fixed;
@@ -57,12 +57,20 @@
         font: bold 18px monospace;
         text-align: center;
       }
+      #girar button {
+        justify-self: center;
+        padding: 12px 20px;
+        border: 2px solid #8fa88a;
+        background: #2b3a33;
+        color: #e8efe4;
+        font: bold 16px monospace;
+      }
       #girar span {
         font-size: 48px;
         color: #ffd27a;
       }
       @media (orientation: portrait) and (pointer: coarse) {
-        #girar {
+        body:not(.vertical) #girar {
           display: grid;
         }
       }
@@ -84,7 +92,11 @@
       aria-label="Nenúfar. Se juega con las flechas o WASD, Enter para aceptar, Escape o I para abrir el inventario, Escape para volver, e I en combate para ver qué hace cada opción; también tocando la pantalla."
     ></canvas>
     <div id="anuncios" class="solo-lector" aria-live="polite"></div>
-    <div id="girar"><span aria-hidden="true">⟳</span>Gira el móvil para jugar</div>
+    <div id="girar">
+      <span aria-hidden="true">⟳</span>
+      Se juega mejor con el móvil en horizontal
+      <button id="jugar-vertical" type="button">Jugar así igualmente</button>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
