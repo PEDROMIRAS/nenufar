@@ -6,7 +6,7 @@
       { "accion": "atacar", "peso": 70 },
       { "accion": "cargar", "peso": 30 }
     ],
-    "cargado": { "poder": 2.2, "aviso": "El Limo se hincha..." },
+    "cargado": { "poder": 3, "aviso": "El Limo se hincha..." },
     "jefe": false,
     "caja": { "ancho": 20, "alto": 12 },
     "color": "#7fc46a"

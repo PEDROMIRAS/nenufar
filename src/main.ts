@@ -3,7 +3,7 @@ import { crearAzar } from './core/azar';
 import { crearCombate, luchadorDeHeroe, luchadorDeMonstruo, type Luchador } from './core/combate';
 import { crearHeroina, type Heroina } from './core/heroina';
 import { crearCatalogo } from './core/sala';
-import type { HeroeJson, MonstruoJson, PlantillasJson, ReglasCombate } from './core/types';
+import type { MonstruoJson, PlantillasJson, ReglasCombate } from './core/types';
 import { generarZona } from './core/zona';
 import reglasCombate from './data/combate.json';
 import controles from './data/controles.json';
@@ -17,6 +17,7 @@ import { EscenaCombate } from './escenas/combate';
 import { EscenaFin } from './escenas/fin';
 import { EscenaMapa } from './escenas/mapa';
 import { PilaEscenas } from './escenas/pila';
+import { EscenaSeleccion } from './escenas/seleccion';
 import { leerFuentes } from './input/fuente';
 import { crearJoystick } from './input/joystick';
 import { crearTeclado } from './input/teclado';
@@ -51,8 +52,6 @@ async function iniciar(): Promise<void> {
   if (!canvas) throw new Error('Falta el canvas #juego');
   const ctx = prepararPantalla(canvas);
 
-  // shortcut: heroína fija (ronin); la pantalla de selección llega al final del hito 3.
-  const heroe: HeroeJson = heroes.ronin;
   // ?semilla=N repite una partida; sin ella, cada carga es distinta.
   const pedida = Number(new URLSearchParams(location.search).get('semilla'));
   const semilla =
@@ -66,23 +65,36 @@ async function iniciar(): Promise<void> {
     crearToque(canvas),
   ];
   const acciones = crearAcciones();
-  const partida: Partida = {
-    semilla,
-    pila: new PilaEscenas(),
-    heroina: crearHeroina(heroe, 0, 0), // cada escena la coloca en su sala de inicio
-    // La misma luchadora en todos los combates: la vida perdida se arrastra.
-    luchadora: luchadorDeHeroe(heroe),
-    sprite: await cargarSprite(heroe.sprite),
-    combates: 0,
-  };
-  partida.pila.apilar(await crearZona(partida, 0, false));
+  const pila = new PilaEscenas();
+  const opciones = await Promise.all(
+    Object.values(heroes).map(async (heroe) => ({
+      heroe,
+      sprite: await cargarSprite(heroe.sprite),
+    })),
+  );
+  pila.apilar(
+    new EscenaSeleccion(opciones, ({ heroe, sprite }) => {
+      const partida: Partida = {
+        semilla,
+        pila,
+        heroina: crearHeroina(heroe, 0, 0), // cada escena la coloca en su sala de inicio
+        // La misma luchadora en todos los combates: la vida perdida se arrastra.
+        luchadora: luchadorDeHeroe(heroe),
+        sprite,
+        combates: 0,
+      };
+      crearZona(partida, 0, true)
+        .then((zona) => pila.cambiar(zona))
+        .catch(mostrarError);
+    }),
+  );
 
   iniciarBucle(
     (dt) => {
       leerFuentes(fuentes, acciones);
-      partida.pila.update(dt, acciones);
+      pila.update(dt, acciones);
     },
-    (alpha) => partida.pila.draw(ctx, alpha),
+    (alpha) => pila.draw(ctx, alpha),
   );
 }
 

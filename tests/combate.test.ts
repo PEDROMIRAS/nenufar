@@ -101,15 +101,15 @@ describe('acciones', () => {
       aviso: 'El Limo se hincha...',
     });
     actuar(c, { tipo: 'defender' });
-    // Golpe cargado: (6 × 2,2 − 3) = 10,2 → 10 → a la mitad = 5.
-    expect(c.heroina.pv).toBe(42 - 5);
+    // Golpe cargado: (6 × 3 − 3) = 15 → a la mitad = 7.
+    expect(c.heroina.pv).toBe(42 - 7);
   });
 
   test('sin defender, el golpe cargado entra entero', () => {
     const c = combate(cola(0.5, 0.5, 0.8), { velocidad: 10, pv: 100 });
     avanzar(c);
     actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
-    expect(c.heroina.pv).toBe(42 - 10);
+    expect(c.heroina.pv).toBe(42 - 15);
   });
 
   test('Huir falla con 0,65 la primera vez (60 %) y lo logra con 0,65 la segunda (70 %)', () => {
