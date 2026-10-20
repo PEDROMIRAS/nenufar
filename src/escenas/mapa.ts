@@ -14,9 +14,13 @@ import {
 import type { PlantillasJson } from '../core/types';
 import type { SalaZona, Zona } from '../core/zona';
 import { dibujarHeroina } from '../render/heroina';
+import { pintarMinimapa } from '../render/minimapa';
 import type { Sprite } from '../render/recursos';
 import { dibujarObjetos, pintarFondo, pintarVineta } from '../render/sala';
 import type { Escena } from './escena';
+
+/** Separación del minimapa respecto al borde de la pantalla, en píxeles lógicos. */
+const MARGEN_HUD = 6;
 
 interface SalaMontada {
   sala: Sala;
@@ -30,6 +34,8 @@ export class EscenaMapa implements Escena {
   private readonly vineta: HTMLCanvasElement;
   private actual: SalaZona;
   private montada: SalaMontada;
+  private readonly visitadas = new Set<SalaZona>();
+  private minimapa: HTMLCanvasElement;
   private tiempo = 0;
   /** Segundos que lleva el fundido entre salas (0 = sin fundido) y lado por el que se sale. */
   private fundido = 0;
@@ -45,11 +51,14 @@ export class EscenaMapa implements Escena {
     private readonly sprite: Sprite,
     /** Duración total del fundido a negro y vuelta al cambiar de sala, en segundos. */
     private readonly duracionFundido: number,
+    /** Lado de la rejilla de la zona, en salas (para el minimapa). */
+    private readonly rejilla: number,
   ) {
     const inicio = zona.salas.find((s) => s.tipo === 'inicio');
     if (!inicio) throw new Error('La zona no tiene sala de inicio');
     this.actual = inicio;
     this.montada = this.montar(inicio);
+    this.minimapa = this.visitar(inicio);
     const { sala } = this.montada;
     this.salidas = salidas(sala.ancho, sala.alto);
     this.vineta = pintarVineta(this.montada.fondo.width, this.montada.fondo.height);
@@ -107,6 +116,8 @@ export class EscenaMapa implements Escena {
       ctx.fillRect(0, 0, this.vineta.width, this.vineta.height);
       ctx.globalAlpha = 1;
     }
+    // El minimapa va encima del fundido: es interfaz, no parte de la sala.
+    ctx.drawImage(this.minimapa, this.vineta.width - this.minimapa.width - MARGEN_HUD, MARGEN_HUD);
   }
 
   private cruzar(lado: number): void {
@@ -115,7 +126,14 @@ export class EscenaMapa implements Escena {
     if (!vecina || !entrada) return;
     this.actual = vecina;
     this.montada = this.montar(vecina);
+    this.minimapa = this.visitar(vecina);
     this.colocar(posicionEntrada(entrada, this.tam, this.heroina.cuerpo.alto));
+  }
+
+  /** Marca la sala como visitada y devuelve el minimapa al día. */
+  private visitar(s: SalaZona): HTMLCanvasElement {
+    this.visitadas.add(s);
+    return pintarMinimapa(this.zona, this.visitadas, s, this.rejilla);
   }
 
   /** Coloca a la heroína sin interpolar desde la posición anterior (evita que cruce la pantalla). */

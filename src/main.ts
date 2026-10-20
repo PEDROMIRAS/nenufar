@@ -56,6 +56,7 @@ async function iniciar(): Promise<void> {
     heroina,
     sprite,
     zonas.transicionSalas,
+    zonas.generacion.rejilla,
   );
   escena.enter();
 
