@@ -22,7 +22,15 @@ import {
   type Salida,
   type Tile,
 } from '../core/sala';
-import type { Direccion, MonstruoJson, PlantillasJson } from '../core/types';
+import { abrirCofre } from '../core/equipo';
+import type { Inventario } from '../core/inventario';
+import type {
+  BotinJson,
+  Direccion,
+  MonstruoJson,
+  ObjetosJson,
+  PlantillasJson,
+} from '../core/types';
 import type { SalaZona, Zona } from '../core/zona';
 import { dibujarHeroina } from '../render/heroina';
 import { dibujarAviso, dibujarHud, type TextosHud } from '../render/hud';
@@ -96,6 +104,12 @@ export interface OpcionesMapa {
   /** Estadísticas de combate de la heroína y nombre de la zona, para el HUD. */
   luchadora: Luchador;
   nombreZona: string;
+  /** Tabla del cofre de la sala del tesoro, inventario de la partida y objetos que existen. */
+  cofre: readonly BotinJson[];
+  inventario: Inventario;
+  objetos: ObjetosJson;
+  /** Enseña la comparación de una pieza de equipo encontrada y avisa al decidir. */
+  ofrecerEquipo: (clave: string, alFinal: () => void) => void;
 }
 
 /** Exploración de una zona: la sala actual, la heroína y el paso de una sala a otra o a la zona siguiente. */
@@ -176,8 +190,11 @@ export class EscenaMapa implements Escena {
       l.pv = l.pvMax;
       l.pm = l.pmMax;
       this.fuenteUsada = true;
-      this.aviso = 'La fuente te restaura los PV y los PM';
-      this.tiempoAviso = DURACION_AVISO;
+      this.avisar('La fuente te restaura los PV y los PM');
+    }
+    if (this.actual.tipo === 'tesoro') {
+      const cofre = objetoAlAlcance(this.montada.sala, 'cofre_cerrado', h.cuerpo, tam, ALCANCE);
+      if (cofre) this.abrir(cofre);
     }
     for (const m of this.montada.monstruos) {
       const mov = m.grupo[0]?.mapa;
@@ -248,6 +265,30 @@ export class EscenaMapa implements Escena {
     if (this.tiempoAviso > 0) dibujarAviso(ctx, this.aviso);
     // El minimapa va encima del fundido: es interfaz, no parte de la sala.
     ctx.drawImage(this.minimapa, this.vineta.width - this.minimapa.width - MARGEN_HUD, MARGEN_HUD);
+  }
+
+  private avisar(texto: string): void {
+    this.aviso = texto;
+    this.tiempoAviso = DURACION_AVISO;
+  }
+
+  /** Abre el cofre (se queda abierto) y guarda lo que hay o enseña la pieza de equipo. */
+  private abrir(cofre: ObjetoSala): void {
+    const { catalogo, cofre: tabla, luchadora, objetos, inventario } = this.o;
+    const abierto = catalogo.get('cofre_abierto');
+    if (abierto) cofre.inf = abierto;
+    const hallazgo = abrirCofre(tabla, this.azarMapa, luchadora.heroe, objetos, inventario);
+    if (!hallazgo) {
+      this.avisar('El cofre está vacío');
+    } else if (hallazgo.tipo === 'consumible') {
+      this.avisar(
+        hallazgo.guardado
+          ? `En el cofre hay: ${hallazgo.nombre}`
+          : `${hallazgo.nombre}: no te caben más`,
+      );
+    } else {
+      this.o.ofrecerEquipo(hallazgo.clave, () => {});
+    }
   }
 
   private refrescarHud(): void {

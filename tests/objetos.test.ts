@@ -8,10 +8,11 @@ import {
   luchadorDeMonstruo,
   type Combate,
 } from '../src/core/combate';
-import { describirPieza, equipar, piezaDeBotin } from '../src/core/equipo';
+import { abrirCofre, describirPieza, equipar, piezaDeBotin } from '../src/core/equipo';
 import { crearInventario, guardar } from '../src/core/inventario';
 import type { MonstruoJson } from '../src/core/types';
 import { HEROES, MONSTRUOS, OBJETOS, REGLAS } from '../src/data/datos';
+import zonas from '../src/data/zonas.json';
 
 // Monstruo de prueba que no hace daño y suelta siempre una Poción.
 const muneco: MonstruoJson = {
@@ -152,4 +153,39 @@ test('describirPieza: bonos y efecto en texto', () => {
     '10 % de Veneno al golpear',
   ]);
   expect(describirPieza(OBJETOS.equipo.tunica!, REGLAS.estados)).toEqual(['+2 Defensa']);
+});
+
+describe('cofres', () => {
+  test('un cofre con equipo devuelve la pieza de la heroína que se juega', () => {
+    const tabla = [{ objeto: 'arma', nivel: 3, peso: 1 }];
+    expect(abrirCofre(tabla, () => 0.5, HEROES.maga, OBJETOS, crearInventario())).toEqual({
+      tipo: 'equipo',
+      clave: 'cetro_luna',
+    });
+  });
+
+  test('un cofre con un consumible lo guarda', () => {
+    const inv = crearInventario();
+    const hallazgo = abrirCofre(
+      [{ objeto: 'eter', peso: 1 }],
+      () => 0.5,
+      HEROES.ronin,
+      OBJETOS,
+      inv,
+    );
+    expect(hallazgo).toEqual({ tipo: 'consumible', nombre: 'Éter', guardado: true });
+    expect(inv.consumibles.eter).toBe(1);
+  });
+
+  test('los cofres de zonas.json solo tienen cosas que existen, y el de la Cripta es de nivel 3', () => {
+    for (const z of Object.values(zonas.zonas)) {
+      for (const b of z.cofre) {
+        const ok =
+          b.objeto in OBJETOS.consumibles ||
+          piezaDeBotin(b.objeto, (b as { nivel?: number }).nivel, HEROES.ronin, OBJETOS) !== null;
+        expect(ok, b.objeto).toBe(true);
+      }
+    }
+    expect(zonas.zonas.cripta.cofre.every((b) => (b as { nivel?: number }).nivel === 3)).toBe(true);
+  });
 });

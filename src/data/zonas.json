@@ -5,7 +5,10 @@
   },
   "jefeFinal": "senor_cripta",
   "monstruos": {
-    "gruposPorSala": { "min": 1, "max": 3 },
+    "gruposPorSala": {
+      "min": 1,
+      "max": 3
+    },
     "distanciaEntradas": 3
   },
   "zonas": {
@@ -13,35 +16,158 @@
       "nombre": "Bosque",
       "salas": 8,
       "jefe": "rey_limo",
+      "cofre": [
+        {
+          "objeto": "arma",
+          "nivel": 1,
+          "peso": 40
+        },
+        {
+          "objeto": "armadura",
+          "nivel": 1,
+          "peso": 30
+        },
+        {
+          "objeto": "pocion",
+          "peso": 30
+        }
+      ],
       "grupos": [
-        { "monstruos": ["limo"], "peso": 3 },
-        { "monstruos": ["limo", "limo"], "peso": 3 },
-        { "monstruos": ["murcielago"], "peso": 2 },
-        { "monstruos": ["limo", "murcielago"], "peso": 2 }
+        {
+          "monstruos": [
+            "limo"
+          ],
+          "peso": 3
+        },
+        {
+          "monstruos": [
+            "limo",
+            "limo"
+          ],
+          "peso": 3
+        },
+        {
+          "monstruos": [
+            "murcielago"
+          ],
+          "peso": 2
+        },
+        {
+          "monstruos": [
+            "limo",
+            "murcielago"
+          ],
+          "peso": 2
+        }
       ]
     },
     "ruinas": {
       "nombre": "Ruinas",
       "salas": 11,
       "jefe": "golem",
+      "cofre": [
+        {
+          "objeto": "arma",
+          "nivel": 2,
+          "peso": 40
+        },
+        {
+          "objeto": "armadura",
+          "nivel": 2,
+          "peso": 40
+        },
+        {
+          "objeto": "eter",
+          "peso": 20
+        }
+      ],
       "grupos": [
-        { "monstruos": ["esqueleto"], "peso": 3 },
-        { "monstruos": ["arana"], "peso": 2 },
-        { "monstruos": ["murcielago", "murcielago"], "peso": 2 },
-        { "monstruos": ["esqueleto", "murcielago"], "peso": 2 },
-        { "monstruos": ["arana", "esqueleto"], "peso": 1 }
+        {
+          "monstruos": [
+            "esqueleto"
+          ],
+          "peso": 3
+        },
+        {
+          "monstruos": [
+            "arana"
+          ],
+          "peso": 2
+        },
+        {
+          "monstruos": [
+            "murcielago",
+            "murcielago"
+          ],
+          "peso": 2
+        },
+        {
+          "monstruos": [
+            "esqueleto",
+            "murcielago"
+          ],
+          "peso": 2
+        },
+        {
+          "monstruos": [
+            "arana",
+            "esqueleto"
+          ],
+          "peso": 1
+        }
       ]
     },
     "cripta": {
       "nombre": "Cripta",
       "salas": 14,
       "jefe": "reina_arana",
+      "cofre": [
+        {
+          "objeto": "arma",
+          "nivel": 3,
+          "peso": 50
+        },
+        {
+          "objeto": "armadura",
+          "nivel": 3,
+          "peso": 50
+        }
+      ],
       "grupos": [
-        { "monstruos": ["caballero"], "peso": 2 },
-        { "monstruos": ["arana", "arana"], "peso": 2 },
-        { "monstruos": ["chaman", "caballero"], "peso": 2 },
-        { "monstruos": ["chaman", "arana"], "peso": 2 },
-        { "monstruos": ["caballero", "arana"], "peso": 1 }
+        {
+          "monstruos": [
+            "caballero"
+          ],
+          "peso": 2
+        },
+        {
+          "monstruos": [
+            "arana",
+            "arana"
+          ],
+          "peso": 2
+        },
+        {
+          "monstruos": [
+            "chaman",
+            "caballero"
+          ],
+          "peso": 2
+        },
+        {
+          "monstruos": [
+            "chaman",
+            "arana"
+          ],
+          "peso": 2
+        },
+        {
+          "monstruos": [
+            "caballero",
+            "arana"
+          ],
+          "peso": 1
+        }
       ]
     }
   }

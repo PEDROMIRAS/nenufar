@@ -1,6 +1,14 @@
 import type { Luchador } from './combate';
-import type { Inventario } from './inventario';
-import type { EquipoJson, EstadoJson, Estadisticas, HeroeJson, ObjetosJson } from './types';
+import { elegirConPeso } from './azar';
+import { guardar, type Inventario } from './inventario';
+import type {
+  BotinJson,
+  EquipoJson,
+  EstadoJson,
+  Estadisticas,
+  HeroeJson,
+  ObjetosJson,
+} from './types';
 
 /**
  * Pieza concreta de una entrada de botín: "arma" de nivel N es la N-ésima arma de la heroína que se
@@ -59,4 +67,30 @@ export function describirPieza(pieza: EquipoJson, estados: Record<string, Estado
     lineas.push(`${Math.round(pieza.efecto.probabilidad * 100)} % de ${nombre} al golpear`);
   }
   return lineas;
+}
+
+/** Lo que sale de un cofre: un consumible (que se guarda si cabe) o una pieza de equipo por decidir. */
+export type Hallazgo =
+  { tipo: 'consumible'; nombre: string; guardado: boolean } | { tipo: 'equipo'; clave: string };
+
+/** Abre un cofre con la tabla de su zona: tira una vez y guarda el consumible o devuelve la pieza. */
+export function abrirCofre(
+  tabla: readonly BotinJson[],
+  azar: () => number,
+  heroe: HeroeJson | null,
+  objetos: ObjetosJson,
+  inv: Inventario,
+): Hallazgo | null {
+  const entrada = elegirConPeso(tabla, azar);
+  if (!entrada) return null;
+  const consumible = objetos.consumibles[entrada.objeto];
+  if (consumible) {
+    return {
+      tipo: 'consumible',
+      nombre: consumible.nombre,
+      guardado: guardar(inv, entrada.objeto, objetos.maximoPorTipo),
+    };
+  }
+  const clave = piezaDeBotin(entrada.objeto, entrada.nivel, heroe, objetos);
+  return clave ? { tipo: 'equipo', clave } : null;
 }
