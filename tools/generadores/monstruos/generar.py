@@ -1,0 +1,115 @@
+"""Genera las hojas de sprites de los monstruos y los jefes.
+
+Cada monstruo: public/assets/sprites/monstruos/<clave>.png y .json, con filas abajo, izquierda,
+derecha y arriba, y animaciones idle (2), walk (4), atacar (3) y golpe (1). Ancla en los pies.
+Uso (desde la raíz del repo): python tools/generadores/monstruos/generar.py
+"""
+import json
+import os
+import sys
+
+from PIL import Image
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
+SALIDA = os.path.join(REPO, "public", "assets", "sprites", "monstruos")
+PREVIEWS = os.path.join(REPO, "docs", "previews")
+
+from lienzo import Lienzo  # noqa: E402
+import criaturas  # noqa: E402
+import humanoides  # noqa: E402
+
+DIRS = ["down", "left", "right", "up"]
+VISTA = {"down": "frente", "left": "lado", "right": "lado", "up": "espalda"}
+# (nombre, fotogramas, fps, en bucle)
+ANIMS = [("idle", 2, 3, True), ("walk", 4, 8, True), ("atacar", 3, 10, False), ("golpe", 1, 1, False)]
+
+BASE = {"contorno": (30, 24, 32), "ojo": (20, 18, 24), "brillo": (246, 250, 236),
+        "oro": (226, 182, 72), "oro_s": (160, 112, 44), "gema": (208, 62, 82)}
+
+
+def paleta(**colores):
+    p = dict(BASE)
+    p.update(colores)
+    return p
+
+
+HUESO = dict(hueso=(216, 210, 191), hueso_s=(160, 152, 134), hueso_l=(240, 236, 222), cuenca=(36, 28, 38))
+METAL = dict(metal=(170, 178, 190), metal_l=(226, 232, 240))
+VERDE = dict(cuerpo=(127, 196, 106), cuerpo_s=(78, 146, 72), cuerpo_l=(186, 232, 150), boca=(40, 70, 40))
+MONSTRUOS = {
+    # Bosque: verdes y tierras
+    "limo": (32, paleta(**VERDE), criaturas.limo, {}),
+    "limo_grande": (32, paleta(cuerpo=(104, 186, 120), cuerpo_s=(62, 132, 84), cuerpo_l=(168, 226, 168),
+                               boca=(34, 66, 44)), criaturas.limo, {}),
+    "rey_limo": (48, paleta(cuerpo=(86, 168, 80), cuerpo_s=(52, 116, 56), cuerpo_l=(150, 214, 124),
+                            boca=(30, 60, 30)), criaturas.limo, {"corona": True}),
+    "murcielago": (32, paleta(cuerpo=(112, 86, 132), cuerpo_s=(74, 54, 92), cuerpo_l=(150, 124, 168),
+                              ala=(90, 66, 110), ala_s=(58, 40, 74), ojo=(226, 60, 70), diente=(240, 236, 220)),
+                   criaturas.murcielago, {}),
+    # Ruinas y Cripta: la araña común; la reina, en morados fríos
+    "arana": (32, paleta(cuerpo=(122, 59, 59), cuerpo_s=(78, 34, 40), cuerpo_l=(164, 92, 84), cabeza=(98, 46, 48),
+                         pata=(58, 30, 34), ojo=(236, 196, 80), marca=(214, 120, 60)), criaturas.arana, {}),
+    "reina_arana": (48, paleta(cuerpo=(86, 52, 110), cuerpo_s=(52, 30, 72), cuerpo_l=(128, 88, 152),
+                               cabeza=(70, 40, 92), pata=(40, 24, 54), ojo=(240, 80, 110), marca=(206, 196, 220)),
+                    criaturas.arana, {"corona": True}),
+    # Humanoides de las Ruinas y la Cripta
+    "esqueleto": (32, paleta(**HUESO, **METAL, ojo=(232, 70, 70), cuero=(110, 72, 48)), humanoides.esqueleto, {}),
+    "caballero": (32, paleta(**METAL, armadura=(59, 69, 96), armadura_s=(36, 42, 62), armadura_l=(100, 114, 150),
+                             visor=(16, 14, 20), ojo=(236, 84, 84), capa=(116, 38, 50), pluma=(176, 50, 62),
+                             cuero=(96, 64, 44)), humanoides.caballero, {}),
+    "chaman": (32, paleta(piel=(107, 143, 58), piel_s=(70, 100, 40), piel_l=(150, 186, 90), tunica=(122, 86, 52),
+                          tunica_s=(84, 56, 34), hueso=(230, 222, 200), madera=(110, 76, 44), orbe=(130, 226, 250),
+                          pluma=(214, 96, 60), ojo=(250, 210, 70)), humanoides.chaman, {}),
+    "golem": (48, paleta(piedra=(138, 132, 120), piedra_s=(92, 88, 80), piedra_l=(180, 174, 160), musgo=(96, 140, 70),
+                         runa=(120, 224, 244), runa_s=(70, 130, 150)), humanoides.golem, {}),
+    "senor_cripta": (48, paleta(**HUESO, **METAL, tunica=(48, 34, 66), tunica_s=(28, 20, 40), tunica_l=(82, 62, 108),
+                                ojo=(170, 255, 130), madera=(70, 52, 40)), humanoides.senor_cripta, {}),
+}
+
+
+def fotograma(tam, pal, dibujar, extra, direccion, anim, i):
+    c = Lienzo(tam, pal)
+    dibujar(c, VISTA[direccion], anim, i, **extra)
+    c.contorno()
+    img = c.imagen(golpe=anim == "golpe")
+    return img.transpose(Image.FLIP_LEFT_RIGHT) if direccion == "left" else img
+
+
+def hoja(clave, tam, pal, dibujar, extra):
+    columnas = sum(n for _, n, _, _ in ANIMS)
+    sheet = Image.new("RGBA", (columnas * tam, len(DIRS) * tam), (0, 0, 0, 0))
+    meta = {"frameWidth": tam, "frameHeight": tam, "anchor": {"x": tam // 2, "y": tam - 2},
+            "directions": {}, "animations": {}}
+    for fila, d in enumerate(DIRS):
+        meta["directions"][d] = fila
+        col = 0
+        for nombre, n, fps, bucle in ANIMS:
+            meta["animations"][nombre] = {"startColumn": col, "frames": n, "fps": fps, "loop": bucle}
+            for i in range(n):
+                sheet.paste(fotograma(tam, pal, dibujar, extra, d, nombre, i), (col * tam, fila * tam))
+                col += 1
+    sheet.save(os.path.join(SALIDA, f"{clave}.png"))
+    with open(os.path.join(SALIDA, f"{clave}.json"), "w", encoding="utf-8") as f:
+        json.dump(meta, f, indent=2, ensure_ascii=False)
+    return sheet
+
+
+def main():
+    os.makedirs(SALIDA, exist_ok=True)
+    hojas = {clave: hoja(clave, *datos) for clave, datos in MONSTRUOS.items()}
+    # Vista previa: cada hoja ×3, una debajo de otra, sobre fondo de hierba oscura.
+    ancho = max(h.width for h in hojas.values()) * 3
+    alto = sum(h.height * 3 + 8 for h in hojas.values())
+    prev = Image.new("RGB", (ancho, alto), (44, 70, 46))
+    y = 0
+    for h in hojas.values():
+        prev.paste(h.resize((h.width * 3, h.height * 3), Image.NEAREST), (0, y), h.resize((h.width * 3, h.height * 3), Image.NEAREST))
+        y += h.height * 3 + 8
+    prev.save(os.path.join(PREVIEWS, "monstruos_x3.png"))
+    print("ok:", ", ".join(hojas))
+
+
+if __name__ == "__main__":
+    main()

@@ -43,6 +43,7 @@ def main():
     # 1. Personajes (escriben directamente en public/assets/sprites y docs/previews)
     run("rana_ronin.py", PERSONAJES)
     run("rana_maga.py", PERSONAJES)
+    run("generar.py", os.path.join(HERE, "monstruos"))
 
     # 2. Entorno (escribe en entorno/out y se copia a su sitio)
     for script in ("demo_final.py", "demo_plantilla.py", "demo_zonas.py"):
