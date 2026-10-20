@@ -1,14 +1,16 @@
 import type { ConsumibleJson } from './types';
 
-/** Lo que lleva la heroína: consumibles con su cantidad y el equipo puesto (claves de objetos.json). */
+/** Lo que lleva la heroína: consumibles con su cantidad, el equipo puesto y el guardado (claves de objetos.json). */
 export interface Inventario {
   consumibles: Record<string, number>;
   arma: string | null;
   armadura: string | null;
+  /** Piezas de equipo que tiene pero no lleva puestas: se pueden cambiar desde el inventario. */
+  mochila: string[];
 }
 
 export function crearInventario(): Inventario {
-  return { consumibles: {}, arma: null, armadura: null };
+  return { consumibles: {}, arma: null, armadura: null, mochila: [] };
 }
 
 /** Guarda un consumible si no se ha llegado al máximo de ese tipo. Devuelve si cupo. */

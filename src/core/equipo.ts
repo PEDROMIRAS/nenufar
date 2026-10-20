@@ -81,7 +81,7 @@ export type Hallazgo =
 
 /**
  * Abre un cofre con la tabla de su zona: tira una vez y guarda el consumible o devuelve la pieza.
- * Como en el botín, nunca sale la pieza que ya se lleva puesta.
+ * Como en el botín, nunca sale una pieza que ya se tiene (puesta o en la mochila).
  */
 export function abrirCofre(
   tabla: readonly BotinJson[],
@@ -90,13 +90,12 @@ export function abrirCofre(
   objetos: ObjetosJson,
   inv: Inventario,
 ): Hallazgo | null {
-  const yaPuesta = (e: BotinJson): boolean => {
+  const yaLaTiene = (e: BotinJson): boolean => {
     const clave = piezaDeBotin(e.objeto, e.nivel, heroe, objetos);
-    const hueco = clave ? objetos.equipo[clave]?.hueco : undefined;
-    return hueco !== undefined && inv[hueco] === clave;
+    return clave !== null && laTiene(inv, clave);
   };
   const entrada = elegirConPeso(
-    tabla.filter((e) => !yaPuesta(e)),
+    tabla.filter((e) => !yaLaTiene(e)),
     azar,
   );
   if (!entrada) return null;
@@ -136,4 +135,41 @@ export function coloresDeEquipo(
     });
   }
   return pares;
+}
+
+/** ¿Tiene ya esa pieza, puesta o guardada en la mochila? */
+export function laTiene(inv: Inventario, clave: string): boolean {
+  return inv.arma === clave || inv.armadura === clave || inv.mochila.includes(clave);
+}
+
+/** Guarda una pieza en la mochila sin ponérsela (si no la tenía ya). */
+export function guardarPieza(inv: Inventario, clave: string): void {
+  if (!laTiene(inv, clave)) inv.mochila.push(clave);
+}
+
+/** Se pone una pieza (nueva o de la mochila); la que llevaba en ese hueco pasa a la mochila. */
+export function ponerPieza(
+  l: Luchador,
+  inv: Inventario,
+  objetos: ObjetosJson,
+  clave: string,
+): void {
+  const nueva = objetos.equipo[clave];
+  if (!nueva) throw new Error(`Equipo desconocido: ${clave}`);
+  const vieja = inv[nueva.hueco];
+  if (vieja === clave) return;
+  inv.mochila = inv.mochila.filter((k) => k !== clave);
+  if (vieja) inv.mochila.push(vieja);
+  equipar(l, inv, objetos, clave);
+}
+
+/** Las piezas de un hueco que tiene (la puesta y las de la mochila), en el orden de objetos.json. */
+export function piezasDe(
+  inv: Inventario,
+  objetos: ObjetosJson,
+  hueco: 'arma' | 'armadura',
+): string[] {
+  return Object.keys(objetos.equipo).filter(
+    (k) => objetos.equipo[k]?.hueco === hueco && laTiene(inv, k),
+  );
 }

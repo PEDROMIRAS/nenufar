@@ -1,5 +1,5 @@
 import { elegirConPeso } from './azar';
-import { piezaDeBotin } from './equipo';
+import { laTiene, piezaDeBotin } from './equipo';
 import { aplicarConsumible, crearInventario, guardar, type Inventario } from './inventario';
 import { ganarExperiencia } from './progresion';
 import type {
@@ -610,12 +610,7 @@ function repartirBotin(c: Combate, eventos: Evento[]): void {
     const pieza = piezaDeBotin(entrada.objeto, entrada.nivel, c.heroina.heroe, c.objetos);
     const datos = pieza ? c.objetos.equipo[pieza] : undefined;
     // Lo que ya lleva puesto (o ya ha salido en este combate) no se vuelve a ofrecer.
-    if (
-      !pieza ||
-      !datos ||
-      c.inventario[datos.hueco] === pieza ||
-      c.equipoEncontrado.includes(pieza)
-    ) {
+    if (!pieza || !datos || laTiene(c.inventario, pieza) || c.equipoEncontrado.includes(pieza)) {
       continue;
     }
     c.equipoEncontrado.push(pieza);

@@ -21,7 +21,7 @@ Dungeon crawler 2D para navegador y móvil: exploras zonas de salas en tiempo re
 
 En el móvil se juega mejor en horizontal. En vertical el juego lo recomienda, y con «Jugar así igualmente» se estira a todo el ancho de la pantalla.
 
-Cada zona se genera al entrar (`?semilla=N` en la URL repite una partida). Los monstruos patrullan y te persiguen; si los pillas por la espalda, atacas primero. En combate, fíjate en el golpe cargado que anuncian: es el momento de Defender. Sube de nivel, encuentra equipo en el botín y los cofres, y bebe de la fuente una vez por zona.
+Cada zona se genera al entrar (`?semilla=N` en la URL repite una partida). Los monstruos patrullan y te persiguen; si los pillas por la espalda, atacas primero. En combate, fíjate en el golpe cargado que anuncian: es el momento de Defender. Sube de nivel, encuentra equipo en el botín y los cofres (lo que no te pones se guarda en la mochila y se cambia desde el Inventario), y bebe de la fuente una vez por zona.
 
 ## Qué tiene de interesante por dentro
 

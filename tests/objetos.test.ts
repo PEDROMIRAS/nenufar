@@ -13,7 +13,10 @@ import {
   coloresDeEquipo,
   describirPieza,
   equipar,
+  guardarPieza,
   piezaDeBotin,
+  piezasDe,
+  ponerPieza,
 } from '../src/core/equipo';
 import { crearInventario, guardar } from '../src/core/inventario';
 import type { MonstruoJson } from '../src/core/types';
@@ -229,5 +232,39 @@ describe('colores del equipo', () => {
         expect(pieza.tinte, clave).toHaveLength(parte.length);
       }
     }
+  });
+});
+
+describe('mochila de equipo', () => {
+  test('ponerse una pieza manda la que llevaba a la mochila y las estadísticas cuadran', () => {
+    const h = luchadorDeHeroe(HEROES.ronin);
+    const ataqueBase = h.ataque;
+    const inv = crearInventario();
+    ponerPieza(h, inv, OBJETOS, 'katana_madera');
+    ponerPieza(h, inv, OBJETOS, 'katana_acero');
+    expect(inv.arma).toBe('katana_acero');
+    expect(inv.mochila).toEqual(['katana_madera']);
+    expect(h.ataque).toBe(ataqueBase + OBJETOS.equipo.katana_acero!.bonos.ataque!);
+    // Volver a la de madera desde la mochila: intercambio limpio, sin sumar dos veces.
+    ponerPieza(h, inv, OBJETOS, 'katana_madera');
+    expect(inv.mochila).toEqual(['katana_acero']);
+    expect(h.ataque).toBe(ataqueBase + OBJETOS.equipo.katana_madera!.bonos.ataque!);
+    expect(piezasDe(inv, OBJETOS, 'arma')).toEqual(['katana_madera', 'katana_acero']);
+  });
+
+  test('guardar en la mochila no se pone nada, y lo que se tiene ya no sale en cofres', () => {
+    const inv = crearInventario();
+    guardarPieza(inv, 'cota_malla');
+    guardarPieza(inv, 'cota_malla');
+    expect(inv.mochila).toEqual(['cota_malla']);
+    expect(inv.armadura).toBeNull();
+    const tabla = [
+      { objeto: 'armadura', nivel: 2, peso: 99 },
+      { objeto: 'arma', nivel: 2, peso: 1 },
+    ];
+    expect(abrirCofre(tabla, () => 0, HEROES.ronin, OBJETOS, inv)).toEqual({
+      tipo: 'equipo',
+      clave: 'katana_acero',
+    });
   });
 });

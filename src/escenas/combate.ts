@@ -483,7 +483,7 @@ export class EscenaCombate implements Escena {
     const dx = Math.sign(a.moverX);
     const dy = Math.sign(a.moverY);
     // En la rejilla de 3 columnas, arriba y abajo saltan una fila.
-    const salto = (dx !== this.ultimoX ? dx : 0) + (n > 5 && dy !== this.ultimoY ? dy * 3 : 0);
+    const salto = (dx !== this.ultimoX ? dx : 0) + (n > 6 && dy !== this.ultimoY ? dy * 3 : 0);
     if (salto !== 0) {
       menu.seleccion = (((menu.seleccion + salto) % n) + n) % n;
       sonar('cursor');

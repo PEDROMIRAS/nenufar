@@ -32,6 +32,8 @@ export class EscenaPausa implements Escena {
     private readonly objetos: ObjetosJson,
     private readonly progresion: ReglasProgresion,
     private readonly estados: Record<string, EstadoJson>,
+    /** Abre la pantalla de Equipo para cambiar arma y armadura. */
+    private readonly alEquipo: () => void,
     private readonly alSeguir: () => void,
     private readonly alSalir: () => void,
   ) {
@@ -92,13 +94,16 @@ export class EscenaPausa implements Escena {
     sonar('confirmar');
     if (i === 0) {
       this.alSeguir();
+    } else if (i === 1) {
+      this.alEquipo();
+      return;
     } else if (i === n - 1) {
       if (this.salirPulsado) this.alSalir();
       this.salirPulsado = true;
     } else if (i === n - 2) {
       silenciar(!estaSilenciado());
     } else {
-      const clave = this.usables[i - 1]!;
+      const clave = this.usables[i - 2]!;
       const obj = this.objetos.consumibles[clave];
       if (obj && (this.inv.consumibles[clave] ?? 0) > 0) {
         aplicarConsumible(this.l, obj);
@@ -109,6 +114,11 @@ export class EscenaPausa implements Escena {
   }
 
   /** Rehace la ficha y el menú (al abrir y después de usar algo). */
+  /** Vuelve a leer a la heroína (al volver de la pantalla de Equipo). */
+  refrescar(): void {
+    this.rehacer();
+  }
+
   private rehacer(): void {
     const { l, inv, objetos } = this;
     const piezas = [inv.arma, inv.armadura].map((clave) =>
@@ -148,6 +158,7 @@ export class EscenaPausa implements Escena {
         'Equipo:',
         ...pieza('Arma', piezas[0]),
         ...pieza('Armadura', piezas[1]),
+        ...(inv.mochila.length > 0 ? [`En la mochila: ${inv.mochila.length}`] : []),
         'Objetos:',
         ...Object.entries(objetos.consumibles).map(
           ([clave, o]) => `${o.nombre} x${inv.consumibles[clave] ?? 0}`,
@@ -156,6 +167,7 @@ export class EscenaPausa implements Escena {
     };
     this.menu.opciones = [
       { texto: 'Seguir', detalle: '', disponible: true },
+      { texto: 'Equipo', detalle: '', disponible: true },
       ...this.usables.map((clave) => {
         const cuantos = inv.consumibles[clave] ?? 0;
         return {

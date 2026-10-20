@@ -31,7 +31,7 @@ import zonas from './data/zonas.json';
 import { EscenaCombate } from './escenas/combate';
 import { EscenaDificultad } from './escenas/dificultad';
 import { EscenaNombre } from './escenas/nombre';
-import { EscenaEquipo } from './escenas/equipo';
+import { EscenaEquipo, type DatosEquipo } from './escenas/equipo';
 import { EscenaMensaje } from './escenas/mensaje';
 import { EscenaMapa } from './escenas/mapa';
 import { PilaEscenas } from './escenas/pila';
@@ -249,19 +249,27 @@ async function crearZona(
     inventario: partida.inventario,
     objetos: OBJETOS,
     ofrecerEquipo: (clave, alFinal) => ofrecerEquipo(partida, [clave], alFinal),
-    abrirPausa: () =>
-      partida.pila.apilar(
-        new EscenaPausa(
-          partida.luchadora,
-          partida.sprite,
-          partida.inventario,
-          OBJETOS,
-          REGLAS.experiencia,
-          REGLAS.estados,
-          () => partida.pila.desapilar(),
-          empezarOtra,
-        ),
-      ),
+    abrirPausa: () => {
+      const pausa: EscenaPausa = new EscenaPausa(
+        partida.luchadora,
+        partida.sprite,
+        partida.inventario,
+        OBJETOS,
+        REGLAS.experiencia,
+        REGLAS.estados,
+        () =>
+          partida.pila.apilar(
+            new EscenaEquipo(datosEquipo(partida), { tipo: 'cambiar' }, () => {
+              partida.pila.desapilar();
+              vestir(partida);
+              pausa.refrescar();
+            }),
+          ),
+        () => partida.pila.desapilar(),
+        empezarOtra,
+      );
+      partida.pila.apilar(pausa);
+    },
     distanciaMonstruos: zonas.monstruos.distanciaEntradas,
     invulnerabilidad: REGLAS.invulnerabilidadTrasCombate,
     luchadora: partida.luchadora,
@@ -288,6 +296,18 @@ function vestir(partida: Partida): void {
   );
 }
 
+/** Lo que necesita la pantalla de Equipo de la partida. */
+function datosEquipo(partida: Partida): DatosEquipo {
+  return {
+    luchadora: partida.luchadora,
+    inventario: partida.inventario,
+    objetos: OBJETOS,
+    estados: REGLAS.estados,
+    sprite: partida.sprite,
+    imagenBase: partida.imagenBase,
+  };
+}
+
 /** Enseña, una tras otra, las piezas de equipo encontradas para decidir si se cambian; después sigue. */
 function ofrecerEquipo(partida: Partida, piezas: readonly string[], alFinal: () => void): void {
   const [primera, ...resto] = piezas;
@@ -297,17 +317,10 @@ function ofrecerEquipo(partida: Partida, piezas: readonly string[], alFinal: () 
     return;
   }
   partida.pila.apilar(
-    new EscenaEquipo(
-      partida.luchadora,
-      partida.inventario,
-      OBJETOS,
-      REGLAS.estados,
-      primera,
-      () => {
-        partida.pila.desapilar();
-        ofrecerEquipo(partida, resto, alFinal);
-      },
-    ),
+    new EscenaEquipo(datosEquipo(partida), { tipo: 'hallazgo', clave: primera }, () => {
+      partida.pila.desapilar();
+      ofrecerEquipo(partida, resto, alFinal);
+    }),
   );
 }
 

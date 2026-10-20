@@ -128,14 +128,14 @@ export function xEnemigo(i: number, n: number): number {
 }
 
 /**
- * Rectángulo del botón `i` de un menú de `n` opciones. Hasta 5 caben en una fila; más, en una
+ * Rectángulo del botón `i` de un menú de `n` opciones. Hasta 6 caben en una fila; más, en una
  * rejilla de 3 columnas que ocupa también el registro. Altos de sobra para un dedo.
  */
 export function rectOpcion(
   i: number,
   n: number,
 ): { x: number; y: number; ancho: number; alto: number } {
-  if (n <= 5) {
+  if (n <= 6) {
     const ancho = (ANCHO - 32 - (n - 1) * 8) / n;
     return { x: 16 + i * (ancho + 8), y: 292, ancho, alto: 48 };
   }
@@ -164,7 +164,7 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   dibujarEfecto(ctx, v);
   dibujarFlotante(ctx, v);
 
-  const enRejilla = v.menu !== null && v.menu.opciones.length > 5;
+  const enRejilla = v.menu !== null && v.menu.opciones.length > 6;
   if (!enRejilla) {
     // Registro de las dos últimas acciones; en modo información, la ayuda de la opción elegida ocupa
     // el panel (si cabe en una línea, debajo sigue el registro). Sin nada que leer, no hay panel.
