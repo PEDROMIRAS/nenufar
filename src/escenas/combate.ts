@@ -14,6 +14,7 @@ import {
   anticipoAtaque,
   dibujarCombate,
   rectOpcion,
+  tocaInfo,
   type MenuVista,
   type VistaCombate,
 } from '../render/combate';
@@ -65,8 +66,11 @@ const TITULO: Record<Resultado, string> = {
 const PRINCIPAL = ['Atacar', 'Habilidad', 'Objeto', 'Defender', 'Huir'] as const;
 type Modo = 'principal' | 'habilidades' | 'objetos' | 'objetivo';
 
+/** Modo información de la sesión: si se enciende en un combate, sigue encendido en los siguientes. */
+let infoActiva = false;
+
 /** Líneas que caben en el panel del registro. */
-const LARGO_LINEA = 62;
+const LARGO_LINEA = 57; // deja sitio al botón «i»
 const ayuda = (texto: string): string[] => partirEnLineas(texto, LARGO_LINEA);
 
 const textoVida = (pv: number, max: number): string => `${pv}/${max}`;
@@ -130,6 +134,7 @@ export class EscenaCombate implements Escena {
       cargando: new Set(),
       defendiendo: false,
       titulo: '',
+      info: infoActiva,
     };
   }
 
@@ -145,6 +150,10 @@ export class EscenaCombate implements Escena {
     // Música de combate (de jefe si hay alguno) hasta que se decide; luego, silencio para la fanfarria.
     ponerMusica(this.combate.resultado ? null : this.pista);
     v.tiempo += dt;
+    if (acciones.info || (acciones.toqueX >= 0 && tocaInfo(acciones.toqueX, acciones.toqueY))) {
+      this.alternarInfo();
+      return;
+    }
     v.tiempoAtaque += dt;
     v.tiempoEfecto += dt;
     if (v.tiempoCaida >= 0) v.tiempoCaida += dt;
@@ -336,6 +345,19 @@ export class EscenaCombate implements Escena {
     v.flotanteCura = cambio > 0;
   }
 
+  /** Enciende o apaga el modo información; se recuerda para los combates siguientes. */
+  private alternarInfo(): void {
+    this.v.info = !this.v.info;
+    infoActiva = this.v.info;
+    sonar('cursor');
+    anunciar(this.v.info ? 'Información activada' : 'Información desactivada');
+  }
+
+  private anunciarOpcion(): void {
+    const o = this.v.menu?.opciones[this.v.menu.seleccion];
+    if (o) anunciar(o.ayuda ? `${o.texto}. ${o.ayuda.join(' ')}` : o.texto);
+  }
+
   private registrar(texto: string): void {
     this.v.registro[0] = this.v.registro[1];
     this.v.registro[1] = texto;
@@ -420,7 +442,8 @@ export class EscenaCombate implements Escena {
     }
     const menu = this.v.menu!;
     const n = menu.opciones.length;
-    // Tocar una opción la elige y la usa a la vez.
+    // Tocar una opción la elige y la usa a la vez; en modo información, el primer toque solo la
+    // elige (y enseña qué hace) y el segundo la usa.
     if (a.toqueX >= 0) {
       for (let i = 0; i < n; i++) {
         const r = rectOpcion(i, n);
@@ -430,6 +453,12 @@ export class EscenaCombate implements Escena {
           a.toqueY >= r.y &&
           a.toqueY < r.y + r.alto
         ) {
+          if (this.v.info && i !== menu.seleccion) {
+            menu.seleccion = i;
+            sonar('cursor');
+            this.anunciarOpcion();
+            return;
+          }
           menu.seleccion = i;
           this.elegir(i);
           return;
@@ -448,8 +477,7 @@ export class EscenaCombate implements Escena {
     if (salto !== 0) {
       menu.seleccion = (((menu.seleccion + salto) % n) + n) % n;
       sonar('cursor');
-      const o = menu.opciones[menu.seleccion];
-      anunciar(o ? [o.texto, ...(o.ayuda ?? [])].join('. ') : '');
+      this.anunciarOpcion();
     }
     this.ultimoX = dx;
     this.ultimoY = dy;

@@ -60,6 +60,8 @@ export interface VistaCombate {
   defendiendo: boolean;
   /** Texto grande del final («¡Victoria!»…); vacío mientras se lucha. */
   titulo: string;
+  /** Modo información: el panel enseña qué hace la opción elegida en vez del registro. */
+  info: boolean;
 }
 
 const COLOR = {
@@ -156,8 +158,8 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
     // Registro de las dos últimas acciones.
     ctx.fillStyle = COLOR.panel;
     ctx.fillRect(8, 256, ANCHO - 16, 32);
-    // Con una opción elegida, su ayuda ocupa el panel (y si cabe en una línea, debajo sigue el registro).
-    const ayuda = v.menu?.opciones[v.menu.seleccion]?.ayuda;
+    // En modo información, la ayuda de la opción elegida ocupa el panel (si cabe en una línea, debajo sigue el registro).
+    const ayuda = v.info ? v.menu?.opciones[v.menu.seleccion]?.ayuda : undefined;
     if (ayuda?.[0]) {
       escribir(ctx, ayuda[0], 16, 259, COLOR.aviso);
       escribir(ctx, ayuda[1] ?? v.registro[1], 16, 273, ayuda[1] ? COLOR.aviso : undefined);
@@ -165,6 +167,7 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
       escribir(ctx, v.registro[0], 16, 259, '#aab8a6');
       escribir(ctx, v.registro[1], 16, 273);
     }
+    dibujarBotonInfo(ctx, v.info);
   }
   dibujarMenu(ctx, v.menu);
 
@@ -174,6 +177,33 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
     escribir(ctx, v.titulo, ANCHO / 2, 140, COLOR.aviso, 'center', FUENTE_GRANDE);
     escribir(ctx, 'Pulsa o toca para continuar', ANCHO / 2, 180, '#e8efe4', 'center');
   }
+}
+
+/** Botón «i» en la esquina del panel del registro. El área que responde al toque es mayor que el dibujo. */
+export const BOTON_INFO = { x: ANCHO - 38, y: 258, lado: 28, margenToque: 8 };
+
+/** ¿El toque (x, y) cae en el botón «i»? */
+export function tocaInfo(x: number, y: number): boolean {
+  const { x: bx, y: by, lado, margenToque: m } = BOTON_INFO;
+  return x >= bx - m && x < bx + lado + m && y >= by - m && y < by + lado + m;
+}
+
+function dibujarBotonInfo(ctx: CanvasRenderingContext2D, activo: boolean): void {
+  const { x, y, lado } = BOTON_INFO;
+  ctx.fillStyle = activo ? COLOR.botonActivo : COLOR.boton;
+  ctx.fillRect(x, y, lado, lado);
+  ctx.fillStyle = activo ? COLOR.aviso : COLOR.borde;
+  ctx.fillRect(x, y, lado, 2);
+  ctx.fillRect(x, y + lado - 2, lado, 2);
+  escribir(
+    ctx,
+    'i',
+    x + lado / 2,
+    y + 2,
+    activo ? COLOR.aviso : '#e8efe4',
+    'center',
+    FUENTE_GRANDE,
+  );
 }
 
 export function dibujarMenu(ctx: CanvasRenderingContext2D, menu: MenuVista | null): void {

@@ -6,6 +6,8 @@ export interface Acciones {
   confirmar: boolean;
   cancelar: boolean;
   menu: boolean;
+  /** Enseñar u ocultar la ayuda de las opciones. */
+  info: boolean;
   /** Dónde se tocó o se hizo clic en este paso, en píxeles lógicos; -1 si no hubo toque. */
   toqueX: number;
   toqueY: number;
@@ -19,6 +21,7 @@ export function crearAcciones(): Acciones {
     confirmar: false,
     cancelar: false,
     menu: false,
+    info: false,
     toqueX: -1,
     toqueY: -1,
   };
