@@ -29,13 +29,32 @@ export function dibujarAviso(ctx: CanvasRenderingContext2D, texto: string): void
 }
 
 /** Botón de menú en la esquina superior derecha del mapa (para el móvil; con teclado es Escape). */
+const MOCHILA = { oscuro: '#4a2c1a', cuerpo: '#8a5a34', solapa: '#b07a44', hebilla: '#e2b648' };
+
+/** Botón de la mochila (abre el inventario), arriba a la derecha. */
 export const BOTON_MENU = { x: ANCHO - 6 - 36, y: 6, ancho: 36, alto: 36 };
 
 export function dibujarBotonMenu(ctx: CanvasRenderingContext2D): void {
   const { x, y, ancho, alto } = BOTON_MENU;
   ctx.fillStyle = 'rgba(8, 14, 10, 0.6)';
   ctx.fillRect(x, y, ancho, alto);
-  // Tres rayas: el icono habitual de menú.
-  ctx.fillStyle = '#e8efe4';
-  for (let i = 0; i < 3; i++) ctx.fillRect(x + 9, y + 10 + i * 7, ancho - 18, 3);
+  // Una mochila en píxeles: abre el inventario.
+  const mx = x + (ancho - 20) / 2;
+  const my = y + (alto - 24) / 2;
+  ctx.fillStyle = MOCHILA.oscuro;
+  ctx.fillRect(mx + 6, my, 8, 2); // asa
+  ctx.fillRect(mx + 5, my + 1, 2, 3);
+  ctx.fillRect(mx + 13, my + 1, 2, 3);
+  ctx.fillRect(mx, my + 3, 20, 21); // contorno
+  ctx.fillStyle = MOCHILA.cuerpo;
+  ctx.fillRect(mx + 1, my + 4, 18, 19);
+  ctx.fillStyle = MOCHILA.solapa;
+  ctx.fillRect(mx + 1, my + 4, 18, 7);
+  ctx.fillStyle = MOCHILA.oscuro;
+  ctx.fillRect(mx + 1, my + 11, 18, 1);
+  ctx.fillRect(mx + 5, my + 15, 10, 6); // bolsillo
+  ctx.fillStyle = MOCHILA.solapa;
+  ctx.fillRect(mx + 6, my + 16, 8, 4);
+  ctx.fillStyle = MOCHILA.hebilla;
+  ctx.fillRect(mx + 8, my + 9, 4, 4);
 }

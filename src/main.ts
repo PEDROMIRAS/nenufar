@@ -181,9 +181,11 @@ async function crearZona(
       partida.pila.apilar(
         new EscenaPausa(
           partida.luchadora,
+          partida.sprite,
           partida.inventario,
           OBJETOS,
           REGLAS.experiencia,
+          REGLAS.estados,
           () => partida.pila.desapilar(),
           empezarOtra,
         ),

@@ -1,30 +1,37 @@
 import type { Acciones } from '../core/acciones';
 import { habilidadesDisponibles, type Luchador } from '../core/combate';
 import { aplicarConsumible, type Inventario } from '../core/inventario';
+import { describirPieza } from '../core/equipo';
 import { experienciaParaSubir } from '../core/progresion';
-import type { ObjetosJson, ReglasProgresion } from '../core/types';
+import type { EquipoJson, EstadoJson, ObjetosJson, ReglasProgresion } from '../core/types';
 import { rectOpcion, type MenuVista } from '../render/combate';
-import { dibujarPausa } from '../render/pausa';
+import { dibujarInventario, type FichaInventario } from '../render/pausa';
+import type { Sprite } from '../render/recursos';
 import { estaSilenciado, silenciar, sonar } from '../render/sonido';
 import { anunciar } from '../render/accesibilidad';
 import type { Escena } from './escena';
 
-/** Pausa en el mapa: estadísticas, equipo e inventario; se pueden usar pociones y éteres y quitar el sonido. */
+/**
+ * Inventario (botón de la mochila o Escape en el mapa): pausa el juego y enseña la heroína, sus
+ * estadísticas, equipo y objetos; se pueden usar pociones y éteres, quitar el sonido o salir.
+ */
 export class EscenaPausa implements Escena {
   /** Consumibles que sirven fuera de combate (los que restauran PV o PM). */
   private readonly usables: string[];
   private readonly menu: MenuVista = { opciones: [], seleccion: 0 };
-  private izquierda: string[] = [];
-  private derecha: string[] = [];
+  private ficha!: FichaInventario;
+  private tiempo = 0;
   private ultimoX = 0;
   /** Salir pide una segunda pulsación para no perder la partida por un toque sin querer. */
   private salirPulsado = false;
 
   constructor(
     private readonly l: Luchador,
+    private readonly sprite: Sprite,
     private readonly inv: Inventario,
     private readonly objetos: ObjetosJson,
     private readonly progresion: ReglasProgresion,
+    private readonly estados: Record<string, EstadoJson>,
     private readonly alSeguir: () => void,
     private readonly alSalir: () => void,
   ) {
@@ -35,11 +42,23 @@ export class EscenaPausa implements Escena {
   }
 
   enter(): void {
-    anunciar(['Pausa', ...this.izquierda, ...this.derecha].join('. '));
+    const f = this.ficha;
+    anunciar(
+      [
+        'Inventario',
+        f.cabecera,
+        `PV ${f.textoPv}`,
+        `PM ${f.textoPm}`,
+        `PX ${f.textoPx}`,
+        ...f.habilidades,
+        ...f.derecha,
+      ].join('. '),
+    );
   }
   exit(): void {}
 
-  update(_dt: number, a: Acciones): void {
+  update(dt: number, a: Acciones): void {
+    this.tiempo += dt;
     if (a.cancelar || a.menu) {
       this.alSeguir();
       return;
@@ -73,7 +92,7 @@ export class EscenaPausa implements Escena {
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
-    dibujarPausa(ctx, this.izquierda, this.derecha, this.menu);
+    dibujarInventario(ctx, this.sprite, this.tiempo, this.ficha, this.menu);
   }
 
   private elegir(i: number): void {
@@ -97,31 +116,53 @@ export class EscenaPausa implements Escena {
     this.rehacer();
   }
 
-  /** Rehace textos y menú (al abrir y después de usar algo). */
+  /** Rehace la ficha y el menú (al abrir y después de usar algo). */
   private rehacer(): void {
     const { l, inv, objetos } = this;
-    const nombre = (clave: string | null): string =>
-      (clave && objetos.equipo[clave]?.nombre) || 'Nada';
-    this.izquierda = [
-      `${l.nombre}:`,
-      `Nivel ${l.nivel}`,
-      `PX ${l.experiencia}/${experienciaParaSubir(l.nivel, this.progresion)}`,
-      `PV ${l.pv}/${l.pvMax}`,
-      `PM ${l.pm}/${l.pmMax}`,
-      `Ataque ${l.ataque} · Magia ${l.magia}`,
-      `Defensa ${l.defensa} · Velocidad ${l.velocidad}`,
-      'Habilidades:',
-      ...habilidadesDisponibles(l).map((h) => h.nombre),
+    const piezas = [inv.arma, inv.armadura].map((clave) =>
+      clave ? objetos.equipo[clave] : undefined,
+    );
+    // Lo que suma el equipo a cada estadística, para enseñarlo aparte: «Ataque 12 (+3)».
+    const conBono = (
+      etiqueta: string,
+      clave: 'ataque' | 'magia' | 'defensa' | 'velocidad',
+    ): string => {
+      const bono = piezas.reduce((suma, p) => suma + (p?.bonos[clave] ?? 0), 0);
+      return `${etiqueta} ${l[clave]}${bono ? ` (+${bono})` : ''}`;
+    };
+    const pieza = (etiqueta: string, p: EquipoJson | undefined): string[] => [
+      `${etiqueta}: ${p?.nombre ?? 'Nada'}`,
+      // El efecto especial (veneno al golpear…) es la última línea de su descripción.
+      ...(p?.efecto ? describirPieza(p, this.estados).slice(-1) : []),
     ];
-    this.derecha = [
-      'Equipo:',
-      `Arma: ${nombre(inv.arma)}`,
-      `Armadura: ${nombre(inv.armadura)}`,
-      'Inventario:',
-      ...Object.entries(objetos.consumibles).map(
-        ([clave, o]) => `${o.nombre} x${inv.consumibles[clave] ?? 0}`,
-      ),
-    ];
+    const siguiente = experienciaParaSubir(l.nivel, this.progresion);
+    this.ficha = {
+      cabecera: `${l.nombre} · Nivel ${l.nivel}`,
+      pv: l.pv,
+      pvMax: l.pvMax,
+      pm: l.pm,
+      pmMax: l.pmMax,
+      px: l.experiencia,
+      pxSiguiente: siguiente,
+      textoPv: `${l.pv}/${l.pvMax}`,
+      textoPm: `${l.pm}/${l.pmMax}`,
+      textoPx: `${l.experiencia}/${siguiente}`,
+      habilidades: habilidadesDisponibles(l).map((h) => h.nombre),
+      derecha: [
+        'Estadísticas:',
+        conBono('Ataque', 'ataque'),
+        conBono('Magia', 'magia'),
+        conBono('Defensa', 'defensa'),
+        conBono('Velocidad', 'velocidad'),
+        'Equipo:',
+        ...pieza('Arma', piezas[0]),
+        ...pieza('Armadura', piezas[1]),
+        'Objetos:',
+        ...Object.entries(objetos.consumibles).map(
+          ([clave, o]) => `${o.nombre} x${inv.consumibles[clave] ?? 0}`,
+        ),
+      ],
+    };
     this.menu.opciones = [
       { texto: 'Seguir', detalle: '', disponible: true },
       ...this.usables.map((clave) => {

@@ -14,7 +14,7 @@ Dungeon crawler 2D para navegador y móvil: exploras zonas de salas en tiempo re
 | --- | --- | --- |
 | Moverse y elegir | Flechas o WASD | Joystick (arrastra en cualquier punto) |
 | Aceptar | Enter, Espacio o Z | Tocar la opción |
-| Volver / pausa | Escape o X | Botón ☰ |
+| Inventario (pausa) y volver | Escape (X también vuelve) | Botón de la mochila |
 | Qué hace cada opción del combate | I | Botón i (después, un toque elige y otro usa) |
 
 Cada zona se genera al entrar (`?semilla=N` en la URL repite una partida). Los monstruos patrullan y te persiguen; si los pillas por la espalda, atacas primero. En combate, fíjate en el golpe cargado que anuncian: es el momento de Defender. Sube de nivel, encuentra equipo en el botín y los cofres, y bebe de la fuente una vez por zona.
