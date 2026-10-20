@@ -110,6 +110,16 @@ export interface AccionMonstruoJson {
   condicion?: { pvPropioMenorQue?: number; pvAliadoMenorQue?: number };
 }
 
+/** Cómo se mueve un monstruo por el mapa, en píxeles y píxeles por segundo. */
+export interface MovimientoMapaJson {
+  velocidad: number;
+  persecucion: number;
+  /** Distancia a la que ve a la heroína y empieza a perseguirla. */
+  vision: number;
+  /** Radio alrededor de su casa por el que patrulla. */
+  patrulla: number;
+}
+
 /** Una fase de jefe: empieza cuando sus PV bajan de `pvMenorQue` × PV máximos. */
 export interface FaseJson {
   pvMenorQue: number;
@@ -139,6 +149,8 @@ export interface MonstruoJson {
   experiencia: number;
   /** Caja de colisión en el mapa, anclada en los pies. */
   caja: { ancho: number; alto: number };
+  /** Patrulla y persecución en el mapa; sin este campo se queda quieto (los jefes). */
+  mapa?: MovimientoMapaJson;
   /** Color del rectángulo que lo representa hasta que tenga sprite (hito 6). */
   color: string;
 }

@@ -10,7 +10,8 @@ import {
   salaVecina,
   salidaPisada,
 } from '../core/mapa';
-import { colocarMonstruos, seTocan, type Caja } from '../core/monstruos';
+import { colocarMonstruos, seTocan } from '../core/monstruos';
+import { actualizarPatrulla, crearPatrulla, iniciativa, type Patrulla } from '../core/patrulla';
 import { buscarInicio } from '../core/movimiento';
 import {
   aplicarPuertas,
@@ -21,7 +22,7 @@ import {
   type Salida,
   type Tile,
 } from '../core/sala';
-import type { MonstruoJson, PlantillasJson } from '../core/types';
+import type { Direccion, MonstruoJson, PlantillasJson } from '../core/types';
 import type { SalaZona, Zona } from '../core/zona';
 import { dibujarHeroina } from '../render/heroina';
 import { dibujarAviso, dibujarHud, type TextosHud } from '../render/hud';
@@ -31,6 +32,14 @@ import type { Sprite } from '../render/recursos';
 import { dibujarObjetos, pintarFondo, pintarVineta } from '../render/sala';
 import type { Escena } from './escena';
 
+/** Vector hacia el que mira la heroína según su dirección. */
+const MIRADA: Record<Direccion, [number, number]> = {
+  down: [0, 1],
+  up: [0, -1],
+  left: [-1, 0],
+  right: [1, 0],
+};
+
 /** Separación del minimapa respecto al borde de la pantalla, en píxeles lógicos. */
 const MARGEN_HUD = 6;
 /** Píxeles alrededor de la heroína en los que un objeto se puede usar (pegarse a la fuente). */
@@ -39,7 +48,9 @@ const ALCANCE = 4;
 const DURACION_AVISO = 2.5;
 
 /** Un grupo de monstruos en el mapa: se ve y choca como el primero, y se lucha contra todos. */
-interface MonstruoMapa extends Caja {
+interface MonstruoMapa {
+  /** Posición, caja de colisión y patrulla (los jefes no tienen datos de movimiento y no se mueven). */
+  p: Patrulla;
   grupo: MonstruoJson[];
   vivo: boolean;
 }
@@ -77,7 +88,11 @@ export interface OpcionesMapa {
   /** Segundos sin poder empezar otro combate tras huir o vencer. */
   invulnerabilidad: number;
   /** Abre el combate contra `monstruo` y avisa de su resultado al terminar (salvo derrota). */
-  iniciarCombate: (grupo: MonstruoJson[], alTerminar: (r: Resultado) => void) => void;
+  iniciarCombate: (
+    grupo: MonstruoJson[],
+    alTerminar: (r: Resultado) => void,
+    iniciativa: 'heroina' | 'monstruos' | null,
+  ) => void;
   /** Estadísticas de combate de la heroína y nombre de la zona, para el HUD. */
   luchadora: Luchador;
   nombreZona: string;
@@ -99,6 +114,8 @@ export class EscenaMapa implements Escena {
   private portalUsado = false;
   /** Segundos que quedan sin poder empezar otro combate. */
   private invulnerable = 0;
+  /** Azar de la patrulla de los monstruos. */
+  private readonly azarMapa: () => number;
   /** La fuente de la sala de descanso restaura una sola vez por zona. */
   private fuenteUsada = false;
   /** Aviso en pantalla (la fuente…) y segundos que le quedan. */
@@ -111,6 +128,7 @@ export class EscenaMapa implements Escena {
   constructor(private readonly o: OpcionesMapa) {
     const inicio = o.zona.salas.find((s) => s.tipo === 'inicio');
     if (!inicio) throw new Error('La zona no tiene sala de inicio');
+    this.azarMapa = crearAzar(o.zona.semilla * 7 + 3);
     const referencia = o.plantillas.plantillas[0]?.mapa ?? [];
     this.salidas = salidas(referencia[0]?.length ?? 0, referencia.length);
     this.actual = inicio;
@@ -161,11 +179,26 @@ export class EscenaMapa implements Escena {
       this.aviso = 'La fuente te restaura los PV y los PM';
       this.tiempoAviso = DURACION_AVISO;
     }
+    for (const m of this.montada.monstruos) {
+      const mov = m.grupo[0]?.mapa;
+      if (m.vivo && mov) {
+        actualizarPatrulla(
+          m.p,
+          mov,
+          h.cuerpo.x,
+          h.cuerpo.y,
+          dt,
+          this.montada.sala,
+          tam,
+          this.azarMapa,
+        );
+      }
+    }
     if (this.invulnerable > 0) {
       this.invulnerable = Math.max(0, this.invulnerable - dt);
     } else {
       for (const m of this.montada.monstruos) {
-        if (m.vivo && seTocan(h.cuerpo, m)) {
+        if (m.vivo && seTocan(h.cuerpo, m.p.cuerpo)) {
           this.luchar(m);
           return;
         }
@@ -193,12 +226,12 @@ export class EscenaMapa implements Escena {
     const { monstruos } = this.montada;
     dibujarObjetos(ctx, sala, imagenes, tam, this.tiempo, -Infinity, pies);
     for (const m of monstruos) {
-      if (m.vivo && m.y <= pies) dibujarMonstruoMapa(ctx, m, m.grupo, this.tiempo);
+      if (m.vivo && m.p.cuerpo.y <= pies) this.dibujarMonstruo(ctx, m, alpha);
     }
     // Parpadea mientras no se puede empezar otro combate.
     if (Math.floor(this.invulnerable * 10) % 2 === 0) dibujarHeroina(ctx, sprite, h, alpha);
     for (const m of monstruos) {
-      if (m.vivo && m.y > pies) dibujarMonstruoMapa(ctx, m, m.grupo, this.tiempo);
+      if (m.vivo && m.p.cuerpo.y > pies) this.dibujarMonstruo(ctx, m, alpha);
     }
     dibujarObjetos(ctx, sala, imagenes, tam, this.tiempo, pies, Infinity);
     ctx.drawImage(this.vineta, 0, 0);
@@ -228,15 +261,35 @@ export class EscenaMapa implements Escena {
     this.hud.pm = `${l.pm}/${l.pmMax}`;
   }
 
+  private dibujarMonstruo(ctx: CanvasRenderingContext2D, m: MonstruoMapa, alpha: number): void {
+    const { cuerpo: c, xAnterior, yAnterior } = m.p;
+    const x = xAnterior + (c.x - xAnterior) * alpha;
+    const y = yAnterior + (c.y - yAnterior) * alpha;
+    dibujarMonstruoMapa(ctx, x, y, c.ancho, c.alto, m.grupo, this.tiempo);
+  }
+
   private luchar(m: MonstruoMapa): void {
     const sala = this.montada;
-    this.o.iniciarCombate(m.grupo, (resultado) => {
-      if (resultado === 'victoria') {
-        m.vivo = false;
-        if (m.grupo[0]?.jefe) this.abrirPortal(sala);
-      }
-      this.invulnerable = this.o.invulnerabilidad;
-    });
+    const h = this.o.heroina;
+    const [dirX, dirY] = MIRADA[h.direccion];
+    // Solo los monstruos que se mueven pueden pillar o ser pillados por la espalda.
+    const quien = m.grupo[0]?.mapa
+      ? iniciativa(
+          { x: h.cuerpo.x, y: h.cuerpo.y, dirX, dirY },
+          { x: m.p.cuerpo.x, y: m.p.cuerpo.y, dirX: m.p.dirX, dirY: m.p.dirY },
+        )
+      : null;
+    this.o.iniciarCombate(
+      m.grupo,
+      (resultado) => {
+        if (resultado === 'victoria') {
+          m.vivo = false;
+          if (m.grupo[0]?.jefe) this.abrirPortal(sala);
+        }
+        this.invulnerable = this.o.invulnerabilidad;
+      },
+      quien,
+    );
   }
 
   private cruzar(lado: number): void {
@@ -309,7 +362,7 @@ export class EscenaMapa implements Escena {
       const { ancho, alto } = jefe.caja;
       const x = Math.floor(sala.ancho / 2) * tam + tam / 2;
       const y = Math.floor(sala.alto / 2) * tam + (tam + alto) / 2;
-      return [{ x, y, ancho, alto, grupo: [jefe], vivo: true }];
+      return [{ p: crearPatrulla({ x, y, ancho, alto }), grupo: [jefe], vivo: true }];
     }
     if (s.tipo !== 'combate' || grupos.length === 0) return [];
     const { min, max } = gruposPorSala;
@@ -321,7 +374,11 @@ export class EscenaMapa implements Escena {
         if (!grupo || !primero) return [];
         const { ancho, alto } = primero.caja;
         return [
-          { x: c * tam + tam / 2, y: f * tam + (tam + alto) / 2, ancho, alto, grupo, vivo: true },
+          {
+            p: crearPatrulla({ x: c * tam + tam / 2, y: f * tam + (tam + alto) / 2, ancho, alto }),
+            grupo,
+            vivo: true,
+          },
         ];
       },
     );

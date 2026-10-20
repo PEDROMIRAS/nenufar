@@ -68,6 +68,8 @@ export type Evento =
   /** Anuncio de un monstruo (cambio de fase, invocación…); `retira` = deja el combate sin morir. */
   | { tipo: 'aviso'; actor: Luchador; texto: string; retira: boolean }
   | { tipo: 'aparece'; objetivo: Luchador }
+  /** Alguien pilló al otro por la espalda y actúa primero en la primera ronda. */
+  | { tipo: 'iniciativa'; quien: 'heroina' | 'monstruos' }
   | { tipo: 'huida'; exito: boolean }
   | { tipo: 'muerte'; objetivo: Luchador }
   | { tipo: 'experiencia'; cantidad: number }
@@ -96,6 +98,10 @@ export interface Combate {
   azar: () => number;
   /** Monstruos que pueden aparecer a mitad de combate (invocaciones y transformaciones). */
   bestiario: Readonly<Record<string, MonstruoJson>>;
+  /** Rondas empezadas. */
+  ronda: number;
+  /** Quién actúa antes que nadie en la primera ronda (por pillar al otro por la espalda). */
+  iniciativa: 'heroina' | 'monstruos' | null;
 }
 
 function luchador(
@@ -164,6 +170,8 @@ export function crearCombate(
     reglas,
     azar,
     bestiario,
+    ronda: 0,
+    iniciativa: null,
   };
 }
 
@@ -226,7 +234,7 @@ export function aplicarEstado(
 export function avanzar(c: Combate): Evento[] {
   const eventos: Evento[] = [];
   while (!c.resultado && !c.esperando) {
-    const actor = siguienteActor(c);
+    const actor = siguienteActor(c, eventos);
     actor.defendiendo = false; // la defensa dura hasta el comienzo de su propio turno
     eventos.push({ tipo: 'turno', actor });
     const aturdido = actor.estados.find((e) => e.def.pierdeTurno);
@@ -276,7 +284,7 @@ export function actuar(c: Combate, accion: AccionHeroina): Evento[] {
   return eventos;
 }
 
-function siguienteActor(c: Combate): Luchador {
+function siguienteActor(c: Combate, eventos: Evento[]): Luchador {
   for (;;) {
     if (c.turno >= c.orden.length) {
       // Nueva ronda: por Velocidad, y los empates al azar.
@@ -286,6 +294,14 @@ function siguienteActor(c: Combate): Luchador {
         (a, b) => b.velocidad - a.velocidad || desempate.get(a)! - desempate.get(b)!,
       );
       c.turno = 0;
+      c.ronda++;
+      if (c.ronda === 1 && c.iniciativa) {
+        // Quien pilla al otro por la espalda actúa antes que nadie en la primera ronda.
+        const h = c.heroina;
+        const resto = c.orden.filter((l) => l !== h);
+        c.orden = c.iniciativa === 'heroina' ? [h, ...resto] : [...resto, h];
+        eventos.push({ tipo: 'iniciativa', quien: c.iniciativa });
+      }
     }
     const actor = c.orden[c.turno++]!;
     if (actor.pv > 0) return actor;

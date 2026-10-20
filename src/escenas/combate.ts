@@ -27,6 +27,7 @@ const DURACION: Record<Evento['tipo'], number> = {
   pierdeTurno: 0.7,
   aviso: 1.1,
   aparece: 0.5,
+  iniciativa: 1.0,
   huida: 0.7,
   muerte: 0.6,
   recupera: 0.8,
@@ -181,6 +182,13 @@ export class EscenaCombate implements Escena {
           v.cargando.delete(e.actor);
         }
         this.registrar(e.texto);
+        break;
+      case 'iniciativa':
+        this.registrar(
+          e.quien === 'heroina'
+            ? '¡Pillas al enemigo por la espalda!'
+            : '¡Te atacan por la espalda!',
+        );
         break;
       case 'aparece':
         v.pv.set(e.objetivo, e.objetivo.pv);

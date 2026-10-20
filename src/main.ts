@@ -149,7 +149,7 @@ async function crearZona(
     invulnerabilidad: REGLAS.invulnerabilidadTrasCombate,
     luchadora: partida.luchadora,
     nombreZona: datos.nombre,
-    iniciarCombate: (grupo, alTerminar) => luchar(partida, grupo, alTerminar),
+    iniciarCombate: (grupo, alTerminar, quien) => luchar(partida, grupo, alTerminar, quien),
   });
 }
 
@@ -167,10 +167,12 @@ function luchar(
   partida: Partida,
   grupo: MonstruoJson[],
   alTerminar: (resultado: Resultado) => void,
+  iniciativa: 'heroina' | 'monstruos' | null = null,
 ): void {
   const { pila, luchadora } = partida;
   const azar = crearAzar(partida.semilla * 31 + ++partida.combates);
   const combate = crearCombate(luchadora, luchadoresDeGrupo(grupo), REGLAS, azar, MONSTRUOS);
+  combate.iniciativa = iniciativa;
   pila.apilar(
     new EscenaCombate(combate, partida.sprite, (resultado) => {
       pila.desapilar();
