@@ -60,14 +60,14 @@ describe('IA de los monstruos', () => {
     // 0,5 en la tabla [atacar 40, Ungüento 60, Grito 30] cae en «Ungüento».
     const c = contra(['chaman', 'caballero', 'esqueleto'], fijo(0.5));
     const [chaman, caballero, esqueleto] = c.enemigos as [Luchador, Luchador, Luchador];
-    caballero.pv = 30; // 50 %
-    esqueleto.pv = 10; // 29 %: el más herido
+    caballero.pv = Math.round(caballero.pvMax * 0.5);
+    esqueleto.pv = Math.round(esqueleto.pvMax * 0.29); // el más herido
     // El Chamán es más rápido que la ronin: cura ya en avanzar.
     const eventos = avanzar(c);
     expect(eventos).toContainEqual({
       tipo: 'cura',
       objetivo: esqueleto,
-      cantidad: Math.round(34 * 0.3),
+      cantidad: Math.round(esqueleto.pvMax * 0.3),
     });
     expect(chaman.pm).toBe(20 - 5);
   });

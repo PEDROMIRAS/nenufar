@@ -3,9 +3,9 @@
     "nombre": "Limo",
     "sprite": "monstruos/limo",
     "estadisticas": {
-      "pv": 16,
+      "pv": 19,
       "pm": 0,
-      "ataque": 5,
+      "ataque": 6,
       "magia": 0,
       "defensa": 3,
       "velocidad": 4
@@ -66,9 +66,9 @@
     "nombre": "Murciélago",
     "sprite": "monstruos/murcielago",
     "estadisticas": {
-      "pv": 12,
+      "pv": 14,
       "pm": 0,
-      "ataque": 6,
+      "ataque": 8,
       "magia": 0,
       "defensa": 2,
       "velocidad": 12
@@ -116,9 +116,9 @@
     "nombre": "Esqueleto",
     "sprite": "monstruos/esqueleto",
     "estadisticas": {
-      "pv": 34,
+      "pv": 41,
       "pm": 0,
-      "ataque": 10,
+      "ataque": 13,
       "magia": 0,
       "defensa": 8,
       "velocidad": 6
@@ -182,9 +182,9 @@
     "nombre": "Araña",
     "sprite": "monstruos/arana",
     "estadisticas": {
-      "pv": 30,
+      "pv": 36,
       "pm": 12,
-      "ataque": 9,
+      "ataque": 11,
       "magia": 0,
       "defensa": 6,
       "velocidad": 9
@@ -249,9 +249,9 @@
     "nombre": "Caballero oscuro",
     "sprite": "monstruos/caballero",
     "estadisticas": {
-      "pv": 60,
+      "pv": 72,
       "pm": 0,
-      "ataque": 14,
+      "ataque": 18,
       "magia": 0,
       "defensa": 18,
       "velocidad": 5
@@ -312,10 +312,10 @@
     "nombre": "Chamán goblin",
     "sprite": "monstruos/chaman",
     "estadisticas": {
-      "pv": 36,
+      "pv": 43,
       "pm": 20,
-      "ataque": 9,
-      "magia": 10,
+      "ataque": 11,
+      "magia": 13,
       "defensa": 8,
       "velocidad": 8
     },
@@ -393,9 +393,9 @@
     "nombre": "Rey Limo",
     "sprite": "monstruos/rey_limo",
     "estadisticas": {
-      "pv": 36,
+      "pv": 43,
       "pm": 0,
-      "ataque": 6,
+      "ataque": 8,
       "magia": 0,
       "defensa": 5,
       "velocidad": 5
@@ -448,9 +448,9 @@
     "nombre": "Limo grande",
     "sprite": "monstruos/limo_grande",
     "estadisticas": {
-      "pv": 13,
+      "pv": 16,
       "pm": 0,
-      "ataque": 6,
+      "ataque": 8,
       "magia": 0,
       "defensa": 4,
       "velocidad": 4
@@ -481,9 +481,9 @@
     "nombre": "Golem de piedra",
     "sprite": "monstruos/golem",
     "estadisticas": {
-      "pv": 84,
+      "pv": 101,
       "pm": 0,
-      "ataque": 11,
+      "ataque": 14,
       "magia": 0,
       "defensa": 14,
       "velocidad": 4
@@ -542,9 +542,9 @@
     "nombre": "Reina Araña",
     "sprite": "monstruos/reina_arana",
     "estadisticas": {
-      "pv": 96,
+      "pv": 115,
       "pm": 40,
-      "ataque": 13,
+      "ataque": 16,
       "magia": 0,
       "defensa": 12,
       "velocidad": 10
@@ -626,10 +626,10 @@
     "nombre": "Señor de la Cripta",
     "sprite": "monstruos/senor_cripta",
     "estadisticas": {
-      "pv": 156,
+      "pv": 187,
       "pm": 60,
-      "ataque": 15,
-      "magia": 13,
+      "ataque": 19,
+      "magia": 16,
       "defensa": 16,
       "velocidad": 9
     },

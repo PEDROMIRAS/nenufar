@@ -81,8 +81,8 @@ describe('habilidades', () => {
     const c = combate(heroes.maga, 3);
     c.heroina.pv = 5;
     usar(c, 'Curar', heroes.maga);
-    // round(30 × 0,35) = 11; después el Limo pega (6 − 4 × 0,5) = 4.
-    expect(c.heroina.pv).toBe(5 + 11 - 4);
+    // Cura el 35 % de sus PV máximos; después el Limo le quita 4.
+    expect(c.heroina.pv).toBe(5 + Math.round(heroes.maga.estadisticas.pv * 0.35) - 4);
   });
 
   test('sin PM suficientes o sin el nivel no se puede usar', () => {
