@@ -1,13 +1,11 @@
 {
   "transicionSalas": 0.4,
   "generacion": {
-    "rejilla": 7,
-    "maxVecinas": 2,
-    "distanciaMinimaJefe": 4
+    "rejilla": 7
   },
   "zonas": {
     "bosque": { "salas": 8 },
-    "ruinas": { "salas": 10 },
-    "cripta": { "salas": 12 }
+    "ruinas": { "salas": 11 },
+    "cripta": { "salas": 14 }
   }
 }

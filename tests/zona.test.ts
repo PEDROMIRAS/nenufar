@@ -14,6 +14,8 @@ const ajustes = (zona: keyof typeof datos.zonas) => ({
   salas: datos.zonas[zona].salas,
 });
 
+const contarPuertas = (s: SalaZona) => LADOS.filter((l) => s.puertas & l.bit).length;
+
 /** Recorre la zona por sus puertas, comprobando de paso que cada puerta tiene su pareja al otro lado. */
 function recorrer(zona: Zona): Map<SalaZona, number> {
   const en = (x: number, y: number) => zona.salas.find((s) => s.x === x && s.y === y);
@@ -50,12 +52,18 @@ describe.each(Object.keys(datos.zonas) as (keyof typeof datos.zonas)[])('zona %s
       for (const s of zona.salas) {
         expect(s.x >= 0 && s.y >= 0 && s.x < a.rejilla && s.y < a.rejilla).toBe(true);
         expect(s.distancia).toBe(distancias.get(s));
+        // El inicio y los callejones tienen 1 puerta; las salas de paso, la de llegada y 3 nuevas.
+        expect([1, 4]).toContain(contarPuertas(s));
       }
+      const inicio = zona.salas.find((s) => s.tipo === 'inicio')!;
+      expect(contarPuertas(inicio)).toBe(1);
       expect([cuenta('inicio'), cuenta('jefe'), cuenta('tesoro'), cuenta('descanso')]).toEqual([
         1, 1, 1, 1,
       ]);
+      for (const tipo of ['jefe', 'tesoro', 'descanso'] as const) {
+        expect(contarPuertas(zona.salas.find((s) => s.tipo === tipo)!)).toBe(1);
+      }
       const jefe = zona.salas.find((s) => s.tipo === 'jefe')!;
-      expect(jefe.distancia).toBeGreaterThanOrEqual(a.distanciaMinimaJefe);
       expect(jefe.distancia).toBe(Math.max(...zona.salas.map((s) => s.distancia)));
     }
   });
@@ -63,4 +71,8 @@ describe.each(Object.keys(datos.zonas) as (keyof typeof datos.zonas)[])('zona %s
   test('la misma semilla da la misma zona', () => {
     expect(generarZona(a, 42)).toEqual(generarZona(a, 42));
   });
+});
+
+test('un número de salas que no es 2 + 3k se rechaza con un mensaje claro', () => {
+  expect(() => generarZona({ rejilla: 7, salas: 10 }, 1)).toThrow('2 + 3k salas');
 });

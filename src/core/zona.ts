@@ -32,15 +32,17 @@ export interface Zona {
 
 export interface AjustesZona {
   rejilla: number;
+  /** Total de salas: inicio + salas de paso con 3 salidas nuevas + callejones; tiene que ser 2 + 3k. */
   salas: number;
-  maxVecinas: number;
-  distanciaMinimaJefe: number;
 }
 
 const MAX_SEMILLAS = 1000;
 
-/** Genera una zona válida empezando por `semilla`; si una no vale, prueba la siguiente. */
+/** Genera una zona válida empezando por `semilla`; si una no cabe en la rejilla, prueba la siguiente. */
 export function generarZona(ajustes: AjustesZona, semilla: number): Zona {
+  if (ajustes.salas < 5 || (ajustes.salas - 2) % 3 !== 0) {
+    throw new Error(`Una zona en ramas de 3 tiene 2 + 3k salas (5, 8, 11...), no ${ajustes.salas}`);
+  }
   for (let s = semilla; s < semilla + MAX_SEMILLAS; s++) {
     const salas = intentar(ajustes, crearAzar(s));
     if (salas) return { semilla: s, salas };
@@ -48,73 +50,58 @@ export function generarZona(ajustes: AjustesZona, semilla: number): Zona {
   throw new Error(`Ninguna semilla desde ${semilla} genera una zona válida`);
 }
 
+/**
+ * El inicio tiene una sola puerta. Cada sala de paso tiene la puerta por la que se llega y 3 nuevas.
+ * Las salas del final de cada rama son callejones: ahí van el jefe (en el más profundo), el tesoro y el descanso.
+ */
 function intentar(a: AjustesZona, azar: () => number): SalaZona[] | null {
   const centro = Math.floor(a.rejilla / 2);
-  const salas: SalaZona[] = [{ x: centro, y: centro, tipo: 'combate', distancia: 0, puertas: 0 }];
-  const en = new Map<number, SalaZona>([[centro * a.rejilla + centro, salas[0]!]]);
-  const sala = (x: number, y: number): SalaZona | undefined =>
-    x < 0 || y < 0 || x >= a.rejilla || y >= a.rejilla ? undefined : en.get(y * a.rejilla + x);
-
-  // Caminante aleatorio: desde una sala existente abre una puerta a una casilla libre de la rejilla.
-  for (let intentos = 0; salas.length < a.salas; intentos++) {
-    if (intentos > a.salas * 200) return null;
-    const desde = salas[Math.floor(azar() * salas.length)]!;
-    const lado = LADOS[Math.floor(azar() * 4)]!;
-    const x = desde.x + lado.dx;
-    const y = desde.y + lado.dy;
-    if (x < 0 || y < 0 || x >= a.rejilla || y >= a.rejilla || sala(x, y)) continue;
-    // Rechaza casillas rodeadas de salas para que la zona no forme bloques compactos.
-    const vecinas = LADOS.filter((l) => sala(x + l.dx, y + l.dy)).length;
-    if (vecinas > a.maxVecinas) continue;
-    const nueva: SalaZona = { x, y, tipo: 'combate', distancia: 0, puertas: lado.opuesto };
+  const ocupadas = new Set<number>();
+  const salas: SalaZona[] = [];
+  const libre = (x: number, y: number): boolean =>
+    x >= 0 && y >= 0 && x < a.rejilla && y < a.rejilla && !ocupadas.has(y * a.rejilla + x);
+  const crear = (x: number, y: number, distancia: number, puertas: number): SalaZona => {
+    const sala: SalaZona = { x, y, tipo: 'combate', distancia, puertas };
+    ocupadas.add(y * a.rejilla + x);
+    salas.push(sala);
+    return sala;
+  };
+  const abrir = (desde: SalaZona, lado: (typeof LADOS)[number]): SalaZona => {
     desde.puertas |= lado.bit;
-    salas.push(nueva);
-    en.set(y * a.rejilla + x, nueva);
-  }
+    return crear(desde.x + lado.dx, desde.y + lado.dy, desde.distancia + 1, lado.opuesto);
+  };
 
-  // Distancias por BFS desde el inicio, siguiendo puertas.
-  const inicio = salas[0]!;
-  const visitadas = new Set<SalaZona>([inicio]);
-  const cola = [inicio];
-  for (let i = 0; i < cola.length; i++) {
-    const s = cola[i]!;
-    for (const l of LADOS) {
-      const v = s.puertas & l.bit ? sala(s.x + l.dx, s.y + l.dy) : undefined;
-      if (v && !visitadas.has(v)) {
-        v.distancia = s.distancia + 1;
-        visitadas.add(v);
-        cola.push(v);
-      }
-    }
-  }
-  if (visitadas.size !== salas.length) return null;
-
-  // El BFS deja la cola ordenada por distancia: la última es la más lejana.
-  const jefe = cola[cola.length - 1]!;
-  if (jefe.distancia < a.distanciaMinimaJefe) return null;
+  const inicio = crear(centro, centro, 0, 0);
   inicio.tipo = 'inicio';
-  jefe.tipo = 'jefe';
+  let callejones = [abrir(inicio, LADOS[Math.floor(azar() * 4)]!)];
 
-  const libres = salas.filter((s) => s.tipo === 'combate');
-  const callejones = libres.filter((s) => contarBits(s.puertas) === 1);
-  const tesoro = elegir(callejones.length > 0 ? callejones : libres, azar);
-  if (!tesoro) return null;
-  tesoro.tipo = 'tesoro';
-  const descanso = elegir(
-    libres.filter((s) => s !== tesoro),
+  while (salas.length < a.salas) {
+    // Solo puede ser sala de paso un callejón con sus otros 3 lados libres en la rejilla.
+    const ampliables = callejones.filter((c) =>
+      LADOS.every((l) => c.puertas & l.bit || libre(c.x + l.dx, c.y + l.dy)),
+    );
+    const paso = elegir(ampliables, azar);
+    if (!paso) return null;
+    callejones = callejones.filter((c) => c !== paso);
+    for (const l of LADOS) if (!(paso.puertas & l.bit)) callejones.push(abrir(paso, l));
+  }
+
+  const fondo = Math.max(...callejones.map((c) => c.distancia));
+  const jefe = elegir(
+    callejones.filter((c) => c.distancia === fondo),
     azar,
-  );
-  if (!descanso) return null;
-  descanso.tipo = 'descanso';
+  )!;
+  jefe.tipo = 'jefe';
+  const resto = callejones.filter((c) => c !== jefe);
+  const tesoro = elegir(resto, azar)!;
+  tesoro.tipo = 'tesoro';
+  elegir(
+    resto.filter((c) => c !== tesoro),
+    azar,
+  )!.tipo = 'descanso';
   return salas;
 }
 
 function elegir<T>(lista: readonly T[], azar: () => number): T | undefined {
   return lista[Math.floor(azar() * lista.length)];
-}
-
-function contarBits(n: number): number {
-  let c = 0;
-  for (; n; n &= n - 1) c++;
-  return c;
 }
