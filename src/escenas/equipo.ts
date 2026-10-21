@@ -94,7 +94,7 @@ export class EscenaEquipo implements Escena {
       this.titulo = 'Equipo';
       this.pista = esTactil()
         ? 'Toca las flechas para cambiar de pieza'
-        : '↑↓ arma o armadura · ← → cambiar · Enter listo';
+        : '↑↓ elegir · ← → cambiar · Enter listo';
       this.menu = { opciones: [{ texto: 'Listo', detalle: '', disponible: true }], seleccion: 0 };
     }
     this.rehacer();
@@ -126,7 +126,8 @@ export class EscenaEquipo implements Escena {
     }
     const dy = Math.sign(a.moverY);
     if (dy !== 0 && dy !== this.ultimoY && this.modo.tipo === 'cambiar') {
-      this.activa = (this.activa + dy + HUECOS.length) % HUECOS.length;
+      // Arma, armadura y, debajo, Listo (activa === HUECOS.length).
+      this.activa = (this.activa + dy + HUECOS.length + 1) % (HUECOS.length + 1);
       sonar('cursor');
       this.rehacer();
       this.anunciarFila();
@@ -193,7 +194,8 @@ export class EscenaEquipo implements Escena {
   /** Cambia la pieza del hueco elegido por la siguiente (o la anterior) que se tiene. */
   private ciclar(dir: number): void {
     const { luchadora, inventario, objetos } = this.d;
-    const hueco = HUECOS[this.activa]!;
+    const hueco = HUECOS[this.activa];
+    if (!hueco) return; // en Listo, ← → no cambian nada
     const lista = piezasDe(inventario, objetos, hueco);
     if (lista.length < 2) return;
     const actual = lista.indexOf(inventario[hueco] ?? '');
@@ -207,6 +209,7 @@ export class EscenaEquipo implements Escena {
   private anunciarFila(): void {
     const f = this.filas[this.activa];
     if (f) anunciar(`${f.etiqueta}: ${f.nombre}${f.efecto ? `, ${f.efecto}` : ''}`);
+    else anunciar(this.menu.opciones[0]?.texto ?? '');
   }
 
   private pieza(clave: string): EquipoJson {
@@ -248,5 +251,7 @@ export class EscenaEquipo implements Escena {
           datos: sprite.datos,
         }
       : sprite;
+    // Al cambiar, Listo solo se ve elegido con las flechas en su fila (si no, parecerían dos a la vez).
+    if (this.modo.tipo === 'cambiar') this.menu.seleccion = this.activa === HUECOS.length ? 0 : -1;
   }
 }
