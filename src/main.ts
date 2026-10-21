@@ -228,6 +228,7 @@ async function iniciar(): Promise<void> {
   pila.apilar(
     new EscenaTitulo(
       cargarRecords(),
+      Object.entries(DIFICULTADES).map(([clave, d]) => [clave, d.nombre]),
       {
         fondo: await cargarImagen('assets/portada.png'),
         ronin: ronin!,
@@ -435,6 +436,7 @@ function terminarPartida(partida: Partida, victoria: boolean): void {
     zona: partida.zona,
     vencidos: partida.vencidos,
     segundos: (performance.now() - partida.inicio) / 1000,
+    dificultad: Object.entries(DIFICULTADES).find(([, d]) => d === partida.dificultad)?.[0] ?? '',
   };
   guardarRecords(actualizarRecords(cargarRecords(), resumen));
   // Quien vence al jefe final ocupa su lugar: la próxima partida la espera a ella en la Cripta.

@@ -1,5 +1,5 @@
 import type { Acciones } from '../core/acciones';
-import { formatearTiempo, type Records } from '../core/records';
+import { formatearTiempo, textoPorDificultad, type Records } from '../core/records';
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
 import { ALTO, ANCHO } from '../render/pantalla';
 import { dibujarFotograma, type Sprite } from '../render/recursos';
@@ -21,10 +21,14 @@ const AVISO = 'Pulsa o toca para empezar';
 /** Portada: la sala de descanso del Bosque con las ranas junto a la fuente, el logo y los récords. */
 export class EscenaTitulo implements Escena {
   private tiempo = 0;
+  /** Récords generales y, debajo, los de cada dificultad (o el mejor tiempo, si aún no hay). */
   private readonly records: string;
+  private readonly recordsDificultad: string;
 
   constructor(
     records: Records,
+    /** Clave y nombre de cada dificultad, en orden. */
+    dificultades: readonly [string, string][],
     private readonly arte: ArtePortada,
     private readonly alEmpezar: () => void,
   ) {
@@ -35,15 +39,15 @@ export class EscenaTitulo implements Escena {
             `Partidas ${records.partidas}`,
             `Victorias ${records.victorias}`,
             `Nivel máx. ${records.nivelMaximo}`,
-            ...(records.mejorTiempo === null
-              ? []
-              : [`Mejor tiempo ${formatearTiempo(records.mejorTiempo)}`]),
           ];
     this.records = partes.join(' · ');
+    this.recordsDificultad =
+      textoPorDificultad(records, dificultades) ||
+      (records.mejorTiempo === null ? '' : `Mejor tiempo ${formatearTiempo(records.mejorTiempo)}`);
   }
 
   enter(): void {
-    anunciar(['Nenúfar', this.records, AVISO].filter((t) => t).join('. '));
+    anunciar(['Nenúfar', this.records, this.recordsDificultad, AVISO].filter((t) => t).join('. '));
   }
   exit(): void {}
 
@@ -78,6 +82,8 @@ export class EscenaTitulo implements Escena {
     escribir(ctx, AVISO, ANCHO / 2, ALTO - 58, '#ffd27a', 'center');
     ctx.globalAlpha = 1;
     if (this.records)
-      escribir(ctx, this.records, ANCHO / 2, ALTO - 30, '#aab8a6', 'center', FUENTE);
+      escribir(ctx, this.records, ANCHO / 2, ALTO - 38, '#aab8a6', 'center', FUENTE);
+    if (this.recordsDificultad)
+      escribir(ctx, this.recordsDificultad, ANCHO / 2, ALTO - 22, '#aab8a6', 'center', FUENTE);
   }
 }
