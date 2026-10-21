@@ -12,7 +12,7 @@ import { coloresDeEquipo } from './core/equipo';
 import { crearInventario, type Inventario } from './core/inventario';
 import { limpiarNombre } from './core/nombre';
 import { cambiosDeNivel, instantanea } from './core/progresion';
-import { actualizarRecords, formatearTiempo, type Resumen } from './core/records';
+import { actualizarRecords, esNuevoRecord, formatearTiempo, type Resumen } from './core/records';
 import { crearCatalogo } from './core/sala';
 import { bestiarioCon, monstruoCon, reglasCon } from './core/dificultad';
 import type {
@@ -445,7 +445,9 @@ function terminarPartida(partida: Partida, victoria: boolean): void {
     segundos: (performance.now() - partida.inicio) / 1000,
     dificultad: Object.entries(DIFICULTADES).find(([, d]) => d === partida.dificultad)?.[0] ?? '',
   };
-  guardarRecords(actualizarRecords(cargarRecords(), resumen));
+  const records = cargarRecords();
+  const nuevoRecord = esNuevoRecord(records, resumen);
+  guardarRecords(actualizarRecords(records, resumen));
   // Quien vence al jefe final ocupa su lugar: la próxima partida la espera a ella en la Cripta.
   if (victoria) guardarAjustes({ senora: l.nombre });
   const lineas = [
@@ -453,6 +455,7 @@ function terminarPartida(partida: Partida, victoria: boolean): void {
     victoria ? `Has derrotado a ${partida.rival}` : `Caíste en: ${resumen.zona}`,
     `Monstruos vencidos: ${resumen.vencidos}`,
     `Tiempo: ${formatearTiempo(resumen.segundos)}`,
+    ...(nuevoRecord ? ['', `¡Nuevo récord en ${partida.dificultad.nombre}!`] : []),
   ];
   const textos = victoria ? (l.heroe?.historia.final ?? []) : [historia.derrota];
   contar(partida.pila, paginas(textos), () =>

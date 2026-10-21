@@ -100,3 +100,9 @@ export function textoPorDificultad(r: Records, dificultades: readonly [string, s
     })
     .join(' · ');
 }
+
+/** ¿La partida bate el mejor tiempo de su dificultad (o es su primera victoria en ella)? */
+export function esNuevoRecord(r: Records, s: Resumen): boolean {
+  const antes = r.porDificultad[s.dificultad]?.mejorTiempo ?? null;
+  return s.victoria && (antes === null || s.segundos < antes);
+}

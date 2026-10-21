@@ -5,6 +5,7 @@ import {
   leerRecords,
   RECORDS_VACIOS,
   textoPorDificultad,
+  esNuevoRecord,
   type Resumen,
 } from '../src/core/records';
 
@@ -73,4 +74,13 @@ test('cada dificultad guarda sus victorias y su mejor tiempo, y se leen de vuelt
   ];
   expect(textoPorDificultad(r, nombres)).toBe('Fácil 2 (13:20) · Normal 0 · Difícil 1 (20:00)');
   expect(textoPorDificultad(RECORDS_VACIOS, nombres)).toBe('');
+});
+
+test('esNuevoRecord: la primera victoria de una dificultad y las que bajan su mejor tiempo', () => {
+  const r = actualizarRecords(RECORDS_VACIOS, partida(true, 900, 8, 'normal'));
+  expect(esNuevoRecord(RECORDS_VACIOS, partida(true, 900, 8, 'normal'))).toBe(true);
+  expect(esNuevoRecord(r, partida(true, 850, 8, 'normal'))).toBe(true);
+  expect(esNuevoRecord(r, partida(true, 950, 8, 'normal'))).toBe(false);
+  expect(esNuevoRecord(r, partida(false, 100, 3, 'normal'))).toBe(false);
+  expect(esNuevoRecord(r, partida(true, 2000, 9, 'dificil'))).toBe(true);
 });
