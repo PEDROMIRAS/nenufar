@@ -20,7 +20,8 @@ export interface LogroVisto {
 
 export interface VistaExtras {
   pagina: 'bestiario' | 'logros';
-  titulo: string;
+  /** Las flechas están en las pestañas: la activa lleva un recuadro. */
+  focoPestanas: boolean;
   subtitulo: string;
   pista: string;
   fichas: FichaMonstruo[];
@@ -37,6 +38,12 @@ export const CELDAS = Array.from({ length: 12 }, (_, i) => ({
   ancho: 56,
   alto: 56,
 }));
+
+/** Pestañas Bestiario y Logros, arriba (también para saber dónde se toca). */
+export const PESTANAS = [
+  { x: ANCHO / 2 - 154, y: 2, ancho: 150, alto: 32 },
+  { x: ANCHO / 2 + 4, y: 2, ancho: 150, alto: 32 },
+];
 
 const COLOR = {
   celda: '#1f2a24',
@@ -65,7 +72,27 @@ export function siluetaDe(s: Sprite): Sprite {
 export function dibujarExtras(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
   ctx.fillStyle = FONDO;
   ctx.fillRect(0, 0, ANCHO, ALTO);
-  escribir(ctx, v.titulo, ANCHO / 2, 8, COLOR.oro, 'center', FUENTE_GRANDE);
+  // Pestañas en lugar de título: la de la página que se ve, en dorado y subrayada.
+  PESTANAS.forEach((r, i) => {
+    const activa = (i === 0) === (v.pagina === 'bestiario');
+    const texto = i === 0 ? 'Bestiario' : 'Logros';
+    escribir(
+      ctx,
+      texto,
+      r.x + r.ancho / 2,
+      r.y + 3,
+      activa ? COLOR.oro : COLOR.tenue,
+      'center',
+      FUENTE_GRANDE,
+    );
+    if (!activa) return;
+    ctx.fillStyle = COLOR.oro;
+    ctx.fillRect(r.x + 8, r.y + r.alto - 3, r.ancho - 16, 2);
+    if (!v.focoPestanas) return;
+    ctx.strokeStyle = COLOR.oro;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.ancho - 1, r.alto - 1);
+  });
   escribir(ctx, v.subtitulo, ANCHO / 2, 36, COLOR.texto, 'center');
   escribir(ctx, v.pista, ANCHO / 2, 50, COLOR.tenue, 'center');
   if (v.pagina === 'bestiario') dibujarBestiario(ctx, v);
@@ -76,7 +103,8 @@ export function dibujarExtras(ctx: CanvasRenderingContext2D, v: VistaExtras): vo
 function dibujarBestiario(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
   v.fichas.forEach((f, i) => {
     const c = CELDAS[i]!;
-    if (i === v.elegido) {
+    // La casilla elegida solo se marca con las flechas en la rejilla (no en las pestañas ni en Volver).
+    if (i === v.elegido && !v.focoPestanas && v.menu.seleccion < 0) {
       ctx.fillStyle = COLOR.elegida;
       ctx.fillRect(c.x - 2, c.y - 2, c.ancho + 4, c.alto + 4);
     }

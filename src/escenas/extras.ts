@@ -6,6 +6,7 @@ import { anunciar } from '../render/accesibilidad';
 import { opcionTocada, type MenuVista } from '../render/combate';
 import {
   CELDAS,
+  PESTANAS,
   dibujarExtras,
   siluetaDe,
   type FichaMonstruo,
@@ -23,15 +24,17 @@ const PISTA = esTactil()
       logros: 'Los conseguidos salen en dorado',
     }
   : {
-      bestiario: 'Flechas: elegir (abajo, los botones) · Escape: volver',
-      logros: '← →: elegir · Enter: aceptar · Escape: volver',
+      bestiario: 'Flechas elegir · ↑ pestañas · Esc volver',
+      logros: '← → pestaña · Esc volver',
     };
+
+/** Dónde están las flechas: las pestañas de arriba, la rejilla del bestiario o «Volver» abajo. */
+type Foco = 'pestanas' | 'rejilla' | 'volver';
 
 /** Bestiario (los monstruos vencidos, el resto en silueta) y logros, desde el título. */
 export class EscenaExtras implements Escena {
   private pagina: 'bestiario' | 'logros' = 'bestiario';
-  /** En el bestiario, si las flechas están en la fila de botones y no en la rejilla. */
-  private enBotones = false;
+  private foco: Foco = 'rejilla';
   private elegido = 0;
   private tiempo = 0;
   private ultimoX = 0;
@@ -41,12 +44,8 @@ export class EscenaExtras implements Escena {
   private readonly vistos: string;
   private readonly conseguidos: string;
   private readonly menu: MenuVista = {
-    opciones: [
-      { texto: 'Bestiario', detalle: '', disponible: true },
-      { texto: 'Logros', detalle: '', disponible: true },
-      { texto: 'Volver', detalle: '', disponible: true },
-    ],
-    seleccion: 0,
+    opciones: [{ texto: 'Volver', detalle: '', disponible: true }],
+    seleccion: -1,
   };
 
   constructor(
@@ -108,36 +107,29 @@ export class EscenaExtras implements Escena {
     const nuevoY = dy !== 0 && dy !== this.ultimoY;
     this.ultimoX = dx;
     this.ultimoY = dy;
-    // En Logros no hay rejilla: las flechas van siempre por los botones.
-    if (this.enBotones || this.pagina === 'logros') {
-      if (nuevoX) {
-        const n = this.menu.opciones.length;
-        this.menu.seleccion = (this.menu.seleccion + dx + n) % n;
-        sonar('cursor');
-        anunciar(this.menu.opciones[this.menu.seleccion]!.texto);
-      } else if (nuevoY && dy < 0 && this.pagina === 'bestiario') {
-        this.enBotones = false;
-        this.menu.seleccion = 0;
-        this.elegir(this.elegido);
-      }
-      if (a.confirmar) this.pulsar(this.menu.seleccion);
-      return;
+    const bestiario = this.pagina === 'bestiario';
+    // De arriba abajo: pestañas, rejilla (solo en el bestiario) y Volver.
+    if (this.foco === 'pestanas') {
+      if (nuevoX) this.verPagina(bestiario ? 'logros' : 'bestiario');
+      else if (nuevoY && dy > 0) this.enfocar(bestiario ? 'rejilla' : 'volver');
+    } else if (this.foco === 'volver') {
+      if (a.confirmar) this.alVolver();
+      else if (nuevoY && dy < 0) this.enfocar(bestiario ? 'rejilla' : 'pestanas');
+    } else if (nuevoX) {
+      this.elegir(this.elegido + dx);
+    } else if (nuevoY) {
+      const destino = this.elegido + dy * POR_FILA;
+      if (destino < 0) this.enfocar('pestanas');
+      else if (destino >= this.fichas.length) this.enfocar('volver');
+      else this.elegir(destino);
     }
-    if (a.confirmar) this.verPagina('logros');
-    else if (nuevoX) this.elegir(this.elegido + dx);
-    else if (nuevoY && dy > 0 && this.elegido + POR_FILA >= this.fichas.length) {
-      // Bajando desde la última fila se llega a los botones.
-      this.enBotones = true;
-      sonar('cursor');
-      anunciar(this.menu.opciones[this.menu.seleccion]!.texto);
-    } else if (nuevoY) this.elegir(this.elegido + dy * POR_FILA);
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
     const bestiario = this.pagina === 'bestiario';
     dibujarExtras(ctx, {
       pagina: this.pagina,
-      titulo: bestiario ? 'Bestiario' : 'Logros',
+      focoPestanas: this.foco === 'pestanas',
       subtitulo: bestiario ? this.vistos : this.conseguidos,
       pista: PISTA[this.pagina],
       fichas: this.fichas,
@@ -149,18 +141,27 @@ export class EscenaExtras implements Escena {
   }
 
   private tocar(x: number, y: number): void {
-    const boton = opcionTocada(x, y, this.menu.opciones.length);
-    if (boton >= 0) this.pulsar(boton);
+    const pestana = PESTANAS.findIndex((r) => dentro(x, y, r));
+    if (pestana >= 0) this.verPagina(pestana === 0 ? 'bestiario' : 'logros');
+    else if (opcionTocada(x, y, this.menu.opciones.length) === 0) this.alVolver();
     else if (this.pagina === 'bestiario') {
       const i = CELDAS.findIndex((c) => dentro(x, y, c));
-      if (i >= 0 && i < this.fichas.length) this.elegir(i);
+      if (i >= 0 && i < this.fichas.length) {
+        this.foco = 'rejilla';
+        this.menu.seleccion = -1;
+        this.elegir(i);
+      }
     }
   }
 
-  /** Bestiario, Logros o Volver. */
-  private pulsar(boton: number): void {
-    if (boton === 2) this.alVolver();
-    else this.verPagina(boton === 0 ? 'bestiario' : 'logros');
+  private enfocar(foco: Foco): void {
+    this.foco = foco;
+    this.menu.seleccion = foco === 'volver' ? 0 : -1;
+    sonar('cursor');
+    if (foco === 'volver') anunciar('Volver');
+    else if (foco === 'pestanas')
+      anunciar(`Pestaña ${this.pagina === 'bestiario' ? 'Bestiario' : 'Logros'}`);
+    else this.elegir(this.elegido);
   }
 
   private elegir(i: number): void {
@@ -172,9 +173,11 @@ export class EscenaExtras implements Escena {
   }
 
   private verPagina(p: 'bestiario' | 'logros'): void {
+    if (p === this.pagina) return;
     this.pagina = p;
-    this.enBotones = false;
-    this.menu.seleccion = p === 'bestiario' ? 0 : 1;
+    // Al cambiar con las flechas, se sigue en las pestañas; al tocar, también (es donde se tocó).
+    this.foco = 'pestanas';
+    this.menu.seleccion = -1;
     sonar('confirmar');
     anunciar(
       p === 'bestiario'
