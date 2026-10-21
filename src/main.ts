@@ -10,6 +10,7 @@ import {
 import { crearHeroina, type Heroina } from './core/heroina';
 import { coloresDeEquipo } from './core/equipo';
 import { crearInventario, type Inventario } from './core/inventario';
+import { limpiarNombre } from './core/nombre';
 import { cambiosDeNivel, instantanea } from './core/progresion';
 import { actualizarRecords, formatearTiempo, type Resumen } from './core/records';
 import { crearCatalogo } from './core/sala';
@@ -27,6 +28,7 @@ import { DIFICULTADES, HEROES, MONSTRUOS, OBJETOS, REGLAS } from './data/datos';
 import plantillasBosque from './data/salas/plantillas_bosque.json';
 import plantillasCripta from './data/salas/plantillas_cripta.json';
 import plantillasRuinas from './data/salas/plantillas_ruinas.json';
+import historia from './data/historia.json';
 import zonas from './data/zonas.json';
 import { EscenaCombate } from './escenas/combate';
 import { EscenaDificultad } from './escenas/dificultad';
@@ -48,7 +50,7 @@ import { crearCampoNombre } from './render/campoNombre';
 import { LARGO_NOMBRE, RECT_CAMPO } from './render/nombre';
 import { prepararSonido } from './render/sonido';
 import { recolorear } from './render/tinte';
-import { cargarRecords, guardarRecords } from './render/almacen';
+import { cargarAjustes, cargarRecords, guardarAjustes, guardarRecords } from './render/almacen';
 import {
   cargarImagen,
   cargarSprite,
@@ -87,7 +89,37 @@ interface Partida {
   dificultad: DificultadJson;
   bestiario: Record<string, MonstruoJson>;
   reglas: ReglasCombate;
+  /** Nombre del jefe final: lleva el de la última heroína que lo venció, si la hubo. */
+  rival: string;
 }
+
+/** Una pantalla de la historia. */
+interface Pagina {
+  titulo: string;
+  texto: string;
+}
+
+const COLOR_HISTORIA = '#c9b6ff';
+const SEGUIR = 'Pulsa o toca para seguir';
+
+/** Apila las páginas de la historia una tras otra encima de lo que haya; al pasar la última, sigue. */
+function contar(pila: PilaEscenas, paginas: readonly Pagina[], alFinal: () => void): void {
+  const [primera, ...resto] = paginas;
+  if (!primera) {
+    alFinal();
+    return;
+  }
+  pila.apilar(
+    new EscenaMensaje(primera.titulo, COLOR_HISTORIA, [primera.texto], SEGUIR, () => {
+      pila.desapilar();
+      contar(pila, resto, alFinal);
+    }),
+  );
+}
+
+/** Páginas sin título, una por texto. */
+const paginas = (textos: readonly string[]): Pagina[] =>
+  textos.map((texto) => ({ titulo: '', texto }));
 
 async function iniciar(): Promise<void> {
   const canvas = document.querySelector<HTMLCanvasElement>('#juego');
@@ -168,9 +200,18 @@ async function iniciar(): Promise<void> {
       dificultad,
       bestiario: bestiarioCon(MONSTRUOS, dificultad),
       reglas: reglasCon(REGLAS, dificultad),
+      rival: tituloRival(),
     };
     crearZona(partida, 0, true)
-      .then((zona) => pila.cambiar(zona))
+      .then((zona) => {
+        pila.cambiar(zona);
+        // La historia se cuenta encima del mapa ya cargado: al pasarla, empieza el fundido de entrada.
+        contar(
+          pila,
+          [...paginas([...historia.inicio, ...heroe.historia.inicio]), cartel(0)],
+          () => {},
+        );
+      })
       .catch(mostrarError);
   };
   const [ronin, maga] = opciones.map((o) => o.sprite);
@@ -231,12 +272,19 @@ async function crearZona(
     alUsarPortal: hayOtra
       ? () => {
           crearZona(partida, indice + 1, true)
-            .then((siguiente) => partida.pila.cambiar(siguiente))
+            .then((siguiente) => {
+              partida.pila.cambiar(siguiente);
+              contar(partida.pila, [cartel(indice + 1)], () => {});
+            })
             .catch(mostrarError);
         }
       : () =>
-          luchar(partida, [monstruo(zonas.jefeFinal)], escena.fondoSala, () =>
-            terminarPartida(partida, true),
+          lucharJefe(
+            partida,
+            { ...monstruo(zonas.jefeFinal), nombre: partida.rival },
+            historia.jefeFinal,
+            escena.fondoSala,
+            () => terminarPartida(partida, true),
           ),
     entrarDesdeNegro,
     grupos: datos.grupos.map(({ monstruos, peso }) => ({
@@ -275,9 +323,38 @@ async function crearZona(
     luchadora: partida.luchadora,
     nombreZona: datos.nombre,
     iniciarCombate: (grupo, alTerminar, quien) =>
-      luchar(partida, grupo, escena.fondoSala, alTerminar, quien),
+      grupo[0]?.jefe
+        ? lucharJefe(partida, grupo[0], historia.zonas[nombre].jefe, escena.fondoSala, alTerminar)
+        : luchar(partida, grupo, escena.fondoSala, alTerminar, quien),
   });
   return escena;
+}
+
+/** Cartel de la zona `indice` al entrar: su nombre largo y una o dos líneas. */
+function cartel(indice: number): Pagina {
+  const zona = historia.zonas[ORDEN[indice] ?? 'bosque'];
+  return { titulo: zona.nombre, texto: zona.cartel };
+}
+
+/** Nombre del jefe final de esta partida, con el de la última heroína que lo venció si la hubo. */
+function tituloRival(): string {
+  const senora = limpiarNombre(cargarAjustes().senora, '', LARGO_NOMBRE);
+  return senora
+    ? historia.jefeFinal.heredado.replace('{nombre}', senora)
+    : monstruo(zonas.jefeFinal).nombre;
+}
+
+/** Combate contra un jefe, con su frase antes de empezar y otra al caer. */
+function lucharJefe(
+  partida: Partida,
+  jefe: MonstruoJson,
+  frases: { inicio: string; caida: string },
+  fondo: HTMLCanvasElement,
+  alTerminar: (resultado: Resultado) => void,
+): void {
+  contar(partida.pila, [{ titulo: jefe.nombre, texto: frases.inicio }], () =>
+    luchar(partida, [jefe], fondo, alTerminar, null, { titulo: jefe.nombre, texto: frases.caida }),
+  );
 }
 
 function monstruo(clave: string): MonstruoJson {
@@ -341,16 +418,21 @@ function terminarPartida(partida: Partida, victoria: boolean): void {
     segundos: (performance.now() - partida.inicio) / 1000,
   };
   guardarRecords(actualizarRecords(cargarRecords(), resumen));
+  // Quien vence al jefe final ocupa su lugar: la próxima partida la espera a ella en la Cripta.
+  if (victoria) guardarAjustes({ senora: l.nombre });
   const lineas = [
     `${resumen.heroina}, nivel ${resumen.nivel} (${partida.dificultad.nombre})`,
-    victoria ? 'Has derrotado al Señor de la Cripta' : `Caíste en: ${resumen.zona}`,
+    victoria ? `Has derrotado a ${partida.rival}` : `Caíste en: ${resumen.zona}`,
     `Monstruos vencidos: ${resumen.vencidos}`,
     `Tiempo: ${formatearTiempo(resumen.segundos)}`,
   ];
-  partida.pila.cambiar(
-    victoria
-      ? new EscenaMensaje('¡Victoria!', '#ffd27a', lineas, VOLVER_AL_TITULO, empezarOtra)
-      : new EscenaMensaje('Fin de la partida', '#d8584a', lineas, VOLVER_AL_TITULO, empezarOtra),
+  const textos = victoria ? (l.heroe?.historia.final ?? []) : [historia.derrota];
+  contar(partida.pila, paginas(textos), () =>
+    partida.pila.cambiar(
+      victoria
+        ? new EscenaMensaje('¡Victoria!', '#ffd27a', lineas, VOLVER_AL_TITULO, empezarOtra)
+        : new EscenaMensaje('Fin de la partida', '#d8584a', lineas, VOLVER_AL_TITULO, empezarOtra),
+    ),
   );
 }
 
@@ -362,6 +444,8 @@ function luchar(
   fondo: HTMLCanvasElement,
   alTerminar: (resultado: Resultado) => void,
   iniciativa: 'heroina' | 'monstruos' | null = null,
+  /** Lo que dice el jefe al caer, antes de la subida de nivel y del equipo. */
+  caida: Pagina | null = null,
 ): void {
   const { pila, luchadora } = partida;
   const antes = instantanea(luchadora);
@@ -383,23 +467,27 @@ function luchar(
       if (resultado !== 'derrota') {
         const seguir = (): void =>
           ofrecerEquipo(partida, combate.equipoEncontrado, () => alTerminar(resultado));
-        if (luchadora.nivel > antes.nivel) {
-          // Primero la subida de nivel, luego el equipo encontrado, y de vuelta al mapa.
+        const subir = (): void => {
+          if (luchadora.nivel <= antes.nivel) {
+            seguir();
+            return;
+          }
           pila.apilar(
             new EscenaMensaje(
               `¡Nivel ${luchadora.nivel}!`,
               '#ffd27a',
               cambiosDeNivel(antes, luchadora),
-              'Pulsa o toca para seguir',
+              SEGUIR,
               () => {
                 pila.desapilar();
                 seguir();
               },
             ),
           );
-        } else {
-          seguir();
-        }
+        };
+        // Primero lo que dice el jefe al caer, luego la subida de nivel, el equipo encontrado y de vuelta al mapa.
+        if (caida && resultado === 'victoria') contar(pila, [caida], subir);
+        else subir();
       } else {
         terminarPartida(partida, false);
       }

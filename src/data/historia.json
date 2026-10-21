@@ -1,0 +1,38 @@
+{
+  "inicio": [
+    "Hace mil años, la luna se apagó y el Rey sin Charca se bebió el agua del mundo. La Orden del Nenúfar lo encerró bajo la tierra, y la luna volvió.",
+    "Esta noche, la luna vuelve a apagarse. Las charcas se secan una a una. Solo resiste el Gran Nenúfar."
+  ],
+  "derrota": "Esa noche, la luna no volvió a encenderse.",
+  "zonas": {
+    "bosque": {
+      "nombre": "Bosque de la Última Lluvia",
+      "cartel": "Aquí cayó la última lluvia antes del eclipse. El agua se pudre entre los árboles.",
+      "jefe": {
+        "inicio": "«El agua... es... mía.»",
+        "caida": "«La lluvia... recuerdo... la lluvia...»"
+      }
+    },
+    "ruinas": {
+      "nombre": "Ruinas de la Orden",
+      "cartel": "La capital de la Orden del Nenúfar. Sus guardianes de piedra aún vigilan un sello que ya está roto.",
+      "jefe": {
+        "inicio": "«Guardián... del sello. No puedo... detenerme.»",
+        "caida": "«La runa... llévatela. Termina... lo que empezamos.»"
+      }
+    },
+    "cripta": {
+      "nombre": "Cripta de los Héroes",
+      "cartel": "Aquí descansan los héroes de la Orden. Algo los está despertando.",
+      "jefe": {
+        "inicio": "«Los héroes duermen mejor envueltos en seda. Pronto, tú también.»",
+        "caida": "«Mi señor... ya está despierto. Llegas tarde.»"
+      }
+    }
+  },
+  "jefeFinal": {
+    "heredado": "{nombre}, Señora de la Cripta",
+    "inicio": "«Yo también llegué hasta aquí, hace mil años. Yo también lo vencí. Bebe, y no morirás nunca.»",
+    "caida": "«Rompe... lo que yo no pude romper.»"
+  }
+}

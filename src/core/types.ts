@@ -65,6 +65,8 @@ export interface HeroeJson {
   combate: { ataque: string; efecto: string; sonido: string; proyectil?: string };
   /** Colores de su hoja (hex) que cambian con el equipo: los de la ropa (armadura) y los del arma, en orden. */
   tintes: { ropa: string[]; arma: string[] };
+  /** Sus páginas de la historia: tras las comunes al empezar, y al vencer al jefe final. */
+  historia: { inicio: string[]; final: string[] };
   /** Píxeles por segundo. */
   velocidad: number;
   /** Caja de colisión en los pies, más pequeña que el sprite. */

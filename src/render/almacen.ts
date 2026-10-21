@@ -23,6 +23,8 @@ export interface Ajustes {
   nombres: Record<string, string>;
   /** En el móvil en vertical, se eligió jugar así (sin girarlo): no se vuelve a pedir. */
   jugarEnVertical: boolean;
+  /** Nombre de la última heroína que venció al jefe final: en la partida siguiente es ella quien espera en la Cripta. */
+  senora: string;
 }
 
 /** Ajustes guardados; si faltan o están dañados, los de por defecto (nada de lo leído se da por bueno sin comprobarlo). */
@@ -36,9 +38,10 @@ export function cargarAjustes(): Ajustes {
       silencio: a?.silencio === true,
       nombres: Object.fromEntries(nombres),
       jugarEnVertical: a?.jugarEnVertical === true,
+      senora: typeof a?.senora === 'string' ? a.senora : '',
     };
   } catch {
-    return { silencio: false, nombres: {}, jugarEnVertical: false };
+    return { silencio: false, nombres: {}, jugarEnVertical: false, senora: '' };
   }
 }
 

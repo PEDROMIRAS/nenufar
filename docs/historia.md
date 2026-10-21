@@ -110,8 +110,10 @@ Después, la pantalla de victoria con el resumen de la partida, como ahora.
 
 Una línea antes del resumen: «Esa noche, la luna no volvió a encenderse.»
 
-## Cómo encaja en el juego (para cuando se construya)
+## Cómo encaja en el juego
 
-- Los textos irían en un JSON de datos (por ejemplo `src/data/historia.json`): escenas de inicio y final por heroína, cartel por zona y frases de los jefes. Nada de texto de historia en el código.
-- Los nombres largos de las zonas («Bosque de la Última Lluvia») son para el cartel; el HUD puede seguir diciendo «Bosque».
-- Por decidir al construirlo: dónde se ven las frases de los jefes (en el registro del combate o en una caja de diálogo propia) y si las escenas llevan ilustración o solo texto.
+- Textos comunes, carteles de zona y frases de los jefes en `src/data/historia.json`; las páginas de inicio y final de cada heroína, en su entrada de `heroes.json`. Nada de texto de historia en el código.
+- Cada página es una pantalla de texto sobre fondo oscuro, sin ilustración; se pasa con Enter o un toque. Las frases de los jefes también: una pantalla con su nombre antes del combate y otra al caer (antes de la subida de nivel).
+- El cartel de cada zona sale al entrar en ella; el HUD sigue diciendo «Bosque».
+- **El ciclo:** quien vence al jefe final ocupa su lugar. Su nombre se guarda en el navegador y en la partida siguiente el jefe final es «<nombre>, Señora de la Cripta». Solo cuenta ganar; sin victorias previas es el Señor de la Cripta.
+- Sin hacer (por ahora): la lluvia que vuelve un momento al caer el Rey Limo.

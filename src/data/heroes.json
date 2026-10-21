@@ -20,6 +20,18 @@
         "#8c98aa"
       ]
     },
+    "historia": {
+      "inicio": [
+        "Soy la última que lleva la espada de la Orden. Mi maestro me preparó para este día. No pensé que llegaría sola.",
+        "Al norte, el Bosque. Después, las Ruinas. Al final, la Cripta. Antes de que amanezca."
+      ],
+      "final": [
+        "La espada de la Orden atraviesa el sello. La espada hermana cae al suelo, al fin en paz.",
+        "El poder del Rey sin Charca la llama. No bebe. Se queda.",
+        "Amanece. La luna vuelve, y con ella la lluvia sobre las mil charcas.",
+        "En la Cripta, una guardiana vigila un sello que esta vez nadie romperá."
+      ]
+    },
     "velocidad": 96,
     "caja": {
       "ancho": 14,
@@ -107,6 +119,18 @@
         "#784e2e",
         "#4e3220",
         "#e2c8ff"
+      ]
+    },
+    "historia": {
+      "inicio": [
+        "El libro decía que el sello era una leyenda. Leí la palabra en voz alta. Esa misma noche la luna empezó a apagarse.",
+        "El fuego morado es luz de luna guardada. Si alguien puede volver a encenderla, soy yo. Me toca arreglarlo."
+      ],
+      "final": [
+        "La maga reúne todo su fuego morado en un último hechizo.",
+        "La luna se enciende. Su bastón se apaga para siempre.",
+        "Amanece. Llueve sobre las mil charcas.",
+        "Ya no sabe hacer magia. Pero ha aprendido a cerrar lo que abrió."
       ]
     },
     "velocidad": 96,
