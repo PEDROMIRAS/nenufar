@@ -7,13 +7,20 @@ import type { EquipoJson, EstadoJson, ObjetosJson, ReglasProgresion } from '../c
 import { opcionTocada, type MenuVista } from '../render/combate';
 import { dibujarInventario, type FichaInventario } from '../render/pausa';
 import type { Sprite } from '../render/recursos';
-import { estaSilenciado, silenciar, sonar } from '../render/sonido';
+import type { Deslizador } from '../render/deslizador';
+import {
+  estaSilenciado,
+  leerVolumenMusica,
+  ponerVolumenMusica,
+  silenciar,
+  sonar,
+} from '../render/sonido';
 import { anunciar } from '../render/accesibilidad';
 import type { Escena } from './escena';
 
 /**
  * Inventario (botón de la mochila o Escape en el mapa): pausa el juego y enseña la heroína, sus
- * estadísticas, equipo y objetos; se pueden usar pociones y éteres, quitar el sonido o salir.
+ * estadísticas, equipo y objetos; se pueden usar pociones y éteres, quitar el sonido, bajar la música o salir.
  */
 export class EscenaPausa implements Escena {
   /** Consumibles que sirven fuera de combate (los que restauran PV o PM). */
@@ -32,6 +39,8 @@ export class EscenaPausa implements Escena {
     private readonly objetos: ObjetosJson,
     private readonly progresion: ReglasProgresion,
     private readonly estados: Record<string, EstadoJson>,
+    /** Volumen de la música, sobre el canvas mientras se ve el inventario. */
+    private readonly volumen: Deslizador,
     /** Abre la pantalla de Equipo para cambiar arma y armadura. */
     private readonly alEquipo: () => void,
     private readonly alSeguir: () => void,
@@ -56,8 +65,12 @@ export class EscenaPausa implements Escena {
         ...f.derecha,
       ].join('. '),
     );
+    this.volumen.mostrar(leerVolumenMusica(), ponerVolumenMusica);
   }
-  exit(): void {}
+
+  exit(): void {
+    this.volumen.ocultar();
+  }
 
   update(dt: number, a: Acciones): void {
     this.tiempo += dt;
@@ -95,6 +108,8 @@ export class EscenaPausa implements Escena {
     if (i === 0) {
       this.alSeguir();
     } else if (i === 1) {
+      // La pantalla de Equipo se apila encima sin cerrar esta: el deslizador no debe quedarse a la vista.
+      this.volumen.ocultar();
       this.alEquipo();
       return;
     } else if (i === n - 1) {
@@ -116,6 +131,7 @@ export class EscenaPausa implements Escena {
   /** Rehace la ficha y el menú (al abrir y después de usar algo). */
   /** Vuelve a leer a la heroína (al volver de la pantalla de Equipo). */
   refrescar(): void {
+    this.volumen.mostrar(leerVolumenMusica(), ponerVolumenMusica);
     this.rehacer();
   }
 

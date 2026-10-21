@@ -50,3 +50,18 @@ export function dentro(
 ): boolean {
   return x >= r.x && x < r.x + r.ancho && y >= r.y && y < r.y + r.alto;
 }
+
+/** Coloca un elemento HTML fijo sobre el rectángulo `r` (en píxeles lógicos) del canvas; devuelve la escala. */
+export function colocarSobre(
+  el: HTMLElement,
+  canvas: HTMLCanvasElement,
+  r: { x: number; y: number; ancho: number; alto: number },
+): number {
+  const c = canvas.getBoundingClientRect();
+  const escala = c.width / ANCHO;
+  el.style.left = `${c.left + r.x * escala}px`;
+  el.style.top = `${c.top + r.y * escala}px`;
+  el.style.width = `${r.ancho * escala}px`;
+  el.style.height = `${r.alto * escala}px`;
+  return escala;
+}

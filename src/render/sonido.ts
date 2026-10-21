@@ -44,6 +44,7 @@ let efectos: GainNode | null = null;
 let musica: GainNode | null = null;
 let ruido: AudioBuffer | null = null;
 let silenciado = cargarAjustes().silencio;
+let volumenMusica = cargarAjustes().musica;
 let pista: string | null = null;
 let paso = 0;
 let siguiente = 0;
@@ -69,7 +70,7 @@ function crearAudio(): void {
   efectos.gain.value = datos.volumen.efectos;
   efectos.connect(general);
   musica = a.createGain();
-  musica.gain.value = datos.volumen.musica;
+  musica.gain.value = datos.volumen.musica * volumenMusica;
   musica.connect(general);
   // Medio segundo de ruido blanco para golpes y cortes, con el PRNG del juego.
   const azar = crearAzar(1);
@@ -87,6 +88,17 @@ export function silenciar(si: boolean): void {
   silenciado = si;
   if (general) general.gain.value = si ? 0 : 1;
   guardarAjustes({ silencio: si });
+}
+
+export function leerVolumenMusica(): number {
+  return volumenMusica;
+}
+
+/** Cambia el volumen de la música (de 0 a 1) y lo recuerda para la próxima vez. */
+export function ponerVolumenMusica(v: number): void {
+  volumenMusica = v;
+  if (musica) musica.gain.value = datos.volumen.musica * v;
+  guardarAjustes({ musica: v });
 }
 
 export function sonar(nombre: string): void {

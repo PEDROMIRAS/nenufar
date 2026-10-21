@@ -1,4 +1,4 @@
-import { ANCHO } from './pantalla';
+import { colocarSobre } from './pantalla';
 
 /** Rectángulo en píxeles lógicos del juego. */
 interface Rect {
@@ -38,12 +38,7 @@ export function crearCampoNombre(
   document.body.append(campo);
 
   const colocar = (): void => {
-    const c = canvas.getBoundingClientRect();
-    const escala = c.width / ANCHO;
-    campo.style.left = `${c.left + rect.x * escala}px`;
-    campo.style.top = `${c.top + rect.y * escala}px`;
-    campo.style.width = `${rect.ancho * escala}px`;
-    campo.style.height = `${rect.alto * escala}px`;
+    const escala = colocarSobre(campo, canvas, rect);
     // Al menos 16 px: con menos, Safari de iOS hace zoom al tocar el campo.
     campo.style.fontSize = `${Math.max(16, 14 * escala)}px`;
   };
