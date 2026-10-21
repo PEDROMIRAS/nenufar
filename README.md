@@ -1,38 +1,42 @@
 # Nenúfar
 
-Dungeon crawler 2D para navegador y móvil: exploras zonas de salas en tiempo real y, al tocar un monstruo, luchas en un combate por turnos estilo JRPG. Al empezar eliges heroína (una **rana ronin** de cuerpo a cuerpo o una **rana maga** de fuego morado), le pones nombre y eliges dificultad (Fácil, Normal o Difícil). Tres zonas (Bosque, Ruinas y Cripta), un jefe por zona y un jefe final.
+Dungeon crawler 2D para navegador y móvil: exploras zonas de salas en tiempo real y, al tocar un monstruo, luchas en un combate por turnos estilo JRPG. Al empezar eliges heroína (una **rana ronin** de cuerpo a cuerpo o una **rana maga** de fuego morado), le pones nombre y eliges dificultad (Fácil, Normal o Difícil). Tres zonas (Bosque, Ruinas y Cripta), un jefe por zona y un jefe final, unidos por una historia corta: «El Eclipse de las Mil Charcas». Quien vence al jefe final ocupa su lugar: en la partida siguiente, el último jefe lleva tu nombre.
 
-![Las dos ranas junto a la hoguera de una sala del Bosque](public/og.png)
+![Las dos ranas junto a la fuente de la sala de descanso del Bosque](public/og.png)
 
 ### ▶ [Jugar en el navegador](https://pedromiras.github.io/nenufar/)
 
 | Elige heroína | Explora | Lucha |
 | --- | --- | --- |
-| ![Elección de heroína](docs/capturas/seleccion.png) | ![Sala del Bosque con monstruos](docs/capturas/mapa.png) | ![Combate: la maga lanza fuego morado a un limo](docs/capturas/combate.png) |
+| ![Elección de heroína](docs/capturas/seleccion.png) | ![Sala del Bosque con las puertas cerradas y un grupo de limos](docs/capturas/mapa.png) | ![Combate: la ronin usa Tajo del viento contra un limo y un murciélago](docs/capturas/combate.png) |
+| **Enfréntate a los jefes** | **Mejora a tu rana** | **Completa el bestiario** |
+| ![Entrada del Rey Limo](docs/capturas/jefe.png) | ![Pantalla de puntos de mejora](docs/capturas/puntos.png) | ![Bestiario con los monstruos vencidos y el resto en silueta](docs/capturas/bestiario.png) |
 
 ## Cómo se juega
 
 | Acción | Teclado | Táctil |
 | --- | --- | --- |
 | Moverse y elegir | Flechas o WASD | Joystick (arrastra en cualquier punto) |
+| Correr | Mantén Mayúsculas | Botón » (se queda puesto) |
 | Aceptar | Enter, Espacio o Z | Tocar la opción |
 | Inventario (pausa) y volver | Escape o I (X también vuelve) | Botón de la mochila |
 | Qué hace cada opción del combate | I | Botón i (después, un toque elige y otro usa) |
+| Bestiario y logros (en el título) | I | Botón de arriba a la derecha |
 
 En el móvil se juega mejor en horizontal. En vertical el juego lo recomienda, y con «Jugar así igualmente» se estira a todo el ancho de la pantalla.
 
-Cada zona se genera al entrar (`?semilla=N` en la URL repite una partida). Los monstruos patrullan y te persiguen; si los pillas por la espalda, atacas primero. En combate, fíjate en el golpe cargado que anuncian: es el momento de Defender. Sube de nivel, encuentra equipo en el botín y los cofres (lo que no te pones se guarda en la mochila y se cambia desde el Inventario), y bebe de la fuente una vez por zona.
+Cada zona se genera al entrar (`?semilla=N` en la URL repite una partida). Los monstruos patrullan y te persiguen; si los pillas por la espalda, atacas primero. En combate, fíjate en el golpe cargado que anuncian: es el momento de Defender. Cada nivel da puntos de mejora para repartir (vida, maná, ataque, magia, defensa, velocidad o daño crítico). Encuentra equipo en el botín y en los dos cofres de cada zona (lo que no te pones se guarda en la mochila y se cambia desde el Inventario), y bebe de la fuente una vez por zona. Cada dificultad guarda sus récords; además hay seis logros y un bestiario que se completa venciendo a cada monstruo.
 
 ## Qué tiene de interesante por dentro
 
-- **Sin motor:** TypeScript `strict` y Canvas 2D a mano, bucle a 60 Hz fijos con dibujado interpolado y escalado de píxel entero.
-- **Lógica pura y testeada:** `src/core/` no toca el navegador. El combate es una máquina de estados que emite eventos y la escena solo los anima. Vitest cubre generación de zonas, combate, IA, jefes, objetos y progresión.
-- **Datos, no números en el código:** estadísticas, habilidades, monstruos, zonas, botín, música y efectos de sonido viven en `src/data/*.json`.
+- **Sin motor:** TypeScript `strict` y Canvas 2D a mano, bucle a 60 Hz fijos con dibujado interpolado. El canvas se dibuja a la resolución real de la pantalla y lo que se mueve se coloca al píxel físico, para que el pixel art avance suave también en el móvil.
+- **Lógica pura y testeada:** `src/core/` no toca el navegador. El combate es una máquina de estados que emite eventos y la escena solo los anima. Vitest cubre generación de zonas, combate, IA, jefes, objetos, progresión, récords y logros.
+- **Datos, no números en el código:** estadísticas, habilidades, monstruos, zonas, botín, historia, logros, ritmo de las animaciones, música y efectos de sonido viven en `src/data/*.json`.
 - **Equilibrado medido:** un test juega 300 partidas enteras con cada heroína en cada dificultad y exige que lleguen al final el 85-90 % en Fácil, el 70-75 % en Normal y el 50-55 % en Difícil, sin más de 5 puntos entre ellas ([tests/equilibrado.test.ts](tests/equilibrado.test.ts)).
-- **Todo el arte generado por script:** heroínas, monstruos, efectos y tilesets salen de scripts deterministas en Python ([tools/generadores/](tools/generadores/)).
-- **Sonido sintetizado:** música por zona y efectos con Web Audio a partir de notas en JSON; ningún archivo de audio.
+- **Todo el arte generado por script:** heroínas, monstruos, el efecto de cada habilidad y los tilesets salen de scripts deterministas en Python ([tools/generadores/](tools/generadores/)).
+- **Sonido sintetizado:** música por zona y un sonido por habilidad con Web Audio a partir de notas en JSON; ningún archivo de audio.
 - **Accesible:** se juega entero con teclado; lo que pasa en pantalla se lee en una región `aria-live` para lectores de pantalla; respeta `prefers-reduced-motion`.
-- **Ligero:** unos 300 KB de descarga en total.
+- **Ligero:** unos 350 KB de descarga comprimida en total.
 
 📄 **Documento de desarrollo:** https://claude.ai/code/artifact/a6ea0dd0-438d-4190-8647-06fd62dc8754
 
@@ -64,8 +68,8 @@ npm run build   # tipos y build de producción en dist/
 nenufar/
 ├── src/
 │   ├── core/       # lógica pura: zona, salas, movimiento, combate, IA, progresión, música
-│   ├── data/       # JSON de diseño: héroes, monstruos, zonas, objetos, combate, sonido, salas
-│   ├── escenas/    # título, selección, mapa, combate, pausa, equipo y mensajes (pila de escenas)
+│   ├── data/       # JSON de diseño: héroes, monstruos, zonas, objetos, combate, historia, logros, ritmo, sonido, salas
+│   ├── escenas/    # título, selección, mapa, combate, pausa, equipo, puntos, bestiario y logros, historia (pila de escenas)
 │   ├── input/      # teclado, joystick y toque como fuentes de acciones abstractas
 │   └── render/     # canvas, sprites, HUD, sonido, accesibilidad y almacenamiento
 ├── public/assets/
