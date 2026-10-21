@@ -24,21 +24,22 @@ const PROPIAS = new Set([
   ...CORRER,
 ]);
 
+/** Teclas que llegan al juego aunque el foco esté en un control HTML (no en el campo de texto). */
+const SALEN_DE_CONTROLES = new Set([...MENU, ...INFO]);
+
 export function crearTeclado(): FuenteEntrada {
   const sostenidas = new Set<string>();
   // Pulsadas desde el último paso: un toque corto entre dos pasos no se pierde.
   const nuevas = new Set<string>();
 
   addEventListener('keydown', (e) => {
-    // Lo que se escribe en un campo de texto (el nombre de la rana) no es para el juego.
-    // Ni lo que se pulsa en un botón HTML (el de jugar en vertical).
-    if (
-      !PROPIAS.has(e.code) ||
-      e.target instanceof HTMLInputElement ||
-      e.target instanceof HTMLButtonElement
-    ) {
-      return;
-    }
+    // Lo que se escribe en un campo de texto (el nombre de la rana) no es para el juego, ni lo que se
+    // pulsa en un botón HTML (el de jugar en vertical). En el deslizador y la casilla del inventario,
+    // flechas y espacio son suyos, pero Escape e I siguen cerrando el inventario.
+    const t = e.target;
+    const texto = t instanceof HTMLInputElement && t.type === 'text';
+    const control = (t instanceof HTMLInputElement && !texto) || t instanceof HTMLButtonElement;
+    if (!PROPIAS.has(e.code) || texto || (control && !SALEN_DE_CONTROLES.has(e.code))) return;
     e.preventDefault(); // que flechas y espacio no desplacen la página
     sostenidas.add(e.code);
     if (!e.repeat) nuevas.add(e.code);

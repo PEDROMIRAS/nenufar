@@ -18,7 +18,7 @@ export interface ArtePortada {
 
 const AVISO = 'Pulsa o toca para empezar';
 /** Botón del bestiario y los logros, arriba a la derecha (con teclado, la tecla I). */
-const BOTON_EXTRAS = { x: ANCHO - 150, y: 8, ancho: 142, alto: 22 };
+const BOTON_EXTRAS = { x: ANCHO - 150, y: 6, ancho: 144, alto: 30 };
 
 /** Portada: la sala de descanso del Bosque con las ranas junto a la fuente, el logo y los récords. */
 export class EscenaTitulo implements Escena {
@@ -87,7 +87,7 @@ export class EscenaTitulo implements Escena {
     const b = BOTON_EXTRAS;
     ctx.fillStyle = 'rgba(8, 14, 10, 0.7)';
     ctx.fillRect(b.x, b.y, b.ancho, b.alto);
-    escribir(ctx, this.textoExtras, b.x + b.ancho / 2, b.y + 5, '#ffd27a', 'center', FUENTE);
+    escribir(ctx, this.textoExtras, b.x + b.ancho / 2, b.y + 9, '#ffd27a', 'center', FUENTE);
 
     // El aviso pulsa de opacidad en vez de desaparecer (y se queda fijo con menos movimiento).
     ctx.globalAlpha = movimientoReducido() ? 1 : 0.6 + 0.4 * Math.abs(Math.sin(t * 2.5));

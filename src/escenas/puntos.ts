@@ -4,10 +4,16 @@ import { mejorar } from '../core/progresion';
 import type { Mejora, ReglasCombate } from '../core/types';
 import { anunciar } from '../render/accesibilidad';
 import { opcionTocada, type MenuVista } from '../render/combate';
-import { dentro } from '../render/pantalla';
+import { dentro, esTactil } from '../render/pantalla';
 import { dibujarPuntos, FILAS_PUNTOS, SIGNO, type FilaPuntos } from '../render/puntos';
 import { sonar } from '../render/sonido';
 import type { Escena } from './escena';
+
+const PISTA = esTactil()
+  ? 'Toca − o + para quitar o poner puntos'
+  : '↑↓ elegir · ← → quitar o poner · Enter listo';
+/** Lo que se toca de más alrededor de − y + (con el dedo, el botón dibujado se queda corto). */
+const HOLGURA = 22;
 
 const MEJORAS: [Mejora, string][] = [
   ['pv', 'PV máx.'],
@@ -83,7 +89,7 @@ export class EscenaPuntos implements Escena {
     dibujarPuntos(ctx, {
       titulo: 'Puntos de mejora',
       libres: this.libres,
-      pista: '↑↓ elegir · ← → quitar o poner · Enter listo',
+      pista: PISTA,
       filas: this.filas,
       menu: this.menu,
     });
@@ -95,13 +101,14 @@ export class EscenaPuntos implements Escena {
       this.terminar(boton === 1);
       return;
     }
-    const i = FILAS_PUNTOS.findIndex((r) => dentro(x, y, r));
+    // Cada fila cuenta también el hueco hasta la siguiente: no hay toques que caigan en el vacío.
+    const i = FILAS_PUNTOS.findIndex((r) => dentro(x, y, { ...r, y: r.y - 2, alto: r.alto + 4 }));
     const r = FILAS_PUNTOS[i];
     if (!r) return;
     this.activa = i;
     const dx = x - r.x;
-    if (dx >= SIGNO.menos && dx < SIGNO.menos + SIGNO.ancho) this.poner(-1);
-    else if (dx >= SIGNO.mas && dx < SIGNO.mas + SIGNO.ancho) this.poner(1);
+    if (dx >= SIGNO.menos - HOLGURA && dx < SIGNO.menos + SIGNO.ancho + HOLGURA) this.poner(-1);
+    else if (dx >= SIGNO.mas - HOLGURA) this.poner(1);
     else this.rehacer();
   }
 

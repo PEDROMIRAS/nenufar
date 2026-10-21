@@ -11,16 +11,21 @@ import {
   type FichaMonstruo,
   type LogroVisto,
 } from '../render/extras';
-import { dentro } from '../render/pantalla';
+import { dentro, esTactil } from '../render/pantalla';
 import type { Sprite } from '../render/recursos';
 import { sonar } from '../render/sonido';
 import type { Escena } from './escena';
 
 const POR_FILA = 6;
-const PISTA = {
-  bestiario: 'Flechas: elegir · Enter: logros · Escape: volver',
-  logros: 'Enter: bestiario · Escape: volver',
-};
+const PISTA = esTactil()
+  ? {
+      bestiario: 'Toca un monstruo para ver su ficha',
+      logros: 'Los conseguidos salen en dorado',
+    }
+  : {
+      bestiario: 'Flechas: elegir · Enter: logros · Escape: volver',
+      logros: 'Enter: bestiario · Escape: volver',
+    };
 
 /** Bestiario (los monstruos vencidos, el resto en silueta) y logros, desde el título. */
 export class EscenaExtras implements Escena {
