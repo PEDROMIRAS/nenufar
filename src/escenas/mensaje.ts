@@ -18,16 +18,24 @@ export class EscenaMensaje implements Escena {
   constructor(
     private readonly titulo: string,
     private readonly color: string,
-    lineas: readonly string[],
+    /** Los párrafos tal cual (sin partir): es lo que se lee en voz alta. */
+    private readonly parrafos: readonly string[],
     private readonly pie: string,
     private readonly alContinuar: () => void,
   ) {
     this.titulos = partirTexto(titulo, LETRAS_TITULO);
-    this.lineas = lineas.flatMap((l) => (l ? partirTexto(l, LETRAS_LINEA) : ['']));
+    this.lineas = parrafos.flatMap((l) => (l ? partirTexto(l, LETRAS_LINEA) : ['']));
   }
 
   enter(): void {
-    anunciar([this.titulo, ...this.lineas, this.pie].filter(Boolean).join('. '));
+    // Párrafos enteros, no las líneas partidas para la pantalla (cortarían frases a la mitad); el
+    // punto solo se añade donde no hay ya uno.
+    anunciar(
+      [this.titulo, ...this.parrafos, this.pie]
+        .filter(Boolean)
+        .map((t) => (/[.!?…:]$/.test(t) ? t : `${t}.`))
+        .join(' '),
+    );
   }
   exit(): void {}
 
