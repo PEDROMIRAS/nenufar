@@ -12,6 +12,9 @@ export interface Heroina {
   /** Segundos desde que empezó la animación actual. */
   tiempoAnimacion: number;
   velocidad: number;
+  carrera: number;
+  /** El botón de correr del móvil la deja corriendo hasta que se vuelve a tocar (también al cambiar de zona). */
+  correrFijo: boolean;
   margenEsquina: number;
 }
 
@@ -24,6 +27,8 @@ export function crearHeroina(datos: HeroeJson, x: number, y: number): Heroina {
     animacion: 'idle',
     tiempoAnimacion: 0,
     velocidad: datos.velocidad,
+    carrera: datos.carrera,
+    correrFijo: false,
     margenEsquina: datos.margenEsquina,
   };
 }
@@ -34,10 +39,12 @@ export function actualizarHeroina(
   dt: number,
   rejilla: Rejilla,
   tam: number,
+  corriendo = false,
 ): void {
   h.xAnterior = h.cuerpo.x;
   h.yAnterior = h.cuerpo.y;
-  const paso = h.velocidad * dt;
+  const ritmo = corriendo ? h.carrera : 1;
+  const paso = h.velocidad * ritmo * dt;
   moverCuerpo(
     h.cuerpo,
     acciones.moverX * paso,
@@ -49,7 +56,8 @@ export function actualizarHeroina(
 
   const animacion = acciones.moverX !== 0 || acciones.moverY !== 0 ? 'walk' : 'idle';
   if (animacion === h.animacion) {
-    h.tiempoAnimacion += dt;
+    // Corriendo, las piernas también van más deprisa.
+    h.tiempoAnimacion += dt * ritmo;
   } else {
     h.animacion = animacion;
     h.tiempoAnimacion = 0;

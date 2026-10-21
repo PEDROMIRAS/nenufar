@@ -19,6 +19,14 @@ describe('actualizarHeroina', () => {
     expect(h.xAnterior).toBe(100);
   });
 
+  test('corriendo avanza velocidad × carrera × dt y anima las piernas igual de rápido', () => {
+    const h = crearHeroina({ ...datos, carrera: 1.5 }, 100, 100);
+    actualizarHeroina(h, acciones(1, 0), 0.5, libre, 32, true);
+    expect(h.cuerpo.x).toBe(145);
+    actualizarHeroina(h, acciones(1, 0), 0.2, libre, 32, true);
+    expect(h.tiempoAnimacion).toBeCloseTo(0.3);
+  });
+
   test('en diagonal sigue mirando hacia donde ya miraba si es una de las dos', () => {
     const h = crearHeroina(datos, 100, 100);
     actualizarHeroina(h, acciones(0, 1), 0.01, libre, 32);

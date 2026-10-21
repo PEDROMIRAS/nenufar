@@ -8,6 +8,8 @@ export interface Acciones {
   menu: boolean;
   /** Tecla I: en combate enseña u oculta la ayuda de las opciones; en el mapa abre y cierra el inventario. */
   info: boolean;
+  /** CORRER mantenido (Mayúsculas); en táctil, el botón del mapa la deja puesta o la quita. */
+  correr: boolean;
   /** Dónde se tocó o se hizo clic en este paso, en píxeles lógicos; -1 si no hubo toque. */
   toqueX: number;
   toqueY: number;
@@ -22,6 +24,7 @@ export function crearAcciones(): Acciones {
     cancelar: false,
     menu: false,
     info: false,
+    correr: false,
     toqueX: -1,
     toqueY: -1,
   };

@@ -36,8 +36,10 @@ import type {
 import { N, S, type SalaZona, type Zona } from '../core/zona';
 import { dibujarHeroina } from '../render/heroina';
 import {
+  BOTON_CORRER,
   BOTON_MENU,
   dibujarAviso,
+  dibujarBotonCorrer,
   dibujarBotonMenu,
   dibujarHud,
   type TextosHud,
@@ -205,7 +207,9 @@ export class EscenaMapa implements Escena {
       this.o.abrirPausa();
       return;
     }
-    actualizarHeroina(h, acciones, dt, this.montada.sala, tam);
+    if (dentro(acciones.toqueX, acciones.toqueY, BOTON_CORRER)) h.correrFijo = !h.correrFijo;
+    const corriendo = acciones.correr || h.correrFijo;
+    actualizarHeroina(h, acciones, dt, this.montada.sala, tam, corriendo);
     this.tiempoAviso = Math.max(0, this.tiempoAviso - dt);
     if (
       !this.fuenteUsada &&
@@ -302,6 +306,7 @@ export class EscenaMapa implements Escena {
     // El minimapa va encima del fundido: es interfaz, no parte de la sala.
     ctx.drawImage(this.minimapa, BOTON_MENU.x - MARGEN_HUD - this.minimapa.width, MARGEN_HUD);
     dibujarBotonMenu(ctx);
+    dibujarBotonCorrer(ctx, this.o.heroina.correrFijo);
   }
 
   private avisar(texto: string): void {

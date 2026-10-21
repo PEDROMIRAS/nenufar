@@ -14,6 +14,7 @@ export function leerFuentes(fuentes: readonly FuenteEntrada[], acciones: Accione
   acciones.cancelar = false;
   acciones.menu = false;
   acciones.info = false;
+  acciones.correr = false;
   acciones.toqueX = -1;
   acciones.toqueY = -1;
   for (let i = 0; i < fuentes.length; i++) fuentes[i]?.leer(acciones);

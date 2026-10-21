@@ -33,6 +33,7 @@
       ]
     },
     "velocidad": 96,
+    "carrera": 1.6,
     "caja": {
       "ancho": 14,
       "alto": 8
@@ -134,6 +135,7 @@
       ]
     },
     "velocidad": 96,
+    "carrera": 1.6,
     "caja": {
       "ancho": 14,
       "alto": 8

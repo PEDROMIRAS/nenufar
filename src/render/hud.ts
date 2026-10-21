@@ -1,6 +1,6 @@
 import type { Luchador } from '../core/combate';
 import { barra, COLOR_BARRA } from './combate';
-import { ANCHO } from './pantalla';
+import { ALTO, ANCHO } from './pantalla';
 import { escribir } from './texto';
 
 /** Textos del HUD; la escena los rehace solo cuando cambia algún valor. */
@@ -57,4 +57,22 @@ export function dibujarBotonMenu(ctx: CanvasRenderingContext2D): void {
   ctx.fillRect(mx + 6, my + 16, 8, 4);
   ctx.fillStyle = MOCHILA.hebilla;
   ctx.fillRect(mx + 8, my + 9, 4, 4);
+}
+
+/** Botón de correr, abajo a la derecha (para el móvil; con teclado se mantiene Mayúsculas). */
+export const BOTON_CORRER = { x: ANCHO - 6 - 44, y: ALTO - 6 - 44, ancho: 44, alto: 44 };
+
+/** Dos flechas («»); encendido, en amarillo sobre fondo más claro. */
+export function dibujarBotonCorrer(ctx: CanvasRenderingContext2D, activo: boolean): void {
+  const { x, y, ancho, alto } = BOTON_CORRER;
+  ctx.fillStyle = activo ? 'rgba(255, 210, 122, 0.3)' : 'rgba(8, 14, 10, 0.6)';
+  ctx.fillRect(x, y, ancho, alto);
+  ctx.fillStyle = activo ? '#ffd27a' : '#e8efe4';
+  for (const dx of [9, 22]) {
+    for (let i = 0; i <= 10; i++) {
+      // Cada flecha, dos trazos que bajan y suben hasta juntarse en la punta.
+      ctx.fillRect(x + dx + i, y + 12 + i, 3, 2);
+      ctx.fillRect(x + dx + i, y + 32 - i, 3, 2);
+    }
+  }
 }

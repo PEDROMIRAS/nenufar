@@ -69,6 +69,8 @@ export interface HeroeJson {
   historia: { inicio: string[]; final: string[] };
   /** Píxeles por segundo. */
   velocidad: number;
+  /** Por cuánto se multiplica la velocidad al correr. */
+  carrera: number;
   /** Caja de colisión en los pies, más pequeña que el sprite. */
   caja: { ancho: number; alto: number };
   /** Píxeles que se la empuja de lado para que no se enganche en la esquina de un hueco. */

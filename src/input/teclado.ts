@@ -11,6 +11,7 @@ const CANCELAR = ['Escape', 'KeyX'];
 // Escape es CANCELAR en los menús y MENU en el mapa (documento de diseño); cada escena lee la que le toca.
 const MENU = ['Escape'];
 const INFO = ['KeyI'];
+const CORRER = ['ShiftLeft', 'ShiftRight'];
 const PROPIAS = new Set([
   ...IZQUIERDA,
   ...DERECHA,
@@ -20,6 +21,7 @@ const PROPIAS = new Set([
   ...CANCELAR,
   ...MENU,
   ...INFO,
+  ...CORRER,
 ]);
 
 export function crearTeclado(): FuenteEntrada {
@@ -56,6 +58,7 @@ export function crearTeclado(): FuenteEntrada {
       if (alguna(CANCELAR, nuevas)) acciones.cancelar = true;
       if (alguna(MENU, nuevas)) acciones.menu = true;
       if (alguna(INFO, nuevas)) acciones.info = true;
+      if (alguna(CORRER, sostenidas)) acciones.correr = true;
       nuevas.clear();
     },
   };
