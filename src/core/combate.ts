@@ -1,6 +1,6 @@
 import { elegirConPeso } from './azar';
 import { laTiene, piezaDeBotin } from './equipo';
-import { aplicarConsumible, crearInventario, guardar, type Inventario } from './inventario';
+import { aplicarConsumible, crearInventario, gastar, guardar, type Inventario } from './inventario';
 import { ganarExperiencia } from './progresion';
 import type {
   AccionMonstruoJson,
@@ -596,7 +596,7 @@ function usarObjeto(c: Combate, clave: string, eventos: Evento[]): void {
   const h = c.heroina;
   const obj = c.objetos.consumibles[clave];
   if (!obj) throw new Error(`Objeto desconocido: ${clave}`);
-  c.inventario.consumibles[clave]! -= 1;
+  gastar(c.inventario, clave);
   eventos.push({ tipo: 'objeto', actor: h, nombre: obj.nombre });
   const { pv, pm } = aplicarConsumible(h, obj);
   if (obj.pv) eventos.push({ tipo: 'cura', objetivo: h, cantidad: pv });

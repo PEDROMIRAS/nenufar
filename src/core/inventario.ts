@@ -7,10 +7,18 @@ export interface Inventario {
   armadura: string | null;
   /** Piezas de equipo que tiene pero no lleva puestas: se pueden cambiar desde el inventario. */
   mochila: string[];
+  /** Consumibles gastados en toda la partida (para el logro de ganar sin usar ninguno). */
+  usados: number;
 }
 
 export function crearInventario(): Inventario {
-  return { consumibles: {}, arma: null, armadura: null, mochila: [] };
+  return { consumibles: {}, arma: null, armadura: null, mochila: [], usados: 0 };
+}
+
+/** Quita uno de ese consumible y lo apunta como usado. */
+export function gastar(inv: Inventario, clave: string): void {
+  inv.consumibles[clave] = (inv.consumibles[clave] ?? 0) - 1;
+  inv.usados++;
 }
 
 /** Guarda un consumible si no se ha llegado al máximo de ese tipo. Devuelve si cupo. */

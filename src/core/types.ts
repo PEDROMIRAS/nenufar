@@ -190,6 +190,8 @@ export interface FaseJson {
 /** Un monstruo de `src/data/monstruos.json`. */
 export interface MonstruoJson {
   nombre: string;
+  /** Su clave en monstruos.json (la pone datos.ts al cargar; las copias la conservan). */
+  clave?: string;
   estadisticas: Estadisticas;
   /** Qué hace en su turno, elegido al azar según los pesos. */
   acciones: AccionMonstruoJson[];

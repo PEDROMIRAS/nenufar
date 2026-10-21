@@ -1,0 +1,10 @@
+{
+  "logros": [
+    { "clave": "primera", "nombre": "Amanecer", "descripcion": "Gana una partida" },
+    { "clave": "dos_ranas", "nombre": "Dos caminos", "descripcion": "Gana con las dos ranas" },
+    { "clave": "dificil", "nombre": "Sin descanso", "descripcion": "Gana en Difícil" },
+    { "clave": "sin_objetos", "nombre": "A pelo", "descripcion": "Gana sin usar ningún objeto" },
+    { "clave": "ciclo", "nombre": "El ciclo", "descripcion": "Vence a una Señora de la Cripta heredada" },
+    { "clave": "bestiario", "nombre": "Naturalista", "descripcion": "Vence a todos los monstruos al menos una vez" }
+  ]
+}

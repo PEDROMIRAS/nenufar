@@ -12,7 +12,16 @@ import { coloresDeEquipo } from './core/equipo';
 import { crearInventario, type Inventario } from './core/inventario';
 import { limpiarNombre } from './core/nombre';
 import { cambiosDeNivel, instantanea } from './core/progresion';
-import { actualizarRecords, esNuevoRecord, formatearTiempo, type Resumen } from './core/records';
+import {
+  actualizarRecords,
+  anotarLogros,
+  anotarVencidos,
+  esNuevoRecord,
+  formatearTiempo,
+  type Resumen,
+} from './core/records';
+import { logrosNuevos, type Logro } from './core/logros';
+import logrosJson from './data/logros.json';
 import { crearCatalogo } from './core/sala';
 import { bestiarioCon, monstruoCon, reglasCon } from './core/dificultad';
 import type {
@@ -33,6 +42,7 @@ import ritmo from './data/ritmo.json';
 import zonas from './data/zonas.json';
 import { EscenaCombate } from './escenas/combate';
 import { EscenaDificultad } from './escenas/dificultad';
+import { EscenaExtras } from './escenas/extras';
 import { EscenaNombre } from './escenas/nombre';
 import { EscenaEquipo, type DatosEquipo } from './escenas/equipo';
 import { EscenaMensaje } from './escenas/mensaje';
@@ -63,6 +73,10 @@ import {
   cargarTilesets,
   type Sprite,
 } from './render/recursos';
+
+const LOGROS: readonly Logro[] = logrosJson.logros;
+/** Lo que miran los logros que no está en la partida: qué ranas y qué monstruos existen. */
+const MUNDO = { heroes: Object.keys(HEROES), monstruos: Object.keys(MONSTRUOS) };
 
 type NombreZona = keyof typeof zonas.zonas;
 /** Orden de las zonas: el de zonas.json. */
@@ -232,6 +246,7 @@ async function iniciar(): Promise<void> {
     new EscenaTitulo(
       cargarRecords(),
       Object.entries(DIFICULTADES).map(([clave, d]) => [clave, d.nombre]),
+      LOGROS.length,
       {
         fondo: await cargarImagen('assets/portada.png'),
         ronin: ronin!,
@@ -240,6 +255,10 @@ async function iniciar(): Promise<void> {
         murcielago: hojas.get('monstruos/murcielago'),
       },
       () => pila.cambiar(seleccion),
+      () =>
+        pila.apilar(
+          new EscenaExtras(cargarRecords(), MONSTRUOS, hojas, LOGROS, () => pila.desapilar()),
+        ),
     ),
   );
 
@@ -455,10 +474,15 @@ function terminarPartida(partida: Partida, victoria: boolean): void {
     vencidos: partida.vencidos,
     segundos: (performance.now() - partida.inicio) / 1000,
     dificultad: Object.entries(DIFICULTADES).find(([, d]) => d === partida.dificultad)?.[0] ?? '',
+    heroe: Object.entries(HEROES).find(([, h]) => h === l.heroe)?.[0] ?? '',
+    objetosUsados: partida.inventario.usados,
+    contraHeredada: partida.rival !== monstruo(zonas.jefeFinal).nombre,
   };
   const records = cargarRecords();
   const nuevoRecord = esNuevoRecord(records, resumen);
-  guardarRecords(actualizarRecords(records, resumen));
+  const actualizados = actualizarRecords(records, resumen);
+  const nuevos = logrosNuevos(actualizados, resumen, MUNDO, LOGROS);
+  guardarRecords(anotarLogros(actualizados, nuevos));
   // Quien vence al jefe final ocupa su lugar: la próxima partida la espera a ella en la Cripta.
   if (victoria) guardarAjustes({ senora: l.nombre });
   const lineas = [
@@ -467,6 +491,7 @@ function terminarPartida(partida: Partida, victoria: boolean): void {
     `Monstruos vencidos: ${resumen.vencidos}`,
     `Tiempo: ${formatearTiempo(resumen.segundos)}`,
     ...(nuevoRecord ? ['', `¡Nuevo récord en ${partida.dificultad.nombre}!`] : []),
+    ...nuevos.map((clave) => `Logro: ${LOGROS.find((l) => l.clave === clave)?.nombre ?? clave}`),
   ];
   const textos = victoria ? (l.heroe?.historia.final ?? []) : [historia.derrota];
   contar(partida.pila, paginas(textos), () =>
@@ -505,7 +530,14 @@ function luchar(
   pila.apilar(
     new EscenaCombate(combate, partida.sprite, partida.hojas, fondo, (resultado) => {
       pila.desapilar();
-      if (resultado === 'victoria') partida.vencidos += combate.enemigos.length;
+      if (resultado === 'victoria') {
+        partida.vencidos += combate.enemigos.length;
+        // Al bestiario en cuanto se vencen: no se pierden aunque se abandone la partida.
+        const claves = combate.enemigos.flatMap((e) =>
+          e.monstruo?.clave ? [e.monstruo.clave] : [],
+        );
+        guardarRecords(anotarVencidos(cargarRecords(), claves));
+      }
       if (resultado !== 'derrota') {
         const seguir = (): void =>
           ofrecerEquipo(partida, combate.equipoEncontrado, () => alTerminar(resultado));

@@ -14,6 +14,7 @@ import objetosJson from './objetos.json';
 
 export const HEROES = heroesJson as Record<keyof typeof heroesJson, HeroeJson>;
 export const MONSTRUOS = monstruosJson as Record<string, MonstruoJson>;
+for (const [clave, m] of Object.entries(MONSTRUOS)) m.clave = clave;
 export const REGLAS = combateJson as ReglasCombate;
 export const OBJETOS = objetosJson as ObjetosJson;
 export const DIFICULTADES = dificultadesJson as Record<keyof typeof dificultadesJson, DificultadJson>;

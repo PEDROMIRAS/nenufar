@@ -1,6 +1,6 @@
 import type { Acciones } from '../core/acciones';
 import { habilidadesDisponibles, type Luchador } from '../core/combate';
-import { aplicarConsumible, type Inventario } from '../core/inventario';
+import { aplicarConsumible, gastar, type Inventario } from '../core/inventario';
 import { describirEfecto } from '../core/equipo';
 import { experienciaParaSubir } from '../core/progresion';
 import type { EquipoJson, EstadoJson, ObjetosJson, ReglasProgresion } from '../core/types';
@@ -124,7 +124,7 @@ export class EscenaPausa implements Escena {
       const obj = this.objetos.consumibles[clave];
       if (obj && (this.inv.consumibles[clave] ?? 0) > 0) {
         aplicarConsumible(this.l, obj);
-        this.inv.consumibles[clave]! -= 1;
+        gastar(this.inv, clave);
       }
     }
     this.rehacer();

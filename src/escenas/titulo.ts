@@ -1,7 +1,7 @@
 import type { Acciones } from '../core/acciones';
 import { formatearTiempo, textoPorDificultad, type Records } from '../core/records';
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
-import { ALTO, ANCHO } from '../render/pantalla';
+import { ALTO, ANCHO, dentro, esTactil } from '../render/pantalla';
 import { dibujarFotograma, type Sprite } from '../render/recursos';
 import { ponerMusica } from '../render/sonido';
 import { escribir, FUENTE, FUENTE_LOGO } from '../render/texto';
@@ -17,6 +17,8 @@ export interface ArtePortada {
 }
 
 const AVISO = 'Pulsa o toca para empezar';
+/** Botón del bestiario y los logros, arriba a la derecha (con teclado, la tecla I). */
+const BOTON_EXTRAS = { x: ANCHO - 150, y: 8, ancho: 142, alto: 22 };
 
 /** Portada: la sala de descanso del Bosque con las ranas junto a la fuente, el logo y los récords. */
 export class EscenaTitulo implements Escena {
@@ -24,13 +26,17 @@ export class EscenaTitulo implements Escena {
   /** Récords generales y, debajo, los de cada dificultad (o el mejor tiempo, si aún no hay). */
   private readonly records: string;
   private readonly recordsDificultad: string;
+  /** Con teclado, el botón dice también su tecla. */
+  private readonly textoExtras = esTactil() ? 'Bestiario y logros' : 'Bestiario y logros (I)';
 
   constructor(
     records: Records,
     /** Clave y nombre de cada dificultad, en orden. */
     dificultades: readonly [string, string][],
+    totalLogros: number,
     private readonly arte: ArtePortada,
     private readonly alEmpezar: () => void,
+    private readonly alExtras: () => void,
   ) {
     const partes =
       records.partidas === 0
@@ -39,6 +45,7 @@ export class EscenaTitulo implements Escena {
             `Partidas ${records.partidas}`,
             `Victorias ${records.victorias}`,
             `Nivel máx. ${records.nivelMaximo}`,
+            `Logros ${records.logros.length}/${totalLogros}`,
           ];
     this.records = partes.join(' · ');
     this.recordsDificultad =
@@ -54,7 +61,8 @@ export class EscenaTitulo implements Escena {
   update(dt: number, acciones: Acciones): void {
     ponerMusica(null);
     this.tiempo += dt;
-    if (acciones.confirmar || acciones.toqueX >= 0) this.alEmpezar();
+    if (acciones.info || dentro(acciones.toqueX, acciones.toqueY, BOTON_EXTRAS)) this.alExtras();
+    else if (acciones.confirmar || acciones.toqueX >= 0) this.alEmpezar();
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
@@ -76,6 +84,10 @@ export class EscenaTitulo implements Escena {
 
     escribir(ctx, 'Nenúfar', ANCHO / 2, 18, '#c89bff', 'center', FUENTE_LOGO);
     escribir(ctx, 'Un dungeon crawler de ranas', ANCHO / 2, 74, '#e8efe4', 'center');
+    const b = BOTON_EXTRAS;
+    ctx.fillStyle = 'rgba(8, 14, 10, 0.7)';
+    ctx.fillRect(b.x, b.y, b.ancho, b.alto);
+    escribir(ctx, this.textoExtras, b.x + b.ancho / 2, b.y + 5, '#ffd27a', 'center', FUENTE);
 
     // El aviso pulsa de opacidad en vez de desaparecer (y se queda fijo con menos movimiento).
     ctx.globalAlpha = movimientoReducido() ? 1 : 0.6 + 0.4 * Math.abs(Math.sin(t * 2.5));

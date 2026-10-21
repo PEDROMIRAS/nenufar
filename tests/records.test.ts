@@ -22,6 +22,9 @@ const partida = (
   vencidos: 30,
   segundos,
   dificultad,
+  heroe: 'maga',
+  objetosUsados: 0,
+  contraHeredada: false,
 });
 
 test('los récords cuentan partidas y victorias y guardan el mejor tiempo y el nivel más alto', () => {
@@ -46,6 +49,9 @@ test('unos récords dañados o de otra versión no rompen el juego', () => {
     mejorTiempo: 1234,
     nivelMaximo: 7,
     porDificultad: {},
+    ganadasCon: [],
+    logros: [],
+    bestiario: [],
   });
 });
 
