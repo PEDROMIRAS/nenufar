@@ -23,7 +23,7 @@ export function dibujarNombre(
   escribir(ctx, tipo, ANCHO / 2, 172, '#aab8a6', 'center');
   escribir(
     ctx,
-    'Escribe un nombre · Enter para seguir · Esc volver',
+    'Escribe un nombre · Enter seguir · ↓ botones · Esc volver',
     ANCHO / 2,
     252,
     '#aab8a6',

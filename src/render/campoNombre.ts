@@ -13,6 +13,10 @@ export interface CampoNombre {
   mostrar(sugerencia: string, alEnviar: () => void, alCancelar: () => void): void;
   ocultar(): void;
   leer(): string;
+  /** Devuelve el foco al campo (con ↑ desde los botones). */
+  enfocar(): void;
+  /** Si se está escribiendo; si no, las teclas son del juego (los botones de debajo). */
+  enfocado(): boolean;
 }
 
 /**
@@ -46,7 +50,15 @@ export function crearCampoNombre(
     if (e.repeat) return; // un Enter mantenido desde la pantalla anterior no lo envía solo
     if (e.key === 'Enter') enviar();
     else if (e.key === 'Escape') cancelar();
+    else if (e.key === 'ArrowDown' || e.key === 'Tab') {
+      // Bajar a los botones: sin el foco en el campo, las flechas vuelven a ser del juego.
+      e.preventDefault();
+      campo.blur();
+    }
   });
+  // Sin el contorno del navegador, el borde dice dónde está el foco.
+  campo.addEventListener('focus', () => (campo.style.borderColor = '#ffd27a'));
+  campo.addEventListener('blur', () => (campo.style.borderColor = '#8fa88a'));
 
   return {
     mostrar(sugerencia, alEnviar, alCancelar) {
@@ -65,5 +77,7 @@ export function crearCampoNombre(
       campo.blur();
     },
     leer: () => campo.value,
+    enfocar: () => campo.focus(),
+    enfocado: () => document.activeElement === campo,
   };
 }

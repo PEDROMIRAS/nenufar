@@ -17,6 +17,9 @@ import type { Escena } from './escena';
 export class EscenaNombre implements Escena {
   private tiempo = 0;
   private hecho = false;
+  private ultimoX = 0;
+  private ultimoY = 0;
+  private estabaEnCampo = true;
   private readonly menu: MenuVista = {
     opciones: [
       { texto: 'Volver', detalle: '', disponible: true },
@@ -35,6 +38,8 @@ export class EscenaNombre implements Escena {
 
   enter(): void {
     this.hecho = false;
+    this.menu.seleccion = 1;
+    this.estabaEnCampo = true;
     this.campo.mostrar(
       this.heroe.nombre,
       () => this.seguir(),
@@ -58,9 +63,29 @@ export class EscenaNombre implements Escena {
       else if (i === 1) this.seguir();
       return;
     }
-    // Con el foco fuera del campo, el teclado del juego también sirve.
+    // Con el foco fuera del campo (↓ o Tab desde él), las flechas van por los botones y ↑ vuelve.
+    const dx = Math.sign(a.moverX);
+    const dy = Math.sign(a.moverY);
+    const enCampo = this.campo.enfocado();
+    if (!enCampo && this.estabaEnCampo) anunciar(this.menu.opciones[this.menu.seleccion]!.texto);
+    this.estabaEnCampo = enCampo;
+    if (!enCampo) {
+      if (dx !== 0 && dx !== this.ultimoX) {
+        this.menu.seleccion = 1 - this.menu.seleccion;
+        sonar('cursor');
+        anunciar(this.menu.opciones[this.menu.seleccion]!.texto);
+      } else if (dy < 0 && dy !== this.ultimoY) {
+        this.campo.enfocar();
+        anunciar('Nombre de tu rana');
+      }
+    }
+    this.ultimoX = dx;
+    this.ultimoY = dy;
     if (a.cancelar) this.volver();
-    else if (a.confirmar) this.seguir();
+    else if (a.confirmar) {
+      if (this.menu.seleccion === 0) this.volver();
+      else this.seguir();
+    }
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
