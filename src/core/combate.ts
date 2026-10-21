@@ -37,6 +37,10 @@ export interface Luchador {
   nivel: number;
   /** Experiencia acumulada dentro del nivel actual. */
   experiencia: number;
+  /** Puntos de mejora sin gastar. */
+  puntos: number;
+  /** Lo que se suma al multiplicador del golpe crítico de combate.json (mejoras de la heroína). */
+  critico: number;
   /**
    * Recibe menos daño. La heroína, hasta el comienzo de su próximo turno; un monstruo que decide
    * defenderse lo hace al empezar la ronda (prioridad) y le dura esa ronda entera.
@@ -145,6 +149,8 @@ function luchador(
     esHeroina: heroe !== null,
     nivel: 1,
     experiencia: 0,
+    puntos: 0,
+    critico: 0,
     defendiendo: false,
     cargando: false,
     plan: null,
@@ -227,12 +233,16 @@ export function calcularDanio(
   reglas: ReglasCombate,
   azar: () => number,
   criticoSeguro = false,
+  /** Lo que se suma al multiplicador del crítico (el del atacante). */
+  extraCritico = 0,
 ): { cantidad: number; critico: boolean } {
   const { varianza, critico } = reglas;
   const v = varianza.min + azar() * (varianza.max - varianza.min);
   const esCritico = criticoSeguro || azar() < critico.probabilidad;
   const bruto =
-    (ataque * poder - defensa * factorDefensa) * v * (esCritico ? critico.multiplicador : 1);
+    (ataque * poder - defensa * factorDefensa) *
+    v *
+    (esCritico ? critico.multiplicador + extraCritico : 1);
   return { cantidad: Math.max(1, Math.floor(bruto)), critico: esCritico };
 }
 
@@ -533,6 +543,7 @@ function golpear(
     reglas,
     c.azar,
     criticoSeguro,
+    origen.critico,
   );
   const cantidad = objetivo.defendiendo
     ? Math.max(1, Math.floor(golpe.cantidad * reglas.defender.factorDanio))

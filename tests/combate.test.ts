@@ -46,6 +46,11 @@ describe('calcularDanio', () => {
     });
   });
 
+  test('las mejoras de crítico se suman al multiplicador', () => {
+    // (9 − 1,5) × (1,5 + 0,5) = 15
+    expect(calcularDanio(9, 1, 3, 0.5, reglas, cola(0.5, 0), false, 0.5).cantidad).toBe(15);
+  });
+
   test('nunca baja de 1, aunque la defensa supere al ataque', () => {
     expect(calcularDanio(2, 1, 40, 0.5, reglas, cola()).cantidad).toBe(1);
   });

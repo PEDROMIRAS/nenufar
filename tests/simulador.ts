@@ -12,7 +12,14 @@ import {
 } from '../src/core/combate';
 import { abrirCofre, equipar } from '../src/core/equipo';
 import { crearInventario, type Inventario } from '../src/core/inventario';
-import type { DificultadJson, EquipoJson, MonstruoJson, ReglasCombate } from '../src/core/types';
+import { mejorar } from '../src/core/progresion';
+import type {
+  DificultadJson,
+  EquipoJson,
+  Mejora,
+  MonstruoJson,
+  ReglasCombate,
+} from '../src/core/types';
 import { generarZona } from '../src/core/zona';
 import { bestiarioCon, reglasCon } from '../src/core/dificultad';
 import { DIFICULTADES, HEROES, MONSTRUOS, OBJETOS, REGLAS } from '../src/data/datos';
@@ -56,6 +63,21 @@ function quizaEquipar(h: Luchador, inv: Inventario, clave: string): void {
   }
 }
 
+/** Reparto de los puntos de mejora de cada rana (por su hoja de sprite), por turnos. */
+const PLAN: Record<string, Mejora[]> = {
+  rana_ronin: ['ataque', 'pv', 'defensa'],
+  rana_maga: ['magia', 'pv', 'pm'],
+};
+
+function gastarPuntos(h: Luchador): void {
+  const plan = PLAN[h.heroe?.sprite ?? ''] ?? [];
+  for (
+    let i = 0;
+    plan.length > 0 && mejorar(h, plan[(h.nivel + i) % plan.length]!, REGLAS.experiencia);
+    i++
+  );
+}
+
 /** Monstruos y reglas con la dificultad de la partida ya aplicada. */
 interface Mundo {
   bestiario: Record<string, MonstruoJson>;
@@ -81,6 +103,7 @@ function pelear(
   avanzar(c);
   for (let vueltas = 0; !c.resultado && vueltas < 300; vueltas++) actuar(c, decidir(c));
   for (const pieza of c.equipoEncontrado) quizaEquipar(h, inv, pieza);
+  gastarPuntos(h);
   return c.resultado === 'victoria';
 }
 

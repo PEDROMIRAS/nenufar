@@ -244,4 +244,11 @@ export interface ReglasProgresion {
   nivelMaximo: number;
   /** Fracción de PV y PM máximos que se recupera al subir. */
   restaurarAlSubir: number;
+  /** Puntos de mejora que da cada nivel, para repartir a mano. */
+  puntosPorNivel: number;
+  /** Lo que suma un punto a cada cosa (`critico`: al multiplicador del golpe crítico). */
+  mejoras: Record<Mejora, number>;
 }
+
+/** Lo que se puede mejorar con puntos al subir de nivel. */
+export type Mejora = 'pv' | 'pm' | 'ataque' | 'magia' | 'defensa' | 'velocidad' | 'critico';

@@ -5,6 +5,7 @@ import {
   experienciaParaSubir,
   ganarExperiencia,
   instantanea,
+  mejorar,
 } from '../src/core/progresion';
 import type { ReglasProgresion } from '../src/core/types';
 import { HEROES as heroes, REGLAS as reglas } from '../src/data/datos';
@@ -22,21 +23,26 @@ describe('ganarExperiencia', () => {
     expect([h.nivel, h.experiencia]).toEqual([2, 0]);
   });
 
-  test('al subir suma el crecimiento de heroes.json y recupera el 30 % de PV y PM', () => {
+  test('al subir suma el crecimiento de heroes.json, da puntos y recupera el 30 % de PV y PM', () => {
     const h = ronin();
+    const e = heroes.ronin.estadisticas;
+    const c = heroes.ronin.porNivel;
     h.pv = 10;
     h.pm = 0;
     ganarExperiencia(h, 20, r);
-    // Ronin: +8 PV, +1 PM, +2 Ataque…; recupera el 30 % de los nuevos máximos (9 PM → 3).
     expect([h.pvMax, h.pmMax, h.ataque, h.magia, h.defensa, h.velocidad]).toEqual([
-      PV + 8,
-      9,
-      11,
-      4,
-      7,
-      7,
+      e.pv + c.pv,
+      e.pm + c.pm,
+      e.ataque + c.ataque,
+      e.magia + c.magia,
+      e.defensa + c.defensa,
+      e.velocidad + c.velocidad,
     ]);
-    expect([h.pv, h.pm]).toEqual([10 + Math.round((PV + 8) * 0.3), 3]);
+    expect(h.puntos).toBe(r.puntosPorNivel);
+    expect([h.pv, h.pm]).toEqual([
+      10 + Math.round(h.pvMax * r.restaurarAlSubir),
+      Math.round(h.pmMax * r.restaurarAlSubir),
+    ]);
   });
 
   test('mucha experiencia de golpe sube varios niveles y guarda el sobrante', () => {
@@ -64,14 +70,29 @@ describe('ganarExperiencia', () => {
 test('cambiosDeNivel lista las estadísticas que suben y las habilidades nuevas', () => {
   const h = ronin();
   const antes = instantanea(h);
-  ganarExperiencia(h, 20 + 40, r); // del 1 al 3
+  h.ataque += 4;
+  h.nivel = 3;
   expect(cambiosDeNivel(antes, h)).toEqual([
-    `PV ${PV} → ${PV + 16}`,
-    'PM 8 → 10',
-    'Ataque 9 → 13',
-    'Magia 3 → 5',
-    'Defensa 6 → 8',
-    'Velocidad 6 → 8',
+    `Ataque ${antes.ataque} → ${antes.ataque + 4}`,
     'Nueva habilidad: Postura de hierro',
   ]);
+});
+
+describe('mejorar', () => {
+  test('gasta un punto y suma lo de combate.json; los PV suben también los actuales', () => {
+    const h = ronin();
+    h.puntos = 2;
+    h.pv = 5;
+    expect(mejorar(h, 'pv', r)).toBe(true);
+    expect([h.pvMax, h.pv, h.puntos]).toEqual([PV + r.mejoras.pv, 5 + r.mejoras.pv, 1]);
+    expect(mejorar(h, 'critico', r)).toBe(true);
+    expect(h.critico).toBe(r.mejoras.critico);
+  });
+
+  test('sin puntos no hace nada', () => {
+    const h = ronin();
+    const antes = instantanea(h);
+    expect(mejorar(h, 'ataque', r)).toBe(false);
+    expect(instantanea(h)).toEqual(antes);
+  });
 });

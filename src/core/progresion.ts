@@ -1,5 +1,5 @@
 import type { Luchador } from './combate';
-import type { ReglasProgresion } from './types';
+import type { Mejora, ReglasProgresion } from './types';
 
 /** PX que faltan en total para pasar del nivel `nivel` al siguiente. */
 export const experienciaParaSubir = (nivel: number, r: ReglasProgresion): number =>
@@ -7,7 +7,7 @@ export const experienciaParaSubir = (nivel: number, r: ReglasProgresion): number
 
 /**
  * Suma experiencia a la heroína y sube los niveles que toquen: cada nivel suma su crecimiento de
- * heroes.json y recupera una parte de PV y PM. Devuelve los niveles alcanzados, en orden.
+ * heroes.json, da puntos de mejora y recupera una parte de PV y PM. Devuelve los niveles alcanzados, en orden.
  */
 export function ganarExperiencia(h: Luchador, px: number, r: ReglasProgresion): number[] {
   const subidos: number[] = [];
@@ -25,6 +25,7 @@ export function ganarExperiencia(h: Luchador, px: number, r: ReglasProgresion): 
       h.defensa += c.defensa;
       h.velocidad += c.velocidad;
     }
+    h.puntos += r.puntosPorNivel;
     h.pv = Math.min(h.pvMax, h.pv + Math.round(h.pvMax * r.restaurarAlSubir));
     h.pm = Math.min(h.pmMax, h.pm + Math.round(h.pmMax * r.restaurarAlSubir));
     subidos.push(h.nivel);
@@ -74,4 +75,21 @@ export function cambiosDeNivel(antes: Instantanea, ahora: Luchador): string[] {
       lineas.push(`Nueva habilidad: ${h.nombre}`);
   }
   return lineas;
+}
+
+/** Gasta un punto de mejora en `mejora`; los PV y PM suben también los actuales. Devuelve si había punto. */
+export function mejorar(h: Luchador, mejora: Mejora, r: ReglasProgresion): boolean {
+  if (h.puntos <= 0) return false;
+  h.puntos--;
+  const n = r.mejoras[mejora];
+  if (mejora === 'pv') {
+    h.pvMax += n;
+    h.pv += n;
+  } else if (mejora === 'pm') {
+    h.pmMax += n;
+    h.pm += n;
+  } else {
+    h[mejora] += n;
+  }
+  return true;
 }

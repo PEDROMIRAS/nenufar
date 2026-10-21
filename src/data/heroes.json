@@ -48,10 +48,10 @@
       "velocidad": 6
     },
     "porNivel": {
-      "pv": 8,
+      "pv": 4,
       "pm": 1,
-      "ataque": 2,
-      "magia": 1,
+      "ataque": 1,
+      "magia": 0,
       "defensa": 1,
       "velocidad": 1
     },
@@ -150,11 +150,11 @@
       "velocidad": 7
     },
     "porNivel": {
-      "pv": 6,
+      "pv": 5,
       "pm": 3,
-      "ataque": 1,
-      "magia": 3,
-      "defensa": 1,
+      "ataque": 0,
+      "magia": 2,
+      "defensa": 0,
       "velocidad": 1
     },
     "armas": [

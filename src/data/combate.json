@@ -1,17 +1,60 @@
 {
-  "varianza": { "min": 0.9, "max": 1.1 },
-  "critico": { "probabilidad": 0.05, "multiplicador": 1.5 },
+  "varianza": {
+    "min": 0.9,
+    "max": 1.1
+  },
+  "critico": {
+    "probabilidad": 0.05,
+    "multiplicador": 1.5
+  },
   "defensaFisica": 0.5,
   "defensaMagica": 0.25,
-  "defender": { "factorDanio": 0.5, "pm": 2 },
-  "huida": { "base": 0.6, "porIntento": 0.1 },
+  "defender": {
+    "factorDanio": 0.5,
+    "pm": 2
+  },
+  "huida": {
+    "base": 0.6,
+    "porIntento": 0.1
+  },
   "invulnerabilidadTrasCombate": 1.5,
   "recuperacionTrasVictoria": 0.3,
   "estados": {
-    "veneno": { "nombre": "Veneno", "turnos": 3, "danioPorTurno": 0.08 },
-    "aturdido": { "nombre": "Aturdido", "turnos": 1, "pierdeTurno": true },
-    "furia": { "nombre": "Furia", "turnos": 3, "ataque": 1.5, "defensa": 0.7 },
-    "postura": { "nombre": "Postura de hierro", "turnos": 3, "defensa": 1.5 }
+    "veneno": {
+      "nombre": "Veneno",
+      "turnos": 3,
+      "danioPorTurno": 0.08
+    },
+    "aturdido": {
+      "nombre": "Aturdido",
+      "turnos": 1,
+      "pierdeTurno": true
+    },
+    "furia": {
+      "nombre": "Furia",
+      "turnos": 3,
+      "ataque": 1.5,
+      "defensa": 0.7
+    },
+    "postura": {
+      "nombre": "Postura de hierro",
+      "turnos": 3,
+      "defensa": 1.5
+    }
   },
-  "experiencia": { "porNivel": 20, "nivelMaximo": 10, "restaurarAlSubir": 0.3 }
+  "experiencia": {
+    "porNivel": 20,
+    "nivelMaximo": 10,
+    "restaurarAlSubir": 0.3,
+    "puntosPorNivel": 2,
+    "mejoras": {
+      "pv": 5,
+      "pm": 3,
+      "ataque": 1,
+      "magia": 1,
+      "defensa": 1,
+      "velocidad": 1,
+      "critico": 0.1
+    }
+  }
 }
