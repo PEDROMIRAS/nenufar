@@ -395,6 +395,12 @@ export class EscenaCombate implements Escena {
     return this.combate.enemigos.filter((e) => e.pv > 0);
   }
 
+  /** El enemigo vivo número `i`, sin crear la lista (se pide en cada fotograma del menú). */
+  private vivo(i: number): Luchador | null {
+    for (const e of this.combate.enemigos) if (e.pv > 0 && i-- === 0) return e;
+    return null;
+  }
+
   private abrir(modo: Modo): void {
     this.modo = modo;
     const h = this.combate.heroina;
@@ -500,7 +506,7 @@ export class EscenaCombate implements Escena {
     }
     this.ultimoX = dx;
     this.ultimoY = dy;
-    this.v.apuntado = this.modo === 'objetivo' ? (this.vivos()[menu.seleccion] ?? null) : null;
+    this.v.apuntado = this.modo === 'objetivo' ? this.vivo(menu.seleccion) : null;
     if (a.confirmar) this.elegir(menu.seleccion);
   }
 
@@ -508,7 +514,7 @@ export class EscenaCombate implements Escena {
     sonar('confirmar');
     const h = this.combate.heroina;
     if (this.modo === 'objetivo') {
-      const objetivo = this.vivos()[i];
+      const objetivo = this.vivo(i);
       if (objetivo && this.pendiente) this.usar(this.pendiente(objetivo));
       else this.abrir('principal'); // «Volver»
       return;

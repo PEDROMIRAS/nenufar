@@ -263,7 +263,8 @@ export function dibujarMenu(ctx: CanvasRenderingContext2D, menu: MenuVista | nul
     const r = rectOpcion(i, n);
     const opcion = menu?.opciones[i];
     const elegida = menu !== null && i === menu.seleccion;
-    ctx.fillStyle = elegida ? COLOR.botonActivo : COLOR.boton;
+    // Una opción apagada no se aclara al elegirla (su gris no se leería): la marcan solo los bordes.
+    ctx.fillStyle = elegida && opcion?.disponible ? COLOR.botonActivo : COLOR.boton;
     ctx.fillRect(r.x, r.y, r.ancho, r.alto);
     if (elegida) {
       ctx.fillStyle = COLOR.borde;

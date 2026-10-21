@@ -380,6 +380,7 @@ export class EscenaMapa implements Escena {
   private refrescarHud(): void {
     const l = this.o.luchadora;
     // Firma numérica de lo que se muestra: si no cambia, los textos siguen valiendo.
+    // shortcut: PV y PM de hasta 999 (hoy no pasan de 200); si crecen, ensanchar los factores.
     const firma = ((l.nivel * 1000 + l.pv) * 1000 + l.pvMax) * 1000000 + l.pm * 1000 + l.pmMax;
     if (firma === this.hudFirma) return;
     this.hudFirma = firma;
