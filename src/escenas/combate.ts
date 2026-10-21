@@ -264,9 +264,9 @@ export class EscenaCombate implements Escena {
         this.registrar(`${e.actor.nombre} pierde el turno`);
         break;
       case 'aviso':
-        // Un jefe que se transforma deja de verse sin «caer».
+        // Un jefe que se transforma se va como si cayera: su vida baja a 0 y parpadea antes de desaparecer.
         if (e.retira) {
-          v.pv.set(e.actor, 0);
+          this.cambiarVida(e.actor, -(v.pv.get(e.actor) ?? 0), '');
           v.estados.delete(e.actor);
           v.cargando.delete(e.actor);
         }
@@ -279,12 +279,16 @@ export class EscenaCombate implements Escena {
             : '¡Te atacan por la espalda!',
         );
         break;
-      case 'aparece':
-        v.enemigos.push(e.objetivo);
+      case 'aparece': {
+        // Ocupa el sitio de uno que ya no se ve: si no, cada invocación abre un hueco más y el jefe acaba fuera de la pantalla.
+        const libre = v.enemigos.findIndex((l) => (v.pv.get(l) ?? 0) <= 0 && v.golpeado !== l);
+        if (libre >= 0) v.enemigos[libre] = e.objetivo;
+        else v.enemigos.push(e.objetivo);
         v.pv.set(e.objetivo, e.objetivo.pv);
         v.textoPv.set(e.objetivo, textoVida(e.objetivo.pv, e.objetivo.pvMax));
         this.registrar(`¡Aparece ${e.objetivo.nombre}!`);
         break;
+      }
       case 'defensa':
         v.defendiendo = true;
         if (e.actor.esHeroina) this.verPm(v.pmHeroina + e.pm);
