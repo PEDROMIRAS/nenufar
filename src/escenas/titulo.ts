@@ -3,7 +3,7 @@ import { formatearTiempo, textoPorDificultad, type Records } from '../core/recor
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
 import { ALTO, ANCHO, dentro, esTactil } from '../render/pantalla';
 import { dibujarFotograma, type Sprite } from '../render/recursos';
-import { ponerMusica } from '../render/sonido';
+import { ponerMusica, sonar } from '../render/sonido';
 import { escribir, FUENTE, FUENTE_LOGO } from '../render/texto';
 import type { Escena } from './escena';
 
@@ -24,6 +24,9 @@ const BOTON_EXTRAS = { x: ANCHO - 112, y: 6, ancho: 106, alto: 40 };
 /** Portada: la sala de descanso del Bosque con las ranas junto a la fuente, el logo y los récords. */
 export class EscenaTitulo implements Escena {
   private tiempo = 0;
+  /** Con las flechas en el botón de bestiario y logros (Enter lo abre) en vez de en empezar. */
+  private enExtras = false;
+  private ultimo = 0;
   /** Récords generales y, debajo, los de cada dificultad (o el mejor tiempo, si aún no hay). */
   private readonly records: string;
   private readonly recordsDificultad: string;
@@ -55,6 +58,7 @@ export class EscenaTitulo implements Escena {
   }
 
   enter(): void {
+    this.enExtras = false;
     anunciar(['Nenúfar', this.records, this.recordsDificultad, AVISO].filter((t) => t).join('. '));
   }
   exit(): void {}
@@ -62,8 +66,20 @@ export class EscenaTitulo implements Escena {
   update(dt: number, acciones: Acciones): void {
     ponerMusica(null);
     this.tiempo += dt;
+    // ↑ o → llevan al botón de arriba a la derecha; ↓ o ← vuelven a empezar.
+    const mueve = Math.sign(acciones.moverX) || -Math.sign(acciones.moverY);
+    if (mueve !== 0 && mueve !== this.ultimo && mueve > 0 !== this.enExtras) {
+      this.enExtras = mueve > 0;
+      sonar('cursor');
+      anunciar(this.enExtras ? 'Bestiario y logros' : AVISO);
+    }
+    this.ultimo = mueve;
     if (acciones.info || dentro(acciones.toqueX, acciones.toqueY, BOTON_EXTRAS)) this.alExtras();
-    else if (acciones.confirmar || acciones.toqueX >= 0) this.alEmpezar();
+    else if (acciones.toqueX >= 0) this.alEmpezar();
+    else if (acciones.confirmar) {
+      if (this.enExtras) this.alExtras();
+      else this.alEmpezar();
+    }
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
@@ -88,6 +104,12 @@ export class EscenaTitulo implements Escena {
     const b = BOTON_EXTRAS;
     ctx.fillStyle = 'rgba(8, 14, 10, 0.7)';
     ctx.fillRect(b.x, b.y, b.ancho, b.alto);
+    if (this.enExtras) {
+      // Elegido con las flechas: marco dorado de 2 px, como el resto de cosas elegidas.
+      ctx.strokeStyle = '#ffd27a';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(b.x + 1, b.y + 1, b.ancho - 2, b.alto - 2);
+    }
     escribir(ctx, 'Bestiario y', b.x + b.ancho / 2, b.y + 6, '#ffd27a', 'center', FUENTE);
     escribir(ctx, this.textoExtras, b.x + b.ancho / 2, b.y + 21, '#ffd27a', 'center', FUENTE);
 
