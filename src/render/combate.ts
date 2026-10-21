@@ -1,4 +1,5 @@
 import type { Combate, Luchador } from '../core/combate';
+import { partirTexto } from '../core/texto';
 import { ALTO, ANCHO, dentro } from './pantalla';
 import { movimientoReducido } from './accesibilidad';
 import { dibujarFotograma, type Sprite } from './recursos';
@@ -228,6 +229,24 @@ function dibujarBotonInfo(ctx: CanvasRenderingContext2D, activo: boolean): void 
   );
 }
 
+// Ancho de una letra de la fuente normal (monoespaciada) y alto de cada línea de un botón.
+const ANCHO_LETRA = 7.2;
+const LINEA_BOTON = 13;
+/** Textos de botón ya partidos en líneas, por ancho de botón: se parten una vez, no en cada fotograma. */
+const PARTIDOS = new Map<number, Map<string, readonly string[]>>();
+
+/** El texto de un botón en las líneas que caben en `ancho` píxeles (los nombres largos, en dos). */
+function lineasBoton(texto: string, ancho: number): readonly string[] {
+  let porTexto = PARTIDOS.get(ancho);
+  if (!porTexto) PARTIDOS.set(ancho, (porTexto = new Map()));
+  let lineas = porTexto.get(texto);
+  if (!lineas) {
+    lineas = partirTexto(texto, Math.floor((ancho - 8) / ANCHO_LETRA));
+    porTexto.set(texto, lineas);
+  }
+  return lineas;
+}
+
 export function dibujarMenu(ctx: CanvasRenderingContext2D, menu: MenuVista | null): void {
   // Sin menú (mientras se animan los turnos o al acabar) no se dibujan botones.
   if (!menu) return;
@@ -246,10 +265,20 @@ export function dibujarMenu(ctx: CanvasRenderingContext2D, menu: MenuVista | nul
     if (!opcion) continue;
     const color = opcion.disponible ? '#e8efe4' : COLOR.apagado;
     const conDetalle = opcion.detalle !== '';
-    const y = r.y + r.alto / 2 - (conDetalle ? 13 : 7);
-    escribir(ctx, opcion.texto, r.x + r.ancho / 2, y, color, 'center');
+    const lineas = lineasBoton(opcion.texto, r.ancho);
+    // El bloque de líneas (nombre y detalle) centrado en el botón.
+    const y = r.y + (r.alto - (lineas.length + (conDetalle ? 1 : 0)) * LINEA_BOTON) / 2 + 1;
+    for (let l = 0; l < lineas.length; l++)
+      escribir(ctx, lineas[l]!, r.x + r.ancho / 2, y + l * LINEA_BOTON, color, 'center');
     if (conDetalle)
-      escribir(ctx, opcion.detalle, r.x + r.ancho / 2, y + 14, COLOR.detalle, 'center');
+      escribir(
+        ctx,
+        opcion.detalle,
+        r.x + r.ancho / 2,
+        y + lineas.length * LINEA_BOTON,
+        COLOR.detalle,
+        'center',
+      );
   }
 }
 
