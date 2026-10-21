@@ -152,8 +152,7 @@ export class EscenaCombate implements Escena {
       if (v.tiempoGolpe >= DURACION_GOLPE) v.golpeado = null;
     }
     if (this.espera > 0) {
-      // Pulsar o tocar mientras se anima algo lo acaba y pasa a lo siguiente.
-      this.espera = acciones.confirmar || acciones.toqueX >= 0 ? 0 : this.espera - dt;
+      this.espera -= dt;
       return;
     }
     // Antes de enseñar un golpe, el atacante hace su animación (los golpes seguidos del mismo, una vez).
