@@ -1,7 +1,8 @@
 {
   "transicionSalas": 0.4,
   "generacion": {
-    "rejilla": 7
+    "rejilla": 7,
+    "tesoros": 2
   },
   "jefeFinal": "senor_cripta",
   "monstruos": {

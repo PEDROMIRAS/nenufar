@@ -58,7 +58,10 @@ describe.each(Object.keys(datos.zonas) as (keyof typeof datos.zonas)[])('zona %s
       const inicio = zona.salas.find((s) => s.tipo === 'inicio')!;
       expect(contarPuertas(inicio)).toBe(1);
       expect([cuenta('inicio'), cuenta('jefe'), cuenta('tesoro'), cuenta('descanso')]).toEqual([
-        1, 1, 1, 1,
+        1,
+        1,
+        a.tesoros,
+        1,
       ]);
       for (const tipo of ['jefe', 'tesoro', 'descanso'] as const) {
         expect(contarPuertas(zona.salas.find((s) => s.tipo === tipo)!)).toBe(1);
@@ -74,5 +77,5 @@ describe.each(Object.keys(datos.zonas) as (keyof typeof datos.zonas)[])('zona %s
 });
 
 test('un número de salas que no es 2 + 3k se rechaza con un mensaje claro', () => {
-  expect(() => generarZona({ rejilla: 7, salas: 10 }, 1)).toThrow('2 + 3k salas');
+  expect(() => generarZona({ rejilla: 7, salas: 10, tesoros: 1 }, 1)).toThrow('2 + 3k salas');
 });

@@ -18,6 +18,6 @@
     "descripcion": "Para quien ya lo ha terminado: apenas te recuperas entre combates, cada golpe cuenta.",
     "ataque": 1.05,
     "vida": 0.95,
-    "recuperacion": 0.38
+    "recuperacion": 0.36
   }
 }

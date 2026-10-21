@@ -34,6 +34,8 @@ export interface AjustesZona {
   rejilla: number;
   /** Total de salas: inicio + salas de paso con 3 salidas nuevas + callejones; tiene que ser 2 + 3k. */
   salas: number;
+  /** Salas del tesoro (con un cofre cada una), si hay callejones libres para ellas. */
+  tesoros: number;
 }
 
 const MAX_SEMILLAS = 1000;
@@ -52,7 +54,7 @@ export function generarZona(ajustes: AjustesZona, semilla: number): Zona {
 
 /**
  * El inicio tiene una sola puerta. Cada sala de paso tiene la puerta por la que se llega y 3 nuevas.
- * Las salas del final de cada rama son callejones: ahí van el jefe (en el más profundo), el tesoro y el descanso.
+ * Las salas del final de cada rama son callejones: ahí van el jefe (en el más profundo), los tesoros y el descanso.
  */
 function intentar(a: AjustesZona, azar: () => number): SalaZona[] | null {
   const centro = Math.floor(a.rejilla / 2);
@@ -92,13 +94,14 @@ function intentar(a: AjustesZona, azar: () => number): SalaZona[] | null {
     azar,
   )!;
   jefe.tipo = 'jefe';
-  const resto = callejones.filter((c) => c !== jefe);
-  const tesoro = elegir(resto, azar)!;
-  tesoro.tipo = 'tesoro';
-  elegir(
-    resto.filter((c) => c !== tesoro),
-    azar,
-  )!.tipo = 'descanso';
+  let resto = callejones.filter((c) => c !== jefe);
+  // Siempre queda un callejón para el descanso.
+  for (let i = 0; i < a.tesoros && resto.length > 1; i++) {
+    const tesoro = elegir(resto, azar)!;
+    tesoro.tipo = 'tesoro';
+    resto = resto.filter((c) => c !== tesoro);
+  }
+  elegir(resto, azar)!.tipo = 'descanso';
   return salas;
 }
 
