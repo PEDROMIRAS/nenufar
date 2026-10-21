@@ -8,6 +8,8 @@ export interface ControlHtml<T> {
   ocultar(): void;
   /** Le da el foco (con ↑ desde el menú del inventario). */
   enfocar(): void;
+  /** Si tiene el foco (entonces el menú de debajo no se ve elegido). */
+  enfocado(): boolean;
 }
 export type Deslizador = ControlHtml<number>;
 export type Casilla = ControlHtml<boolean>;
@@ -102,5 +104,6 @@ function sobreCanvas<T>(
       control.blur();
     },
     enfocar: () => control.focus(),
+    enfocado: () => document.activeElement === control,
   };
 }

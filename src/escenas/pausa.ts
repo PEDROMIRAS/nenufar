@@ -107,7 +107,12 @@ export class EscenaPausa implements Escena {
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
+    // Con el foco en sonido o música, ningún botón de abajo se ve elegido (se dibuja y se restaura).
+    const seleccion = this.menu.seleccion;
+    if (this.controles.sonido.enfocado() || this.controles.musica.enfocado())
+      this.menu.seleccion = -1;
     dibujarInventario(ctx, this.sprite, this.tiempo, this.ficha, this.menu);
+    this.menu.seleccion = seleccion;
   }
 
   private elegir(i: number): void {
