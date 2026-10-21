@@ -103,6 +103,8 @@ export interface HabilidadJson {
    * si no. Sin ella, la del ataque normal.
    */
   efecto?: string;
+  /** Sonido de sonido.json al usarla, en lugar del de su ataque normal. */
+  sonido?: string;
 }
 
 /** Un estado alterado de combate.json: dura unos turnos del afectado y cambia sus estadísticas o su turno. */

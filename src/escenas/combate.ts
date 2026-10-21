@@ -81,6 +81,8 @@ export class EscenaCombate implements Escena {
   private readonly ayudaAcciones: readonly (readonly string[])[];
   /** Efecto de la habilidad que se está usando, para sus golpes; null fuera de ella. */
   private efectoHabilidad: string | null = null;
+  /** Se está usando una habilidad: su sonido sustituye al del ataque normal. */
+  private enHabilidad = false;
 
   constructor(
     private readonly combate: Combate,
@@ -165,7 +167,7 @@ export class EscenaCombate implements Escena {
       v.atacante = siguiente.origen;
       v.objetivoAtaque = siguiente.objetivo;
       v.tiempoAtaque = 0;
-      const sonido = siguiente.origen.heroe?.combate.sonido;
+      const sonido = this.enHabilidad ? undefined : siguiente.origen.heroe?.combate.sonido;
       if (sonido) sonar(sonido);
       this.espera = anticipoAtaque(v, siguiente.origen);
       return;
@@ -200,6 +202,7 @@ export class EscenaCombate implements Escena {
         v.orden = e.orden;
         v.turno = e.indice;
         this.efectoHabilidad = null;
+        this.enHabilidad = false;
         break;
       case 'danio': {
         this.cambiarVida(
@@ -233,6 +236,8 @@ export class EscenaCombate implements Escena {
         const hab = (e.actor.heroe?.habilidades ?? e.actor.monstruo?.habilidades)?.find(
           (h) => h.nombre === e.nombre,
         );
+        this.enHabilidad = true;
+        if (hab?.sonido) sonar(hab.sonido);
         // Con daño, su efecto sale en cada golpe; sin daño (curar, posturas), sobre quien la usa, ya.
         if (hab?.efecto && hab.danio) this.efectoHabilidad = hab.efecto;
         else if (hab?.efecto) {

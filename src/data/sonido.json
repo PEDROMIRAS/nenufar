@@ -1,57 +1,397 @@
 {
-  "volumen": { "efectos": 0.3, "musica": 0.09 },
+  "volumen": {
+    "efectos": 0.3,
+    "musica": 0.09
+  },
   "efectos": {
-    "cursor": [{ "onda": "square", "desde": 660, "duracion": 0.04, "volumen": 0.4 }],
-    "confirmar": [{ "onda": "square", "desde": 520, "hasta": 1040, "duracion": 0.08, "volumen": 0.5 }],
+    "cursor": [
+      {
+        "onda": "square",
+        "desde": 660,
+        "duracion": 0.04,
+        "volumen": 0.4
+      }
+    ],
+    "confirmar": [
+      {
+        "onda": "square",
+        "desde": 520,
+        "hasta": 1040,
+        "duracion": 0.08,
+        "volumen": 0.5
+      }
+    ],
     "golpe": [
-      { "onda": "ruido", "duracion": 0.1, "volumen": 0.6 },
-      { "onda": "square", "desde": 180, "hasta": 60, "duracion": 0.12 }
+      {
+        "onda": "ruido",
+        "duracion": 0.1,
+        "volumen": 0.6
+      },
+      {
+        "onda": "square",
+        "desde": 180,
+        "hasta": 60,
+        "duracion": 0.12
+      }
     ],
     "critico": [
-      { "onda": "ruido", "duracion": 0.18, "volumen": 0.8 },
-      { "onda": "square", "desde": 320, "hasta": 50, "duracion": 0.22 },
-      { "onda": "square", "desde": 1200, "duracion": 0.05, "volumen": 0.4 }
+      {
+        "onda": "ruido",
+        "duracion": 0.18,
+        "volumen": 0.8
+      },
+      {
+        "onda": "square",
+        "desde": 320,
+        "hasta": 50,
+        "duracion": 0.22
+      },
+      {
+        "onda": "square",
+        "desde": 1200,
+        "duracion": 0.05,
+        "volumen": 0.4
+      }
     ],
     "corte": [
-      { "onda": "ruido", "duracion": 0.09, "volumen": 0.5 },
-      { "onda": "triangle", "desde": 1400, "hasta": 300, "duracion": 0.1 }
+      {
+        "onda": "ruido",
+        "duracion": 0.09,
+        "volumen": 0.5
+      },
+      {
+        "onda": "triangle",
+        "desde": 1400,
+        "hasta": 300,
+        "duracion": 0.1
+      }
     ],
     "fuego": [
-      { "onda": "sawtooth", "desde": 180, "hasta": 620, "duracion": 0.25, "volumen": 0.4 },
-      { "onda": "ruido", "duracion": 0.3, "volumen": 0.35 }
+      {
+        "onda": "sawtooth",
+        "desde": 180,
+        "hasta": 620,
+        "duracion": 0.25,
+        "volumen": 0.4
+      },
+      {
+        "onda": "ruido",
+        "duracion": 0.3,
+        "volumen": 0.35
+      }
     ],
     "cura": [
-      { "onda": "triangle", "desde": 523, "duracion": 0.1 },
-      { "onda": "triangle", "desde": 659, "duracion": 0.1, "retardo": 0.08 },
-      { "onda": "triangle", "desde": 784, "duracion": 0.18, "retardo": 0.16 }
+      {
+        "onda": "triangle",
+        "desde": 523,
+        "duracion": 0.1
+      },
+      {
+        "onda": "triangle",
+        "desde": 659,
+        "duracion": 0.1,
+        "retardo": 0.08
+      },
+      {
+        "onda": "triangle",
+        "desde": 784,
+        "duracion": 0.18,
+        "retardo": 0.16
+      }
     ],
-    "muerte": [{ "onda": "square", "desde": 420, "hasta": 50, "duracion": 0.4, "volumen": 0.6 }],
-    "huida": [{ "onda": "triangle", "desde": 300, "hasta": 900, "duracion": 0.25 }],
+    "muerte": [
+      {
+        "onda": "square",
+        "desde": 420,
+        "hasta": 50,
+        "duracion": 0.4,
+        "volumen": 0.6
+      }
+    ],
+    "huida": [
+      {
+        "onda": "triangle",
+        "desde": 300,
+        "hasta": 900,
+        "duracion": 0.25
+      }
+    ],
     "cofre": [
-      { "onda": "square", "desde": 523, "duracion": 0.08, "volumen": 0.5 },
-      { "onda": "square", "desde": 659, "duracion": 0.08, "volumen": 0.5, "retardo": 0.08 },
-      { "onda": "square", "desde": 784, "duracion": 0.08, "volumen": 0.5, "retardo": 0.16 },
-      { "onda": "square", "desde": 1047, "duracion": 0.25, "volumen": 0.5, "retardo": 0.24 }
+      {
+        "onda": "square",
+        "desde": 523,
+        "duracion": 0.08,
+        "volumen": 0.5
+      },
+      {
+        "onda": "square",
+        "desde": 659,
+        "duracion": 0.08,
+        "volumen": 0.5,
+        "retardo": 0.08
+      },
+      {
+        "onda": "square",
+        "desde": 784,
+        "duracion": 0.08,
+        "volumen": 0.5,
+        "retardo": 0.16
+      },
+      {
+        "onda": "square",
+        "desde": 1047,
+        "duracion": 0.25,
+        "volumen": 0.5,
+        "retardo": 0.24
+      }
     ],
-    "portal": [{ "onda": "sine", "desde": 200, "hasta": 1200, "duracion": 0.8 }],
+    "portal": [
+      {
+        "onda": "sine",
+        "desde": 200,
+        "hasta": 1200,
+        "duracion": 0.8
+      }
+    ],
     "nivel": [
-      { "onda": "square", "desde": 523, "duracion": 0.1, "volumen": 0.5 },
-      { "onda": "square", "desde": 659, "duracion": 0.1, "volumen": 0.5, "retardo": 0.1 },
-      { "onda": "square", "desde": 784, "duracion": 0.1, "volumen": 0.5, "retardo": 0.2 },
-      { "onda": "square", "desde": 1047, "duracion": 0.35, "volumen": 0.5, "retardo": 0.3 }
+      {
+        "onda": "square",
+        "desde": 523,
+        "duracion": 0.1,
+        "volumen": 0.5
+      },
+      {
+        "onda": "square",
+        "desde": 659,
+        "duracion": 0.1,
+        "volumen": 0.5,
+        "retardo": 0.1
+      },
+      {
+        "onda": "square",
+        "desde": 784,
+        "duracion": 0.1,
+        "volumen": 0.5,
+        "retardo": 0.2
+      },
+      {
+        "onda": "square",
+        "desde": 1047,
+        "duracion": 0.35,
+        "volumen": 0.5,
+        "retardo": 0.3
+      }
     ],
     "victoria": [
-      { "onda": "square", "desde": 784, "duracion": 0.12, "volumen": 0.5 },
-      { "onda": "square", "desde": 784, "duracion": 0.12, "volumen": 0.5, "retardo": 0.14 },
-      { "onda": "square", "desde": 784, "duracion": 0.12, "volumen": 0.5, "retardo": 0.28 },
-      { "onda": "square", "desde": 1047, "duracion": 0.5, "volumen": 0.5, "retardo": 0.42 },
-      { "onda": "triangle", "desde": 262, "duracion": 0.9, "retardo": 0.42 }
+      {
+        "onda": "square",
+        "desde": 784,
+        "duracion": 0.12,
+        "volumen": 0.5
+      },
+      {
+        "onda": "square",
+        "desde": 784,
+        "duracion": 0.12,
+        "volumen": 0.5,
+        "retardo": 0.14
+      },
+      {
+        "onda": "square",
+        "desde": 784,
+        "duracion": 0.12,
+        "volumen": 0.5,
+        "retardo": 0.28
+      },
+      {
+        "onda": "square",
+        "desde": 1047,
+        "duracion": 0.5,
+        "volumen": 0.5,
+        "retardo": 0.42
+      },
+      {
+        "onda": "triangle",
+        "desde": 262,
+        "duracion": 0.9,
+        "retardo": 0.42
+      }
     ],
     "derrota": [
-      { "onda": "triangle", "desde": 392, "duracion": 0.25 },
-      { "onda": "triangle", "desde": 349, "duracion": 0.25, "retardo": 0.25 },
-      { "onda": "triangle", "desde": 311, "duracion": 0.25, "retardo": 0.5 },
-      { "onda": "triangle", "desde": 262, "duracion": 0.7, "retardo": 0.75 }
+      {
+        "onda": "triangle",
+        "desde": 392,
+        "duracion": 0.25
+      },
+      {
+        "onda": "triangle",
+        "desde": 349,
+        "duracion": 0.25,
+        "retardo": 0.25
+      },
+      {
+        "onda": "triangle",
+        "desde": 311,
+        "duracion": 0.25,
+        "retardo": 0.5
+      },
+      {
+        "onda": "triangle",
+        "desde": 262,
+        "duracion": 0.7,
+        "retardo": 0.75
+      }
+    ],
+    "corte_doble": [
+      {
+        "onda": "ruido",
+        "duracion": 0.07,
+        "volumen": 0.45
+      },
+      {
+        "onda": "triangle",
+        "desde": 1500,
+        "hasta": 350,
+        "duracion": 0.08
+      },
+      {
+        "onda": "ruido",
+        "duracion": 0.07,
+        "volumen": 0.45,
+        "retardo": 0.12
+      },
+      {
+        "onda": "triangle",
+        "desde": 1700,
+        "hasta": 400,
+        "duracion": 0.08,
+        "retardo": 0.12
+      }
+    ],
+    "acero": [
+      {
+        "onda": "square",
+        "desde": 880,
+        "duracion": 0.06,
+        "volumen": 0.35
+      },
+      {
+        "onda": "triangle",
+        "desde": 1320,
+        "duracion": 0.25,
+        "retardo": 0.04
+      },
+      {
+        "onda": "sine",
+        "desde": 1760,
+        "duracion": 0.3,
+        "volumen": 0.3,
+        "retardo": 0.08
+      }
+    ],
+    "viento": [
+      {
+        "onda": "ruido",
+        "duracion": 0.35,
+        "volumen": 0.4
+      },
+      {
+        "onda": "sine",
+        "desde": 300,
+        "hasta": 900,
+        "duracion": 0.3,
+        "volumen": 0.3
+      }
+    ],
+    "iaido": [
+      {
+        "onda": "triangle",
+        "desde": 2000,
+        "hasta": 200,
+        "duracion": 0.12,
+        "retardo": 0.1
+      },
+      {
+        "onda": "ruido",
+        "duracion": 0.12,
+        "volumen": 0.6,
+        "retardo": 0.1
+      },
+      {
+        "onda": "square",
+        "desde": 1600,
+        "duracion": 0.04,
+        "volumen": 0.3,
+        "retardo": 0.1
+      }
+    ],
+    "fuego_grande": [
+      {
+        "onda": "sawtooth",
+        "desde": 140,
+        "hasta": 700,
+        "duracion": 0.35,
+        "volumen": 0.45
+      },
+      {
+        "onda": "ruido",
+        "duracion": 0.4,
+        "volumen": 0.4
+      }
+    ],
+    "curar": [
+      {
+        "onda": "sine",
+        "desde": 1568,
+        "duracion": 0.12,
+        "volumen": 0.35
+      },
+      {
+        "onda": "sine",
+        "desde": 2093,
+        "duracion": 0.2,
+        "volumen": 0.3,
+        "retardo": 0.06
+      }
+    ],
+    "fatuo": [
+      {
+        "onda": "sine",
+        "desde": 600,
+        "hasta": 400,
+        "duracion": 0.3,
+        "volumen": 0.3
+      },
+      {
+        "onda": "sine",
+        "desde": 900,
+        "hasta": 700,
+        "duracion": 0.3,
+        "volumen": 0.2,
+        "retardo": 0.1
+      }
+    ],
+    "tormenta": [
+      {
+        "onda": "sawtooth",
+        "desde": 900,
+        "hasta": 200,
+        "duracion": 0.3,
+        "volumen": 0.35
+      },
+      {
+        "onda": "ruido",
+        "duracion": 0.4,
+        "volumen": 0.5,
+        "retardo": 0.25
+      },
+      {
+        "onda": "square",
+        "desde": 120,
+        "hasta": 40,
+        "duracion": 0.3,
+        "retardo": 0.25
+      }
     ]
   },
   "musica": {
