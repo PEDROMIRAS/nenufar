@@ -461,8 +461,12 @@ function dibujarFlotante(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   if (!g || !v.flotante) return;
   const sube = Math.round(v.tiempoGolpe * 30);
   const enemigos = v.enemigos;
-  const x = g.esHeroina ? HEROINA.x : xEnemigo(enemigos.indexOf(g), enemigos.length);
-  const y = (g.esHeroina ? HEROINA.y - 80 : topeEnemigo(v, g) - 36) - sube;
   const color = v.flotanteCura ? COLOR.cura : g.esHeroina ? COLOR.pv : '#ffffff';
-  escribir(ctx, v.flotante, x, y, color, 'center', FUENTE_GRANDE);
+  if (g.esHeroina) {
+    escribir(ctx, v.flotante, HEROINA.x, HEROINA.y - 80 - sube, color, 'center', FUENTE_GRANDE);
+    return;
+  }
+  // A la derecha del nombre (que ocupa unos 36 px a cada lado), para no taparlo mientras sube.
+  const x = xEnemigo(enemigos.indexOf(g), enemigos.length) + 42;
+  escribir(ctx, v.flotante, x, topeEnemigo(v, g) - 30 - sube, color, 'left', FUENTE_GRANDE);
 }
