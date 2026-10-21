@@ -71,18 +71,29 @@ export class EscenaPuntos implements Escena {
       this.terminar(false);
       return;
     }
+    // Debajo de la última estadística está la fila de botones (activa === MEJORAS.length).
+    const enBotones = this.activa === MEJORAS.length;
     const dy = Math.sign(a.moverY);
     if (dy !== 0 && dy !== this.ultimoY) {
-      this.activa = (this.activa + dy + MEJORAS.length) % MEJORAS.length;
+      this.activa = (this.activa + dy + MEJORAS.length + 1) % (MEJORAS.length + 1);
       sonar('cursor');
       this.rehacer();
       this.anunciarFila();
     }
     this.ultimoY = dy;
     const dx = Math.sign(a.moverX);
-    if (dx !== 0 && dx !== this.ultimoX) this.poner(dx);
+    if (dx !== 0 && dx !== this.ultimoX) {
+      if (enBotones) {
+        this.menu.seleccion = 1 - this.menu.seleccion;
+        sonar('cursor');
+        this.anunciarFila();
+      } else {
+        this.poner(dx);
+      }
+    }
     this.ultimoX = dx;
-    if (a.confirmar) this.terminar(true);
+    // Desde una estadística, Enter es Listo; en los botones, el elegido.
+    if (a.confirmar) this.terminar(!enBotones || this.menu.seleccion === 1);
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
@@ -158,10 +169,17 @@ export class EscenaPuntos implements Escena {
         activa: i === this.activa,
       };
     });
+    // Un botón solo se ve elegido mientras se está en su fila (o tras tocarlo).
+    if (this.activa === MEJORAS.length) {
+      if (this.menu.seleccion < 0) this.menu.seleccion = 1;
+    } else {
+      this.menu.seleccion = -1;
+    }
   }
 
   private anunciarFila(): void {
     const f = this.filas[this.activa];
     if (f) anunciar(`${f.nombre}: ${f.valor}. ${this.libres}`);
+    else anunciar(this.menu.opciones[this.menu.seleccion]?.texto ?? '');
   }
 }
