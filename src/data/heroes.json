@@ -55,6 +55,7 @@
       "defensa": 1,
       "velocidad": 1
     },
+    "armaInicial": "katana_gastada",
     "armas": [
       "katana_madera",
       "katana_acero",
@@ -165,6 +166,7 @@
       "defensa": 0,
       "velocidad": 1
     },
+    "armaInicial": "baston_rama",
     "armas": [
       "baston_aprendiz",
       "baston_amatista",

@@ -78,6 +78,8 @@ export interface HeroeJson {
   estadisticas: Estadisticas;
   /** Lo que suma cada estadística al subir de nivel. */
   porNivel: Estadisticas;
+  /** El arma con la que empieza (sin bonos): clave de equipo en objetos.json. */
+  armaInicial: string;
   /** Sus armas por nivel (1, 2, 3): claves de equipo en objetos.json. */
   armas: string[];
   habilidades: HabilidadJson[];
@@ -155,6 +157,8 @@ export interface ObjetosJson {
   maximoPorTipo: number;
   consumibles: Record<string, ConsumibleJson>;
   equipo: Record<string, EquipoJson>;
+  /** La armadura con la que empiezan las dos heroínas (sin bonos). */
+  armaduraInicial: string;
   /** Armaduras por nivel (1, 2, 3); las armas de cada heroína están en heroes.json. */
   armaduras: string[];
 }

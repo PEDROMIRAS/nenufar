@@ -14,6 +14,7 @@ import {
   describirPieza,
   equipar,
   guardarPieza,
+  inventarioInicial,
   piezaDeBotin,
   piezasDe,
   ponerPieza,
@@ -266,5 +267,19 @@ describe('mochila de equipo', () => {
       tipo: 'equipo',
       clave: 'katana_acero',
     });
+  });
+});
+
+describe('equipo inicial', () => {
+  test('se empieza con el arma y la armadura iniciales, sin bonos, y no se pierden al cambiar', () => {
+    const h = luchadorDeHeroe(HEROES.maga);
+    const magiaBase = h.magia;
+    const inv = inventarioInicial(h, HEROES.maga, OBJETOS);
+    expect(inv.arma).toBe(HEROES.maga.armaInicial);
+    expect(inv.armadura).toBe(OBJETOS.armaduraInicial);
+    expect(h.magia).toBe(magiaBase);
+    ponerPieza(h, inv, OBJETOS, 'baston_amatista');
+    ponerPieza(h, inv, OBJETOS, 'tunica');
+    expect(inv.mochila).toEqual([HEROES.maga.armaInicial, OBJETOS.armaduraInicial]);
   });
 });

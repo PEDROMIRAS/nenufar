@@ -14,12 +14,28 @@
       "quitaEstado": "veneno"
     }
   },
+  "armaduraInicial": "ropa_viaje",
   "armaduras": [
     "tunica",
     "cota_malla",
     "armadura_placas"
   ],
   "equipo": {
+    "katana_gastada": {
+      "nombre": "Katana gastada",
+      "hueco": "arma",
+      "bonos": {}
+    },
+    "baston_rama": {
+      "nombre": "Bastón de rama",
+      "hueco": "arma",
+      "bonos": {}
+    },
+    "ropa_viaje": {
+      "nombre": "Ropa de viaje",
+      "hueco": "armadura",
+      "bonos": {}
+    },
     "katana_madera": {
       "nombre": "Katana de madera",
       "hueco": "arma",

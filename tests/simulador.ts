@@ -10,8 +10,8 @@ import {
   type Combate,
   type Luchador,
 } from '../src/core/combate';
-import { abrirCofre, equipar } from '../src/core/equipo';
-import { crearInventario, type Inventario } from '../src/core/inventario';
+import { abrirCofre, equipar, inventarioInicial } from '../src/core/equipo';
+import type { Inventario } from '../src/core/inventario';
 import { mejorar } from '../src/core/progresion';
 import type {
   DificultadJson,
@@ -137,7 +137,7 @@ export function simular(
   for (let s = 1; s <= partidas; s++) {
     const azar = crearAzar(s * 97);
     const h = luchadorDeHeroe(heroe);
-    const inv = crearInventario();
+    const inv = inventarioInicial(h, heroe, OBJETOS);
     let viva = true;
     for (const [i, clave] of claves.entries()) {
       const z = zonas.zonas[clave];

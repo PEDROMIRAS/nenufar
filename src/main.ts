@@ -8,8 +8,8 @@ import {
   type Resultado,
 } from './core/combate';
 import { crearHeroina, type Heroina } from './core/heroina';
-import { coloresDeEquipo } from './core/equipo';
-import { crearInventario, type Inventario } from './core/inventario';
+import { coloresDeEquipo, inventarioInicial } from './core/equipo';
+import type { Inventario } from './core/inventario';
 import { limpiarNombre } from './core/nombre';
 import { cambiosDeNivel, instantanea } from './core/progresion';
 import {
@@ -214,9 +214,10 @@ async function iniciar(): Promise<void> {
       heroina: crearHeroina(heroe, 0, 0), // cada escena la coloca en su sala de inicio
       // La misma luchadora en todos los combates: la vida perdida se arrastra.
       luchadora,
-      inventario: crearInventario(),
-      sprite,
-      imagenBase: sprite.imagen as HTMLImageElement, // recién cargada: aún es la original
+      inventario: inventarioInicial(luchadora, heroe, OBJETOS),
+      // Copia propia: `vestir` la recolorea y la de la selección se queda con los colores originales.
+      sprite: { ...sprite },
+      imagenBase: sprite.imagen as HTMLImageElement,
       hojas,
       combates: 0,
       inicio: performance.now(),
@@ -228,6 +229,7 @@ async function iniciar(): Promise<void> {
       rival: tituloRival(),
       controles: sonidoHtml,
     };
+    vestir(partida); // ya lleva puestas el arma y la armadura iniciales
     crearZona(partida, 0, true)
       .then((zona) => {
         pila.cambiar(zona);

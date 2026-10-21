@@ -202,7 +202,7 @@ export function crearCombate(
     ronda: 0,
     iniciativa: null,
     inventario: crearInventario(),
-    objetos: { maximoPorTipo: 0, consumibles: {}, equipo: {}, armaduras: [] },
+    objetos: { maximoPorTipo: 0, consumibles: {}, equipo: {}, armaduraInicial: '', armaduras: [] },
     equipoEncontrado: [],
   };
 }

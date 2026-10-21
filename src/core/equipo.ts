@@ -1,6 +1,6 @@
 import type { Luchador } from './combate';
 import { elegirConPeso } from './azar';
-import { guardar, type Inventario } from './inventario';
+import { crearInventario, guardar, type Inventario } from './inventario';
 import type {
   BotinJson,
   EquipoJson,
@@ -22,6 +22,17 @@ export function piezaDeBotin(
 ): string | null {
   const lista = objeto === 'arma' ? heroe?.armas : objeto === 'armadura' ? objetos.armaduras : null;
   return lista?.[(nivel ?? 1) - 1] ?? null;
+}
+
+/**
+ * Inventario de una partida nueva: la heroína lleva puestas su arma y su armadura iniciales (sin
+ * bonos), piezas de verdad que pasan a la mochila al cambiarlas.
+ */
+export function inventarioInicial(l: Luchador, heroe: HeroeJson, objetos: ObjetosJson): Inventario {
+  const inv = crearInventario();
+  equipar(l, inv, objetos, heroe.armaInicial);
+  equipar(l, inv, objetos, objetos.armaduraInicial);
+  return inv;
 }
 
 /** Se pone la pieza `clave` en su hueco: resta los bonos de la que llevaba y suma los de la nueva. */
