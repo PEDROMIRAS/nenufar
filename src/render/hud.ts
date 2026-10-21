@@ -83,3 +83,10 @@ export function dibujarBotonCorrer(ctx: CanvasRenderingContext2D, activo: boolea
     }
   }
 }
+
+/** Bajo el HUD, mientras las puertas están cerradas: cuántos grupos de monstruos faltan. */
+export function dibujarQuedan(ctx: CanvasRenderingContext2D, texto: string): void {
+  ctx.fillStyle = 'rgba(8, 14, 10, 0.6)';
+  ctx.fillRect(6, 60, 150, 20);
+  escribir(ctx, texto, 12, 64, '#ffd27a');
+}

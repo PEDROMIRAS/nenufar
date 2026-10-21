@@ -41,6 +41,7 @@ import {
   dibujarAviso,
   dibujarBotonCorrer,
   dibujarBotonMenu,
+  dibujarQuedan,
   dibujarHud,
   type TextosHud,
 } from '../render/hud';
@@ -157,6 +158,9 @@ export class EscenaMapa implements Escena {
   private invulnerable = 0;
   /** Salidas cerradas mientras queden monstruos (bits), y casillas marcadas sólidas por ello. */
   private cerradas = 0;
+  /** Grupos de monstruos que quedan en la sala y su texto (se rehace solo si cambia la cuenta). */
+  private quedan = -1;
+  private textoQuedan = '';
   private bloqueadas: number[] = [];
   /** Azar de la patrulla de los monstruos. */
   private readonly azarMapa: () => number;
@@ -328,6 +332,15 @@ export class EscenaMapa implements Escena {
     }
     this.refrescarHud();
     dibujarHud(ctx, this.o.luchadora, this.hud);
+    if (this.cerradas) {
+      let vivos = 0;
+      for (const m of this.montada.monstruos) if (m.vivo) vivos++;
+      if (vivos !== this.quedan) {
+        this.quedan = vivos;
+        this.textoQuedan = vivos === 1 ? 'Queda 1 grupo' : `Quedan ${vivos} grupos`;
+      }
+      if (vivos > 0) dibujarQuedan(ctx, this.textoQuedan);
+    }
     if (this.tiempoAviso > 0) dibujarAviso(ctx, this.aviso);
     // El minimapa va encima del fundido: es interfaz, no parte de la sala.
     ctx.drawImage(this.minimapa, BOTON_MENU.x - MARGEN_HUD - this.minimapa.width, MARGEN_HUD);
