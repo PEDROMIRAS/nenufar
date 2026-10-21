@@ -26,11 +26,11 @@ def pegar(fondo, sprite, escala, pie_x, pie_y, ancla_y):
 
 def main():
     sala = Image.open(os.path.join(PUBLIC, "assets", "portada.png")).convert("RGBA")
-    # Imagen para compartir: la sala a ×3, algo oscurecida, con las ranas junto a la hoguera.
+    # Imagen para compartir: la sala a ×3, algo oscurecida, con las ranas junto a la fuente.
     fondo = sala.resize((sala.width * 3, sala.height * 3), Image.NEAREST)
     fondo = ImageEnhance.Brightness(fondo).enhance(0.7)
-    pegar(fondo, fotograma("rana_ronin.png", 2, 0), 6, 600, 640, 30)  # mirando a la derecha
-    pegar(fondo, fotograma("rana_maga.png", 1, 0), 6, 840, 640, 30)  # mirando a la izquierda
+    pegar(fondo, fotograma("rana_ronin.png", 2, 0), 6, 498, 640, 30)  # mirando a la derecha
+    pegar(fondo, fotograma("rana_maga.png", 1, 0), 6, 942, 640, 30)  # mirando a la izquierda
     pegar(fondo, fotograma("monstruos/limo.png", 1, 0), 4, 1180, 760, 30)
     pegar(fondo, fotograma("monstruos/murcielago.png", 0, 0), 4, 1110, 430, 30)
     x0 = (fondo.width - 1200) // 2

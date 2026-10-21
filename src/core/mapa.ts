@@ -61,7 +61,7 @@ export function portalPisado(sala: Sala, tam: number, x: number, y: number): boo
 }
 
 /**
- * Objeto llamado `nombre` cuya casilla toca la caja de la heroína ampliada `margen` píxeles por cada
+ * Objeto llamado `nombre` (o una de sus piezas, `nombre_…`, si ocupa varias casillas) cuya casilla toca la caja de la heroína ampliada `margen` píxeles por cada
  * lado (para usar algo sólido, como la fuente, basta con pegarse a él).
  */
 export function objetoAlAlcance(
@@ -76,7 +76,7 @@ export function objetoAlAlcance(
   const arriba = cuerpo.y - cuerpo.alto - margen;
   const abajo = cuerpo.y + margen;
   for (const o of sala.objetos) {
-    if (o.inf.name !== nombre) continue;
+    if (o.inf.name !== nombre && !o.inf.name.startsWith(`${nombre}_`)) continue;
     const x0 = o.x * tam;
     const y0 = o.y * tam;
     if (izq < x0 + tam && der > x0 && arriba < y0 + tam && abajo > y0) return o;

@@ -18,7 +18,7 @@ export interface ArtePortada {
 
 const AVISO = 'Pulsa o toca para empezar';
 
-/** Portada: la sala de descanso del Bosque con las ranas junto a la hoguera, el logo y los récords. */
+/** Portada: la sala de descanso del Bosque con las ranas junto a la fuente, el logo y los récords. */
 export class EscenaTitulo implements Escena {
   private tiempo = 0;
   private readonly records: string;
@@ -64,9 +64,9 @@ export class EscenaTitulo implements Escena {
     ctx.fillRect(0, 0, ANCHO, 104);
     ctx.fillRect(0, ALTO - 72, ANCHO, 72);
 
-    // Las ranas junto a la hoguera de la sala, mirándose; los monstruos acechan a un lado.
-    dibujarFotograma(ctx, ronin, 'idle', 'right', t, 196, 214, 2);
-    dibujarFotograma(ctx, maga, 'idle', 'left', t + 0.4, 286, 212, 2);
+    // Las ranas junto a la fuente de la sala, mirándose; los monstruos acechan a un lado.
+    dibujarFotograma(ctx, ronin, 'idle', 'right', t, 166, 214, 2);
+    dibujarFotograma(ctx, maga, 'idle', 'left', t + 0.4, 314, 212, 2);
     if (murcielago) dibujarFotograma(ctx, murcielago, 'walk', 'down', t, 400, 150);
     if (limo) dibujarFotograma(ctx, limo, 'idle', 'left', t, 404, 246);
 

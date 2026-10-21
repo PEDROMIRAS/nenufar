@@ -18,7 +18,7 @@ for name, mod in (('bosque', bosque), ('ruinas', ruinas), ('cripta', cripta)):
 
 def floors(n): return sets[n][1]
 salas = [
-    ('bosque', 'descanso', [(7, 4, 'fuente'), (5, 6, 'hoguera'), (2, 3, 'arbol'), (12, 3, 'pino'), (2, 8, 'pino'), (12, 8, 'arbol'), (10, 6, 'tocon')],
+    ('bosque', 'descanso', [(6, 4, 'fuente_izq'), (7, 4, 'fuente_cen'), (8, 4, 'fuente_der'), (5, 6, 'hoguera'), (2, 3, 'arbol'), (12, 3, 'pino'), (2, 8, 'pino'), (12, 8, 'arbol'), (10, 6, 'tocon')],
      [(6 * 32 + 16, 7 * 32 + 26, ronin_u), (4 * 32 + 8, 6 * 32 + 20, maga_r)], {"n": "abierta", "o": "abierta"}),
     ('ruinas', 'tesoro', [(7, 3, 'cofre_cerrado'), (5, 3, 'columna'), (9, 3, 'columna'), (3, 7, 'columna_rota'), (11, 7, 'escombros'), (2, 2, 'vasija'), (12, 2, 'vasija')],
      [(7 * 32 + 16, 6 * 32 + 20, ronin_u), (8 * 32 + 26, 7 * 32 + 10, maga_d)], {"s": "abierta"}),
@@ -30,14 +30,21 @@ for zone, kind, props, actors, doors in salas:
     room(zone, lk, com, fl, props, actors, f'out/sala_{zone}_{kind}.png', doors=doors, seed=7)
 
 # objetos animados en movimiento
-anim = [('fuente', com['fuente']), ('portal', com['portal']), ('hoguera', com['hoguera']), ('candelabro', sets['cripta'][0]['candelabro'])]
+fuente = [Image.fromarray(comunes.fountain(i), 'RGBA') for i in range(2)]
+anim = [('fuente', fuente), ('portal', com['portal']), ('hoguera', com['hoguera']), ('candelabro', sets['cripta'][0]['candelabro'])]
 bg = sets['ruinas'][0]['suelo_liso_a'][0]
 frames = []
 for f in range(8):
-    cv = Image.new('RGBA', (len(anim) * 40 + 8, 40))
-    for i, (_, fr) in enumerate(anim):
-        cv.alpha_composite(bg, (4 + i * 40, 4))
-        cv.alpha_composite(fr[(f // 2) % len(fr)], (4 + i * 40, 4))
+    # Cada objeto en su hueco, con suelo debajo (la fuente ocupa 3x2 casillas).
+    cv = Image.new('RGBA', (sum(fr[0].width + 8 for _, fr in anim) + 8, 72))
+    x = 4
+    for _, fr in anim:
+        im = fr[(f // 2) % len(fr)]
+        for bx in range(0, im.width, 32):
+            for by in range(0, im.height, 32):
+                cv.alpha_composite(bg, (x + bx, 68 - im.height + by))
+        cv.alpha_composite(im, (x, 68 - im.height))
+        x += im.width + 8
     frames.append(cv.resize((cv.width * 5, cv.height * 5), Image.NEAREST).convert('RGB'))
 frames[0].save('out/objetos_animados.gif', save_all=True, append_images=frames[1:], duration=250, loop=0)
 print('ok')

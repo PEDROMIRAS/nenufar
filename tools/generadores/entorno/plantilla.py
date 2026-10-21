@@ -5,7 +5,7 @@ Leyenda:
   .  suelo                          f  suelo con flores           s    suelo con setas
   :  camino (autotile)              ~  agua (autotile)
   T  árbol   P  pino   r  roca   b  arbusto   o  tocón
-  H  hoguera F  fuente X  cofre   >  portal
+  H  hoguera [F]  fuente (3x2: izquierda, centro, derecha)  X  cofre   >  portal
 """
 import random
 import numpy as np
@@ -13,7 +13,7 @@ from PIL import Image
 from base import S
 
 PROPS = {"T": "arbol", "P": "pino", "r": "roca", "b": "arbusto", "o": "tocon",
-         "H": "hoguera", "F": "fuente", "X": "cofre_cerrado", ">": "portal",
+         "H": "hoguera", "[": "fuente_izq", "F": "fuente_cen", "]": "fuente_der", "X": "cofre_cerrado", ">": "portal",
          # Ruinas
          "I": "columna", "i": "columna_rota", "e": "escombros", "v": "vasija",
          # Cripta

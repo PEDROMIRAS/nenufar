@@ -1,4 +1,4 @@
-"""Objetos comunes a todas las zonas: cofre, fuente, portal y hoguera."""
+"""Objetos comunes a todas las zonas: cofre, fuente (de 3x2 casillas), portal y hoguera."""
 import math
 from base import *
 
@@ -36,23 +36,43 @@ def chest(opened=False):
 
 
 def fountain(frame):
-    t = tile()
-    ellipse(t, 16, 23, 14, 7, ST)
-    ellipse(t, 16, 22, 11, 4.6, [WATER[0], WATER[1], WATER[1], WATER[2]])
-    rect(t, 14, 8, 17, 21, ST[2]); line(t, 14, 8, 14, 21, ST[3]); line(t, 17, 8, 17, 21, ST[1])
-    ellipse(t, 15.5, 8, 4, 1.8, [ST[1], ST[2], ST[3]])
+    """Fuente de la sala de descanso: 3 casillas de ancho y 2 de alto (96x64)."""
+    t = tile(2 * S, 3 * S)
+    # Pilón ancho con su agua.
+    ellipse(t, 48, 50, 44, 12, ST)
+    ellipse(t, 48, 48.5, 38, 8.5, [WATER[0], WATER[1], WATER[1], WATER[2]])
+    # Columna central y taza de arriba, también con agua.
+    rect(t, 44, 20, 51, 47, ST[2]); line(t, 44, 20, 44, 47, ST[3]); line(t, 51, 20, 51, 47, ST[1])
+    rect(t, 42, 44, 53, 47, ST[1])
+    ellipse(t, 48, 20, 14, 5, ST)
+    ellipse(t, 48, 19, 10.5, 2.8, [WATER[0], WATER[1], WATER[2]])
     outline(t)
-    # agua: chorro y destellos (sin contorno)
-    for k in range(4):
-        put(t, 15 + (frame + k) % 2, 6 - k, WATER[2 + (k % 2)])
-    for dx in (-3, 3):
-        for k in range(4):
-            put(t, 15.5 + dx + (dx // 3) * (k // 2), 5 + k + (frame % 2), WATER[2])
-    sparks = [(10, 21), (21, 23), (13, 24), (19, 20)] if frame == 0 else [(12, 20), (20, 22), (16, 25), (9, 23)]
-    for x, y in sparks:
+    # Agua que se mueve (sin contorno): chorro, caída por los bordes de la taza y destellos.
+    for k in range(7):
+        put(t, 47 + (frame + k) % 2, 15 - k, WATER[2 + (k % 2)])
+    for lado in (-1, 1):
+        for k in range(18):
+            x = 48 + lado * (12 + k * 0.45)
+            put(t, x, 21 + k + (frame + k) % 2, WATER[2 + (k + frame) % 2])
+    chispas = [(22, 46), (70, 49), (34, 52), (60, 45), (48, 53), (14, 49)]
+    for i, (x, y) in enumerate(chispas):
+        if (i + frame) % 2 == 0:
+            put(t, x, y, WATER[3])
+    for x, y in ((40, 18), (56, 20)) if frame == 0 else ((43, 20), (53, 18)):
         put(t, x, y, WATER[3])
-    ground_shadow(t, 16, 30, 14, 1.5)
+    ground_shadow(t, 48, 62, 44, 2)
     return t
+
+
+def piezas_fuente():
+    """La fuente partida en casillas: (nombre, [fotogramas]) de cada columna, arriba y abajo."""
+    fr = [fountain(0), fountain(1)]
+    piezas = []
+    for col, nombre in enumerate(("fuente_izq", "fuente_cen", "fuente_der")):
+        x = col * S
+        piezas.append((nombre + "_sup", "dosel", False, [f[:S, x:x + S].copy() for f in fr], None))
+        piezas.append((nombre + "_inf", "objeto", True, [f[S:, x:x + S].copy() for f in fr], None))
+    return piezas
 
 
 def portal(frame):
@@ -103,7 +123,7 @@ def tiles():
     return [
         ("cofre_cerrado", "objeto", True, [chest()], None),
         ("cofre_abierto", "objeto", True, [chest(True)], None),
-        ("fuente", "objeto", True, [fountain(0), fountain(1)], None),
+        *piezas_fuente(),
         ("portal", "objeto", False, [portal(0), portal(1)], None),
         ("hoguera", "objeto", True, [campfire(0), campfire(1)], None),
     ]

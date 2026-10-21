@@ -142,7 +142,10 @@ export function dibujarObjetos(
     if (base <= desde || base > hasta) continue;
     const frame = o.inf.frames ? Math.floor(tiempo * (o.inf.fps ?? 0)) % o.inf.frames : 0;
     dibujarTile(ctx, imagenes, o.inf, tam, o.x * tam, o.y * tam, frame);
-    if (o.sup) dibujarTile(ctx, imagenes, o.sup, tam, o.x * tam, (o.y - 1) * tam);
+    if (o.sup) {
+      const arriba = o.sup.frames ? Math.floor(tiempo * (o.sup.fps ?? 0)) % o.sup.frames : 0;
+      dibujarTile(ctx, imagenes, o.sup, tam, o.x * tam, (o.y - 1) * tam, arriba);
+    }
   }
 }
 

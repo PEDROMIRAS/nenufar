@@ -27,22 +27,74 @@
       ]
     },
     {
-      "name": "fuente",
+      "name": "fuente_izq_sup",
       "index": 2,
+      "layer": "dosel",
+      "solid": false,
+      "frames": 2,
+      "fps": 4
+    },
+    {
+      "name": "fuente_izq_inf",
+      "index": 4,
       "layer": "objeto",
       "solid": true,
       "frames": 2,
       "fps": 4,
       "caja": [
-        1,
-        19,
-        31,
-        31
+        4,
+        20,
+        32,
+        32
+      ]
+    },
+    {
+      "name": "fuente_cen_sup",
+      "index": 6,
+      "layer": "dosel",
+      "solid": false,
+      "frames": 2,
+      "fps": 4
+    },
+    {
+      "name": "fuente_cen_inf",
+      "index": 8,
+      "layer": "objeto",
+      "solid": true,
+      "frames": 2,
+      "fps": 4,
+      "caja": [
+        0,
+        20,
+        32,
+        32
+      ]
+    },
+    {
+      "name": "fuente_der_sup",
+      "index": 10,
+      "layer": "dosel",
+      "solid": false,
+      "frames": 2,
+      "fps": 4
+    },
+    {
+      "name": "fuente_der_inf",
+      "index": 12,
+      "layer": "objeto",
+      "solid": true,
+      "frames": 2,
+      "fps": 4,
+      "caja": [
+        0,
+        20,
+        28,
+        32
       ]
     },
     {
       "name": "portal",
-      "index": 4,
+      "index": 14,
       "layer": "objeto",
       "solid": false,
       "frames": 2,
@@ -50,7 +102,7 @@
     },
     {
       "name": "hoguera",
-      "index": 6,
+      "index": 16,
       "layer": "objeto",
       "solid": true,
       "frames": 2,

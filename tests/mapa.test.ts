@@ -111,3 +111,25 @@ describe('cerrarSalidas y abrirSalidas', () => {
     expect(sala.solido[norte[0]![1] * 15 + norte[0]![0]]).toBe(true);
   });
 });
+
+test('objetoAlAlcance encuentra cualquier pieza de un objeto de varias casillas, y solo las suyas', () => {
+  const pieza = (name: string) => ({
+    name,
+    index: 0,
+    layer: 'objeto' as const,
+    solid: true,
+    hoja: 0,
+  });
+  const sala = {
+    ancho: 15,
+    alto: 11,
+    base: [],
+    solido: [],
+    cajas: [],
+    objetos: [{ x: 10, y: 7, inf: pieza('fuente_der_inf'), sup: null }],
+  };
+  const cuerpo = { x: 320 - 7, y: 7 * T + 20, ancho: 14, alto: 8 };
+  expect(objetoAlAlcance(sala, 'fuente', cuerpo, T, 4)).not.toBeNull();
+  sala.objetos[0]!.inf = pieza('fuentecilla');
+  expect(objetoAlAlcance(sala, 'fuente', cuerpo, T, 4)).toBeNull();
+});
