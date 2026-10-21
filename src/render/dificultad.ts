@@ -1,5 +1,5 @@
 import { dibujarMenu, type MenuVista } from './combate';
-import { ALTO, ANCHO, FONDO } from './pantalla';
+import { ALTO, ANCHO, esTactil, FONDO } from './pantalla';
 import { escribir, FUENTE_GRANDE } from './texto';
 
 /** Lo que se cuenta de cada dificultad, ya en líneas. */
@@ -25,7 +25,7 @@ export function dibujarDificultad(
   ficha.lineas.forEach((linea, i) => escribir(ctx, linea, 56, 160 + i * 18, '#e8efe4'));
   escribir(
     ctx,
-    '← → elegir · Enter o toca para empezar · Esc volver',
+    esTactil() ? 'Toca una dificultad para empezar' : '← → elegir · Enter empezar · Esc volver',
     ANCHO / 2,
     256,
     '#aab8a6',

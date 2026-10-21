@@ -1,5 +1,5 @@
 import { dibujarMenu, type MenuVista } from './combate';
-import { ALTO, ANCHO, FONDO } from './pantalla';
+import { ALTO, ANCHO, esTactil, FONDO } from './pantalla';
 import { dibujarFotograma, type Sprite } from './recursos';
 import { escribir, FUENTE_GRANDE } from './texto';
 
@@ -23,7 +23,9 @@ export function dibujarNombre(
   escribir(ctx, tipo, ANCHO / 2, 172, '#aab8a6', 'center');
   escribir(
     ctx,
-    'Escribe un nombre · Enter seguir · ↓ botones · Esc volver',
+    esTactil()
+      ? 'Escribe un nombre y toca Seguir'
+      : 'Escribe un nombre · Enter seguir · ↓ botones · Esc volver',
     ANCHO / 2,
     252,
     '#aab8a6',

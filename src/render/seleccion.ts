@@ -1,5 +1,5 @@
 import type { HeroeJson } from '../core/types';
-import { ALTO, ANCHO, FONDO } from './pantalla';
+import { ALTO, ANCHO, esTactil, FONDO } from './pantalla';
 import type { Sprite } from './recursos';
 import { escribir, FUENTE_GRANDE } from './texto';
 
@@ -69,5 +69,6 @@ export function dibujarSeleccion(
     });
   });
 
-  escribir(ctx, '← → para elegir · Enter o toca para seguir', ANCHO / 2, 316, '#aab8a6', 'center');
+  const pista = esTactil() ? 'Toca una rana para elegirla' : '← → elegir · Enter seguir';
+  escribir(ctx, pista, ANCHO / 2, 316, '#aab8a6', 'center');
 }

@@ -19,7 +19,7 @@ import {
   type CambioEstadistica,
   type FilaEquipo,
 } from '../render/equipo';
-import { dentro } from '../render/pantalla';
+import { dentro, esTactil } from '../render/pantalla';
 import type { Sprite } from '../render/recursos';
 import { sonar } from '../render/sonido';
 import { recolorear } from '../render/tinte';
@@ -92,7 +92,9 @@ export class EscenaEquipo implements Escena {
       };
     } else {
       this.titulo = 'Equipo';
-      this.pista = '↑↓ arma o armadura · ← → cambiar · Enter listo';
+      this.pista = esTactil()
+        ? 'Toca las flechas para cambiar de pieza'
+        : '↑↓ arma o armadura · ← → cambiar · Enter listo';
       this.menu = { opciones: [{ texto: 'Listo', detalle: '', disponible: true }], seleccion: 0 };
     }
     this.rehacer();
