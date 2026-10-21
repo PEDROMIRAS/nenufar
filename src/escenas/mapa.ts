@@ -124,6 +124,9 @@ export interface OpcionesMapa {
   nombreZona: string;
   /** Segundos que llueve al vencer al jefe de la zona (el Rey Limo devuelve la lluvia); 0, nada. */
   lluviaTrasJefe: number;
+  /** Pistas de controles que se enseñan una tras otra al empezar (solo la primera vez), y cuánto dura cada una. */
+  pistas: readonly string[];
+  segundosPista: number;
   /** Tabla del cofre de la sala del tesoro, inventario de la partida y objetos que existen. */
   cofre: readonly BotinJson[];
   inventario: Inventario;
@@ -159,6 +162,8 @@ export class EscenaMapa implements Escena {
   private fuenteUsada = false;
   /** Segundos de lluvia que quedan, y sus gotas (solo si la zona tiene lluvia tras el jefe). */
   private lluvia = 0;
+  /** Siguiente pista por enseñar. */
+  private pista = 0;
   private readonly gotas: Lluvia | null;
   /** Aviso en pantalla (la fuente…) y segundos que le quedan. */
   private aviso = '';
@@ -218,6 +223,9 @@ export class EscenaMapa implements Escena {
     const corriendo = acciones.correr || h.correrFijo;
     actualizarHeroina(h, acciones, dt, this.montada.sala, tam, corriendo);
     this.tiempoAviso = Math.max(0, this.tiempoAviso - dt);
+    if (this.tiempoAviso === 0 && this.pista < this.o.pistas.length) {
+      this.avisar(this.o.pistas[this.pista++]!, this.o.segundosPista);
+    }
     if (this.lluvia > 0 && this.gotas) {
       this.lluvia = Math.max(0, this.lluvia - dt);
       moverLluvia(this.gotas, dt);
@@ -325,10 +333,10 @@ export class EscenaMapa implements Escena {
     dibujarBotonCorrer(ctx, this.o.heroina.correrFijo);
   }
 
-  private avisar(texto: string): void {
+  private avisar(texto: string, segundos = DURACION_AVISO): void {
     this.aviso = texto;
     anunciar(texto);
-    this.tiempoAviso = DURACION_AVISO;
+    this.tiempoAviso = segundos;
   }
 
   /** Abre el cofre (se queda abierto) y guarda lo que hay o enseña la pieza de equipo. */

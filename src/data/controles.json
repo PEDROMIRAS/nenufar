@@ -2,5 +2,18 @@
   "joystick": {
     "radio": 48,
     "zonaMuerta": 0.25
+  },
+  "pistas": {
+    "segundos": 4,
+    "teclado": [
+      "Flechas o WASD: moverte · Mayúsculas: correr",
+      "Escape o I: mochila, equipo y puntos de mejora",
+      "Pilla a un monstruo por la espalda: atacas antes"
+    ],
+    "tactil": [
+      "Arrastra el dedo para moverte · » para correr",
+      "Toca la mochila: equipo y puntos de mejora",
+      "Pilla a un monstruo por la espalda: atacas antes"
+    ]
   }
 }

@@ -10,6 +10,9 @@ export const FONDO = '#10161a';
 // múltiplo entero: con él se quedaba en dos tercios del ancho en vertical y con franjas en horizontal.
 const TACTIL = window.matchMedia('(pointer: coarse)');
 
+/** ¿Pantalla táctil (móvil, tableta)? */
+export const esTactil = (): boolean => TACTIL.matches;
+
 /**
 /** Píxeles reales de pantalla por píxel lógico (lo que mide el canvas por dentro entre ANCHO). */
 let escalaPantalla = 1;

@@ -27,6 +27,8 @@ export interface Ajustes {
   jugarEnVertical: boolean;
   /** Nombre de la última heroína que venció al jefe final: en la partida siguiente es ella quien espera en la Cripta. */
   senora: string;
+  /** Ya se enseñaron las pistas de controles de la primera partida. */
+  pistasVistas: boolean;
 }
 
 /** Ajustes guardados; si faltan o están dañados, los de por defecto (nada de lo leído se da por bueno sin comprobarlo). */
@@ -42,9 +44,17 @@ export function cargarAjustes(): Ajustes {
       nombres: Object.fromEntries(nombres),
       jugarEnVertical: a?.jugarEnVertical === true,
       senora: typeof a?.senora === 'string' ? a.senora : '',
+      pistasVistas: a?.pistasVistas === true,
     };
   } catch {
-    return { silencio: false, musica: 1, nombres: {}, jugarEnVertical: false, senora: '' };
+    return {
+      silencio: false,
+      musica: 1,
+      nombres: {},
+      jugarEnVertical: false,
+      senora: '',
+      pistasVistas: false,
+    };
   }
 }
 

@@ -46,7 +46,7 @@ import { crearJoystick } from './input/joystick';
 import { crearTeclado } from './input/teclado';
 import { crearToque } from './input/toque';
 import { iniciarBucle } from './render/bucle';
-import { prepararPantalla } from './render/pantalla';
+import { esTactil, prepararPantalla } from './render/pantalla';
 import { crearCasilla, crearDeslizador, type Casilla, type Deslizador } from './render/deslizador';
 import { crearCampoNombre } from './render/campoNombre';
 import { LARGO_NOMBRE, RECT_CAMPO } from './render/nombre';
@@ -215,6 +215,7 @@ async function iniciar(): Promise<void> {
     crearZona(partida, 0, true)
       .then((zona) => {
         pila.cambiar(zona);
+        guardarAjustes({ pistasVistas: true }); // las pistas, si tocaban, ya van en esta zona
         // La historia se cuenta encima del mapa ya cargado: al pasarla, empieza el fundido de entrada.
         contar(
           pila,
@@ -342,6 +343,12 @@ async function crearZona(
     luchadora: partida.luchadora,
     nombreZona: datos.nombre,
     lluviaTrasJefe: historia.zonas[nombre].jefe.lluvia,
+    // Las pistas de controles, solo en la primera zona de la primera partida.
+    pistas:
+      indice === 0 && !cargarAjustes().pistasVistas
+        ? controles.pistas[esTactil() ? 'tactil' : 'teclado']
+        : [],
+    segundosPista: controles.pistas.segundos,
     iniciarCombate: (grupo, alTerminar, quien) =>
       grupo[0]?.jefe
         ? lucharJefe(partida, grupo[0], historia.zonas[nombre].jefe, escena.fondoSala, alTerminar)
