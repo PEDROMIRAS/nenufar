@@ -43,7 +43,7 @@ const COLOR = {
   elegida: '#ffd27a',
   texto: '#e8efe4',
   tenue: '#aab8a6',
-  apagado: '#5d6b5a',
+  apagado: '#8a9886', // 6:1 sobre el fondo
   oro: '#ffd27a',
 };
 

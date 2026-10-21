@@ -86,7 +86,7 @@ const COLOR = {
   borde: '#8fa88a',
   /** Fondo del recuadro del final del combate. */
   cartel: '#141c18',
-  apagado: '#6b6b6b',
+  apagado: '#a8a8a8', // 5:1 sobre el botón: se lee aunque esté apagado
   aviso: '#ffd27a',
   estado: '#c89bff',
 };
@@ -340,8 +340,8 @@ export function barra(
 
 function parpadea(v: VistaCombate, l: Luchador): boolean {
   if (v.golpeado !== l || v.flotanteCura) return false;
-  // Con menos movimiento, el destello queda fijo en vez de parpadear 8 veces por segundo.
-  return movimientoReducido() || Math.floor(v.tiempoGolpe * 16) % 2 === 0;
+  // 3 destellos por segundo, el tope de WCAG; con menos movimiento, el destello queda fijo.
+  return movimientoReducido() || Math.floor(v.tiempoGolpe * 6) % 2 === 0;
 }
 
 /** Altura de la parte de arriba del enemigo, de donde cuelgan su nombre y los avisos. */
