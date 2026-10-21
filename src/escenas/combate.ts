@@ -27,37 +27,15 @@ import {
 import { anunciar } from '../render/accesibilidad';
 import type { Sprite } from '../render/recursos';
 import { ponerMusica, sonar } from '../render/sonido';
+import ritmo from '../data/ritmo.json';
 import type { Escena } from './escena';
 
-/** Segundos que se muestra cada tipo de evento antes de pasar al siguiente. */
-const DURACION: Record<Evento['tipo'], number> = {
-  turno: 0.15,
-  danio: 0.7,
-  defensa: 0.6,
-  carga: 1.0,
-  habilidad: 0.6,
-  cura: 0.7,
-  estado: 0.6,
-  danioEstado: 0.7,
-  pierdeTurno: 0.7,
-  aviso: 1.1,
-  aparece: 0.5,
-  objeto: 0.6,
-  mana: 0.6,
-  botin: 0.8,
-  equipo: 0.9,
-  iniciativa: 1.0,
-  huida: 0.7,
-  muerte: 0.6,
-  recupera: 0.8,
-  experiencia: 0.8,
-  nivel: 1.2,
-  fin: 0,
-};
+/** Segundos que se muestra cada tipo de evento antes de pasar al siguiente (src/data/ritmo.json). */
+const DURACION: Record<Evento['tipo'], number> = ritmo.eventos;
 /** Efecto que deja el golpe de un monstruo sobre la heroína. */
 const EFECTO_MONSTRUO = 'impacto';
 /** Segundos que parpadea quien recibe un golpe y flota su número. */
-const DURACION_GOLPE = 0.7;
+const DURACION_GOLPE = ritmo.golpe;
 const TITULO: Record<Resultado, string> = {
   victoria: '¡Victoria!',
   derrota: 'Has caído...',
@@ -174,7 +152,8 @@ export class EscenaCombate implements Escena {
       if (v.tiempoGolpe >= DURACION_GOLPE) v.golpeado = null;
     }
     if (this.espera > 0) {
-      this.espera -= dt;
+      // Pulsar o tocar mientras se anima algo lo acaba y pasa a lo siguiente.
+      this.espera = acciones.confirmar || acciones.toqueX >= 0 ? 0 : this.espera - dt;
       return;
     }
     // Antes de enseñar un golpe, el atacante hace su animación (los golpes seguidos del mismo, una vez).

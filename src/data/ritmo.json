@@ -1,0 +1,27 @@
+{
+  "eventos": {
+    "turno": 0.1,
+    "danio": 0.45,
+    "defensa": 0.35,
+    "carga": 0.6,
+    "habilidad": 0.35,
+    "cura": 0.45,
+    "estado": 0.35,
+    "danioEstado": 0.45,
+    "pierdeTurno": 0.45,
+    "aviso": 0.7,
+    "aparece": 0.3,
+    "objeto": 0.35,
+    "mana": 0.35,
+    "botin": 0.5,
+    "equipo": 0.55,
+    "iniciativa": 0.6,
+    "huida": 0.45,
+    "muerte": 0.35,
+    "recupera": 0.5,
+    "experiencia": 0.5,
+    "nivel": 0.7,
+    "fin": 0
+  },
+  "golpe": 0.45
+}
