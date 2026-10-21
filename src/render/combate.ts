@@ -91,6 +91,8 @@ const COLOR = {
   estado: '#c89bff',
 };
 const ENEMIGO = { y: 128, escala: 2, separacion: 140, alto: 56, topeMinimo: 44 };
+/** Primera línea libre bajo la barra de turnos (su texto empieza en y = 10). */
+const FIN_BARRA_TURNOS = 26;
 const HEROINA = { x: 120, y: 236, escala: 2 };
 /** Segundos que dura la animación de ataque de un enemigo (3 fotogramas a 10 fps y un respiro). */
 const DURACION_ATAQUE = 0.45;
@@ -289,16 +291,33 @@ export function dibujarMenu(ctx: CanvasRenderingContext2D, menu: MenuVista | nul
 }
 
 /** Barra con quién actúa en lo que queda de ronda; el primero es el que tiene el turno. */
+/** Nombres cortos para la barra de turnos y sobre cada enemigo («Kero, Señora de la Cripta» → «Kero»), hechos una vez. */
+const CORTOS = new WeakMap<Luchador, string>();
+const nombreCorto = (l: Luchador): string => {
+  let corto = CORTOS.get(l);
+  if (corto === undefined) {
+    corto = l.nombre.split(',')[0]!;
+    CORTOS.set(l, corto);
+  }
+  return corto;
+};
+
 function dibujarOrden(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   escribir(ctx, 'Turno', 12, 10, '#aab8a6');
   let x = 64;
   for (let i = v.turno; i < v.orden.length; i++) {
     const l = v.orden[i]!;
     if ((v.pv.get(l) ?? l.pv) <= 0) continue;
+    const nombre = nombreCorto(l);
+    // Lo que no cabe se resume en «…» en vez de salirse de la pantalla.
+    if (x + 12 + nombre.length * ANCHO_LETRA > ANCHO - 8) {
+      escribir(ctx, '…', x, 10);
+      return;
+    }
     ctx.fillStyle = l.esHeroina ? COLOR.pm : (l.monstruo?.color ?? '#999');
     ctx.fillRect(x, 8, 8, 16);
-    escribir(ctx, l.nombre, x + 12, 10);
-    x += 24 + l.nombre.length * 7;
+    escribir(ctx, nombre, x + 12, 10);
+    x += 24 + nombre.length * 7;
   }
 }
 
@@ -360,21 +379,23 @@ function dibujarEnemigo(
     }
     dibujarFotograma(ctx, sprite, anim, 'down', t, x + dx, y, ENEMIGO.escala);
   }
-  escribir(ctx, e.nombre, x, tope - 18, '#e8efe4', 'center');
+  // Un jefe alto no deja sitio encima del nombre sin pisar la barra de turnos: el aviso de golpe
+  // fuerte ocupa entonces el sitio del nombre y la flecha de objetivo va a su izquierda.
+  const sinSitio = tope - 36 < FIN_BARRA_TURNOS;
+  const avisoEnNombre = sinSitio && v.cargando.has(e);
+  if (avisoEnNombre) escribir(ctx, '¡Golpe fuerte!', x, tope - 18, COLOR.aviso, 'center');
+  else escribir(ctx, nombreCorto(e), x, tope - 18, '#e8efe4', 'center');
   if (v.apuntado === e) {
-    escribir(
-      ctx,
-      '▼',
-      x,
-      tope - 34 + Math.round(Math.sin(v.tiempo * 8) * 2),
-      COLOR.aviso,
-      'center',
-    );
+    const sube = Math.round(Math.sin(v.tiempo * 8) * 2);
+    if (sinSitio) {
+      const izquierda = x - (avisoEnNombre ? 7 : nombreCorto(e).length / 2) * ANCHO_LETRA - 10;
+      escribir(ctx, '▶', izquierda, tope - 18, COLOR.aviso, 'center');
+    } else escribir(ctx, '▼', x, tope - 34 + sube, COLOR.aviso, 'center');
   }
   barra(ctx, x - 40, y + 8, 80, pv / e.pvMax, COLOR.pv);
   escribir(ctx, v.textoPv.get(e) ?? '', x, y + 18, '#e8efe4', 'center');
   escribir(ctx, v.estados.get(e) ?? '', x, y + 32, COLOR.estado, 'center');
-  if (v.cargando.has(e)) {
+  if (v.cargando.has(e) && !avisoEnNombre) {
     // Corto: con dos o tres enemigos a la vez, los avisos no deben pisarse (los separa 140 px).
     escribir(ctx, '¡Golpe fuerte!', x, tope - 36, COLOR.aviso, 'center');
   }
