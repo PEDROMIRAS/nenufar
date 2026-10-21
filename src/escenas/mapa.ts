@@ -305,7 +305,7 @@ export class EscenaMapa implements Escena {
     if (this.tiempoAviso > 0) dibujarAviso(ctx, this.aviso);
     // El minimapa va encima del fundido: es interfaz, no parte de la sala.
     ctx.drawImage(this.minimapa, BOTON_MENU.x - MARGEN_HUD - this.minimapa.width, MARGEN_HUD);
-    dibujarBotonMenu(ctx);
+    dibujarBotonMenu(ctx, this.o.luchadora.puntos > 0);
     dibujarBotonCorrer(ctx, this.o.heroina.correrFijo);
   }
 

@@ -34,7 +34,8 @@ const MOCHILA = { oscuro: '#4a2c1a', cuerpo: '#8a5a34', solapa: '#b07a44', hebil
 /** Botón de la mochila (abre el inventario), arriba a la derecha. */
 export const BOTON_MENU = { x: ANCHO - 6 - 44, y: 6, ancho: 44, alto: 44 };
 
-export function dibujarBotonMenu(ctx: CanvasRenderingContext2D): void {
+/** `aviso`: punto amarillo en la esquina (hay puntos de mejora sin gastar). */
+export function dibujarBotonMenu(ctx: CanvasRenderingContext2D, aviso = false): void {
   const { x, y, ancho, alto } = BOTON_MENU;
   ctx.fillStyle = 'rgba(8, 14, 10, 0.6)';
   ctx.fillRect(x, y, ancho, alto);
@@ -57,6 +58,12 @@ export function dibujarBotonMenu(ctx: CanvasRenderingContext2D): void {
   ctx.fillRect(mx + 6, my + 16, 8, 4);
   ctx.fillStyle = MOCHILA.hebilla;
   ctx.fillRect(mx + 8, my + 9, 4, 4);
+  if (aviso) {
+    ctx.fillStyle = MOCHILA.oscuro;
+    ctx.fillRect(x + ancho - 13, y + 3, 10, 10);
+    ctx.fillStyle = '#ffd27a';
+    ctx.fillRect(x + ancho - 12, y + 4, 8, 8);
+  }
 }
 
 /** Botón de correr, abajo a la derecha (para el móvil; con teclado se mantiene Mayúsculas). */

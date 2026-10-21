@@ -25,6 +25,8 @@ export interface FichaInventario {
 const PANEL = { y: 48, ancho: 216, alto: 236 };
 /** Hueco arriba a la derecha donde va el deslizador HTML del volumen de la música. */
 export const RECT_MUSICA = { x: 384, y: 12, ancho: 84, alto: 20 };
+/** Y arriba a la izquierda, la casilla HTML de sonido sí o no. */
+export const RECT_SONIDO = { x: 16, y: 12, ancho: 20, alto: 20 };
 const IZQUIERDA = 16;
 const DERECHA = 248;
 const COLOR = {
@@ -47,6 +49,7 @@ export function dibujarInventario(
   ctx.fillRect(0, 0, ANCHO, ALTO);
   escribir(ctx, 'Inventario', ANCHO / 2, 10, '#ffd27a', 'center', FUENTE_GRANDE);
   escribir(ctx, 'Música', RECT_MUSICA.x - 6, RECT_MUSICA.y + 4, COLOR.titulo, 'right');
+  escribir(ctx, 'Sonido', RECT_SONIDO.x + RECT_SONIDO.ancho + 6, RECT_SONIDO.y + 4, COLOR.titulo);
 
   ctx.fillStyle = COLOR.panel;
   ctx.fillRect(IZQUIERDA, PANEL.y, PANEL.ancho, PANEL.alto);

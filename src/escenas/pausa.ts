@@ -7,7 +7,7 @@ import type { EquipoJson, EstadoJson, ObjetosJson, ReglasProgresion } from '../c
 import { opcionTocada, type MenuVista } from '../render/combate';
 import { dibujarInventario, type FichaInventario } from '../render/pausa';
 import type { Sprite } from '../render/recursos';
-import type { Deslizador } from '../render/deslizador';
+import type { Casilla, Deslizador } from '../render/deslizador';
 import {
   estaSilenciado,
   leerVolumenMusica,
@@ -20,7 +20,8 @@ import type { Escena } from './escena';
 
 /**
  * Inventario (botón de la mochila o Escape en el mapa): pausa el juego y enseña la heroína, sus
- * estadísticas, equipo y objetos; se pueden usar pociones y éteres, quitar el sonido, bajar la música o salir.
+ * estadísticas, equipo y objetos; se pueden usar pociones y éteres, repartir los puntos de mejora,
+ * quitar el sonido, bajar la música o salir.
  */
 export class EscenaPausa implements Escena {
   /** Consumibles que sirven fuera de combate (los que restauran PV o PM). */
@@ -39,10 +40,12 @@ export class EscenaPausa implements Escena {
     private readonly objetos: ObjetosJson,
     private readonly progresion: ReglasProgresion,
     private readonly estados: Record<string, EstadoJson>,
-    /** Volumen de la música, sobre el canvas mientras se ve el inventario. */
-    private readonly volumen: Deslizador,
+    /** Volumen de la música y sonido sí o no: controles HTML sobre el canvas mientras se ve el inventario. */
+    private readonly controles: { musica: Deslizador; sonido: Casilla },
     /** Abre la pantalla de Equipo para cambiar arma y armadura. */
     private readonly alEquipo: () => void,
+    /** Abre la pantalla de puntos de mejora. */
+    private readonly alMejorar: () => void,
     private readonly alSeguir: () => void,
     private readonly alSalir: () => void,
   ) {
@@ -65,11 +68,11 @@ export class EscenaPausa implements Escena {
         ...f.derecha,
       ].join('. '),
     );
-    this.volumen.mostrar(leerVolumenMusica(), ponerVolumenMusica);
+    this.mostrarControles();
   }
 
   exit(): void {
-    this.volumen.ocultar();
+    this.ocultarControles();
   }
 
   update(dt: number, a: Acciones): void {
@@ -107,18 +110,17 @@ export class EscenaPausa implements Escena {
     sonar('confirmar');
     if (i === 0) {
       this.alSeguir();
-    } else if (i === 1) {
-      // La pantalla de Equipo se apila encima sin cerrar esta: el deslizador no debe quedarse a la vista.
-      this.volumen.ocultar();
-      this.alEquipo();
+    } else if (i === 1 || (i === 2 && this.l.puntos > 0)) {
+      // Equipo y Mejorar se apilan encima sin cerrar esta: los controles HTML no deben quedarse a la vista.
+      this.ocultarControles();
+      if (i === 1) this.alEquipo();
+      else this.alMejorar();
       return;
     } else if (i === n - 1) {
       if (this.salirPulsado) this.alSalir();
       this.salirPulsado = true;
-    } else if (i === n - 2) {
-      silenciar(!estaSilenciado());
-    } else {
-      const clave = this.usables[i - 2]!;
+    } else if (i > 2) {
+      const clave = this.usables[i - 3]!;
       const obj = this.objetos.consumibles[clave];
       if (obj && (this.inv.consumibles[clave] ?? 0) > 0) {
         aplicarConsumible(this.l, obj);
@@ -128,12 +130,23 @@ export class EscenaPausa implements Escena {
     this.rehacer();
   }
 
-  /** Rehace la ficha y el menú (al abrir y después de usar algo). */
-  /** Vuelve a leer a la heroína (al volver de la pantalla de Equipo). */
+  /** Vuelve a leer a la heroína (al volver de la pantalla de Equipo o de la de puntos). */
   refrescar(): void {
-    this.volumen.mostrar(leerVolumenMusica(), ponerVolumenMusica);
+    this.mostrarControles();
     this.rehacer();
   }
+
+  private mostrarControles(): void {
+    this.controles.musica.mostrar(leerVolumenMusica(), ponerVolumenMusica);
+    this.controles.sonido.mostrar(!estaSilenciado(), (si) => silenciar(!si));
+  }
+
+  private ocultarControles(): void {
+    this.controles.musica.ocultar();
+    this.controles.sonido.ocultar();
+  }
+
+  /** Rehace la ficha y el menú (al abrir y después de usar algo). */
 
   private rehacer(): void {
     const { l, inv, objetos } = this;
@@ -184,6 +197,11 @@ export class EscenaPausa implements Escena {
     this.menu.opciones = [
       { texto: 'Seguir', detalle: '', disponible: true },
       { texto: 'Equipo', detalle: '', disponible: true },
+      {
+        texto: 'Mejorar',
+        detalle: l.puntos > 0 ? `${l.puntos} libres` : '',
+        disponible: l.puntos > 0,
+      },
       ...this.usables.map((clave) => {
         const cuantos = inv.consumibles[clave] ?? 0;
         return {
@@ -192,7 +210,6 @@ export class EscenaPausa implements Escena {
           disponible: cuantos > 0,
         };
       }),
-      { texto: 'Sonido', detalle: estaSilenciado() ? 'No' : 'Sí', disponible: true },
       { texto: 'Salir', detalle: this.salirPulsado ? '¿Seguro?' : '', disponible: true },
     ];
   }

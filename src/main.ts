@@ -38,6 +38,7 @@ import { EscenaMensaje } from './escenas/mensaje';
 import { EscenaMapa } from './escenas/mapa';
 import { PilaEscenas } from './escenas/pila';
 import { EscenaPausa } from './escenas/pausa';
+import { EscenaPuntos } from './escenas/puntos';
 import { EscenaSeleccion } from './escenas/seleccion';
 import { EscenaTitulo } from './escenas/titulo';
 import { leerFuentes } from './input/fuente';
@@ -46,10 +47,10 @@ import { crearTeclado } from './input/teclado';
 import { crearToque } from './input/toque';
 import { iniciarBucle } from './render/bucle';
 import { prepararPantalla } from './render/pantalla';
-import { crearDeslizador, type Deslizador } from './render/deslizador';
+import { crearCasilla, crearDeslizador, type Casilla, type Deslizador } from './render/deslizador';
 import { crearCampoNombre } from './render/campoNombre';
 import { LARGO_NOMBRE, RECT_CAMPO } from './render/nombre';
-import { RECT_MUSICA } from './render/pausa';
+import { RECT_MUSICA, RECT_SONIDO } from './render/pausa';
 import { prepararSonido } from './render/sonido';
 import { recolorear } from './render/tinte';
 import { cargarAjustes, cargarRecords, guardarAjustes, guardarRecords } from './render/almacen';
@@ -91,8 +92,8 @@ interface Partida {
   dificultad: DificultadJson;
   bestiario: Record<string, MonstruoJson>;
   reglas: ReglasCombate;
-  /** Volumen de la música en el inventario (un solo control HTML para toda la partida). */
-  volumen: Deslizador;
+  /** Volumen de la música y sonido sí o no en el inventario (controles HTML, uno por partida). */
+  controles: { musica: Deslizador; sonido: Casilla };
   /** Nombre del jefe final: lleva el de la última heroína que lo venció, si la hubo. */
   rival: string;
 }
@@ -158,7 +159,10 @@ async function iniciar(): Promise<void> {
   ]);
   // Elegir rana → ponerle nombre → dificultad; Escape vuelve al paso anterior.
   const campoNombre = crearCampoNombre(canvas, RECT_CAMPO, LARGO_NOMBRE);
-  const volumen = crearDeslizador(canvas, RECT_MUSICA, 'Volumen de la música');
+  const sonidoHtml = {
+    musica: crearDeslizador(canvas, RECT_MUSICA, 'Volumen de la música'),
+    sonido: crearCasilla(canvas, RECT_SONIDO, 'Sonido'),
+  };
   const seleccion: EscenaSeleccion = new EscenaSeleccion(opciones, ({ heroe, sprite }) => {
     const pedirNombre: EscenaNombre = new EscenaNombre(
       heroe,
@@ -206,7 +210,7 @@ async function iniciar(): Promise<void> {
       bestiario: bestiarioCon(MONSTRUOS, dificultad),
       reglas: reglasCon(REGLAS, dificultad),
       rival: tituloRival(),
-      volumen,
+      controles: sonidoHtml,
     };
     crearZona(partida, 0, true)
       .then((zona) => {
@@ -311,12 +315,19 @@ async function crearZona(
         OBJETOS,
         REGLAS.experiencia,
         REGLAS.estados,
-        partida.volumen,
+        partida.controles,
         () =>
           partida.pila.apilar(
             new EscenaEquipo(datosEquipo(partida), { tipo: 'cambiar' }, () => {
               partida.pila.desapilar();
               vestir(partida);
+              pausa.refrescar();
+            }),
+          ),
+        () =>
+          partida.pila.apilar(
+            new EscenaPuntos(partida.luchadora, partida.reglas, 'Volver', () => {
+              partida.pila.desapilar();
               pausa.refrescar();
             }),
           ),
@@ -487,7 +498,13 @@ function luchar(
               SEGUIR,
               () => {
                 pila.desapilar();
-                seguir();
+                // Después, repartir los puntos nuevos (o dejarlos para luego).
+                pila.apilar(
+                  new EscenaPuntos(luchadora, partida.reglas, 'Luego', () => {
+                    pila.desapilar();
+                    seguir();
+                  }),
+                );
               },
             ),
           );

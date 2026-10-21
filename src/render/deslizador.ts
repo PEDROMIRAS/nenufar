@@ -1,10 +1,14 @@
 import { colocarSobre } from './pantalla';
 
-export interface Deslizador {
-  /** Lo enseña con el valor `valor` (de 0 a 1); cada movimiento llama a `alCambiar`. */
-  mostrar(valor: number, alCambiar: (valor: number) => void): void;
+type Rect = { x: number; y: number; ancho: number; alto: number };
+
+/** Control HTML sobre el canvas: se enseña con un valor y avisa de cada cambio. */
+export interface ControlHtml<T> {
+  mostrar(valor: T, alCambiar: (valor: T) => void): void;
   ocultar(): void;
 }
+export type Deslizador = ControlHtml<number>;
+export type Casilla = ControlHtml<boolean>;
 
 /**
  * Deslizador HTML de verdad sobre el canvas (`<input type="range">`): se arrastra con el ratón o el
@@ -12,26 +16,58 @@ export interface Deslizador {
  */
 export function crearDeslizador(
   canvas: HTMLCanvasElement,
-  rect: { x: number; y: number; ancho: number; alto: number },
+  rect: Rect,
   etiqueta: string,
 ): Deslizador {
-  let cambiar: (valor: number) => void = () => {};
-  const control = document.createElement('input');
-  control.type = 'range';
+  const control = crearInput('range', etiqueta);
   control.min = '0';
   control.max = '1';
   control.step = '0.05';
+  return sobreCanvas(
+    control,
+    canvas,
+    rect,
+    (v) => (control.value = String(v)),
+    () => Number(control.value),
+  );
+}
+
+/** Casilla HTML de verdad sobre el canvas (`<input type="checkbox">`), por lo mismo que el deslizador. */
+export function crearCasilla(canvas: HTMLCanvasElement, rect: Rect, etiqueta: string): Casilla {
+  const control = crearInput('checkbox', etiqueta);
+  return sobreCanvas(
+    control,
+    canvas,
+    rect,
+    (v) => (control.checked = v),
+    () => control.checked,
+  );
+}
+
+function crearInput(tipo: string, etiqueta: string): HTMLInputElement {
+  const control = document.createElement('input');
+  control.type = tipo;
   control.setAttribute('aria-label', etiqueta);
   control.style.cssText =
     'position:fixed;display:none;box-sizing:border-box;margin:0;accent-color:#ffd27a;cursor:pointer';
-  control.addEventListener('input', () => cambiar(Number(control.value)));
   document.body.append(control);
-  const colocar = (): void => void colocarSobre(control, canvas, rect);
+  return control;
+}
 
+function sobreCanvas<T>(
+  control: HTMLInputElement,
+  canvas: HTMLCanvasElement,
+  rect: Rect,
+  escribir: (valor: T) => void,
+  leer: () => T,
+): ControlHtml<T> {
+  let cambiar: (valor: T) => void = () => {};
+  control.addEventListener('input', () => cambiar(leer()));
+  const colocar = (): void => void colocarSobre(control, canvas, rect);
   return {
     mostrar(valor, alCambiar) {
       cambiar = alCambiar;
-      control.value = String(valor);
+      escribir(valor);
       control.style.display = 'block';
       colocar();
       addEventListener('resize', colocar);
