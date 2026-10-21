@@ -23,13 +23,15 @@ const PISTA = esTactil()
       logros: 'Los conseguidos salen en dorado',
     }
   : {
-      bestiario: 'Flechas: elegir · Enter: logros · Escape: volver',
-      logros: 'Enter: bestiario · Escape: volver',
+      bestiario: 'Flechas: elegir (abajo, los botones) · Escape: volver',
+      logros: '← →: elegir · Enter: aceptar · Escape: volver',
     };
 
 /** Bestiario (los monstruos vencidos, el resto en silueta) y logros, desde el título. */
 export class EscenaExtras implements Escena {
   private pagina: 'bestiario' | 'logros' = 'bestiario';
+  /** En el bestiario, si las flechas están en la fila de botones y no en la rejilla. */
+  private enBotones = false;
   private elegido = 0;
   private tiempo = 0;
   private ultimoX = 0;
@@ -100,14 +102,35 @@ export class EscenaExtras implements Escena {
       this.tocar(a.toqueX, a.toqueY);
       return;
     }
-    if (a.confirmar) this.verPagina(this.pagina === 'bestiario' ? 'logros' : 'bestiario');
-    if (this.pagina !== 'bestiario') return;
     const dx = Math.sign(a.moverX);
     const dy = Math.sign(a.moverY);
-    if (dx !== 0 && dx !== this.ultimoX) this.elegir(this.elegido + dx);
-    else if (dy !== 0 && dy !== this.ultimoY) this.elegir(this.elegido + dy * POR_FILA);
+    const nuevoX = dx !== 0 && dx !== this.ultimoX;
+    const nuevoY = dy !== 0 && dy !== this.ultimoY;
     this.ultimoX = dx;
     this.ultimoY = dy;
+    // En Logros no hay rejilla: las flechas van siempre por los botones.
+    if (this.enBotones || this.pagina === 'logros') {
+      if (nuevoX) {
+        const n = this.menu.opciones.length;
+        this.menu.seleccion = (this.menu.seleccion + dx + n) % n;
+        sonar('cursor');
+        anunciar(this.menu.opciones[this.menu.seleccion]!.texto);
+      } else if (nuevoY && dy < 0 && this.pagina === 'bestiario') {
+        this.enBotones = false;
+        this.menu.seleccion = 0;
+        this.elegir(this.elegido);
+      }
+      if (a.confirmar) this.pulsar(this.menu.seleccion);
+      return;
+    }
+    if (a.confirmar) this.verPagina('logros');
+    else if (nuevoX) this.elegir(this.elegido + dx);
+    else if (nuevoY && dy > 0 && this.elegido + POR_FILA >= this.fichas.length) {
+      // Bajando desde la última fila se llega a los botones.
+      this.enBotones = true;
+      sonar('cursor');
+      anunciar(this.menu.opciones[this.menu.seleccion]!.texto);
+    } else if (nuevoY) this.elegir(this.elegido + dy * POR_FILA);
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
@@ -127,12 +150,17 @@ export class EscenaExtras implements Escena {
 
   private tocar(x: number, y: number): void {
     const boton = opcionTocada(x, y, this.menu.opciones.length);
-    if (boton === 2) this.alVolver();
-    else if (boton >= 0) this.verPagina(boton === 0 ? 'bestiario' : 'logros');
+    if (boton >= 0) this.pulsar(boton);
     else if (this.pagina === 'bestiario') {
       const i = CELDAS.findIndex((c) => dentro(x, y, c));
       if (i >= 0 && i < this.fichas.length) this.elegir(i);
     }
+  }
+
+  /** Bestiario, Logros o Volver. */
+  private pulsar(boton: number): void {
+    if (boton === 2) this.alVolver();
+    else this.verPagina(boton === 0 ? 'bestiario' : 'logros');
   }
 
   private elegir(i: number): void {
@@ -145,6 +173,7 @@ export class EscenaExtras implements Escena {
 
   private verPagina(p: 'bestiario' | 'logros'): void {
     this.pagina = p;
+    this.enBotones = false;
     this.menu.seleccion = p === 'bestiario' ? 0 : 1;
     sonar('confirmar');
     anunciar(
