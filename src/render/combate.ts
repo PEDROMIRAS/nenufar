@@ -109,6 +109,12 @@ function animacionAtaque(l: Luchador): string {
 }
 
 /** Segundos desde que `l` empieza su animación de ataque hasta que el golpe llega (y se ve el daño). */
+/** Segundos que dura el efecto que se ve ahora (0 si no hay ninguno). */
+export function duracionEfecto(v: VistaCombate): number {
+  const anim = v.hojas.get('efectos')?.datos.animations[v.efecto];
+  return anim ? anim.frames / anim.fps : 0;
+}
+
 export function anticipoAtaque(v: VistaCombate, l: Luchador): number {
   const hoja = hojaDe(v, l);
   const anim = hoja?.datos.animations[animacionAtaque(l)];

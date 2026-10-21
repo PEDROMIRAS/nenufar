@@ -13,6 +13,7 @@ import {
 import {
   anticipoAtaque,
   dibujarCombate,
+  duracionEfecto,
   opcionTocada,
   tocaInfo,
   type MenuVista,
@@ -78,6 +79,8 @@ export class EscenaCombate implements Escena {
   /** Segundos desde el último mensaje del registro. */
   private tiempoRegistro = 0;
   private readonly ayudaAcciones: readonly (readonly string[])[];
+  /** Efecto de la habilidad que se está usando, para sus golpes; null fuera de ella. */
+  private efectoHabilidad: string | null = null;
 
   constructor(
     private readonly combate: Combate,
@@ -171,7 +174,8 @@ export class EscenaCombate implements Escena {
     if (evento) {
       if (evento.tipo !== 'danio') this.ultimoAtacante = null;
       this.mostrar(evento);
-      this.espera = DURACION[evento.tipo];
+      // Lo bastante para que el efecto que acaba de empezar se vea entero.
+      this.espera = Math.max(DURACION[evento.tipo], v.tiempoEfecto === 0 ? duracionEfecto(v) : 0);
       return;
     }
     const { resultado } = this.combate;
@@ -195,6 +199,7 @@ export class EscenaCombate implements Escena {
         if (e.actor.esHeroina) v.defendiendo = false;
         v.orden = e.orden;
         v.turno = e.indice;
+        this.efectoHabilidad = null;
         break;
       case 'danio': {
         this.cambiarVida(
@@ -204,7 +209,7 @@ export class EscenaCombate implements Escena {
         );
         if (e.cargado) v.cargando.delete(e.origen);
         sonar(e.critico ? 'critico' : 'golpe');
-        v.efecto = e.origen.heroe?.combate.efecto ?? EFECTO_MONSTRUO;
+        v.efecto = this.efectoHabilidad ?? e.origen.heroe?.combate.efecto ?? EFECTO_MONSTRUO;
         v.efectoEn = e.objetivo;
         v.tiempoEfecto = 0;
         const como = e.cargado ? 'descarga su golpe sobre' : 'golpea a';
@@ -222,10 +227,21 @@ export class EscenaCombate implements Escena {
         this.registrar(`${e.objetivo.nombre} recupera ${e.cantidad} PV`);
         sonar('cura');
         break;
-      case 'habilidad':
+      case 'habilidad': {
         if (e.actor.esHeroina) this.verPm(e.pm);
         this.registrar(`${e.actor.nombre} usa ${e.nombre}`);
+        const hab = (e.actor.heroe?.habilidades ?? e.actor.monstruo?.habilidades)?.find(
+          (h) => h.nombre === e.nombre,
+        );
+        // Con daño, su efecto sale en cada golpe; sin daño (curar, posturas), sobre quien la usa, ya.
+        if (hab?.efecto && hab.danio) this.efectoHabilidad = hab.efecto;
+        else if (hab?.efecto) {
+          v.efecto = hab.efecto;
+          v.efectoEn = e.actor;
+          v.tiempoEfecto = 0;
+        }
         break;
+      }
       case 'estado': {
         const lista = (this.estadosVistos.get(e.objetivo) ?? []).filter((n) => n !== e.estado);
         if (e.activo) lista.push(e.estado);

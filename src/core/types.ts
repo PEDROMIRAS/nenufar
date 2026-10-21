@@ -98,6 +98,11 @@ export interface HabilidadJson {
   cura?: number;
   /** Clave de un estado de combate.json que aplica al objetivo. */
   estado?: string;
+  /**
+   * Animación de efectos.json que se ve al usarla: sobre cada objetivo si hace daño, sobre quien la usa
+   * si no. Sin ella, la del ataque normal.
+   */
+  efecto?: string;
 }
 
 /** Un estado alterado de combate.json: dura unos turnos del afectado y cambia sus estadísticas o su turno. */

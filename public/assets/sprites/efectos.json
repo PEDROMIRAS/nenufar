@@ -29,6 +29,54 @@
       "frames": 4,
       "fps": 12,
       "loop": false
+    },
+    "corte_doble": {
+      "startColumn": 11,
+      "frames": 6,
+      "fps": 18,
+      "loop": false
+    },
+    "aura_acero": {
+      "startColumn": 17,
+      "frames": 5,
+      "fps": 12,
+      "loop": false
+    },
+    "viento": {
+      "startColumn": 22,
+      "frames": 5,
+      "fps": 16,
+      "loop": false
+    },
+    "iaido": {
+      "startColumn": 27,
+      "frames": 5,
+      "fps": 14,
+      "loop": false
+    },
+    "llamarada_grande": {
+      "startColumn": 32,
+      "frames": 5,
+      "fps": 12,
+      "loop": false
+    },
+    "chispas_verdes": {
+      "startColumn": 37,
+      "frames": 6,
+      "fps": 14,
+      "loop": false
+    },
+    "fuego_fatuo": {
+      "startColumn": 43,
+      "frames": 6,
+      "fps": 14,
+      "loop": false
+    },
+    "lluvia_fuego": {
+      "startColumn": 49,
+      "frames": 5,
+      "fps": 12,
+      "loop": false
     }
   }
 }

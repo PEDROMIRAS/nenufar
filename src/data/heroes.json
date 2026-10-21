@@ -69,14 +69,16 @@
         "danio": {
           "tipo": "fisico",
           "poder": 1.6
-        }
+        },
+        "efecto": "corte_doble"
       },
       {
         "nombre": "Postura de hierro",
         "nivel": 3,
         "pm": 3,
         "objetivo": "propio",
-        "estado": "postura"
+        "estado": "postura",
+        "efecto": "aura_acero"
       },
       {
         "nombre": "Tajo del viento",
@@ -86,7 +88,8 @@
         "danio": {
           "tipo": "fisico",
           "poder": 0.9
-        }
+        },
+        "efecto": "viento"
       },
       {
         "nombre": "Iaido",
@@ -97,7 +100,8 @@
           "tipo": "fisico",
           "poder": 2.5,
           "criticoSeguro": true
-        }
+        },
+        "efecto": "iaido"
       }
     ]
   },
@@ -171,14 +175,16 @@
         "danio": {
           "tipo": "magico",
           "poder": 1.5
-        }
+        },
+        "efecto": "llamarada_grande"
       },
       {
         "nombre": "Curar",
         "nivel": 3,
         "pm": 4,
         "objetivo": "propio",
-        "cura": 0.35
+        "cura": 0.35,
+        "efecto": "chispas_verdes"
       },
       {
         "nombre": "Fuego fatuo",
@@ -189,7 +195,8 @@
           "tipo": "magico",
           "poder": 0.8
         },
-        "estado": "veneno"
+        "estado": "veneno",
+        "efecto": "fuego_fatuo"
       },
       {
         "nombre": "Tormenta morada",
@@ -199,7 +206,8 @@
         "danio": {
           "tipo": "magico",
           "poder": 1.2
-        }
+        },
+        "efecto": "lluvia_fuego"
       }
     ]
   }
