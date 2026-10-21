@@ -2,6 +2,7 @@
 export const FUENTE = 'bold 12px monospace';
 export const FUENTE_GRANDE = 'bold 24px monospace';
 export const FUENTE_LOGO = 'bold 48px monospace';
+export const FUENTE_TITULO = 'bold 32px monospace';
 
 /** Texto con sombra de 1 px, legible sobre cualquier fondo. */
 export function escribir(

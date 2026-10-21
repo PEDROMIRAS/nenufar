@@ -29,6 +29,7 @@ import plantillasBosque from './data/salas/plantillas_bosque.json';
 import plantillasCripta from './data/salas/plantillas_cripta.json';
 import plantillasRuinas from './data/salas/plantillas_ruinas.json';
 import historia from './data/historia.json';
+import ritmo from './data/ritmo.json';
 import zonas from './data/zonas.json';
 import { EscenaCombate } from './escenas/combate';
 import { EscenaDificultad } from './escenas/dificultad';
@@ -38,6 +39,7 @@ import { EscenaMensaje } from './escenas/mensaje';
 import { EscenaMapa } from './escenas/mapa';
 import { PilaEscenas } from './escenas/pila';
 import { EscenaPausa } from './escenas/pausa';
+import { EscenaPresentacion } from './escenas/presentacion';
 import { EscenaPuntos } from './escenas/puntos';
 import { EscenaSeleccion } from './escenas/seleccion';
 import { EscenaTitulo } from './escenas/titulo';
@@ -379,8 +381,17 @@ function lucharJefe(
   fondo: HTMLCanvasElement,
   alTerminar: (resultado: Resultado) => void,
 ): void {
-  contar(partida.pila, [{ titulo: jefe.nombre, texto: frases.inicio }], () =>
-    luchar(partida, [jefe], fondo, alTerminar, null, { titulo: jefe.nombre, texto: frases.caida }),
+  // Primero su entrada (la sala tiembla y sale su nombre), luego su frase y el combate.
+  partida.pila.apilar(
+    new EscenaPresentacion(fondo, jefe.nombre, ritmo.presentacionJefe, () => {
+      partida.pila.desapilar();
+      contar(partida.pila, [{ titulo: jefe.nombre, texto: frases.inicio }], () =>
+        luchar(partida, [jefe], fondo, alTerminar, null, {
+          titulo: jefe.nombre,
+          texto: frases.caida,
+        }),
+      );
+    }),
   );
 }
 

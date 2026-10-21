@@ -392,6 +392,27 @@
         "duracion": 0.3,
         "retardo": 0.25
       }
+    ],
+    "aparicion": [
+      {
+        "onda": "ruido",
+        "duracion": 0.6,
+        "volumen": 0.5
+      },
+      {
+        "onda": "square",
+        "desde": 70,
+        "hasta": 40,
+        "duracion": 0.6,
+        "volumen": 0.5
+      },
+      {
+        "onda": "sine",
+        "desde": 110,
+        "duracion": 0.5,
+        "volumen": 0.3,
+        "retardo": 0.1
+      }
     ]
   },
   "musica": {

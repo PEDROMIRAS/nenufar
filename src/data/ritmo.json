@@ -23,5 +23,6 @@
     "nivel": 0.7,
     "fin": 0
   },
-  "golpe": 0.45
+  "golpe": 0.45,
+  "presentacionJefe": 1.6
 }
