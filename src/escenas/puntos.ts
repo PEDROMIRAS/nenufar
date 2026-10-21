@@ -163,8 +163,10 @@ export class EscenaPuntos implements Escena {
       const antes = this.valor(clave, 0);
       return {
         nombre,
-        porPunto: clave === 'critico' ? `+${mejoras[clave].toFixed(1)}` : `+${mejoras[clave]}`,
+        porPunto: `+${clave === 'critico' ? mejoras[clave].toFixed(1) : mejoras[clave]}/punto`,
         valor: puestos > 0 ? `${antes} → ${this.valor(clave, puestos)}` : antes,
+        puedeQuitar: puestos > 0,
+        puedePoner: usados < this.l.puntos,
         sube: puestos > 0,
         activa: i === this.activa,
       };
