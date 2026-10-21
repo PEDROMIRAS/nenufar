@@ -1,4 +1,5 @@
 import type { Direccion, SpriteJson, TilesetJson } from '../core/types';
+import { aPixel } from './pantalla';
 
 export interface Sprite {
   /** La hoja (o una copia recoloreada, como la heroína con su equipo). */
@@ -71,8 +72,8 @@ export function dibujarFotograma(
     datos.directions[direccion] * a,
     w,
     a,
-    Math.round(x - datos.anchor.x * escala),
-    Math.round(y - datos.anchor.y * escala),
+    aPixel(x - datos.anchor.x * escala),
+    aPixel(y - datos.anchor.y * escala),
     w * escala,
     a * escala,
   );

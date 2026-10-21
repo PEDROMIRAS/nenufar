@@ -11,16 +11,24 @@ export const FONDO = '#10161a';
 const TACTIL = window.matchMedia('(pointer: coarse)');
 
 /**
- * Fija la resolución lógica y escala el canvas para que la sala se vea entera y lo más grande posible.
- * En el ordenador, al mayor múltiplo entero (pixel art perfecto); en táctil, a todo lo que cabe,
- * aunque algunos píxeles salgan un poco desiguales.
+/** Píxeles reales de pantalla por píxel lógico (lo que mide el canvas por dentro entre ANCHO). */
+let escalaPantalla = 1;
+
+/**
+ * Coordenada lógica redondeada al píxel real de pantalla, no al lógico: con pasos de 1,6 px lógicos por
+ * fotograma, redondear a píxeles lógicos daba saltos desiguales (1, 2, 2, 1…) que se veían como tirones.
+ */
+export const aPixel = (v: number): number => Math.round(v * escalaPantalla) / escalaPantalla;
+
+/**
+ * Escala el canvas para que la sala se vea entera y lo más grande posible. Se dibuja en coordenadas
+ * lógicas (ANCHO × ALTO), pero el canvas mide por dentro los píxeles reales que ocupa: así lo que se
+ * mueve avanza a saltos de píxel real. En el ordenador, al mayor múltiplo entero (pixel art perfecto);
+ * en táctil, a todo lo que cabe, aunque algunos píxeles salgan un poco desiguales.
  */
 export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
-  canvas.width = ANCHO;
-  canvas.height = ALTO;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('El navegador no soporta Canvas 2D');
-  ctx.imageSmoothingEnabled = false;
 
   // En vertical se recomienda girar el móvil; quien elige jugar así no vuelve a ver el aviso.
   document.body.classList.toggle('vertical', cargarAjustes().jugarEnVertical);
@@ -34,8 +42,14 @@ export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingCont
     // En píxeles físicos, no CSS: en un móvil con dpr 3 cada píxel lógico ocupa N×N píxeles reales.
     const cabe = Math.min((innerWidth * dpr) / ANCHO, (innerHeight * dpr) / ALTO);
     const escala = TACTIL.matches ? cabe : Math.max(1, Math.floor(cabe));
-    canvas.style.width = `${(ANCHO * escala) / dpr}px`;
-    canvas.style.height = `${(ALTO * escala) / dpr}px`;
+    canvas.width = Math.round(ANCHO * escala);
+    canvas.height = Math.round(ALTO * escala);
+    canvas.style.width = `${canvas.width / dpr}px`;
+    canvas.style.height = `${canvas.height / dpr}px`;
+    escalaPantalla = canvas.width / ANCHO;
+    // Cambiar el tamaño borra el estado del contexto: transformación y suavizado van después.
+    ctx.setTransform(escalaPantalla, 0, 0, canvas.height / ALTO, 0, 0);
+    ctx.imageSmoothingEnabled = false;
   };
   ajustar();
   addEventListener('resize', ajustar);

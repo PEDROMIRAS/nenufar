@@ -1,6 +1,6 @@
 import type { Combate, Luchador } from '../core/combate';
 import { partirTexto } from '../core/texto';
-import { ALTO, ANCHO, dentro } from './pantalla';
+import { ALTO, ANCHO, aPixel, dentro } from './pantalla';
 import { movimientoReducido } from './accesibilidad';
 import { dibujarFotograma, type Sprite } from './recursos';
 import { escribir, FUENTE_GRANDE } from './texto';
@@ -413,7 +413,7 @@ function dibujarProyectil(ctx: CanvasRenderingContext2D, v: VistaCombate): void 
   const x1 = centroX(v, o);
   const y1 = centroY(o);
   ctx.save();
-  ctx.translate(Math.round(x0 + (x1 - x0) * t), Math.round(y0 + (y1 - y0) * t));
+  ctx.translate(aPixel(x0 + (x1 - x0) * t), aPixel(y0 + (y1 - y0) * t));
   // La hoja mira a la derecha: se gira hacia el objetivo.
   ctx.rotate(Math.atan2(y1 - y0, x1 - x0));
   dibujarFotograma(ctx, hoja, 'vuelo', 'right', v.tiempo, 0, 0, 2);

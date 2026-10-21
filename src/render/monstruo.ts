@@ -1,4 +1,5 @@
 import type { Direccion, MonstruoJson } from '../core/types';
+import { aPixel } from './pantalla';
 import { dibujarFotograma, type Sprite } from './recursos';
 
 /** Dirección del sprite más cercana a un vector. */
@@ -20,7 +21,7 @@ export function dibujarMonstruoMapa(
   tiempo: number,
 ): void {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-  ctx.fillRect(Math.round(pieX - ancho / 2 + 2), Math.round(pieY - 3), ancho - 4, 3);
+  ctx.fillRect(aPixel(pieX - ancho / 2 + 2), aPixel(pieY - 3), ancho - 4, 3);
   for (let i = grupo.length - 1; i >= 0; i--) {
     const sprite = sprites.get(grupo[i]!.sprite);
     if (!sprite) continue;
