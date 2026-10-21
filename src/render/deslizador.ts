@@ -6,6 +6,8 @@ type Rect = { x: number; y: number; ancho: number; alto: number };
 export interface ControlHtml<T> {
   mostrar(valor: T, alCambiar: (valor: T) => void): void;
   ocultar(): void;
+  /** Le da el foco (con ↑ desde el menú del inventario). */
+  enfocar(): void;
 }
 export type Deslizador = ControlHtml<number>;
 export type Casilla = ControlHtml<boolean>;
@@ -32,9 +34,24 @@ export function crearDeslizador(
   );
 }
 
-/** Casilla HTML de verdad sobre el canvas (`<input type="checkbox">`), por lo mismo que el deslizador. */
-export function crearCasilla(canvas: HTMLCanvasElement, rect: Rect, etiqueta: string): Casilla {
+/**
+ * Casilla HTML de verdad sobre el canvas (`<input type="checkbox">`), por lo mismo que el deslizador.
+ * Enter la marca como Espacio, y → pasa a `siguiente` (el deslizador de la música).
+ */
+export function crearCasilla(
+  canvas: HTMLCanvasElement,
+  rect: Rect,
+  etiqueta: string,
+  siguiente: ControlHtml<number>,
+): Casilla {
   const control = crearInput('checkbox', etiqueta);
+  control.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.repeat) control.click();
+    else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      siguiente.enfocar();
+    }
+  });
   return sobreCanvas(
     control,
     canvas,
@@ -50,6 +67,13 @@ function crearInput(tipo: string, etiqueta: string): HTMLInputElement {
   control.setAttribute('aria-label', etiqueta);
   control.style.cssText =
     'position:fixed;display:none;box-sizing:border-box;margin:0;accent-color:#ffd27a;cursor:pointer';
+  // ↓ o Tab devuelven las teclas al juego (al menú de debajo); el resto de flechas son del control.
+  control.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'Tab') {
+      e.preventDefault();
+      control.blur();
+    }
+  });
   document.body.append(control);
   return control;
 }
@@ -77,5 +101,6 @@ function sobreCanvas<T>(
       removeEventListener('resize', colocar);
       control.blur();
     },
+    enfocar: () => control.focus(),
   };
 }

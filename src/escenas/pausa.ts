@@ -30,6 +30,7 @@ export class EscenaPausa implements Escena {
   private ficha!: FichaInventario;
   private tiempo = 0;
   private ultimoX = 0;
+  private ultimoY = 0;
   /** Salir pide una segunda pulsación para no perder la partida por un toque sin querer. */
   private salirPulsado = false;
 
@@ -98,6 +99,10 @@ export class EscenaPausa implements Escena {
       if (o) anunciar(`${o.texto} ${o.detalle}`);
     }
     this.ultimoX = dir;
+    // ↑ sube a los controles HTML de arriba (sonido, y con → la música); ↓ o Tab desde ellos vuelve aquí.
+    const dy = Math.sign(a.moverY);
+    if (dy < 0 && dy !== this.ultimoY) this.controles.sonido.enfocar();
+    this.ultimoY = dy;
     if (a.confirmar) this.elegir(this.menu.seleccion);
   }
 

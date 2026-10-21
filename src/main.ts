@@ -175,10 +175,8 @@ async function iniciar(): Promise<void> {
   ]);
   // Elegir rana → ponerle nombre → dificultad; Escape vuelve al paso anterior.
   const campoNombre = crearCampoNombre(canvas, RECT_CAMPO, LARGO_NOMBRE);
-  const sonidoHtml = {
-    musica: crearDeslizador(canvas, RECT_MUSICA, 'Volumen de la música'),
-    sonido: crearCasilla(canvas, RECT_SONIDO, 'Sonido'),
-  };
+  const musica = crearDeslizador(canvas, RECT_MUSICA, 'Volumen de la música');
+  const sonidoHtml = { musica, sonido: crearCasilla(canvas, RECT_SONIDO, 'Sonido', musica) };
   const seleccion: EscenaSeleccion = new EscenaSeleccion(opciones, ({ heroe, sprite }) => {
     const pedirNombre: EscenaNombre = new EscenaNombre(
       heroe,
