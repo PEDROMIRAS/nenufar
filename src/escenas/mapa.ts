@@ -143,6 +143,8 @@ export class EscenaMapa implements Escena {
   private readonly salidas: Salida[];
   private readonly vineta: HTMLCanvasElement;
   private readonly visitadas = new Set<SalaZona>();
+  /** Salas del tesoro con el cofre ya abierto, para el minimapa. */
+  private readonly abiertos = new Set<SalaZona>();
   private actual: SalaZona;
   private montada: SalaMontada;
   private minimapa: HTMLCanvasElement;
@@ -344,6 +346,8 @@ export class EscenaMapa implements Escena {
     const { catalogo, cofre: tabla, luchadora, objetos, inventario } = this.o;
     const abierto = catalogo.get('cofre_abierto');
     if (abierto) cofre.inf = abierto;
+    this.abiertos.add(this.actual);
+    this.minimapa = this.visitar(this.actual);
     sonar('cofre');
     const hallazgo = abrirCofre(tabla, this.azarMapa, luchadora.heroe, objetos, inventario);
     if (!hallazgo) {
@@ -470,7 +474,7 @@ export class EscenaMapa implements Escena {
   /** Marca la sala como visitada y devuelve el minimapa al día. */
   private visitar(s: SalaZona): HTMLCanvasElement {
     this.visitadas.add(s);
-    return pintarMinimapa(this.o.zona, this.visitadas, s, this.o.rejilla);
+    return pintarMinimapa(this.o.zona, this.visitadas, s, this.o.rejilla, this.abiertos);
   }
 
   /** Coloca a la heroína sin interpolar desde la posición anterior (evita que cruce la pantalla). */
