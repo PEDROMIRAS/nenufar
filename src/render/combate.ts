@@ -27,6 +27,11 @@ export interface VistaCombate {
   /** La sala donde empezó el combate, que se ve oscurecida detrás. */
   fondo: HTMLCanvasElement;
   tiempo: number;
+  /** Enemigos que se ven: los que aparecen a mitad de combate entran con su evento, no antes. */
+  enemigos: Luchador[];
+  /** Orden de la ronda que se está animando y posición en él de quien tiene el turno. */
+  orden: readonly Luchador[];
+  turno: number;
   /** PV y textos que se ven (van por detrás del combate mientras se animan los eventos). */
   pv: Map<Luchador, number>;
   textoPv: Map<Luchador, string>;
@@ -114,7 +119,7 @@ export function anticipoAtaque(v: VistaCombate, l: Luchador): number {
 
 /** Centro del cuerpo de un luchador en pantalla, donde se dibujan efectos y proyectiles. */
 function centroX(v: VistaCombate, l: Luchador): number {
-  const enemigos = v.combate.enemigos;
+  const enemigos = v.enemigos;
   return l.esHeroina ? HEROINA.x : xEnemigo(enemigos.indexOf(l), enemigos.length);
 }
 
@@ -150,15 +155,12 @@ export function opcionTocada(x: number, y: number, n: number): number {
 }
 
 export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
-  const { combate } = v;
   ctx.drawImage(v.fondo, 0, 0);
   ctx.fillStyle = COLOR.velo;
   ctx.fillRect(0, 0, ANCHO, ALTO);
 
-  dibujarOrden(ctx, combate);
-  combate.enemigos.forEach((e, i) =>
-    dibujarEnemigo(ctx, v, e, xEnemigo(i, combate.enemigos.length)),
-  );
+  dibujarOrden(ctx, v);
+  v.enemigos.forEach((e, i) => dibujarEnemigo(ctx, v, e, xEnemigo(i, v.enemigos.length)));
   dibujarHeroina(ctx, v);
   dibujarProyectil(ctx, v);
   dibujarEfecto(ctx, v);
@@ -252,12 +254,12 @@ export function dibujarMenu(ctx: CanvasRenderingContext2D, menu: MenuVista | nul
 }
 
 /** Barra con quién actúa en lo que queda de ronda; el primero es el que tiene el turno. */
-function dibujarOrden(ctx: CanvasRenderingContext2D, c: Combate): void {
+function dibujarOrden(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   escribir(ctx, 'Turno', 12, 10, '#aab8a6');
   let x = 64;
-  for (let i = Math.max(0, c.turno - 1); i < c.orden.length; i++) {
-    const l = c.orden[i]!;
-    if (l.pv <= 0) continue;
+  for (let i = v.turno; i < v.orden.length; i++) {
+    const l = v.orden[i]!;
+    if ((v.pv.get(l) ?? l.pv) <= 0) continue;
     ctx.fillStyle = l.esHeroina ? COLOR.pm : (l.monstruo?.color ?? '#999');
     ctx.fillRect(x, 8, 8, 16);
     escribir(ctx, l.nombre, x + 12, 10);
@@ -401,7 +403,7 @@ function dibujarFlotante(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   const g = v.golpeado;
   if (!g || !v.flotante) return;
   const sube = Math.round(v.tiempoGolpe * 30);
-  const enemigos = v.combate.enemigos;
+  const enemigos = v.enemigos;
   const x = g.esHeroina ? HEROINA.x : xEnemigo(enemigos.indexOf(g), enemigos.length);
   const y = (g.esHeroina ? HEROINA.y - 80 : topeEnemigo(v, g) - 36) - sube;
   const color = v.flotanteCura ? COLOR.cura : g.esHeroina ? COLOR.pv : '#ffffff';

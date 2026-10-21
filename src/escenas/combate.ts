@@ -118,6 +118,9 @@ export class EscenaCombate implements Escena {
       hojas,
       fondo,
       tiempo: 0,
+      enemigos: [...combate.enemigos],
+      orden: [],
+      turno: 0,
       pv: new Map(todos.map((l) => [l, l.pv])),
       textoPv: new Map(todos.map((l) => [l, textoVida(l.pv, l.pvMax)])),
       pmHeroina: h.pm,
@@ -153,8 +156,8 @@ export class EscenaCombate implements Escena {
 
   update(dt: number, acciones: Acciones): void {
     const v = this.v;
-    // Música de combate (de jefe si hay alguno) hasta que se decide; luego, silencio para la fanfarria.
-    ponerMusica(this.combate.resultado ? null : this.pista);
+    // Música de combate (de jefe si hay alguno) hasta que se ve el final; luego, silencio para la fanfarria.
+    ponerMusica(v.titulo ? null : this.pista);
     v.tiempo += dt;
     // El registro se limpia si pasa un rato sin mensajes nuevos.
     this.tiempoRegistro += dt;
@@ -212,6 +215,8 @@ export class EscenaCombate implements Escena {
       case 'turno':
         // La defensa dura hasta el comienzo de su propio turno.
         if (e.actor.esHeroina) v.defendiendo = false;
+        v.orden = e.orden;
+        v.turno = e.indice;
         break;
       case 'danio': {
         this.cambiarVida(
@@ -275,6 +280,7 @@ export class EscenaCombate implements Escena {
         );
         break;
       case 'aparece':
+        v.enemigos.push(e.objetivo);
         v.pv.set(e.objetivo, e.objetivo.pv);
         v.textoPv.set(e.objetivo, textoVida(e.objetivo.pv, e.objetivo.pvMax));
         this.registrar(`¡Aparece ${e.objetivo.nombre}!`);

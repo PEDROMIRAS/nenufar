@@ -57,7 +57,8 @@ export type Resultado = 'victoria' | 'derrota' | 'huida';
 
 /** Lo que pasa en el combate, en orden; la escena solo lo anima. */
 export type Evento =
-  | { tipo: 'turno'; actor: Luchador }
+  /** `orden` es el de la ronda en que ocurre (cada ronda tiene su propia lista) e `indice`, la posición del actor en él. */
+  | { tipo: 'turno'; actor: Luchador; orden: readonly Luchador[]; indice: number }
   | {
       tipo: 'danio';
       origen: Luchador;
@@ -262,7 +263,7 @@ export function avanzar(c: Combate): Evento[] {
     const actor = siguienteActor(c, eventos);
     // La defensa de la heroína dura hasta el comienzo de su propio turno (la de los monstruos, la ronda).
     if (actor.esHeroina) actor.defendiendo = false;
-    eventos.push({ tipo: 'turno', actor });
+    eventos.push({ tipo: 'turno', actor, orden: c.orden, indice: c.turno - 1 });
     const aturdido = actor.estados.find((e) => e.def.pierdeTurno);
     if (aturdido) {
       quitarEstado(actor, aturdido, eventos);

@@ -60,7 +60,7 @@ describe('turnos', () => {
   test('la heroína, más rápida que el Limo, actúa primero', () => {
     const c = combate(cola());
     const eventos = avanzar(c);
-    expect(eventos).toEqual([{ tipo: 'turno', actor: c.heroina }]);
+    expect(eventos).toMatchObject([{ tipo: 'turno', actor: c.heroina, indice: 0 }]);
     expect(c.esperando).toBe(true);
   });
 
@@ -73,7 +73,7 @@ describe('turnos', () => {
   test('los empates de Velocidad se deciden al azar', () => {
     // Desempate: la heroína saca 0,9 y el Limo 0,1; actúa primero el valor menor.
     const c = combate(cola(0.9, 0.1), { velocidad: 6 });
-    expect(avanzar(c)[0]).toEqual({ tipo: 'turno', actor: c.enemigos[0] });
+    expect(avanzar(c)[0]).toMatchObject({ tipo: 'turno', actor: c.enemigos[0] });
   });
 });
 
@@ -213,4 +213,19 @@ describe('prioridad de Defender', () => {
     const golpe = actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
     expect(golpe[0]).toMatchObject({ tipo: 'danio', cantidad: 7 });
   });
+});
+
+test('cada turno lleva el orden de su ronda, que no cambia aunque empiece otra', () => {
+  const c = combate(cola(), { velocidad: 10 });
+  const eventos = avanzar(c).filter((e) => e.tipo === 'turno');
+  const primero = eventos[0]!;
+  if (primero.tipo !== 'turno') throw new Error('se esperaba un turno');
+  const orden = [...primero.orden];
+  // La heroína actúa y se juega el resto: las rondas nuevas no tocan la lista de la primera.
+  for (let i = 0; i < 5 && !c.resultado; i++) {
+    if (c.esperando) actuar(c, { tipo: 'defender' });
+    avanzar(c);
+  }
+  expect(primero.orden).toEqual(orden);
+  expect(primero.orden[primero.indice]).toBe(primero.actor);
 });

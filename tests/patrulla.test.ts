@@ -66,7 +66,7 @@ describe('iniciativa', () => {
       );
     const conVentaja = crear();
     conVentaja.iniciativa = 'heroina';
-    expect(avanzar(conVentaja).slice(0, 2)).toEqual([
+    expect(avanzar(conVentaja).slice(0, 2)).toMatchObject([
       { tipo: 'iniciativa', quien: 'heroina' },
       { tipo: 'turno', actor: conVentaja.heroina },
     ]);
@@ -74,6 +74,6 @@ describe('iniciativa', () => {
     sorprendida.heroina.velocidad = 99;
     sorprendida.iniciativa = 'monstruos';
     const eventos = avanzar(sorprendida);
-    expect(eventos[1]).toEqual({ tipo: 'turno', actor: sorprendida.enemigos[0] });
+    expect(eventos[1]).toMatchObject({ tipo: 'turno', actor: sorprendida.enemigos[0] });
   });
 });
