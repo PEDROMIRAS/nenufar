@@ -340,6 +340,7 @@ async function crearZona(
     invulnerabilidad: REGLAS.invulnerabilidadTrasCombate,
     luchadora: partida.luchadora,
     nombreZona: datos.nombre,
+    lluviaTrasJefe: historia.zonas[nombre].jefe.lluvia,
     iniciarCombate: (grupo, alTerminar, quien) =>
       grupo[0]?.jefe
         ? lucharJefe(partida, grupo[0], historia.zonas[nombre].jefe, escena.fondoSala, alTerminar)

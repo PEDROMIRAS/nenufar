@@ -45,6 +45,7 @@ import {
   type TextosHud,
 } from '../render/hud';
 import { pintarMinimapa } from '../render/minimapa';
+import { crearLluvia, dibujarLluvia, moverLluvia, type Lluvia } from '../render/lluvia';
 import { dibujarMonstruoMapa, direccionDe } from '../render/monstruo';
 import type { Sprite } from '../render/recursos';
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
@@ -121,6 +122,8 @@ export interface OpcionesMapa {
   /** Estadísticas de combate de la heroína y nombre de la zona, para el HUD. */
   luchadora: Luchador;
   nombreZona: string;
+  /** Segundos que llueve al vencer al jefe de la zona (el Rey Limo devuelve la lluvia); 0, nada. */
+  lluviaTrasJefe: number;
   /** Tabla del cofre de la sala del tesoro, inventario de la partida y objetos que existen. */
   cofre: readonly BotinJson[];
   inventario: Inventario;
@@ -154,6 +157,9 @@ export class EscenaMapa implements Escena {
   private readonly azarMapa: () => number;
   /** La fuente de la sala de descanso restaura una sola vez por zona. */
   private fuenteUsada = false;
+  /** Segundos de lluvia que quedan, y sus gotas (solo si la zona tiene lluvia tras el jefe). */
+  private lluvia = 0;
+  private readonly gotas: Lluvia | null;
   /** Aviso en pantalla (la fuente…) y segundos que le quedan. */
   private aviso = '';
   private tiempoAviso = 0;
@@ -165,6 +171,7 @@ export class EscenaMapa implements Escena {
     const inicio = o.zona.salas.find((s) => s.tipo === 'inicio');
     if (!inicio) throw new Error('La zona no tiene sala de inicio');
     this.azarMapa = crearAzar(o.zona.semilla * 7 + 3);
+    this.gotas = o.lluviaTrasJefe > 0 ? crearLluvia() : null;
     const referencia = o.plantillas.plantillas[0]?.mapa ?? [];
     this.salidas = salidas(referencia[0]?.length ?? 0, referencia.length);
     this.actual = inicio;
@@ -211,6 +218,10 @@ export class EscenaMapa implements Escena {
     const corriendo = acciones.correr || h.correrFijo;
     actualizarHeroina(h, acciones, dt, this.montada.sala, tam, corriendo);
     this.tiempoAviso = Math.max(0, this.tiempoAviso - dt);
+    if (this.lluvia > 0 && this.gotas) {
+      this.lluvia = Math.max(0, this.lluvia - dt);
+      moverLluvia(this.gotas, dt);
+    }
     if (
       !this.fuenteUsada &&
       this.actual.tipo === 'descanso' &&
@@ -292,6 +303,11 @@ export class EscenaMapa implements Escena {
     }
     dibujarObjetos(ctx, sala, imagenes, tam, this.tiempo, pies, Infinity);
     ctx.drawImage(this.vineta, 0, 0);
+    if (this.lluvia > 0 && this.gotas) {
+      // Entra y se va poco a poco: un segundo al principio y otro al final.
+      const total = this.o.lluviaTrasJefe;
+      dibujarLluvia(ctx, this.gotas, Math.min(1, this.lluvia, total - this.lluvia));
+    }
     if (this.fundido > 0) {
       // Sube a negro y baja otra vez, con suavizado en los extremos.
       const t = 1 - Math.abs((2 * this.fundido) / duracionFundido - 1);
@@ -386,7 +402,10 @@ export class EscenaMapa implements Escena {
       (resultado) => {
         if (resultado === 'victoria') {
           m.vivo = false;
-          if (m.grupo[0]?.jefe) this.abrirPortal(sala);
+          if (m.grupo[0]?.jefe) {
+            this.abrirPortal(sala);
+            this.lluvia = this.o.lluviaTrasJefe;
+          }
           this.soltarCierre();
           this.aplicarCierre();
         }

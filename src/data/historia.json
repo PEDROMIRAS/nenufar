@@ -10,7 +10,8 @@
       "cartel": "Aquí cayó la última lluvia antes del eclipse. El agua se pudre entre los árboles.",
       "jefe": {
         "inicio": "«El agua... es... mía.»",
-        "caida": "«La lluvia... recuerdo... la lluvia...»"
+        "caida": "«La lluvia... recuerdo... la lluvia...»",
+        "lluvia": 5
       }
     },
     "ruinas": {
@@ -18,7 +19,8 @@
       "cartel": "La capital de la Orden del Nenúfar. Sus guardianes de piedra aún vigilan un sello que ya está roto.",
       "jefe": {
         "inicio": "«Guardián... del sello. No puedo... detenerme.»",
-        "caida": "«La runa... llévatela. Termina... lo que empezamos.»"
+        "caida": "«La runa... llévatela. Termina... lo que empezamos.»",
+        "lluvia": 0
       }
     },
     "cripta": {
@@ -26,7 +28,8 @@
       "cartel": "Aquí descansan los héroes de la Orden. Algo los está despertando.",
       "jefe": {
         "inicio": "«Los héroes duermen mejor envueltos en seda. Pronto, tú también.»",
-        "caida": "«Mi señor... ya está despierto. Llegas tarde.»"
+        "caida": "«Mi señor... ya está despierto. Llegas tarde.»",
+        "lluvia": 0
       }
     }
   },

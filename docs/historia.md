@@ -116,4 +116,4 @@ Una línea antes del resumen: «Esa noche, la luna no volvió a encenderse.»
 - Cada página es una pantalla de texto sobre fondo oscuro, sin ilustración; se pasa con Enter o un toque. Las frases de los jefes también: una pantalla con su nombre antes del combate y otra al caer (antes de la subida de nivel).
 - El cartel de cada zona sale al entrar en ella; el HUD sigue diciendo «Bosque».
 - **El ciclo:** quien vence al jefe final ocupa su lugar. Su nombre se guarda en el navegador y en la partida siguiente el jefe final es «<nombre>, Señora de la Cripta». Solo cuenta ganar; sin victorias previas es el Señor de la Cripta.
-- Sin hacer (por ahora): la lluvia que vuelve un momento al caer el Rey Limo.
+- Al caer el Rey Limo llueve unos segundos sobre el mapa (`lluvia` en su jefe de `historia.json`; con menos movimiento, solo se oscurece).
