@@ -308,9 +308,9 @@
     },
     "color": "#3b4560"
   },
-  "chaman": {
-    "nombre": "Chamán goblin",
-    "sprite": "monstruos/chaman",
+  "espectro": {
+    "nombre": "Espectro",
+    "sprite": "monstruos/espectro",
     "estadisticas": {
       "pv": 43,
       "pm": 20,
@@ -325,27 +325,27 @@
         "peso": 40
       },
       {
-        "accion": "Ungüento",
+        "accion": "Llama de vela",
         "peso": 60,
         "condicion": {
           "pvAliadoMenorQue": 0.6
         }
       },
       {
-        "accion": "Grito de guerra",
+        "accion": "Lamento",
         "peso": 30
       }
     ],
     "habilidades": [
       {
-        "nombre": "Ungüento",
+        "nombre": "Llama de vela",
         "nivel": 1,
         "pm": 5,
         "objetivo": "aliado",
         "cura": 0.3
       },
       {
-        "nombre": "Grito de guerra",
+        "nombre": "Lamento",
         "nivel": 1,
         "pm": 4,
         "objetivo": "aliado",
@@ -387,7 +387,7 @@
       "vision": 96,
       "patrulla": 40
     },
-    "color": "#6b8f3a"
+    "color": "#7a2a36"
   },
   "rey_limo": {
     "nombre": "Rey Limo",
@@ -689,20 +689,9 @@
       },
       {
         "pvMenorQue": 0.33,
-        "aviso": "¡El Señor de la Cripta se desata!",
-        "acciones": [
-          {
-            "accion": "atacar",
-            "peso": 40
-          },
-          {
-            "accion": "cargar",
-            "peso": 40
-          },
-          {
-            "accion": "Niebla tóxica",
-            "peso": 20
-          }
+        "aviso": "¡Bebe el poder del Rey sin Charca y se transforma!",
+        "transformarEn": [
+          "rey_sin_charca"
         ]
       }
     ],
@@ -713,5 +702,55 @@
       "alto": 18
     },
     "color": "#2a1f3a"
+  },
+  "rey_sin_charca": {
+    "nombre": "Rey sin Charca",
+    "sprite": "monstruos/rey_sin_charca",
+    "estadisticas": {
+      "pv": 54,
+      "pm": 60,
+      "ataque": 19,
+      "magia": 16,
+      "defensa": 16,
+      "velocidad": 9
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 40
+      },
+      {
+        "accion": "cargar",
+        "peso": 40
+      },
+      {
+        "accion": "Niebla de agua muerta",
+        "peso": 20
+      }
+    ],
+    "cargado": {
+      "poder": 3.5,
+      "aviso": "abre las fauces..."
+    },
+    "habilidades": [
+      {
+        "nombre": "Niebla de agua muerta",
+        "nivel": 1,
+        "pm": 8,
+        "objetivo": "todos",
+        "danio": {
+          "tipo": "magico",
+          "poder": 0.6
+        },
+        "estado": "veneno"
+      }
+    ],
+    "jefe": true,
+    "experiencia": 0,
+    "caja": {
+      "ancho": 30,
+      "alto": 18
+    },
+    "color": "#1f4a4a"
   }
 }

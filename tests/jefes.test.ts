@@ -79,14 +79,22 @@ describe('jefes', () => {
     expect(c.enemigos.map((e) => e.nombre)).toEqual(['Reina Araña', 'Araña', 'Araña B']);
   });
 
-  test('el Señor de la Cripta pasa por sus tres fases', () => {
+  test('el Señor de la Cripta pasa por sus fases y al final se transforma en el Rey sin Charca', () => {
     const c = contra('senor_cripta');
     const senor = c.enemigos[0]!;
     senor.pv = Math.floor(senor.pvMax * 0.66) + 10; // tras el golpe, por debajo del 66 %
     atacar(c);
     expect(senor.fase).toBe(1);
     senor.pv = Math.floor(senor.pvMax * 0.33) + 10; // tras el golpe, por debajo del 33 %
-    atacar(c);
+    const eventos = atacar(c);
     expect(senor.fase).toBe(2);
+    expect(eventos).toContainEqual(
+      expect.objectContaining({ tipo: 'aviso', actor: senor, retira: true }),
+    );
+    // Se retira sin morir y en su lugar aparece el Rey sin Charca, con su propia vida.
+    expect(senor.pv).toBe(0);
+    const rey = c.enemigos.find((e) => e.monstruo === MONSTRUOS.rey_sin_charca);
+    expect(rey?.pv).toBe(MONSTRUOS.rey_sin_charca!.estadisticas.pv);
+    expect(puedeHuir(c)).toBe(false);
   });
 });

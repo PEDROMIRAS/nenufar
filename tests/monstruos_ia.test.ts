@@ -56,25 +56,25 @@ describe('IA de los monstruos', () => {
     expect(eventos.some((e) => e.tipo === 'danio' && e.origen === c.enemigos[0])).toBe(true);
   });
 
-  test('el Chamán cura al aliado más herido cuando alguno baja del 60 %', () => {
-    // 0,5 en la tabla [atacar 40, Ungüento 60, Grito 30] cae en «Ungüento».
-    const c = contra(['chaman', 'caballero', 'esqueleto'], fijo(0.5));
-    const [chaman, caballero, esqueleto] = c.enemigos as [Luchador, Luchador, Luchador];
+  test('el Espectro cura al aliado más herido cuando alguno baja del 60 %', () => {
+    // 0,5 en la tabla [atacar 40, Llama de vela 60, Lamento 30] cae en «Llama de vela».
+    const c = contra(['espectro', 'caballero', 'esqueleto'], fijo(0.5));
+    const [espectro, caballero, esqueleto] = c.enemigos as [Luchador, Luchador, Luchador];
     caballero.pv = Math.round(caballero.pvMax * 0.5);
     esqueleto.pv = Math.round(esqueleto.pvMax * 0.29); // el más herido
-    // El Chamán es más rápido que la ronin: cura ya en avanzar.
+    // El Espectro es más rápido que la ronin: cura ya en avanzar.
     const eventos = avanzar(c);
     expect(eventos).toContainEqual({
       tipo: 'cura',
       objetivo: esqueleto,
       cantidad: Math.round(esqueleto.pvMax * 0.3),
     });
-    expect(chaman.pm).toBe(20 - 5);
+    expect(espectro.pm).toBe(20 - 5);
   });
 
-  test('sin aliados heridos, el Chamán no gasta el Ungüento y da Furia a quien no la tenga', () => {
-    // 0,9 cae al final de la tabla sin Ungüento [atacar 40, Grito 30] → «Grito de guerra».
-    const c = contra(['chaman', 'caballero'], fijo(0.9));
+  test('sin aliados heridos, el Espectro no gasta la Llama de vela y da Furia a quien no la tenga', () => {
+    // 0,9 cae al final de la tabla sin Llama de vela [atacar 40, Lamento 30] → «Lamento».
+    const c = contra(['espectro', 'caballero'], fijo(0.9));
     avanzar(c);
     const eventos = actuar(c, { tipo: 'defender' });
     expect(eventos.some((e) => e.tipo === 'cura')).toBe(false);
