@@ -19,6 +19,9 @@ PREVIEWS = os.path.join(REPO, "docs", "previews")
 from lienzo import Lienzo  # noqa: E402
 import criaturas  # noqa: E402
 import humanoides  # noqa: E402
+import espectro  # noqa: E402
+import golem  # noqa: E402
+import rey_sin_charca  # noqa: E402
 
 DIRS = ["down", "left", "right", "up"]
 VISTA = {"down": "frente", "left": "lado", "right": "lado", "up": "espalda"}
@@ -59,14 +62,52 @@ MONSTRUOS = {
     "caballero": (32, paleta(**METAL, armadura=(59, 69, 96), armadura_s=(36, 42, 62), armadura_l=(100, 114, 150),
                              visor=(16, 14, 20), ojo=(236, 84, 84), capa=(116, 38, 50), pluma=(176, 50, 62),
                              cuero=(96, 64, 44)), humanoides.caballero, {}),
-    "chaman": (32, paleta(piel=(107, 143, 58), piel_s=(70, 100, 40), piel_l=(150, 186, 90), tunica=(122, 86, 52),
-                          tunica_s=(84, 56, 34), hueso=(230, 222, 200), madera=(110, 76, 44), orbe=(130, 226, 250),
-                          pluma=(214, 96, 60), ojo=(250, 210, 70)), humanoides.chaman, {}),
-    "golem": (48, paleta(piedra=(138, 132, 120), piedra_s=(92, 88, 80), piedra_l=(180, 174, 160), musgo=(96, 140, 70),
-                         runa=(120, 224, 244), runa_s=(70, 130, 150)), humanoides.golem, {}),
     "senor_cripta": (48, paleta(**HUESO, **METAL, tunica=(48, 34, 66), tunica_s=(28, 20, 40), tunica_l=(82, 62, 108),
                                 ojo=(170, 255, 130), madera=(70, 52, 40)), humanoides.senor_cripta, {}),
 }
+
+
+# Monstruos dibujados con su propio módulo (más detalle que el Lienzo): (ancho, alto, módulo).
+# Cada módulo da `fotograma(direccion, anim, i)` como array RGBA con los pies en (ancho/2, alto-2).
+PROPIOS = {
+    "espectro": (32, 32, espectro),
+    "golem": (48, 48, golem),
+    "rey_sin_charca": (64, 48, rey_sin_charca),
+}
+
+
+def destello(img, contorno):
+    """El fotograma de golpe, casi blanco salvo el contorno (como `Lienzo.imagen(golpe=True)`)."""
+    img = img.copy()
+    px = img.load()
+    for y in range(img.height):
+        for x in range(img.width):
+            r, g, b, a = px[x, y]
+            if a == 255 and (r, g, b) != contorno:
+                px[x, y] = tuple(min(255, int(v * 0.35 + 255 * 0.65)) for v in (r, g, b)) + (255,)
+    return img
+
+
+def hoja_propia(clave, ancho, alto, modulo):
+    columnas = sum(n for _, n, _, _ in ANIMS)
+    sheet = Image.new("RGBA", (columnas * ancho, len(DIRS) * alto), (0, 0, 0, 0))
+    meta = {"frameWidth": ancho, "frameHeight": alto, "anchor": {"x": ancho // 2, "y": alto - 2},
+            "directions": {}, "animations": {}}
+    for fila, d in enumerate(DIRS):
+        meta["directions"][d] = fila
+        col = 0
+        for nombre, n, fps, bucle in ANIMS:
+            meta["animations"][nombre] = {"startColumn": col, "frames": n, "fps": fps, "loop": bucle}
+            for i in range(n):
+                img = Image.fromarray(modulo.fotograma(d, nombre, i), "RGBA")
+                if nombre == "golpe":
+                    img = destello(img, modulo.OUT)
+                sheet.paste(img, (col * ancho, fila * alto))
+                col += 1
+    sheet.save(os.path.join(SALIDA, f"{clave}.png"))
+    with open(os.path.join(SALIDA, f"{clave}.json"), "w", encoding="utf-8") as f:
+        json.dump(meta, f, indent=2, ensure_ascii=False)
+    return sheet
 
 
 def fotograma(tam, pal, dibujar, extra, direccion, anim, i):
@@ -99,6 +140,7 @@ def hoja(clave, tam, pal, dibujar, extra):
 def main():
     os.makedirs(SALIDA, exist_ok=True)
     hojas = {clave: hoja(clave, *datos) for clave, datos in MONSTRUOS.items()}
+    hojas.update({clave: hoja_propia(clave, *datos) for clave, datos in PROPIOS.items()})
     # Vista previa: cada hoja ×3, una debajo de otra, sobre fondo de hierba oscura.
     ancho = max(h.width for h in hojas.values()) * 3
     alto = sum(h.height * 3 + 8 for h in hojas.values())

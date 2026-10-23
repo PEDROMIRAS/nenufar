@@ -44,7 +44,7 @@ Cada zona tiene un cartel al entrar (nombre y una o dos líneas) y su jefe dice 
 
 > La capital de la Orden del Nenúfar. Sus guardianes de piedra aún vigilan un sello que ya está roto.
 
-**Golem.** Guardaba el sello del Rey sin Charca. Le arrancaron la runa para abrirlo, y ahora obedece a quien la tiene. Es un guardián que no quiere luchar.
+**Golem.** Guardaba el sello del Rey sin Charca. Le arrancaron la runa para abrirlo (en el pecho le queda el hueco, con grietas que aún brillan), y ahora obedece a quien la tiene. Es un guardián que no quiere luchar.
 
 - Al empezar: «Guardián... del sello. No puedo... detenerme.»
 - Al caer: «La runa... llévatela. Termina... lo que empezamos.»
@@ -54,6 +54,8 @@ Cada zona tiene un cartel al entrar (nombre y una o dos líneas) y su jefe dice 
 > Aquí descansan los héroes de la Orden. Algo los está despertando.
 
 **Reina Araña.** Envuelve los huesos de los héroes en seda negra para levantarlos como soldados del Rey: de ahí los esqueletos y el caballero oscuro.
+
+**Espectros.** Las almas de los héroes de la Orden, despertadas en la Cripta. Ya no recuerdan su nombre; solo guardan la antorcha con la que velaban a sus muertos, y con ella curan y animan a los demás monstruos.
 
 - Al empezar: «Los héroes duermen mejor envueltos en seda. Pronto, tú también.»
 - Al caer: «Mi señor... ya está despierto. Llegas tarde.»
@@ -66,6 +68,8 @@ Tras el portal de la Cripta, el combate final.
 - Al caer: «Rompe... lo que yo no pude romper.»
 
 Sus avisos de fase (invocar esqueletos, niebla tóxica) se quedan como están en `monstruos.json`.
+
+**Última fase: el Rey sin Charca.** Con poca vida, el Señor bebe lo que le queda del poder del Rey y se transforma en él: un cuerpo de obsidiana con cuernos de hueso y un corazón de fuego de agua muerta, verde azulado. No es morado: el morado es la luz de luna de la maga, lo único que teme. Es otro enemigo (`rey_sin_charca` en `monstruos.json`) con su propia vida; vencerlo termina el combate.
 
 ## Escenas
 
