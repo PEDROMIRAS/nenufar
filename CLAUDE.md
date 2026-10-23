@@ -46,6 +46,7 @@ Si el diseño y este archivo discrepan, manda el documento; avisa de la discrepa
 - `public/assets/tilesets/comunes.json`: cofres, fuente, portal y hoguera, compartidos por todas las zonas. **Se carga siempre junto al tileset de la zona**: las plantillas los usan (`X`, `F`, `>`, `H`) y no existen en los tilesets de zona.
 - `public/assets/tilesets/<zona>_autotiles.json`: 16 variantes por tipo, máscara `N=1, E=2, S=4, O=8`.
 - `src/data/salas/plantillas_<zona>.json`: mapas ASCII de 15×11 con su `leyenda` y `autotiles`. Para dibujar una sala igual que las vistas previas, ver `tools/generadores/entorno/plantilla.py` (orden de capas, sombras de muros hacia abajo y la derecha, halos de luz).
+- Monstruos: la mayoría salen de `tools/generadores/monstruos/humanoides.py` y similares; `espectro`, `golem` y `rey_sin_charca` tienen módulo propio (registrado en `PROPIOS` de `generar.py`) con `fotograma(direccion, anim, i)`. Los jefes van en 48 de alto (el Rey, 64×48) y no suben más de ~42 px sobre los pies, para no tapar su nombre en combate.
 - Para cambiar arte: editar los scripts de `tools/generadores/` y ejecutar `python tools/generadores/generar_todo.py` (requiere `pip install -r tools/requirements.txt`). Es determinista.
 
 ## Comandos
