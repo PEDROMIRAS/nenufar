@@ -1,6 +1,6 @@
 import { crearAzar } from './azar';
 
-export type TipoSala = 'inicio' | 'combate' | 'tesoro' | 'descanso' | 'jefe';
+export type TipoSala = 'inicio' | 'combate' | 'tesoro' | 'descanso' | 'jefe' | 'violeta';
 
 /** Bits de `puertas`, en el mismo orden que la máscara de los autotiles. */
 export const N = 1;
@@ -22,6 +22,8 @@ export interface SalaZona {
   distancia: number;
   /** Lados con puerta (N|E|S|O). */
   puertas: number;
+  /** Solo en salas 'tesoro': el cofre es un monstruo. */
+  trampa?: boolean;
 }
 
 export interface Zona {

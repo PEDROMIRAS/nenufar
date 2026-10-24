@@ -5,6 +5,16 @@
     "tesoros": 2
   },
   "jefeFinal": "senor_cripta",
+  "violetas": {
+    "probabilidad": 0.45,
+    "probabilidadDragon": 0.2,
+    "probabilidadTrampa": 0.35,
+    "dragon": {
+      "bosque": "dragon_negro_bosque",
+      "ruinas": "dragon_negro_ruinas",
+      "cripta": "dragon_negro_cripta"
+    }
+  },
   "monstruos": {
     "gruposPorSala": {
       "min": 1,
@@ -17,6 +27,7 @@
       "nombre": "Bosque",
       "salas": 8,
       "jefe": "rey_limo",
+      "jefeVioleta": "arbol_maldito",
       "cofre": [
         {
           "objeto": "arma",
@@ -66,6 +77,7 @@
       "nombre": "Ruinas",
       "salas": 11,
       "jefe": "golem",
+      "jefeVioleta": "caballero_maldito",
       "cofre": [
         {
           "objeto": "arma",
@@ -122,6 +134,7 @@
       "nombre": "Cripta",
       "salas": 14,
       "jefe": "reina_arana",
+      "jefeVioleta": "ojo_flotante",
       "cofre": [
         {
           "objeto": "arma",

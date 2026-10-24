@@ -222,6 +222,15 @@ export interface MonstruoJson {
   color: string;
 }
 
+/** `violetas` de zonas.json: probabilidades de sala violeta, de que su jefe sea el dragón y de tesoro trampa. */
+export interface AjustesVioletas {
+  probabilidad: number;
+  probabilidadDragon: number;
+  probabilidadTrampa: number;
+  /** Clave del dragón negro de cada zona en monstruos.json. */
+  dragon: Record<string, string>;
+}
+
 /** Una dificultad de `src/data/dificultades.json`: multiplicadores sobre los monstruos y la recuperación. */
 export interface DificultadJson {
   nombre: string;
