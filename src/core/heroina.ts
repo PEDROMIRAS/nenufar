@@ -13,8 +13,6 @@ export interface Heroina {
   tiempoAnimacion: number;
   velocidad: number;
   carrera: number;
-  /** El botón de correr del móvil la deja corriendo hasta que se vuelve a tocar (también al cambiar de zona). */
-  correrFijo: boolean;
   margenEsquina: number;
 }
 
@@ -28,7 +26,6 @@ export function crearHeroina(datos: HeroeJson, x: number, y: number): Heroina {
     tiempoAnimacion: 0,
     velocidad: datos.velocidad,
     carrera: datos.carrera,
-    correrFijo: false,
     margenEsquina: datos.margenEsquina,
   };
 }

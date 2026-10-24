@@ -6,13 +6,18 @@ interface Ajustes {
   radio: number;
   /** Fracción del radio que no mueve (0..1). */
   zonaMuerta: number;
+  /** Fracción del radio desde la que se corre (el dedo lejos del centro). */
+  correrDesde: number;
 }
 
 /**
  * Joystick flotante: nace donde se pone el dedo, en cualquier punto de la pantalla, y mide el arrastre
  * desde ahí. Solo se dibuja al arrastrar: un toque en un botón no lo hace aparecer.
  */
-export function crearJoystick(raiz: HTMLElement, { radio, zonaMuerta }: Ajustes): FuenteEntrada {
+export function crearJoystick(
+  raiz: HTMLElement,
+  { radio, zonaMuerta, correrDesde }: Ajustes,
+): FuenteEntrada {
   const base = circulo(radio * 2, 'rgba(255,255,255,0.12)');
   const mando = circulo(radio, 'rgba(255,255,255,0.35)');
   raiz.append(base, mando);
@@ -30,11 +35,13 @@ export function crearJoystick(raiz: HTMLElement, { radio, zonaMuerta }: Ajustes)
     const escala = Math.min(1, radio / (Math.hypot(dx, dy) || 1));
     mando.style.transform = `translate(${origenX + dx * escala - radio / 2}px, ${origenY + dy * escala - radio / 2}px)`;
   };
-  const soltar = (e: PointerEvent): void => {
-    if (e.pointerId !== dedo) return;
+  const soltar = (): void => {
     dedo = null;
     visible = false;
     base.style.display = mando.style.display = 'none';
+  };
+  const soltarDedo = (e: PointerEvent): void => {
+    if (e.pointerId === dedo) soltar();
   };
 
   raiz.addEventListener('pointerdown', (e) => {
@@ -57,12 +64,19 @@ export function crearJoystick(raiz: HTMLElement, { radio, zonaMuerta }: Ajustes)
     }
     if (visible) colocar();
   });
-  raiz.addEventListener('pointerup', soltar);
-  raiz.addEventListener('pointercancel', soltar);
+  raiz.addEventListener('pointerup', soltarDedo);
+  raiz.addEventListener('pointercancel', soltarDedo);
+  // Si el navegador le quita el dedo sin pointerup (gesto del sistema, aviso, otra ventana), sin esto
+  // el joystick seguía creyendo que había un dedo y no volvía a nacer: «se pierde».
+  raiz.addEventListener('lostpointercapture', soltarDedo);
+  addEventListener('blur', soltar);
 
   return {
     leer(acciones) {
-      if (dedo !== null) fijarDireccion(acciones, dx / radio, dy / radio, zonaMuerta);
+      if (dedo === null) return;
+      fijarDireccion(acciones, dx / radio, dy / radio, zonaMuerta);
+      // Llevar el dedo cerca del borde (o más allá) es correr: no hace falta ningún botón.
+      if (Math.hypot(dx, dy) >= radio * correrDesde) acciones.correr = true;
     },
   };
 }

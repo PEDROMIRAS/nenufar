@@ -1,6 +1,8 @@
 // Fuentes fijas: construir el texto de la fuente en cada fotograma crearía cadenas en el bucle.
 export const FUENTE = 'bold 12px monospace';
 export const FUENTE_GRANDE = 'bold 24px monospace';
+/** Botones de los menús: algo mayor que el texto normal, que en el móvil se quedaba pequeño. */
+export const FUENTE_BOTON = 'bold 14px monospace';
 export const FUENTE_LOGO = 'bold 48px monospace';
 export const FUENTE_TITULO = 'bold 32px monospace';
 

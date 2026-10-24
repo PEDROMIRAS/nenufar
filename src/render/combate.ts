@@ -3,7 +3,7 @@ import { partirTexto } from '../core/texto';
 import { ALTO, ANCHO, aPixel, dentro } from './pantalla';
 import { movimientoReducido } from './accesibilidad';
 import { dibujarFotograma, type Sprite } from './recursos';
-import { escribir, FUENTE_GRANDE } from './texto';
+import { escribir, FUENTE_BOTON, FUENTE_GRANDE } from './texto';
 
 export interface OpcionMenu {
   texto: string;
@@ -245,9 +245,11 @@ function dibujarBotonInfo(ctx: CanvasRenderingContext2D, activo: boolean): void 
   );
 }
 
-// Ancho de una letra de la fuente normal (monoespaciada) y alto de cada línea de un botón.
+// Ancho de una letra de la fuente normal y de la de los botones (monoespaciadas, 0,6 de su tamaño) y
+// alto de cada línea de un botón.
 const ANCHO_LETRA = 7.2;
-const LINEA_BOTON = 13;
+const ANCHO_LETRA_BOTON = 8.4;
+const LINEA_BOTON = 15;
 /** Textos de botón ya partidos en líneas, por ancho de botón: se parten una vez, no en cada fotograma. */
 const PARTIDOS = new Map<number, Map<string, readonly string[]>>();
 
@@ -257,7 +259,7 @@ function lineasBoton(texto: string, ancho: number): readonly string[] {
   if (!porTexto) PARTIDOS.set(ancho, (porTexto = new Map()));
   let lineas = porTexto.get(texto);
   if (!lineas) {
-    lineas = partirTexto(texto, Math.floor((ancho - 8) / ANCHO_LETRA));
+    lineas = partirTexto(texto, Math.floor((ancho - 8) / ANCHO_LETRA_BOTON));
     porTexto.set(texto, lineas);
   }
   return lineas;
@@ -286,7 +288,15 @@ export function dibujarMenu(ctx: CanvasRenderingContext2D, menu: MenuVista | nul
     // El bloque de líneas (nombre y detalle) centrado en el botón.
     const y = r.y + (r.alto - (lineas.length + (conDetalle ? 1 : 0)) * LINEA_BOTON) / 2 + 1;
     for (let l = 0; l < lineas.length; l++)
-      escribir(ctx, lineas[l]!, r.x + r.ancho / 2, y + l * LINEA_BOTON, color, 'center');
+      escribir(
+        ctx,
+        lineas[l]!,
+        r.x + r.ancho / 2,
+        y + l * LINEA_BOTON,
+        color,
+        'center',
+        FUENTE_BOTON,
+      );
     if (conDetalle)
       escribir(
         ctx,
@@ -295,6 +305,7 @@ export function dibujarMenu(ctx: CanvasRenderingContext2D, menu: MenuVista | nul
         y + lineas.length * LINEA_BOTON,
         COLOR.detalle,
         'center',
+        FUENTE_BOTON,
       );
   }
 }

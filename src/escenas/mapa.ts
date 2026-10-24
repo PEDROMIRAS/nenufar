@@ -36,10 +36,8 @@ import type {
 import { N, S, type SalaZona, type Zona } from '../core/zona';
 import { dibujarHeroina } from '../render/heroina';
 import {
-  BOTON_CORRER,
   BOTON_MENU,
   dibujarAviso,
-  dibujarBotonCorrer,
   dibujarBotonMenu,
   dibujarQuedan,
   dibujarHud,
@@ -225,9 +223,7 @@ export class EscenaMapa implements Escena {
       this.o.abrirPausa();
       return;
     }
-    if (dentro(acciones.toqueX, acciones.toqueY, BOTON_CORRER)) h.correrFijo = !h.correrFijo;
-    const corriendo = acciones.correr || h.correrFijo;
-    actualizarHeroina(h, acciones, dt, this.montada.sala, tam, corriendo);
+    actualizarHeroina(h, acciones, dt, this.montada.sala, tam, acciones.correr);
     this.tiempoAviso = Math.max(0, this.tiempoAviso - dt);
     if (this.tiempoAviso === 0 && this.pista < this.o.pistas.length) {
       this.avisar(this.o.pistas[this.pista++]!, this.o.segundosPista);
@@ -347,10 +343,11 @@ export class EscenaMapa implements Escena {
     // El minimapa va encima del fundido: es interfaz, no parte de la sala.
     ctx.drawImage(this.minimapa, BOTON_MENU.x - MARGEN_HUD - this.minimapa.width, MARGEN_HUD);
     dibujarBotonMenu(ctx, this.o.luchadora.puntos > 0);
-    dibujarBotonCorrer(ctx, this.o.heroina.correrFijo);
   }
 
   private avisar(texto: string, segundos = DURACION_AVISO): void {
+    // Una pista que aún se veía y queda tapada por otro aviso vuelve a la cola: no se pierde.
+    if (this.tiempoAviso > 0 && this.aviso === this.o.pistas[this.pista - 1]) this.pista--;
     this.aviso = texto;
     anunciar(texto);
     this.tiempoAviso = segundos;

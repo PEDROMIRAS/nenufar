@@ -1,11 +1,14 @@
 import { niebla } from '../core/minimapa';
 import { E, S, type SalaZona, type Zona } from '../core/zona';
 
-// Medidas en píxeles lógicos: una sala de 15×11 tiles se ve como un rectángulo de 8×6.
-const ANCHO_SALA = 8;
-const ALTO_SALA = 6;
-const HUECO = 3;
+// Medidas en píxeles lógicos: una sala de 15×11 tiles se ve como un rectángulo de 12×8 (antes 8×6:
+// los probadores lo veían demasiado pequeño y no lo miraban). Medidas pares: puertas y puntos centrados.
+const ANCHO_SALA = 12;
+const ALTO_SALA = 8;
+const HUECO = 4;
 const BORDE = 3;
+/** Lado del punto del tesoro, la fuente o el jefe. */
+const LADO_PUNTO = 4;
 const COLOR = {
   fondo: 'rgba(8, 14, 10, 0.6)',
   visitada: '#cfe3c8',
@@ -67,7 +70,8 @@ export function pintarMinimapa(
     const punto = PUNTO[s.tipo];
     if (punto) {
       ctx.fillStyle = hechas.has(s) ? COLOR.hecha : punto;
-      ctx.fillRect(x + ANCHO_SALA / 2 - 1, y + ALTO_SALA / 2 - 1, 2, 2);
+      const m = LADO_PUNTO / 2;
+      ctx.fillRect(x + ANCHO_SALA / 2 - m, y + ALTO_SALA / 2 - m, LADO_PUNTO, LADO_PUNTO);
     }
     // Puertas al este y al sur (las del oeste y el norte las pinta la vecina). En un árbol, dos salas
     // visibles unidas por una puerta incluyen siempre una visitada: no se revela nada de más.
