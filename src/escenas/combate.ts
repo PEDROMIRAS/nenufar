@@ -22,6 +22,7 @@ import {
 import {
   describirAcciones,
   describirConsumible,
+  describirEstado,
   describirHabilidad,
   partirEnLineas,
 } from '../core/descripciones';
@@ -72,6 +73,8 @@ export class EscenaCombate implements Escena {
   private seleccionPrincipal = 0;
   /** Estados que se ven sobre cada luchador, en el orden en que aparecieron. */
   private readonly estadosVistos = new Map<Luchador, string[]>();
+  /** Estados cuya explicación ya salió en el registro de este combate. */
+  private readonly estadosExplicados = new Set<string>();
   private readonly v: VistaCombate;
   /** Quién hizo el último golpe enseñado, para no repetir su animación en un ataque a varios. */
   private ultimoAtacante: Luchador | null = null;
@@ -127,6 +130,7 @@ export class EscenaCombate implements Escena {
       defendiendo: false,
       titulo: '',
       info: infoActiva,
+      ayudaSiempre: false,
     };
   }
 
@@ -257,6 +261,13 @@ export class EscenaCombate implements Escena {
             ? `${e.estado} en ${e.objetivo.nombre}`
             : `Se acaba ${e.estado} en ${e.objetivo.nombre}`,
         );
+        // La primera vez en el combate, debajo, qué hace (los probadores no lo sabían).
+        const def = Object.values(this.combate.reglas.estados).find((d) => d.nombre === e.estado);
+        if (e.activo && def && !this.estadosExplicados.has(e.estado)) {
+          this.estadosExplicados.add(e.estado);
+          const texto = describirEstado(def);
+          this.registrar(texto.charAt(0).toUpperCase() + texto.slice(1));
+        }
         break;
       }
       case 'pierdeTurno':
@@ -467,6 +478,7 @@ export class EscenaCombate implements Escena {
       };
     }
     this.v.menu = menu;
+    this.v.ayudaSiempre = modo === 'habilidades' || modo === 'objetos';
   }
 
   private manejarMenu(a: Acciones): void {
@@ -479,12 +491,16 @@ export class EscenaCombate implements Escena {
     }
     const menu = this.v.menu!;
     const n = menu.opciones.length;
-    // Tocar una opción la elige y la usa a la vez; en modo información, el primer toque solo la
-    // elige (y enseña qué hace) y el segundo la usa.
+    // Tocar una opción la elige y la usa a la vez; en modo información, y siempre dentro de Habilidad
+    // y Objeto, el primer toque solo la elige (y enseña qué hace) y el segundo la usa. «Volver», al
+    // no tener nada que explicar, va a la primera.
     if (a.toqueX >= 0) {
       const i = opcionTocada(a.toqueX, a.toqueY, n);
       if (i < 0) return;
-      const soloElegir = this.v.info && i !== menu.seleccion;
+      const soloElegir =
+        (this.v.info || this.v.ayudaSiempre) &&
+        i !== menu.seleccion &&
+        menu.opciones[i]?.ayuda !== undefined;
       menu.seleccion = i;
       if (soloElegir) {
         sonar('cursor');
@@ -536,6 +552,7 @@ export class EscenaCombate implements Escena {
         this.abrir('principal'); // «Volver»
       } else if (hab.pm > h.pm) {
         this.registrar(`No quedan PM para ${hab.nombre}`);
+        this.registrar(`Defender recupera ${this.combate.reglas.defender.pm} PM`);
       } else if (hab.objetivo === 'uno') {
         this.apuntar((o) => ({ tipo: 'habilidad', habilidad: hab, objetivo: o }));
       } else {
