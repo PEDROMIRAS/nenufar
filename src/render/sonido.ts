@@ -45,6 +45,7 @@ let musica: GainNode | null = null;
 let ruido: AudioBuffer | null = null;
 let silenciado = cargarAjustes().silencio;
 let volumenMusica = cargarAjustes().musica;
+let volumenEfectos = cargarAjustes().efectos;
 let pista: string | null = null;
 let paso = 0;
 let siguiente = 0;
@@ -67,7 +68,7 @@ function crearAudio(): void {
   general.gain.value = silenciado ? 0 : 1;
   general.connect(a.destination);
   efectos = a.createGain();
-  efectos.gain.value = datos.volumen.efectos;
+  efectos.gain.value = datos.volumen.efectos * volumenEfectos;
   efectos.connect(general);
   musica = a.createGain();
   musica.gain.value = datos.volumen.musica * volumenMusica;
@@ -99,6 +100,17 @@ export function ponerVolumenMusica(v: number): void {
   volumenMusica = v;
   if (musica) musica.gain.value = datos.volumen.musica * v;
   guardarAjustes({ musica: v });
+}
+
+export function leerVolumenEfectos(): number {
+  return volumenEfectos;
+}
+
+/** Cambia el volumen de los efectos (de 0 a 1) y lo recuerda para la próxima vez. */
+export function ponerVolumenEfectos(v: number): void {
+  volumenEfectos = v;
+  if (efectos) efectos.gain.value = datos.volumen.efectos * v;
+  guardarAjustes({ efectos: v });
 }
 
 export function sonar(nombre: string): void {

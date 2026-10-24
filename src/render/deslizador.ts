@@ -17,13 +17,19 @@ export type Casilla = ControlHtml<boolean>;
 /**
  * Deslizador HTML de verdad sobre el canvas (`<input type="range">`): se arrastra con el ratón o el
  * dedo, se mueve con las flechas tras enfocarlo con Tab y lo leen los lectores de pantalla.
+ * Con `siguiente`, ↓ pasa a ese control (el de efectos, debajo del de la música) en vez de volver al juego.
  */
 export function crearDeslizador(
   canvas: HTMLCanvasElement,
   rect: Rect,
   etiqueta: string,
+  siguiente?: ControlHtml<number>,
 ): Deslizador {
   const control = crearInput('range', etiqueta);
+  if (siguiente)
+    control.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') siguiente.enfocar();
+    });
   control.min = '0';
   control.max = '1';
   control.step = '0.05';

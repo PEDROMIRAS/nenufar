@@ -18,6 +18,8 @@ export interface Ajustes {
   silencio: boolean;
   /** Volumen de la música elegido en el inventario, de 0 a 1 (multiplica el de sonido.json). */
   musica: number;
+  /** Lo mismo para los efectos de sonido. */
+  efectos: number;
   /**
    * Último nombre que se puso a cada heroína (por su nombre de heroes.json). Se guarda pero aún no se usa:
    * queda para una mejora futura (Pedro prefiere pedir el nombre siempre).
@@ -41,6 +43,7 @@ export function cargarAjustes(): Ajustes {
     return {
       silencio: a?.silencio === true,
       musica: typeof a?.musica === 'number' && a.musica >= 0 && a.musica <= 1 ? a.musica : 1,
+      efectos: typeof a?.efectos === 'number' && a.efectos >= 0 && a.efectos <= 1 ? a.efectos : 1,
       nombres: Object.fromEntries(nombres),
       jugarEnVertical: a?.jugarEnVertical === true,
       senora: typeof a?.senora === 'string' ? a.senora : '',
@@ -50,6 +53,7 @@ export function cargarAjustes(): Ajustes {
     return {
       silencio: false,
       musica: 1,
+      efectos: 1,
       nombres: {},
       jugarEnVertical: false,
       senora: '',

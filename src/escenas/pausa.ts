@@ -10,7 +10,9 @@ import type { Sprite } from '../render/recursos';
 import type { Casilla, Deslizador } from '../render/deslizador';
 import {
   estaSilenciado,
+  leerVolumenEfectos,
   leerVolumenMusica,
+  ponerVolumenEfectos,
   ponerVolumenMusica,
   silenciar,
   sonar,
@@ -41,8 +43,8 @@ export class EscenaPausa implements Escena {
     private readonly objetos: ObjetosJson,
     private readonly progresion: ReglasProgresion,
     private readonly estados: Record<string, EstadoJson>,
-    /** Volumen de la música y sonido sí o no: controles HTML sobre el canvas mientras se ve el inventario. */
-    private readonly controles: { musica: Deslizador; sonido: Casilla },
+    /** Volumen de música y efectos y sonido sí o no: controles HTML sobre el canvas mientras se ve el inventario. */
+    private readonly controles: { musica: Deslizador; efectos: Deslizador; sonido: Casilla },
     /** Abre la pantalla de Equipo para cambiar arma y armadura. */
     private readonly alEquipo: () => void,
     /** Abre la pantalla de puntos de mejora. */
@@ -99,7 +101,7 @@ export class EscenaPausa implements Escena {
       if (o) anunciar(`${o.texto} ${o.detalle}`);
     }
     this.ultimoX = dir;
-    // ↑ sube a los controles HTML de arriba (sonido, y con → la música); ↓ o Tab desde ellos vuelve aquí.
+    // ↑ sube a los controles HTML de arriba (sonido; con → la música y con ↓ los efectos); ↓ o Tab vuelve aquí.
     const dy = Math.sign(a.moverY);
     if (dy < 0 && dy !== this.ultimoY) this.controles.sonido.enfocar();
     this.ultimoY = dy;
@@ -109,7 +111,8 @@ export class EscenaPausa implements Escena {
   draw(ctx: CanvasRenderingContext2D): void {
     // Con el foco en sonido o música, ningún botón de abajo se ve elegido (se dibuja y se restaura).
     const seleccion = this.menu.seleccion;
-    if (this.controles.sonido.enfocado() || this.controles.musica.enfocado())
+    const c = this.controles;
+    if (c.sonido.enfocado() || c.musica.enfocado() || c.efectos.enfocado())
       this.menu.seleccion = -1;
     dibujarInventario(ctx, this.sprite, this.tiempo, this.ficha, this.menu);
     this.menu.seleccion = seleccion;
@@ -148,11 +151,13 @@ export class EscenaPausa implements Escena {
 
   private mostrarControles(): void {
     this.controles.musica.mostrar(leerVolumenMusica(), ponerVolumenMusica);
+    this.controles.efectos.mostrar(leerVolumenEfectos(), ponerVolumenEfectos);
     this.controles.sonido.mostrar(!estaSilenciado(), (si) => silenciar(!si));
   }
 
   private ocultarControles(): void {
     this.controles.musica.ocultar();
+    this.controles.efectos.ocultar();
     this.controles.sonido.ocultar();
   }
 

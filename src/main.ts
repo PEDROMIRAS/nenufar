@@ -62,7 +62,7 @@ import { esTactil, prepararPantalla } from './render/pantalla';
 import { crearCasilla, crearDeslizador, type Casilla, type Deslizador } from './render/deslizador';
 import { crearCampoNombre } from './render/campoNombre';
 import { LARGO_NOMBRE, RECT_CAMPO } from './render/nombre';
-import { RECT_MUSICA, RECT_SONIDO } from './render/pausa';
+import { RECT_EFECTOS, RECT_MUSICA, RECT_SONIDO } from './render/pausa';
 import { prepararSonido } from './render/sonido';
 import { recolorear } from './render/tinte';
 import { cargarAjustes, cargarRecords, guardarAjustes, guardarRecords } from './render/almacen';
@@ -109,7 +109,7 @@ interface Partida {
   bestiario: Record<string, MonstruoJson>;
   reglas: ReglasCombate;
   /** Volumen de la música y sonido sí o no en el inventario (controles HTML, uno por partida). */
-  controles: { musica: Deslizador; sonido: Casilla };
+  controles: { musica: Deslizador; efectos: Deslizador; sonido: Casilla };
   /** Nombre del jefe final: lleva el de la última heroína que lo venció, si la hubo. */
   rival: string;
 }
@@ -175,8 +175,10 @@ async function iniciar(): Promise<void> {
   ]);
   // Elegir rana → ponerle nombre → dificultad; Escape vuelve al paso anterior.
   const campoNombre = crearCampoNombre(canvas, RECT_CAMPO, LARGO_NOMBRE);
-  const musica = crearDeslizador(canvas, RECT_MUSICA, 'Volumen de la música');
-  const sonidoHtml = { musica, sonido: crearCasilla(canvas, RECT_SONIDO, 'Sonido', musica) };
+  const efectos = crearDeslizador(canvas, RECT_EFECTOS, 'Volumen de los efectos');
+  const musica = crearDeslizador(canvas, RECT_MUSICA, 'Volumen de la música', efectos);
+  const sonido = crearCasilla(canvas, RECT_SONIDO, 'Sonido', musica);
+  const sonidoHtml = { musica, efectos, sonido };
   const seleccion: EscenaSeleccion = new EscenaSeleccion(opciones, ({ heroe, sprite }) => {
     const pedirNombre: EscenaNombre = new EscenaNombre(
       heroe,

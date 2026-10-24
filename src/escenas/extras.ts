@@ -24,8 +24,8 @@ const PISTA = esTactil()
       logros: 'Los conseguidos salen en dorado',
     }
   : {
-      bestiario: 'Flechas elegir · ↑ pestañas · Esc volver',
-      logros: '← → pestaña · Esc volver',
+      bestiario: 'Flechas elegir · ↑ pestañas · I volver',
+      logros: '← → pestaña · I volver',
     };
 
 /** Dónde están las flechas: las pestañas de arriba, la rejilla del bestiario o «Volver» abajo. */
@@ -93,7 +93,7 @@ export class EscenaExtras implements Escena {
 
   update(dt: number, a: Acciones): void {
     this.tiempo += dt;
-    if (a.cancelar || a.menu) {
+    if (a.cancelar || a.menu || a.info) {
       this.alVolver();
       return;
     }
