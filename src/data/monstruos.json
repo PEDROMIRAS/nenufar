@@ -752,5 +752,209 @@
       "alto": 18
     },
     "color": "#4a2a6a"
+  },
+  "arbol_maldito": {
+    "nombre": "Árbol maldito",
+    "sprite": "monstruos/arbol_maldito",
+    "estadisticas": { "pv": 80, "pm": 20, "ataque": 9, "magia": 0, "defensa": 9, "velocidad": 2 },
+    "acciones": [
+      { "accion": "atacar", "peso": 50 },
+      { "accion": "Raíces", "peso": 25 },
+      { "accion": "cargar", "peso": 25 }
+    ],
+    "habilidades": [
+      {
+        "nombre": "Raíces",
+        "nivel": 1,
+        "pm": 5,
+        "objetivo": "uno",
+        "danio": { "tipo": "fisico", "poder": 0.8 },
+        "estado": "atrapado"
+      }
+    ],
+    "cargado": { "poder": 2.5, "aviso": "alza sus ramas..." },
+    "jefe": true,
+    "oculto": true,
+    "experiencia": 45,
+    "caja": { "ancho": 28, "alto": 16 },
+    "color": "#5a4a2a"
+  },
+  "caballero_maldito": {
+    "nombre": "Caballero maldito",
+    "sprite": "monstruos/caballero_maldito",
+    "estadisticas": { "pv": 130, "pm": 0, "ataque": 16, "magia": 0, "defensa": 18, "velocidad": 3 },
+    "acciones": [
+      { "accion": "atacar", "peso": 55 },
+      { "accion": "cargar", "peso": 30 },
+      { "accion": "defender", "peso": 15 }
+    ],
+    "cargado": { "poder": 3.5, "aviso": "alza el espadón..." },
+    "jefe": true,
+    "oculto": true,
+    "experiencia": 120,
+    "caja": { "ancho": 28, "alto": 16 },
+    "color": "#8a2a2a"
+  },
+  "ojo_flotante": {
+    "nombre": "Ojo flotante",
+    "sprite": "monstruos/ojo_flotante",
+    "estadisticas": { "pv": 140, "pm": 50, "ataque": 15, "magia": 18, "defensa": 10, "velocidad": 9 },
+    "acciones": [
+      { "accion": "atacar", "peso": 30 },
+      { "accion": "Mirada venenosa", "peso": 25 },
+      { "accion": "Mirada ardiente", "peso": 25 },
+      { "accion": "Mirada paralizante", "peso": 20 }
+    ],
+    "habilidades": [
+      {
+        "nombre": "Mirada venenosa",
+        "nivel": 1,
+        "pm": 6,
+        "objetivo": "uno",
+        "danio": { "tipo": "magico", "poder": 0.9 },
+        "estado": "veneno"
+      },
+      {
+        "nombre": "Mirada ardiente",
+        "nivel": 1,
+        "pm": 6,
+        "objetivo": "uno",
+        "danio": { "tipo": "magico", "poder": 1 },
+        "estado": "quemadura"
+      },
+      {
+        "nombre": "Mirada paralizante",
+        "nivel": 1,
+        "pm": 8,
+        "objetivo": "uno",
+        "danio": { "tipo": "magico", "poder": 0.6 },
+        "estado": "aturdido"
+      }
+    ],
+    "jefe": true,
+    "oculto": true,
+    "experiencia": 200,
+    "caja": { "ancho": 28, "alto": 16 },
+    "color": "#7a3a8a"
+  },
+  "dragon_negro_bosque": {
+    "nombre": "Dragón negro",
+    "sprite": "monstruos/dragon_negro",
+    "estadisticas": { "pv": 95, "pm": 0, "ataque": 10, "magia": 0, "defensa": 8, "velocidad": 6 },
+    "acciones": [
+      { "accion": "atacar", "peso": 55 },
+      { "accion": "cargar", "peso": 45 }
+    ],
+    "cargado": { "poder": 3, "aviso": "toma aire... ¡aliento de fuego!" },
+    "fases": [
+      {
+        "pvMenorQue": 0.4,
+        "aviso": "¡El dragón negro ruge, envuelto en llamas!",
+        "acciones": [
+          { "accion": "atacar", "peso": 40 },
+          { "accion": "cargar", "peso": 60 }
+        ]
+      }
+    ],
+    "jefe": true,
+    "oculto": true,
+    "experiencia": 60,
+    "caja": { "ancho": 36, "alto": 16 },
+    "color": "#2a2a3a"
+  },
+  "dragon_negro_ruinas": {
+    "nombre": "Dragón negro",
+    "sprite": "monstruos/dragon_negro",
+    "estadisticas": { "pv": 150, "pm": 0, "ataque": 17, "magia": 0, "defensa": 16, "velocidad": 6 },
+    "acciones": [
+      { "accion": "atacar", "peso": 55 },
+      { "accion": "cargar", "peso": 45 }
+    ],
+    "cargado": { "poder": 3.5, "aviso": "toma aire... ¡aliento de fuego!" },
+    "fases": [
+      {
+        "pvMenorQue": 0.4,
+        "aviso": "¡El dragón negro ruge, envuelto en llamas!",
+        "acciones": [
+          { "accion": "atacar", "peso": 40 },
+          { "accion": "cargar", "peso": 60 }
+        ]
+      }
+    ],
+    "jefe": true,
+    "oculto": true,
+    "experiencia": 150,
+    "caja": { "ancho": 36, "alto": 16 },
+    "color": "#2a2a3a"
+  },
+  "dragon_negro_cripta": {
+    "nombre": "Dragón negro",
+    "sprite": "monstruos/dragon_negro",
+    "estadisticas": { "pv": 180, "pm": 0, "ataque": 20, "magia": 0, "defensa": 14, "velocidad": 10 },
+    "acciones": [
+      { "accion": "atacar", "peso": 55 },
+      { "accion": "cargar", "peso": 45 }
+    ],
+    "cargado": { "poder": 4, "aviso": "toma aire... ¡aliento de fuego!" },
+    "fases": [
+      {
+        "pvMenorQue": 0.4,
+        "aviso": "¡El dragón negro ruge, envuelto en llamas!",
+        "acciones": [
+          { "accion": "atacar", "peso": 40 },
+          { "accion": "cargar", "peso": 60 }
+        ]
+      }
+    ],
+    "jefe": true,
+    "oculto": true,
+    "experiencia": 250,
+    "caja": { "ancho": 36, "alto": 16 },
+    "color": "#2a2a3a"
+  },
+  "cofre_trampa_bosque": {
+    "nombre": "Cofre trampa",
+    "sprite": "monstruos/cofre_trampa",
+    "estadisticas": { "pv": 40, "pm": 0, "ataque": 9, "magia": 0, "defensa": 6, "velocidad": 3 },
+    "acciones": [
+      { "accion": "atacar", "peso": 70 },
+      { "accion": "cargar", "peso": 30 }
+    ],
+    "cargado": { "poder": 2.5, "aviso": "abre las fauces..." },
+    "jefe": false,
+    "oculto": true,
+    "experiencia": 20,
+    "caja": { "ancho": 20, "alto": 12 },
+    "color": "#a0703a"
+  },
+  "cofre_trampa_ruinas": {
+    "nombre": "Cofre trampa",
+    "sprite": "monstruos/cofre_trampa",
+    "estadisticas": { "pv": 85, "pm": 0, "ataque": 16, "magia": 0, "defensa": 14, "velocidad": 4 },
+    "acciones": [
+      { "accion": "atacar", "peso": 70 },
+      { "accion": "cargar", "peso": 30 }
+    ],
+    "cargado": { "poder": 2.5, "aviso": "abre las fauces..." },
+    "jefe": false,
+    "oculto": true,
+    "experiencia": 50,
+    "caja": { "ancho": 20, "alto": 12 },
+    "color": "#a0703a"
+  },
+  "cofre_trampa_cripta": {
+    "nombre": "Cofre trampa",
+    "sprite": "monstruos/cofre_trampa",
+    "estadisticas": { "pv": 110, "pm": 0, "ataque": 20, "magia": 0, "defensa": 16, "velocidad": 6 },
+    "acciones": [
+      { "accion": "atacar", "peso": 70 },
+      { "accion": "cargar", "peso": 30 }
+    ],
+    "cargado": { "poder": 2.5, "aviso": "abre las fauces..." },
+    "jefe": false,
+    "oculto": true,
+    "experiencia": 70,
+    "caja": { "ancho": 20, "alto": 12 },
+    "color": "#a0703a"
   }
 }

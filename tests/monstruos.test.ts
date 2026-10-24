@@ -2,6 +2,9 @@ import { describe, expect, test } from 'vitest';
 import { crearAzar } from '../src/core/azar';
 import { colocarMonstruos, seTocan } from '../src/core/monstruos';
 import { salidas, type Sala, type Tile } from '../src/core/sala';
+import { MONSTRUOS } from '../src/data/datos';
+import historia from '../src/data/historia.json';
+import zonas from '../src/data/zonas.json';
 
 describe('seTocan', () => {
   const a = { x: 100, y: 100, ancho: 14, alto: 8 };
@@ -46,5 +49,43 @@ describe('colocarMonstruos', () => {
     const elegidas = colocarMonstruos(sala, lista, 3, 3, crearAzar(7));
     expect(new Set(elegidas.map(String)).size).toBe(3);
     expect(colocarMonstruos(sala, lista, 3, 3, crearAzar(7))).toEqual(elegidas);
+  });
+});
+
+describe('jefes violetas y cofres trampa', () => {
+  const nombre = (sprite: string) => sprite.split('/').pop()!;
+  const jefesVioletas = [
+    ...Object.values(zonas.zonas).map((z) => z.jefeVioleta),
+    ...Object.values(zonas.violetas.dragon),
+  ];
+  const cofres = Object.values(zonas.zonas).map((z) => z.cofreTrampa);
+
+  test('cada jefe violeta existe, es jefe y está oculto', () => {
+    for (const clave of jefesVioletas) {
+      expect(MONSTRUOS[clave], clave).toBeDefined();
+      expect([MONSTRUOS[clave]!.jefe, MONSTRUOS[clave]!.oculto], clave).toEqual([true, true]);
+    }
+  });
+
+  test('cada cofre trampa existe, no es jefe, está oculto y no se mueve', () => {
+    for (const clave of cofres) {
+      const m = MONSTRUOS[clave]!;
+      expect([m.jefe, m.oculto, m.mapa], clave).toEqual([false, true, undefined]);
+    }
+  });
+
+  test('los dragones comparten nombre y sprite', () => {
+    const dragones = Object.values(zonas.violetas.dragon).map((k) => MONSTRUOS[k]!);
+    expect(new Set(dragones.map((d) => `${d.nombre}|${d.sprite}`)).size).toBe(1);
+  });
+
+  test('cada jefe violeta tiene su frase al aparecer y al caer (los dragones, la misma)', () => {
+    for (const clave of jefesVioletas) {
+      const frases = (historia.violetas as Record<string, { inicio: string; caida: string }>)[
+        nombre(MONSTRUOS[clave]!.sprite)
+      ];
+      expect(frases?.inicio, clave).toBeTruthy();
+      expect(frases?.caida, clave).toBeTruthy();
+    }
   });
 });

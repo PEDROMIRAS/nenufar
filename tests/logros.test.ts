@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
-import { CONDICIONES, logrosNuevos } from '../src/core/logros';
+import { CONDICIONES, logrosNuevos, monstruosDelMundo } from '../src/core/logros';
+import { MONSTRUOS } from '../src/data/datos';
 import {
   actualizarRecords,
   anotarLogros,
@@ -53,4 +54,16 @@ test('el bestiario completo cuenta aunque se pierda, y un logro no se repite', (
   expect(visto.bestiario).toEqual(['limo', 'golem']);
   expect(jugar(visto, partida({ victoria: false }))).toEqual(['bestiario']);
   expect(jugar(anotarLogros(visto, ['bestiario', 'primera']))).toEqual([]);
+});
+
+test('el bestiario del logro no cuenta los monstruos ocultos (jefes violetas y cofres trampa)', () => {
+  const claves = monstruosDelMundo(MONSTRUOS);
+  expect(claves.length).toBeGreaterThan(0);
+  for (const k of claves) expect(MONSTRUOS[k]!.oculto, k).toBeUndefined();
+  expect(claves).not.toContain('arbol_maldito');
+  // Con todos los que no están ocultos vencidos, el logro sale sin haber vencido a ningún oculto.
+  const visto = { ...RECORDS_VACIOS, bestiario: claves };
+  expect(
+    logrosNuevos(visto, partida(), { heroes: [], monstruos: claves }, logros.logros),
+  ).toContain('bestiario');
 });

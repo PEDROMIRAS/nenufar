@@ -1,4 +1,5 @@
 import type { Records, Resumen } from './records';
+import type { MonstruoJson } from './types';
 
 /** Un logro de logros.json: su clave elige la condición de CONDICIONES. */
 export interface Logro {
@@ -12,6 +13,10 @@ export interface Mundo {
   heroes: readonly string[];
   monstruos: readonly string[];
 }
+
+/** Monstruos que cuentan para el bestiario completo: los ocultos no, para que no se delaten. */
+export const monstruosDelMundo = (monstruos: Readonly<Record<string, MonstruoJson>>): string[] =>
+  Object.keys(monstruos).filter((k) => !monstruos[k]!.oculto);
 
 /** Condición de cada logro, con los récords ya actualizados con la partida. */
 export const CONDICIONES: Record<string, (r: Records, s: Resumen, m: Mundo) => boolean> = {

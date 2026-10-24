@@ -39,6 +39,11 @@
       "turnos": 1,
       "pierdeTurno": true
     },
+    "atrapado": {
+      "nombre": "Atrapado",
+      "turnos": 1,
+      "pierdeTurno": true
+    },
     "furia": {
       "nombre": "Furia",
       "turnos": 3,

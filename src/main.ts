@@ -20,7 +20,7 @@ import {
   formatearTiempo,
   type Resumen,
 } from './core/records';
-import { logrosNuevos, type Logro } from './core/logros';
+import { logrosNuevos, monstruosDelMundo, type Logro } from './core/logros';
 import logrosJson from './data/logros.json';
 import { crearCatalogo } from './core/sala';
 import { bestiarioCon, monstruoCon, reglasCon } from './core/dificultad';
@@ -77,7 +77,7 @@ import {
 
 const LOGROS: readonly Logro[] = logrosJson.logros;
 /** Lo que miran los logros que no está en la partida: qué ranas y qué monstruos existen. */
-const MUNDO = { heroes: Object.keys(HEROES), monstruos: Object.keys(MONSTRUOS) };
+const MUNDO = { heroes: Object.keys(HEROES), monstruos: monstruosDelMundo(MONSTRUOS) };
 
 type NombreZona = keyof typeof zonas.zonas;
 /** Orden de las zonas: el de zonas.json. */

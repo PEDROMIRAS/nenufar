@@ -28,6 +28,7 @@
       "salas": 8,
       "jefe": "rey_limo",
       "jefeVioleta": "arbol_maldito",
+      "cofreTrampa": "cofre_trampa_bosque",
       "cofre": [
         {
           "objeto": "arma",
@@ -78,6 +79,7 @@
       "salas": 11,
       "jefe": "golem",
       "jefeVioleta": "caballero_maldito",
+      "cofreTrampa": "cofre_trampa_ruinas",
       "cofre": [
         {
           "objeto": "arma",
@@ -135,6 +137,7 @@
       "salas": 14,
       "jefe": "reina_arana",
       "jefeVioleta": "ojo_flotante",
+      "cofreTrampa": "cofre_trampa_cripta",
       "cofre": [
         {
           "objeto": "arma",

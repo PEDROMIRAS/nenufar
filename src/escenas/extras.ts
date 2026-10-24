@@ -61,6 +61,8 @@ export class EscenaExtras implements Escena {
       const sprite = hojas.get(m.sprite);
       if (!sprite) return [];
       const visto = records.bestiario.includes(clave);
+      // Los ocultos no salen ni como «???» hasta vencerlos: el bestiario no los delata.
+      if (m.oculto && !visto) return [];
       const e = m.estadisticas;
       const habilidades = m.habilidades?.map((h) => h.nombre).join(', ') || 'ninguna';
       return [

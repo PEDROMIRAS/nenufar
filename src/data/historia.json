@@ -33,6 +33,24 @@
       }
     }
   },
+  "violetas": {
+    "arbol_maldito": {
+      "inicio": "«Mis raíces bebieron la última lluvia. Ahora beberán de ti.»",
+      "caida": "«Por fin... vuelvo a ser... madera.»"
+    },
+    "caballero_maldito": {
+      "inicio": "«Juré guardar la Orden. Nadie me dijo que la Orden caería.»",
+      "caida": "«Dile al sello... que lo intenté.»"
+    },
+    "ojo_flotante": {
+      "inicio": "«Te he visto llegar desde la primera sala. Te he visto caer mil veces.»",
+      "caida": "«Esto... no lo vi... venir.»"
+    },
+    "dragon_negro": {
+      "inicio": "«Dormía bajo la luna. Sin luna, despierto con hambre.»",
+      "caida": "«Toma mi corazón... aún late. Que lata por ti.»"
+    }
+  },
   "jefeFinal": {
     "heredado": "{nombre}, Señora de la Cripta",
     "inicio": "«Yo también llegué hasta aquí, hace mil años. Yo también lo vencí. Bebe, y no morirás nunca.»",

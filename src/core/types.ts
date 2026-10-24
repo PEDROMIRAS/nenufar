@@ -216,6 +216,8 @@ export interface MonstruoJson {
   /** Fases de jefe, de mayor a menor umbral: al bajar de cada una cambia de acciones o se transforma. */
   fases?: FaseJson[];
   jefe: boolean;
+  /** Jefes violetas y cofres trampa: no cuentan en el bestiario ni salen en él hasta vencerlos. */
+  oculto?: true;
   /** Experiencia que da al vencerlo. */
   experiencia: number;
   /** Lo que puede soltar al vencerlo, una tirada por monstruo. */
