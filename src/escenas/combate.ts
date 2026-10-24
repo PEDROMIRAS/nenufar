@@ -309,6 +309,10 @@ export class EscenaCombate implements Escena {
         v.cargando.add(e.actor);
         this.registrar(`${e.actor.nombre} ${e.aviso}`);
         break;
+      case 'cargaRota':
+        v.cargando.delete(e.objetivo);
+        this.registrar(`¡Carga rota! ${e.objetivo.nombre} pierde su golpe.`);
+        break;
       case 'huida':
         this.registrar(e.exito ? 'Huyes del combate.' : 'No consigues huir.');
         if (e.exito) sonar('huida');

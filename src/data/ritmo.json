@@ -4,6 +4,7 @@
     "danio": 0.45,
     "defensa": 0.35,
     "carga": 0.6,
+    "cargaRota": 0.6,
     "habilidad": 0.35,
     "cura": 0.45,
     "estado": 0.35,

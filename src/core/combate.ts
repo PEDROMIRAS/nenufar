@@ -75,6 +75,8 @@ export type Evento =
     }
   | { tipo: 'defensa'; actor: Luchador; pm: number }
   | { tipo: 'carga'; actor: Luchador; aviso: string }
+  /** Una habilidad le ha quitado el golpe cargado que preparaba. */
+  | { tipo: 'cargaRota'; objetivo: Luchador }
   /** `pm`: los que le quedan al actor tras pagarla (la vista no puede leerlos del luchador, que ya va por delante). */
   | { tipo: 'habilidad'; actor: Luchador; nombre: string; pm: number }
   | { tipo: 'cura'; objetivo: Luchador; cantidad: number }
@@ -215,10 +217,13 @@ export function puedeHuir(c: Combate): boolean {
   return !c.enemigos.some((e) => e.monstruo?.jefe);
 }
 
-/** Habilidades que la heroína ya ha desbloqueado por nivel. */
+/** Habilidades que la heroína ya ha desbloqueado: por nivel, o ganadas como recompensa. */
 export function habilidadesDisponibles(h: Luchador): HabilidadJson[] {
-  return (h.heroe?.habilidades ?? []).filter((hab) => hab.nivel <= h.nivel);
+  return (h.heroe?.habilidades ?? []).filter((hab) => disponible(h, hab));
 }
+
+const disponible = (h: Luchador, hab: HabilidadJson): boolean =>
+  hab.recompensa ? h.habilidadesGanadas.includes(hab.nombre) : hab.nivel <= h.nivel;
 
 /** Estadística con los multiplicadores de los estados activos (Furia, Postura de hierro…). */
 export function efectiva(l: Luchador, clave: 'ataque' | 'magia' | 'defensa'): number {
@@ -298,7 +303,7 @@ export function actuar(c: Combate, accion: AccionHeroina): Evento[] {
   const h = c.heroina;
   if (accion.tipo === 'habilidad') {
     const { habilidad } = accion;
-    if (habilidad.nivel > h.nivel) throw new Error(`${habilidad.nombre} aún no está disponible`);
+    if (!disponible(h, habilidad)) throw new Error(`${habilidad.nombre} aún no está disponible`);
     if (habilidad.pm > h.pm) throw new Error(`No hay PM para ${habilidad.nombre}`);
   }
   if (accion.tipo === 'huir' && !puedeHuir(c)) throw new Error('No se puede huir de este combate');
@@ -528,6 +533,10 @@ function usarHabilidad(
       eventos.push({ tipo: 'cura', objetivo: o, cantidad });
     }
     if (hab.estado && o.pv > 0) aplicarEstado(c, o, hab.estado, o === actor, eventos);
+    if (hab.rompeCarga && o.cargando) {
+      o.cargando = false;
+      if (o.pv > 0) eventos.push({ tipo: 'cargaRota', objetivo: o });
+    }
   }
 }
 

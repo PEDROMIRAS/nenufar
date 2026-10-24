@@ -109,6 +109,10 @@ export interface HabilidadJson {
   efecto?: string;
   /** Sonido de sonido.json al usarla, en lugar del de su ataque normal. */
   sonido?: string;
+  /** No se desbloquea por nivel sino como recompensa de un jefe violeta (su `nivel` no se alcanza). */
+  recompensa?: true;
+  /** Quita el golpe cargado que estén preparando los objetivos que sobreviven. */
+  rompeCarga?: true;
 }
 
 /** Un estado alterado de combate.json: dura unos turnos del afectado y cambia sus estadísticas o su turno. */

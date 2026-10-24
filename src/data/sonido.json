@@ -393,6 +393,48 @@
         "retardo": 0.25
       }
     ],
+    "llama_morada": [
+      {
+        "onda": "ruido",
+        "duracion": 0.25,
+        "volumen": 0.45
+      },
+      {
+        "onda": "sawtooth",
+        "desde": 1400,
+        "hasta": 300,
+        "duracion": 0.2,
+        "volumen": 0.3
+      },
+      {
+        "onda": "ruido",
+        "duracion": 0.5,
+        "volumen": 0.35,
+        "retardo": 0.15
+      }
+    ],
+    "cometa": [
+      {
+        "onda": "sine",
+        "desde": 1600,
+        "hasta": 200,
+        "duracion": 0.6,
+        "volumen": 0.35
+      },
+      {
+        "onda": "ruido",
+        "duracion": 0.6,
+        "volumen": 0.55,
+        "retardo": 0.5
+      },
+      {
+        "onda": "square",
+        "desde": 90,
+        "hasta": 30,
+        "duracion": 0.5,
+        "retardo": 0.5
+      }
+    ],
     "aparicion": [
       {
         "onda": "ruido",

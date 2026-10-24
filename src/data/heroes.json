@@ -112,6 +112,19 @@
         },
         "efecto": "iaido",
         "sonido": "iaido"
+      },
+      {
+        "nombre": "Tajo de llama morada",
+        "nivel": 99,
+        "recompensa": true,
+        "pm": 12,
+        "objetivo": "todos",
+        "danio": {
+          "tipo": "fisico",
+          "poder": 1.8
+        },
+        "efecto": "llamarada_grande",
+        "sonido": "llama_morada"
       }
     ]
   },
@@ -228,6 +241,20 @@
         },
         "efecto": "lluvia_fuego",
         "sonido": "tormenta"
+      },
+      {
+        "nombre": "Cometa arcano",
+        "nivel": 99,
+        "recompensa": true,
+        "pm": 22,
+        "objetivo": "todos",
+        "danio": {
+          "tipo": "magico",
+          "poder": 2
+        },
+        "rompeCarga": true,
+        "efecto": "lluvia_fuego",
+        "sonido": "cometa"
       }
     ]
   }

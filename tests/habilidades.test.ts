@@ -183,3 +183,63 @@ describe('estados', () => {
     expect(otro.heroina.estados).toEqual([]);
   });
 });
+
+describe('quinta habilidad (recompensa de los jefes violetas)', () => {
+  test.each(Object.keys(heroes) as (keyof typeof heroes)[])(
+    '%s: no está disponible sin ganarla, ni a nivel 10; sí tras ganarla',
+    (clave) => {
+      const heroe = heroes[clave];
+      const quinta = heroe.especiales.habilidad;
+      expect(habilidad(heroe, quinta)?.recompensa).toBe(true);
+      const h = luchadorDeHeroe(heroe);
+      h.nivel = REGLAS.experiencia.nivelMaximo;
+      expect(habilidadesDisponibles(h).map((x) => x.nombre)).not.toContain(quinta);
+      h.habilidadesGanadas.push(quinta);
+      expect(habilidadesDisponibles(h).map((x) => x.nombre)).toContain(quinta);
+    },
+  );
+
+  test('sin ganarla no se puede usar aunque haya PM', () => {
+    const c = combate(heroes.maga, 10);
+    c.heroina.pm = 999;
+    expect(() => usar(c, 'Cometa arcano', heroes.maga)).toThrow('no está disponible');
+  });
+
+  test('cuesta más PM de los que hay a nivel 1 y 2', () => {
+    for (const heroe of Object.values(heroes)) {
+      const pm2 = heroe.estadisticas.pm + heroe.porNivel.pm;
+      expect(habilidad(heroe, heroe.especiales.habilidad).pm).toBeGreaterThan(pm2);
+    }
+  });
+});
+
+describe('Cometa arcano rompe el golpe cargado', () => {
+  function cometa(pvEnemigos: number): { c: Combate; eventos: Evento[] } {
+    const c = combate(heroes.maga, 10, 2);
+    c.heroina.habilidadesGanadas.push('Cometa arcano');
+    c.heroina.pm = 999;
+    for (const e of c.enemigos) {
+      e.pv = pvEnemigos;
+      e.cargando = true;
+    }
+    const eventos = usar(c, 'Cometa arcano', heroes.maga);
+    return { c, eventos };
+  }
+
+  test('a los que siguen vivos les quita la carga y lo anuncia', () => {
+    const { c, eventos } = cometa(100);
+    for (const e of c.enemigos) {
+      expect(e.pv).toBeGreaterThan(0);
+      expect(eventos).toContainEqual({ tipo: 'cargaRota', objetivo: e });
+    }
+    // La carga se rompió antes de su turno: nadie descarga el golpe cargado.
+    expect(eventos.some((e) => e.tipo === 'danio' && e.cargado)).toBe(false);
+  });
+
+  test('a uno que muere del golpe estando cargando no le anuncia nada ni le deja la carga', () => {
+    const { c, eventos } = cometa(1);
+    expect(c.resultado).toBe('victoria');
+    expect(eventos.some((e) => e.tipo === 'cargaRota')).toBe(false);
+    for (const e of c.enemigos) expect(e.cargando).toBe(false);
+  });
+});
