@@ -29,8 +29,10 @@ const AJUSTES = {
   /** Grados que mira hacia abajo la cámara, y su campo de visión vertical. */
   inclinacion: 52,
   fov: 28,
-  /** Alto de los muros, en casillas. */
-  altoMuro: 1,
+  /** Alto de los troncos del borde del bosque, en casillas. */
+  altoTronco: 0.6,
+  /** Copas del borde del bosque: bolas por casilla, radio mínimo y máximo, cuánto se separan del centro, a qué altura sobre el tronco y cuánto se aplastan. */
+  copas: { porCasilla: 3, radioMin: 0.42, radioMax: 0.6, desvio: 0.5, alto: 0.1, aplastar: 0.8 },
   /** Fracción de la inclinación de la cámara que se echan atrás los sprites (1 = de cara; menos, para no meterse en los muros). */
   inclinacionSprites: 0.5,
   /** La fuente es un modelo 3D en vez de sprites; `centroZ` la baja dentro de su casilla central. */
@@ -123,35 +125,55 @@ async function iniciar(): Promise<void> {
   suelo.receiveShadow = true;
   escena.add(suelo);
 
-  // Muros: cajas con la copa de los árboles encima y los troncos (muro_norte) en las caras.
-  const materiales = new Map<string, THREE.MeshLambertMaterial>();
-  const material = (t: Tile): THREE.MeshLambertMaterial => {
-    let m = materiales.get(t.name);
-    if (!m) {
-      m = new THREE.MeshLambertMaterial({
-        map: textura(pintar(1, 1, tam, (ctx) => dibujarTile(ctx, imagenes, t, tam, 0, 0))),
-      });
-      materiales.set(t.name, m);
-    }
-    return m;
-  };
-  const tronco = material(tile(catalogo, 'muro_norte_a'));
-  const copa = material(tile(catalogo, 'muro_a'));
-  const caja = new THREE.BoxGeometry(1, AJUSTES.altoMuro, 1);
-  sala.base.forEach((t, i) => {
-    if (t.layer !== 'muro') return;
-    const arriba = t.name.startsWith('muro_norte') ? copa : material(t);
-    // Orden de caras de BoxGeometry: +x, -x, +y, -y, +z, -z.
-    const muro = new THREE.Mesh(caja, [tronco, tronco, arriba, tronco, tronco, tronco]);
-    muro.position.set(
-      (i % sala.ancho) + 0.5,
-      AJUSTES.altoMuro / 2,
-      Math.floor(i / sala.ancho) + 0.5,
-    );
-    muro.castShadow = true;
-    muro.receiveShadow = true;
-    escena.add(muro);
+  // Muros: troncos bajos (la parte de abajo de muro_norte) y encima copas redondas con la textura de muro_a,
+  // de tamaño y sitio algo al azar para que el borde del bosque no salga recto.
+  const texTronco = textura(tileSuelto(imagenes, tile(catalogo, 'muro_norte_a'), tam));
+  texTronco.repeat.set(1, AJUSTES.altoTronco);
+  const tronco = new THREE.MeshLambertMaterial({ map: texTronco });
+  const copa = new THREE.MeshLambertMaterial({
+    map: textura(tileSuelto(imagenes, tile(catalogo, 'muro_a'), tam)),
+    flatShading: true,
   });
+  const muros = sala.base.flatMap((t, i) =>
+    t.layer === 'muro' ? [[i % sala.ancho, Math.floor(i / sala.ancho)] as const] : [],
+  );
+  const troncos = new THREE.InstancedMesh(
+    new THREE.BoxGeometry(1, AJUSTES.altoTronco, 1),
+    tronco,
+    muros.length,
+  );
+  const c = AJUSTES.copas;
+  const copas = new THREE.InstancedMesh(
+    new THREE.IcosahedronGeometry(1, 1),
+    copa,
+    muros.length * c.porCasilla,
+  );
+  const azarCopas = crearAzar(23);
+  const molde = new THREE.Object3D();
+  muros.forEach(([x, z], i) => {
+    molde.position.set(x + 0.5, AJUSTES.altoTronco / 2, z + 0.5);
+    molde.scale.set(1, 1, 1);
+    molde.updateMatrix();
+    troncos.setMatrixAt(i, molde.matrix);
+    for (let k = 0; k < c.porCasilla; k++) {
+      const r = c.radioMin + azarCopas() * (c.radioMax - c.radioMin);
+      molde.position.set(
+        x + 0.5 + (azarCopas() - 0.5) * c.desvio,
+        AJUSTES.altoTronco + c.alto + azarCopas() * c.desvio,
+        z + 0.5 + (azarCopas() - 0.5) * c.desvio,
+      );
+      // Solo de lado: los troncos que trae la textura se quedan abajo.
+      molde.rotation.set(0, azarCopas() * 6, 0);
+      molde.scale.set(r, r * c.aplastar, r);
+      molde.updateMatrix();
+      copas.setMatrixAt(i * c.porCasilla + k, molde.matrix);
+    }
+  });
+  for (const m of [troncos, copas]) {
+    m.castShadow = true;
+    m.receiveShadow = true;
+    escena.add(m);
+  }
 
   // Objetos y rana: planos de pie que miran a la cámara, para que se vean como el pixel art original.
   // La fuente, dibujada vista desde arriba, no funciona de pie: va como modelo 3D con relieve.
@@ -305,6 +327,15 @@ function tile(catalogo: ReadonlyMap<string, Tile>, nombre: string): Tile {
   const t = catalogo.get(nombre);
   if (!t) throw new Error(`Falta el tile ${nombre}`);
   return t;
+}
+
+/** Lienzo de una casilla con el tile `t`. */
+function tileSuelto(
+  imagenes: readonly HTMLImageElement[],
+  t: Tile,
+  tam: number,
+): HTMLCanvasElement {
+  return pintar(1, 1, tam, (ctx) => dibujarTile(ctx, imagenes, t, tam, 0, 0));
 }
 
 /** Lienzo de `ancho`×`alto` casillas pintado por `pintor`. */
