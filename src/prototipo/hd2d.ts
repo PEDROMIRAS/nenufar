@@ -22,6 +22,7 @@ import { iniciarBucle } from '../render/bucle';
 import { cargarSprite, cargarTilesets } from '../render/recursos';
 import { dibujarTile } from '../render/sala';
 import { crearFuente, ruido } from './fuente';
+import { crearModelo } from './modelos';
 
 // shortcut: números de prueba en el código; si la v2 sigue adelante, pasan a src/data/.
 const AJUSTES = {
@@ -220,6 +221,7 @@ async function iniciar(): Promise<void> {
   const materialDe = (p: Pieza): THREE.MeshLambertMaterial =>
     new THREE.MeshLambertMaterial({ map: p.tex, alphaTest: 0.5, side: THREE.DoubleSide });
   const hoguera = new THREE.Vector3();
+  const azarModelos = crearAzar(31);
   for (const o of sala.objetos) {
     if (o.inf.name.startsWith('fuente_')) {
       if (o.inf.name !== 'fuente_cen_inf') continue;
@@ -235,6 +237,14 @@ async function iniciar(): Promise<void> {
           sala.cajas[fila * sala.ancho + col] = caja;
         }
       }
+      continue;
+    }
+    // Rocas, arbustos, tocones y árboles sueltos: modelos con relieve, plantados en el centro de su caja de choque.
+    const modelo = crearModelo(o.inf, imagenes, tam, { copa, tronco }, azarModelos);
+    if (modelo) {
+      const [x0, y0, x1, y1] = o.inf.caja ?? [0, 0, tam, tam];
+      modelo.position.set(o.x + (x0 + x1) / 2 / tam, 0, o.y + (y0 + y1) / 2 / tam);
+      escena.add(modelo);
       continue;
     }
     const dePie = [o.sup, o.inf].filter((t): t is Tile => t !== null);
