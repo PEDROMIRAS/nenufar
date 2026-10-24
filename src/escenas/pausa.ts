@@ -310,6 +310,10 @@ export class EscenaPausa implements Escena {
         'Equipo:',
         ...pieza('Arma', piezas[0]),
         ...pieza('Armadura', piezas[1]),
+        // El hueco del Corazón no existe hasta vencer al dragón negro; gastado, sigue como recuerdo.
+        ...(inv.corazon === 'no'
+          ? []
+          : [`Corazón: ${inv.corazon === 'lleno' ? 'Corazón del dragón negro' : 'Vacío'}`]),
         ...(inv.mochila.length > 0 ? [`En la mochila: ${inv.mochila.length}`] : []),
       ],
       objetos: Object.entries(objetos.consumibles).map(([clave, o]) => ({

@@ -38,6 +38,8 @@ import type { Escena } from './escena';
 const DURACION: Record<Evento['tipo'], number> = ritmo.eventos;
 /** Efecto que deja el golpe de un monstruo sobre la heroína. */
 const EFECTO_MONSTRUO = 'impacto';
+/** Efecto sobre la heroína cuando el Corazón del dragón negro la levanta. */
+const EFECTO_CORAZON = 'chispas_verdes';
 /** Segundos que parpadea quien recibe un golpe y flota su número. */
 const DURACION_GOLPE = ritmo.golpe;
 const TITULO: Record<Resultado, string> = {
@@ -323,6 +325,17 @@ export class EscenaCombate implements Escena {
         this.estadosVistos.delete(e.objetivo);
         this.registrar(`${e.objetivo.nombre} cae.`);
         sonar('muerte');
+        break;
+      case 'corazon':
+        // Se levanta: destello sobre ella, la vida sube y se le van los estados.
+        this.cambiarVida(e.objetivo, e.pv - (v.pv.get(e.objetivo) ?? 0), `+${e.pv}`);
+        v.estados.delete(e.objetivo);
+        this.estadosVistos.delete(e.objetivo);
+        v.efecto = EFECTO_CORAZON;
+        v.efectoEn = e.objetivo;
+        v.tiempoEfecto = 0;
+        this.registrar('¡El Corazón del dragón late! Te levantas.');
+        sonar('corazon');
         break;
       case 'objeto':
         this.registrar(`${e.actor.nombre} usa ${e.nombre}`);

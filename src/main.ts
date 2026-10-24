@@ -31,6 +31,7 @@ import type {
   PlantillasJson,
   ReglasCombate,
 } from './core/types';
+import { aplicarRecompensa, elegirRecompensa } from './core/recompensas';
 import { jefeVioleta, modoVioleta } from './core/violetas';
 import { generarZona } from './core/zona';
 import controles from './data/controles.json';
@@ -403,10 +404,13 @@ async function crearZona(
         ? controles.pistas[esTactil() ? 'tactil' : 'teclado']
         : [],
     segundosPista: controles.pistas.segundos,
-    iniciarCombate: (grupo, alTerminar, quien) =>
-      grupo[0]?.jefe
-        ? lucharJefe(partida, grupo[0], historia.zonas[nombre].jefe, escena.fondoSala, alTerminar)
-        : luchar(partida, grupo, escena.fondoSala, alTerminar, quien),
+    iniciarCombate: (grupo, alTerminar, quien) => {
+      const jefe = grupo[0];
+      if (jefe?.jefe && jefe.oculto) lucharVioleta(partida, jefe, escena.fondoSala, alTerminar);
+      else if (jefe?.jefe)
+        lucharJefe(partida, jefe, historia.zonas[nombre].jefe, escena.fondoSala, alTerminar);
+      else luchar(partida, grupo, escena.fondoSala, alTerminar, quien);
+    },
   });
   return escena;
 }
@@ -444,6 +448,58 @@ function lucharJefe(
         }),
       );
     }),
+  );
+}
+
+/** Frases de los jefes violetas, por el nombre de su sprite (los tres dragones comparten la suya). */
+const FRASES_VIOLETAS: Record<string, { inicio: string; caida: string }> = historia.violetas;
+
+/** Combate contra el jefe de una sala violeta: como un jefe de zona y, al vencerlo, su recompensa. */
+function lucharVioleta(
+  partida: Partida,
+  jefe: MonstruoJson,
+  fondo: HTMLCanvasElement,
+  alTerminar: (resultado: Resultado) => void,
+): void {
+  const frases = FRASES_VIOLETAS[jefe.sprite.split('/').pop() ?? ''];
+  if (!frases) throw new Error(`Sin frases en historia.json para ${jefe.sprite}`);
+  lucharJefe(partida, jefe, frases, fondo, (resultado) =>
+    resultado === 'victoria'
+      ? premiar(partida, jefe, () => alTerminar(resultado))
+      : alTerminar(resultado),
+  );
+}
+
+/**
+ * Recompensa de un jefe violeta: una al azar de las que faltan (el arma o la armadura se ofrecen en la
+ * pantalla de equipo). El dragón negro, además, da su Corazón.
+ */
+function premiar(partida: Partida, jefe: MonstruoJson, alFinal: () => void): void {
+  const { luchadora: l, inventario: inv } = partida;
+  const heroe = l.heroe;
+  if (!heroe) return alFinal();
+  const textos: Pagina[] = [];
+  let pieza: string | null = null;
+  const r = elegirRecompensa(inv.recompensas, crearAzar(partida.semilla * 17 + partida.combates));
+  if (r) {
+    const ganado = aplicarRecompensa(l, inv, heroe, r);
+    if (r === 'habilidad') {
+      textos.push({ titulo: 'Nueva habilidad', texto: `Has aprendido ${ganado}.` });
+    } else {
+      pieza = ganado;
+      const nombre = OBJETOS.equipo[ganado]?.nombre ?? ganado;
+      textos.push({ titulo: '¡Recompensa!', texto: `${jefe.nombre} deja ${nombre}.` });
+    }
+  }
+  if (Object.values(zonas.violetas.dragon).includes(jefe.clave ?? '')) {
+    inv.corazon = 'lleno';
+    textos.push({
+      titulo: 'Corazón del dragón negro',
+      texto: 'Late contigo. Si caes en combate, te levantará una vez.',
+    });
+  }
+  contar(partida.pila, textos, () =>
+    pieza ? ofrecerEquipo(partida, [pieza], alFinal) : alFinal(),
   );
 }
 

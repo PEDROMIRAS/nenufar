@@ -413,6 +413,31 @@
         "retardo": 0.15
       }
     ],
+    "corazon": [
+      {
+        "onda": "sine",
+        "desde": 70,
+        "hasta": 40,
+        "duracion": 0.18,
+        "volumen": 0.7
+      },
+      {
+        "onda": "sine",
+        "desde": 70,
+        "hasta": 40,
+        "duracion": 0.18,
+        "volumen": 0.6,
+        "retardo": 0.28
+      },
+      {
+        "onda": "triangle",
+        "desde": 400,
+        "hasta": 1200,
+        "duracion": 0.5,
+        "volumen": 0.25,
+        "retardo": 0.5
+      }
+    ],
     "cometa": [
       {
         "onda": "sine",
