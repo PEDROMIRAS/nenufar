@@ -97,4 +97,19 @@ describe('jefes', () => {
     expect(rey?.pv).toBe(MONSTRUOS.rey_sin_charca!.estadisticas.pv);
     expect(puedeHuir(c)).toBe(false);
   });
+
+  test('un golpe que lo deja a 0 desde arriba no se salta la transformación', () => {
+    const c = contra('senor_cripta');
+    const senor = c.enemigos[0]!;
+    senor.pv = Math.floor(senor.pvMax * 0.66) + 5; // por encima de las dos fases
+    c.heroina.ataque = 999; // un solo golpe lo deja a 0
+    const eventos = atacar(c);
+    // Las fases intermedias se saltan, pero se transforma en vez de morir.
+    expect(eventos.filter((e) => e.tipo === 'aviso')).toHaveLength(1);
+    expect(eventos).not.toContainEqual(
+      expect.objectContaining({ tipo: 'muerte', objetivo: senor }),
+    );
+    expect(c.enemigos.some((e) => e.monstruo === MONSTRUOS.rey_sin_charca)).toBe(true);
+    expect(c.resultado).toBeNull();
+  });
 });

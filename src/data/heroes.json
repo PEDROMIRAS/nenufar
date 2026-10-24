@@ -40,7 +40,7 @@
     },
     "margenEsquina": 8,
     "estadisticas": {
-      "pv": 40,
+      "pv": 41,
       "pm": 8,
       "ataque": 9,
       "magia": 3,
@@ -48,7 +48,7 @@
       "velocidad": 6
     },
     "porNivel": {
-      "pv": 4,
+      "pv": 5,
       "pm": 1,
       "ataque": 1,
       "magia": 0,
@@ -203,7 +203,7 @@
           "tipo": "magico",
           "poder": 0.8
         },
-        "estado": "veneno",
+        "estado": "quemadura",
         "efecto": "fuego_fatuo",
         "sonido": "fatuo"
       },

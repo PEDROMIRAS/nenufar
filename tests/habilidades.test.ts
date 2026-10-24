@@ -132,14 +132,14 @@ describe('estados', () => {
     expect(efectiva(c.heroina, 'defensa')).toBe(6);
   });
 
-  test('Fuego fatuo envenena: el 8 % de PV máximos al final de cada turno suyo, 3 veces', () => {
+  test('Fuego fatuo quema: el 8 % de PV máximos al final de cada turno suyo, 3 veces', () => {
     const c = combate(heroes.maga, 5);
     const eventos = usar(c, 'Fuego fatuo', heroes.maga);
     expect(eventos).toContainEqual({
       tipo: 'danioEstado',
       objetivo: c.enemigos[0],
       cantidad: 8,
-      estado: 'Veneno',
+      estado: 'Quemadura',
     });
     const todos = [...eventos];
     for (let i = 0; i < 3; i++) todos.push(...actuar(c, { tipo: 'defender' }));
@@ -162,9 +162,9 @@ describe('estados', () => {
     expect(efectiva(c.heroina, 'defensa')).toBeCloseTo(4.2);
   });
 
-  test('el veneno puede rematar y dar la victoria', () => {
+  test('la quemadura puede rematar y dar la victoria', () => {
     const c = combate(heroes.maga, 5);
-    c.enemigos[0]!.pv = 9; // Fuego fatuo quita (10 × 0,8 − 0,75) = 7,25 → 7; el veneno, 8.
+    c.enemigos[0]!.pv = 9; // Fuego fatuo quita (10 × 0,8 − 0,75) = 7,25 → 7; la quemadura, 8.
     const eventos = usar(c, 'Fuego fatuo', heroes.maga);
     expect(eventos.slice(-5).map((e) => e.tipo)).toEqual([
       'danioEstado',

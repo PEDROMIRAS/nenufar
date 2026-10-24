@@ -27,8 +27,14 @@ import zonas from '../src/data/zonas.json';
 
 /** Simulador de partidas enteras jugadas con una política razonable (para el equilibrado). */
 
-/** Jugadora razonable: se cura con poca vida, defiende el golpe cargado y usa lo más fuerte que tenga. */
-function decidir(c: Combate): AccionHeroina {
+/**
+ * Probabilidad de que la jugadora se defienda de un golpe cargado anunciado. Los probadores no
+ * siempre lo hacían (el golem los mataba de un golpe en Normal): la simulada tampoco.
+ */
+const DEFIENDE_CARGADO = 0.5;
+
+/** Jugadora razonable: se cura con poca vida, a veces defiende el golpe cargado y usa lo más fuerte que tenga. */
+function decidir(c: Combate, azar: () => number): AccionHeroina {
   const h = c.heroina;
   const vivos = c.enemigos.filter((e) => e.pv > 0).sort((a, b) => a.pv - b.pv);
   const objetivo = vivos[0]!;
@@ -39,7 +45,11 @@ function decidir(c: Combate): AccionHeroina {
     if ((c.inventario?.consumibles.pocion ?? 0) > 0) return { tipo: 'objeto', clave: 'pocion' };
   }
   const golpe = Math.max(h.ataque, h.magia) * 1.2;
-  if (vivos.some((e) => e.cargando) && !(vivos.length === 1 && objetivo.pv <= golpe)) {
+  if (
+    vivos.some((e) => e.cargando) &&
+    !(vivos.length === 1 && objetivo.pv <= golpe) &&
+    azar() < DEFIENDE_CARGADO
+  ) {
     return { tipo: 'defender' };
   }
   const area = habs.find((x) => x.objetivo === 'todos' && x.danio);
@@ -101,7 +111,9 @@ function pelear(
   c.inventario = inv;
   c.objetos = OBJETOS;
   avanzar(c);
-  for (let vueltas = 0; !c.resultado && vueltas < 300; vueltas++) actuar(c, decidir(c));
+  // Las decisiones de la jugadora, con su propio azar: no cambian las tiradas del combate.
+  const jugadora = crearAzar(Math.floor(azar() * 2 ** 31));
+  for (let vueltas = 0; !c.resultado && vueltas < 300; vueltas++) actuar(c, decidir(c, jugadora));
   for (const pieza of c.equipoEncontrado) quizaEquipar(h, inv, pieza);
   gastarPuntos(h);
   return c.resultado === 'victoria';

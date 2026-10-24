@@ -448,9 +448,12 @@ function sumarEnemigo(c: Combate, clave: string, lote: readonly string[], evento
  */
 function comprobarFase(c: Combate, m: Luchador, eventos: Evento[]): boolean {
   const fases = m.monstruo?.fases ?? [];
-  while (m.pv > 0 && m.fase < fases.length && m.pv < m.pvMax * fases[m.fase]!.pvMenorQue) {
+  while (m.fase < fases.length && m.pv < m.pvMax * fases[m.fase]!.pvMenorQue) {
     const fase = fases[m.fase++]!;
     const retira = (fase.transformarEn?.length ?? 0) > 0;
+    // Un golpe que lo deja a 0 se salta las fases que solo cambian de acciones, pero no la
+    // transformación: el Señor de la Cripta siempre acaba siendo el Rey sin Charca.
+    if (m.pv <= 0 && !retira) continue;
     eventos.push({ tipo: 'aviso', actor: m, texto: fase.aviso, retira });
     if (retira) {
       m.pv = 0;
@@ -546,9 +549,13 @@ function golpear(
     criticoSeguro,
     origen.critico,
   );
-  const cantidad = objetivo.defendiendo
-    ? Math.max(1, Math.floor(golpe.cantidad * reglas.defender.factorDanio))
+  // Un golpe cargado da miedo pero no mata de una vez a quien tiene la vida llena.
+  const bruto = cargado
+    ? Math.min(golpe.cantidad, Math.max(1, Math.floor(objetivo.pvMax * reglas.topeGolpeCargado)))
     : golpe.cantidad;
+  const cantidad = objetivo.defendiendo
+    ? Math.max(1, Math.floor(bruto * reglas.defender.factorDanio))
+    : bruto;
   objetivo.pv = Math.max(0, objetivo.pv - cantidad);
   eventos.push({ tipo: 'danio', origen, objetivo, cantidad, critico: golpe.critico, cargado });
   // El arma de la heroína puede tener un efecto al golpear («10 % de envenenar»).

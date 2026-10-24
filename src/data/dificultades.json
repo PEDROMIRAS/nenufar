@@ -11,13 +11,13 @@
     "descripcion": "El reto pensado para una primera partida: hay que usar bien Defender, las habilidades y los objetos.",
     "ataque": 1.08,
     "vida": 0.97,
-    "recuperacion": 0.58
+    "recuperacion": 0.565
   },
   "dificil": {
     "nombre": "Difícil",
     "descripcion": "Para quien ya lo ha terminado: apenas te recuperas entre combates, cada golpe cuenta.",
     "ataque": 1.05,
     "vida": 0.95,
-    "recuperacion": 0.34
+    "recuperacion": 0.33
   }
 }

@@ -242,6 +242,8 @@ export interface ReglasCombate {
   defensaFisica: number;
   defensaMagica: number;
   defender: { factorDanio: number; pm: number };
+  /** Lo más que quita un golpe cargado, en fracción de los PV máximos de quien lo recibe (antes de Defender). */
+  topeGolpeCargado: number;
   huida: { base: number; porIntento: number };
   /** Segundos sin poder empezar otro combate en el mapa tras huir o vencer. */
   invulnerabilidadTrasCombate: number;

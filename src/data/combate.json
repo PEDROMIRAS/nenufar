@@ -13,6 +13,7 @@
     "factorDanio": 0.5,
     "pm": 2
   },
+  "topeGolpeCargado": 0.6,
   "huida": {
     "base": 0.6,
     "porIntento": 0.1
@@ -22,6 +23,11 @@
   "estados": {
     "veneno": {
       "nombre": "Veneno",
+      "turnos": 3,
+      "danioPorTurno": 0.08
+    },
+    "quemadura": {
+      "nombre": "Quemadura",
       "turnos": 3,
       "danioPorTurno": 0.08
     },

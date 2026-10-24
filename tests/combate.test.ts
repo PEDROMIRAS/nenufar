@@ -121,6 +121,18 @@ describe('acciones', () => {
     expect(c.heroina.pv).toBe(PV_RONIN - 15);
   });
 
+  test('el golpe cargado no quita más del tope de la vida máxima, y Defender parte el tope', () => {
+    const tope = Math.floor(PV_RONIN * reglas.topeGolpeCargado);
+    const sinDefender = combate(cola(0.5, 0.5, 0.8), { velocidad: 10, pv: 100, ataque: 60 });
+    avanzar(sinDefender);
+    actuar(sinDefender, { tipo: 'atacar', objetivo: sinDefender.enemigos[0]! });
+    expect(sinDefender.heroina.pv).toBe(PV_RONIN - tope);
+    const defendiendo = combate(cola(0.5, 0.5, 0.8), { velocidad: 10, pv: 100, ataque: 60 });
+    avanzar(defendiendo);
+    actuar(defendiendo, { tipo: 'defender' });
+    expect(defendiendo.heroina.pv).toBe(PV_RONIN - Math.floor(tope * reglas.defender.factorDanio));
+  });
+
   test('Huir falla con 0,65 la primera vez (60 %) y lo logra con 0,65 la segunda (70 %)', () => {
     // Desempate (2 valores), el Limo decide su acción de la ronda (1) y la tirada de huida.
     const c = combate(cola(0.5, 0.5, 0.5, 0.65));
