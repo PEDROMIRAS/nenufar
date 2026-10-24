@@ -21,7 +21,7 @@ import { crearTeclado } from '../input/teclado';
 import { iniciarBucle } from '../render/bucle';
 import { cargarSprite, cargarTilesets } from '../render/recursos';
 import { dibujarTile } from '../render/sala';
-import { crearFuente } from './fuente';
+import { crearFuente, ruido } from './fuente';
 
 // shortcut: números de prueba en el código; si la v2 sigue adelante, pasan a src/data/.
 const AJUSTES = {
@@ -32,7 +32,21 @@ const AJUSTES = {
   /** Alto de los troncos del borde del bosque, en casillas. */
   altoTronco: 0.6,
   /** Copas del borde del bosque: bolas por casilla, radio mínimo y máximo, cuánto se separan del centro, a qué altura sobre el tronco y cuánto se aplastan. */
-  copas: { porCasilla: 3, radioMin: 0.42, radioMax: 0.6, desvio: 0.5, alto: 0.1, aplastar: 0.8 },
+  copas: {
+    porCasilla: 3,
+    radioMin: 0.42,
+    radioMax: 0.6,
+    desvio: 0.5,
+    alto: 0.1,
+    aplastar: 0.8,
+    /** Radio de los troncos, en casillas. */
+    troncoMin: 0.06,
+    troncoMax: 0.1,
+    /** Sombra en el suelo bajo cada copa: radio (por el de la copa) y opacidad en el centro. */
+    sombra: { radio: 1.3, fuerza: 0.7 },
+  },
+  /** Colores de la corteza (clara, media, oscura). */
+  corteza: [0x9a6a42, 0x7a5233, 0x5a3b26],
   /** Fracción de la inclinación de la cámara que se echan atrás los sprites (1 = de cara; menos, para no meterse en los muros). */
   inclinacionSprites: 0.5,
   /** La fuente es un modelo 3D en vez de sprites; `centroZ` la baja dentro de su casilla central. */
@@ -100,23 +114,59 @@ async function iniciar(): Promise<void> {
   );
   camara.lookAt(centro);
 
-  // Suelo: un plano con los tiles de fondo de la sala.
+  // Muros: árboles de verdad. Copas redondas con la textura de muro_a, cada una sobre su tronco,
+  // de tamaño y sitio algo al azar para que el borde del bosque no salga recto.
+  const c = AJUSTES.copas;
+  const azarCopas = crearAzar(23);
+  const arboles = sala.base.flatMap((t, i) => {
+    if (t.layer !== 'muro') return [];
+    const x = i % sala.ancho;
+    const z = Math.floor(i / sala.ancho);
+    return Array.from({ length: c.porCasilla }, () => ({
+      x: x + 0.5 + (azarCopas() - 0.5) * c.desvio,
+      z: z + 0.5 + (azarCopas() - 0.5) * c.desvio,
+      radio: c.radioMin + azarCopas() * (c.radioMax - c.radioMin),
+      alto: AJUSTES.altoTronco + c.alto + azarCopas() * c.desvio,
+      grosor: c.troncoMin + azarCopas() * (c.troncoMax - c.troncoMin),
+      giro: azarCopas() * 6,
+    }));
+  });
+
+  // Suelo: un plano con los tiles de fondo de la sala. Bajo el bosque, hierba con una sombra
+  // redonda por árbol, para que el borde sea irregular y no un rectángulo oscuro.
+  const hierba = [...catalogo.values()].find((t) => t.layer === 'suelo' && t.weight);
   const suelo = new THREE.Mesh(
     new THREE.PlaneGeometry(sala.ancho, sala.alto),
     new THREE.MeshLambertMaterial({
       map: textura(
-        pintar(sala.ancho, sala.alto, tam, (ctx) =>
-          sala.base.forEach((t, i) =>
+        pintar(sala.ancho, sala.alto, tam, (ctx) => {
+          sala.base.forEach((t, i) => {
+            const fondo = t.layer === 'muro' ? (hierba ?? t) : t;
             dibujarTile(
               ctx,
               imagenes,
-              t,
+              fondo,
               tam,
               (i % sala.ancho) * tam,
               Math.floor(i / sala.ancho) * tam,
-            ),
-          ),
-        ),
+            );
+          });
+          for (const a of arboles) {
+            const r = a.radio * c.sombra.radio * tam;
+            const sombra = ctx.createRadialGradient(
+              a.x * tam,
+              a.z * tam,
+              0,
+              a.x * tam,
+              a.z * tam,
+              r,
+            );
+            sombra.addColorStop(0, `rgba(10, 18, 12, ${c.sombra.fuerza})`);
+            sombra.addColorStop(1, 'rgba(10, 18, 12, 0)');
+            ctx.fillStyle = sombra;
+            ctx.fillRect(a.x * tam - r, a.z * tam - r, r * 2, r * 2);
+          }
+        }),
       ),
     }),
   );
@@ -125,49 +175,30 @@ async function iniciar(): Promise<void> {
   suelo.receiveShadow = true;
   escena.add(suelo);
 
-  // Muros: troncos bajos (la parte de abajo de muro_norte) y encima copas redondas con la textura de muro_a,
-  // de tamaño y sitio algo al azar para que el borde del bosque no salga recto.
-  const texTronco = textura(tileSuelto(imagenes, tile(catalogo, 'muro_norte_a'), tam));
-  texTronco.repeat.set(1, AJUSTES.altoTronco);
-  const tronco = new THREE.MeshLambertMaterial({ map: texTronco });
+  const tronco = new THREE.MeshLambertMaterial({
+    map: ruido(AJUSTES.corteza, [0.45, 0.4, 0.15], crearAzar(5), 1, 2),
+    flatShading: true,
+  });
   const copa = new THREE.MeshLambertMaterial({
     map: textura(tileSuelto(imagenes, tile(catalogo, 'muro_a'), tam)),
     flatShading: true,
   });
-  const muros = sala.base.flatMap((t, i) =>
-    t.layer === 'muro' ? [[i % sala.ancho, Math.floor(i / sala.ancho)] as const] : [],
-  );
-  const troncos = new THREE.InstancedMesh(
-    new THREE.BoxGeometry(1, AJUSTES.altoTronco, 1),
-    tronco,
-    muros.length,
-  );
-  const c = AJUSTES.copas;
-  const copas = new THREE.InstancedMesh(
-    new THREE.IcosahedronGeometry(1, 1),
-    copa,
-    muros.length * c.porCasilla,
-  );
-  const azarCopas = crearAzar(23);
+  // Cilindro de alto 1 con la base en el suelo; cada instancia lo estira hasta su copa.
+  const cilindro = new THREE.CylinderGeometry(0.8, 1, 1, 6);
+  cilindro.translate(0, 0.5, 0);
+  const troncos = new THREE.InstancedMesh(cilindro, tronco, arboles.length);
+  const copas = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), copa, arboles.length);
   const molde = new THREE.Object3D();
-  muros.forEach(([x, z], i) => {
-    molde.position.set(x + 0.5, AJUSTES.altoTronco / 2, z + 0.5);
-    molde.scale.set(1, 1, 1);
+  arboles.forEach((a, i) => {
+    molde.position.set(a.x, a.alto, a.z);
+    molde.rotation.set(0, a.giro, 0);
+    molde.scale.set(a.radio, a.radio * c.aplastar, a.radio);
+    molde.updateMatrix();
+    copas.setMatrixAt(i, molde.matrix);
+    molde.position.set(a.x, 0, a.z);
+    molde.scale.set(a.grosor, a.alto, a.grosor);
     molde.updateMatrix();
     troncos.setMatrixAt(i, molde.matrix);
-    for (let k = 0; k < c.porCasilla; k++) {
-      const r = c.radioMin + azarCopas() * (c.radioMax - c.radioMin);
-      molde.position.set(
-        x + 0.5 + (azarCopas() - 0.5) * c.desvio,
-        AJUSTES.altoTronco + c.alto + azarCopas() * c.desvio,
-        z + 0.5 + (azarCopas() - 0.5) * c.desvio,
-      );
-      // Solo de lado: los troncos que trae la textura se quedan abajo.
-      molde.rotation.set(0, azarCopas() * 6, 0);
-      molde.scale.set(r, r * c.aplastar, r);
-      molde.updateMatrix();
-      copas.setMatrixAt(i * c.porCasilla + k, molde.matrix);
-    }
   });
   for (const m of [troncos, copas]) {
     m.castShadow = true;

@@ -123,7 +123,7 @@ export function crearFuente(
 }
 
 /** Textura pequeña de píxeles de la paleta, al azar con los pesos dados, para dar grano de pixel art. */
-function ruido(
+export function ruido(
   colores: readonly number[],
   pesos: readonly number[],
   azar: () => number,
