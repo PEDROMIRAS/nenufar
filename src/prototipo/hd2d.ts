@@ -22,6 +22,7 @@ import { iniciarBucle } from '../render/bucle';
 import { cargarSprite, cargarTilesets } from '../render/recursos';
 import { dibujarTile } from '../render/sala';
 import { crearFuente, ruido } from './fuente';
+import { crearCharcos } from './charcos';
 import { crearModelo } from './modelos';
 
 // shortcut: números de prueba en el código; si la v2 sigue adelante, pasan a src/data/.
@@ -46,6 +47,8 @@ const AJUSTES = {
     /** Sombra en el suelo bajo cada copa: radio (por el de la copa) y opacidad en el centro. */
     sombra: { radio: 1.3, fuerza: 0.7 },
   },
+  /** Charcos hundidos: alto del agua y del fondo bajo el suelo (casillas), píxeles de orilla, color del fondo y brillo. */
+  charcos: { nivel: 0.05, fondo: 0.12, orilla: 2, colorFondo: '#1d2a22', brillo: 0.6 },
   /** Colores de la corteza (clara, media, oscura). */
   corteza: [0x9a6a42, 0x7a5233, 0x5a3b26],
   /** Fracción de la inclinación de la cámara que se echan atrás los sprites (1 = de cara; menos, para no meterse en los muros). */
@@ -136,40 +139,43 @@ async function iniciar(): Promise<void> {
   // Suelo: un plano con los tiles de fondo de la sala. Bajo el bosque, hierba con una sombra
   // redonda por árbol, para que el borde sea irregular y no un rectángulo oscuro.
   const hierba = [...catalogo.values()].find((t) => t.layer === 'suelo' && t.weight);
+  const lienzoSuelo = pintar(sala.ancho, sala.alto, tam, (ctx) => {
+    sala.base.forEach((t, i) => {
+      const fondo = t.layer === 'muro' ? (hierba ?? t) : t;
+      dibujarTile(
+        ctx,
+        imagenes,
+        fondo,
+        tam,
+        (i % sala.ancho) * tam,
+        Math.floor(i / sala.ancho) * tam,
+      );
+    });
+    for (const a of arboles) {
+      const r = a.radio * c.sombra.radio * tam;
+      const sombra = ctx.createRadialGradient(a.x * tam, a.z * tam, 0, a.x * tam, a.z * tam, r);
+      sombra.addColorStop(0, `rgba(10, 18, 12, ${c.sombra.fuerza})`);
+      sombra.addColorStop(1, 'rgba(10, 18, 12, 0)');
+      ctx.fillStyle = sombra;
+      ctx.fillRect(a.x * tam - r, a.z * tam - r, r * 2, r * 2);
+    }
+  });
+  // Charcos: agujeros en el suelo con el agua hundida debajo.
+  const charcos = crearCharcos(
+    lienzoSuelo,
+    sala.base.map((t) => t.name.startsWith('agua_')),
+    sala.ancho,
+    tam,
+    AJUSTES.charcos,
+    crearAzar(41),
+  );
+  if (charcos) {
+    charcos.grupo.position.set(centro.x, 0, centro.z);
+    escena.add(charcos.grupo);
+  }
   const suelo = new THREE.Mesh(
     new THREE.PlaneGeometry(sala.ancho, sala.alto),
-    new THREE.MeshLambertMaterial({
-      map: textura(
-        pintar(sala.ancho, sala.alto, tam, (ctx) => {
-          sala.base.forEach((t, i) => {
-            const fondo = t.layer === 'muro' ? (hierba ?? t) : t;
-            dibujarTile(
-              ctx,
-              imagenes,
-              fondo,
-              tam,
-              (i % sala.ancho) * tam,
-              Math.floor(i / sala.ancho) * tam,
-            );
-          });
-          for (const a of arboles) {
-            const r = a.radio * c.sombra.radio * tam;
-            const sombra = ctx.createRadialGradient(
-              a.x * tam,
-              a.z * tam,
-              0,
-              a.x * tam,
-              a.z * tam,
-              r,
-            );
-            sombra.addColorStop(0, `rgba(10, 18, 12, ${c.sombra.fuerza})`);
-            sombra.addColorStop(1, 'rgba(10, 18, 12, 0)');
-            ctx.fillStyle = sombra;
-            ctx.fillRect(a.x * tam - r, a.z * tam - r, r * 2, r * 2);
-          }
-        }),
-      ),
-    }),
+    new THREE.MeshLambertMaterial({ map: textura(lienzoSuelo), alphaTest: 0.5 }),
   );
   suelo.rotation.x = -Math.PI / 2;
   suelo.position.set(centro.x, 0, centro.z);
@@ -350,6 +356,7 @@ async function iniciar(): Promise<void> {
       }
       for (const a of animados) pintarPieza(a, imagenes, tam, tiempo);
       fuente?.actualizar(tiempo);
+      charcos?.actualizar(tiempo);
       const p = AJUSTES.hoguera.parpadeo;
       fuego.intensity =
         AJUSTES.hoguera.intensidad *
