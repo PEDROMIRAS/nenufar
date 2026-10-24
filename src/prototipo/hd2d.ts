@@ -21,6 +21,7 @@ import { crearTeclado } from '../input/teclado';
 import { iniciarBucle } from '../render/bucle';
 import { cargarSprite, cargarTilesets } from '../render/recursos';
 import { dibujarTile } from '../render/sala';
+import { crearFuente } from './fuente';
 
 // shortcut: números de prueba en el código; si la v2 sigue adelante, pasan a src/data/.
 const AJUSTES = {
@@ -32,16 +33,19 @@ const AJUSTES = {
   altoMuro: 1,
   /** Fracción de la inclinación de la cámara que se echan atrás los sprites (1 = de cara; menos, para no meterse en los muros). */
   inclinacionSprites: 0.5,
-  /** Tiles dibujados vistos desde arriba, que van tumbados en el suelo en vez de en pie. */
-  enSuelo: [
-    'fuente_izq_sup',
-    'fuente_izq_inf',
-    'fuente_der_sup',
-    'fuente_der_inf',
-    'fuente_cen_inf',
-  ],
-  /** Dónde se planta, dentro de su casilla, lo que sale de un objeto tumbado. */
-  pieSobreSuelo: 0.5,
+  /** La fuente es un modelo 3D en vez de sprites; `centroZ` la baja dentro de su casilla central. */
+  fuente: {
+    centroZ: 0.15,
+    radioX: 1.4,
+    radioZ: 0.8,
+    altoBorde: 0.24,
+    altoAgua: 0.15,
+    altoColumna: 0.62,
+    piedra: [0xdfe1ea, 0xb4b8c6, 0x7a7e92] as [number, number, number],
+    agua: [0x3d7fd6, 0x9fd0f5] as [number, number],
+    gotas: 40,
+    vidaGota: 0.55,
+  },
   luzCielo: 1.6,
   luzLuna: 0.9,
   hoguera: { color: 0xff9a4a, intensidad: 14, alcance: 6, alto: 0.55, parpadeo: 0.18 },
@@ -150,8 +154,9 @@ async function iniciar(): Promise<void> {
   });
 
   // Objetos y rana: planos de pie que miran a la cámara, para que se vean como el pixel art original.
-  // Lo que está dibujado visto desde arriba (el pilón de la fuente) va tumbado en el suelo.
+  // La fuente, dibujada vista desde arriba, no funciona de pie: va como modelo 3D con relieve.
   const animados: Pieza[] = [];
+  let fuente: ReturnType<typeof crearFuente> | null = null;
   const nuevaPieza = (tiles: Tile[]): Pieza => {
     const lienzo = pintar(1, tiles.length, tam, () => {});
     const pieza = { tiles, ctx: lienzo.getContext('2d')!, tex: textura(lienzo), frame: -1 };
@@ -161,28 +166,27 @@ async function iniciar(): Promise<void> {
   };
   const materialDe = (p: Pieza): THREE.MeshLambertMaterial =>
     new THREE.MeshLambertMaterial({ map: p.tex, alphaTest: 0.5, side: THREE.DoubleSide });
-  const enSuelo = (t: Tile | null): t is Tile => t !== null && AJUSTES.enSuelo.includes(t.name);
   const hoguera = new THREE.Vector3();
   for (const o of sala.objetos) {
-    for (const [t, fila] of [
-      [o.inf, o.y],
-      [o.sup, o.y - 1],
-    ] as const) {
-      if (!enSuelo(t)) continue;
-      const calco = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), materialDe(nuevaPieza([t])));
-      calco.rotation.x = -Math.PI / 2;
-      calco.position.set(o.x + 0.5, 0.01, fila + 0.5);
-      calco.receiveShadow = true;
-      escena.add(calco);
-      // shortcut: un objeto tumbado choca con sus casillas enteras (la caja del tileset es para el dibujo en 2D); en la v2, en los datos del tileset.
-      sala.solido[fila * sala.ancho + o.x] = true;
-      sala.cajas[fila * sala.ancho + o.x] = null;
+    if (o.inf.name.startsWith('fuente_')) {
+      if (o.inf.name !== 'fuente_cen_inf') continue;
+      const f = AJUSTES.fuente;
+      fuente = crearFuente(f, crearAzar(11), 2 * renderer.getPixelRatio());
+      fuente.grupo.position.set(o.x + 0.5, 0, o.y + f.centroZ);
+      escena.add(fuente.grupo);
+      // shortcut: la fuente choca con su elipse (la caja del tileset es para el dibujo en 2D); en la v2, en los datos.
+      for (let fila = o.y - 1; fila <= o.y; fila++) {
+        for (let col = o.x - 1; col <= o.x + 1; col++) {
+          const caja = cajaElipse(o.x + 0.5, o.y + f.centroZ, f.radioX, f.radioZ, col, fila, tam);
+          sala.solido[fila * sala.ancho + col] = caja !== null;
+          sala.cajas[fila * sala.ancho + col] = caja;
+        }
+      }
+      continue;
     }
-    const dePie = [o.sup, o.inf].filter((t): t is Tile => t !== null && !enSuelo(t));
-    if (dePie.length === 0) continue;
+    const dePie = [o.sup, o.inf].filter((t): t is Tile => t !== null);
     const plano = carton(materialDe(nuevaPieza(dePie)), dePie.length, 0);
-    // Lo que sale de un objeto tumbado (el surtidor) se planta en medio de él, no en su borde.
-    plano.position.set(o.x + 0.5, 0, o.y + (enSuelo(o.inf) ? AJUSTES.pieSobreSuelo : 0.85));
+    plano.position.set(o.x + 0.5, 0, o.y + 0.85);
     plano.rotation.x = -giro;
     plano.scale.y = estirar;
     escena.add(plano);
@@ -282,6 +286,7 @@ async function iniciar(): Promise<void> {
         );
       }
       for (const a of animados) pintarPieza(a, imagenes, tam, tiempo);
+      fuente?.actualizar(tiempo);
       const p = AJUSTES.hoguera.parpadeo;
       fuego.intensity =
         AJUSTES.hoguera.intensidad *
@@ -338,6 +343,31 @@ function carton(material: THREE.Material, alto: number, pie: number): THREE.Mesh
   const plano = new THREE.Mesh(geometria, material);
   plano.castShadow = true;
   return plano;
+}
+
+/** Rectángulo `[x0, y0, x1, y1)` de la casilla (`col`, `fila`) que cae dentro de la elipse, o null si nada. */
+function cajaElipse(
+  cx: number,
+  cz: number,
+  rx: number,
+  rz: number,
+  col: number,
+  fila: number,
+  tam: number,
+): readonly [number, number, number, number] | null {
+  let [x0, y0, x1, y1] = [tam, tam, 0, 0];
+  for (let y = 0; y < tam; y++) {
+    for (let x = 0; x < tam; x++) {
+      const dx = (col + (x + 0.5) / tam - cx) / rx;
+      const dz = (fila + (y + 0.5) / tam - cz) / rz;
+      if (dx * dx + dz * dz > 1) continue;
+      x0 = Math.min(x0, x);
+      y0 = Math.min(y0, y);
+      x1 = Math.max(x1, x + 1);
+      y1 = Math.max(y1, y + 1);
+    }
+  }
+  return x1 > 0 ? [x0, y0, x1, y1] : null;
 }
 
 /** Tiles de un objeto apilados de arriba abajo en una textura, que se repinta al cambiar de fotograma. */
