@@ -261,6 +261,8 @@ export interface ReglasCombate {
   defender: { factorDanio: number; pm: number };
   /** Lo más que quita un golpe cargado, en fracción de los PV máximos de quien lo recibe (antes de Defender). */
   topeGolpeCargado: number;
+  /** Corazón del dragón negro: fracción de los PV máximos con que se levanta la heroína al caer. */
+  corazon: { levantarse: number };
   huida: { base: number; porIntento: number };
   /** Segundos sin poder empezar otro combate en el mapa tras huir o vencer. */
   invulnerabilidadTrasCombate: number;

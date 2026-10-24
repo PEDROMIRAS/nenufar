@@ -90,6 +90,8 @@ export type Evento =
   | { tipo: 'iniciativa'; quien: 'heroina' | 'monstruos' }
   | { tipo: 'huida'; exito: boolean }
   | { tipo: 'muerte'; objetivo: Luchador }
+  /** La heroína ha caído y el Corazón del dragón negro la levanta con `pv`. */
+  | { tipo: 'corazon'; objetivo: Luchador; pv: number }
   | { tipo: 'objeto'; actor: Luchador; nombre: string }
   | { tipo: 'mana'; objetivo: Luchador; cantidad: number }
   /** Un monstruo suelta un objeto; si ya se llevan los que caben de ese tipo, se pierde. */
@@ -601,10 +603,20 @@ function quitarEstado(l: Luchador, e: EstadoActivo, eventos: Evento[]): void {
   eventos.push({ tipo: 'estado', objetivo: l, estado: e.def.nombre, activo: false });
 }
 
-/** Si el luchador ha caído, lo anuncia y cierra el combate cuando toca. Devuelve si cayó. */
+/**
+ * Si el luchador ha caído, lo anuncia y cierra el combate cuando toca. Devuelve si cayó (también si
+ * el Corazón la ha levantado: lo que quedaba de su turno ya no cuenta).
+ */
 function comprobarMuerte(c: Combate, objetivo: Luchador, eventos: Evento[]): boolean {
   if (objetivo.pv > 0) return false;
   objetivo.estados = [];
+  if (objetivo.esHeroina && c.inventario.corazon === 'lleno') {
+    // El Corazón la levanta una vez: el combate sigue.
+    c.inventario.corazon = 'gastado';
+    objetivo.pv = Math.round(objetivo.pvMax * c.reglas.corazon.levantarse);
+    eventos.push({ tipo: 'corazon', objetivo, pv: objetivo.pv });
+    return true;
+  }
   eventos.push({ tipo: 'muerte', objetivo });
   if (objetivo.esHeroina) terminar(c, 'derrota', eventos);
   else if (c.enemigos.every((e) => e.pv <= 0)) terminar(c, 'victoria', eventos);

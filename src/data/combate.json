@@ -14,6 +14,9 @@
     "pm": 2
   },
   "topeGolpeCargado": 0.6,
+  "corazon": {
+    "levantarse": 0.5
+  },
   "huida": {
     "base": 0.6,
     "porIntento": 0.1

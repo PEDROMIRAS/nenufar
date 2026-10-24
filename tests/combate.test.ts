@@ -257,3 +257,55 @@ test('cada turno lleva el orden de su ronda, que no cambia aunque empiece otra',
   expect(primero.orden).toEqual(orden);
   expect(primero.orden[primero.indice]).toBe(primero.actor);
 });
+
+describe('el Corazón del dragón negro', () => {
+  const MITAD = Math.round(PV_RONIN * reglas.corazon.levantarse);
+
+  test('un golpe mortal no termina el combate: se levanta con media vida, sin estados y lo gasta', () => {
+    const c = combate(cola());
+    c.inventario.corazon = 'lleno';
+    c.heroina.pv = 1;
+    avanzar(c);
+    const eventos = actuar(c, { tipo: 'defender' });
+    expect(c.resultado).toBeNull();
+    expect(eventos).toContainEqual({ tipo: 'corazon', objetivo: c.heroina, pv: MITAD });
+    expect(eventos.some((e) => e.tipo === 'muerte')).toBe(false);
+    expect([c.heroina.pv, c.heroina.estados, c.inventario.corazon]).toEqual([MITAD, [], 'gastado']);
+    expect(c.esperando).toBe(true);
+  });
+
+  test('si el veneno la tumba, también se levanta y el combate sigue', () => {
+    const c = combate(cola(), { ataque: 0 });
+    c.inventario.corazon = 'lleno';
+    avanzar(c);
+    c.heroina.pv = 1;
+    c.heroina.estados.push({ id: 'veneno', def: reglas.estados.veneno!, turnos: 3, nuevo: false });
+    const eventos = actuar(c, { tipo: 'defender' });
+    expect(eventos).toContainEqual({ tipo: 'corazon', objetivo: c.heroina, pv: MITAD });
+    expect(c.resultado).toBeNull();
+    expect(c.heroina.estados).toEqual([]);
+  });
+
+  test('contra un golpe cargado se levanta, y si vuelve a caer es derrota', () => {
+    const c = combate(cola(0.5, 0.5, 0.8), { velocidad: 10, pv: 100, ataque: 60 });
+    c.inventario.corazon = 'lleno';
+    c.heroina.pv = 1;
+    avanzar(c);
+    actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
+    expect([c.resultado, c.heroina.pv, c.inventario.corazon]).toEqual([null, MITAD, 'gastado']);
+    c.heroina.pv = 1;
+    const eventos = actuar(c, { tipo: 'defender' });
+    expect(eventos.slice(-2)).toEqual([
+      { tipo: 'muerte', objetivo: c.heroina },
+      { tipo: 'fin', resultado: 'derrota' },
+    ]);
+  });
+
+  test('sin Corazón, derrota a la primera', () => {
+    const c = combate(cola());
+    c.heroina.pv = 1;
+    avanzar(c);
+    actuar(c, { tipo: 'defender' });
+    expect(c.resultado).toBe('derrota');
+  });
+});

@@ -19,6 +19,7 @@
     "iniciativa": 0.6,
     "huida": 0.45,
     "muerte": 0.35,
+    "corazon": 1.2,
     "recupera": 0.5,
     "experiencia": 0.5,
     "nivel": 0.7,
