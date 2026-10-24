@@ -22,6 +22,11 @@ import humanoides  # noqa: E402
 import espectro  # noqa: E402
 import golem  # noqa: E402
 import rey_sin_charca  # noqa: E402
+import arbol_maldito  # noqa: E402
+import caballero_maldito  # noqa: E402
+import ojo_flotante  # noqa: E402
+import dragon_negro  # noqa: E402
+import cofre_trampa  # noqa: E402
 
 DIRS = ["down", "left", "right", "up"]
 VISTA = {"down": "frente", "left": "lado", "right": "lado", "up": "espalda"}
@@ -73,6 +78,12 @@ PROPIOS = {
     "espectro": (32, 32, espectro),
     "golem": (48, 48, golem),
     "rey_sin_charca": (64, 48, rey_sin_charca),
+    # Jefes violetas y el cofre trampa (que en reposo es el cofre cerrado de comunes)
+    "arbol_maldito": (48, 48, arbol_maldito),
+    "caballero_maldito": (48, 48, caballero_maldito),
+    "ojo_flotante": (48, 48, ojo_flotante),
+    "dragon_negro": (64, 48, dragon_negro),
+    "cofre_trampa": (32, 32, cofre_trampa),
 }
 
 
