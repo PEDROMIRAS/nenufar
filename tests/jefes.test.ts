@@ -82,10 +82,12 @@ describe('jefes', () => {
   test('el Señor de la Cripta pasa por sus fases y al final se transforma en el Rey sin Charca', () => {
     const c = contra('senor_cripta');
     const senor = c.enemigos[0]!;
-    senor.pv = Math.floor(senor.pvMax * 0.66) + 10; // tras el golpe, por debajo del 66 %
+    const [furia, transformacion] = MONSTRUOS.senor_cripta!.fases!;
+    // Un poco por encima de cada umbral: el golpe de la ronin (30 − 8) lo deja por debajo.
+    senor.pv = Math.floor(senor.pvMax * furia!.pvMenorQue) + 10;
     atacar(c);
     expect(senor.fase).toBe(1);
-    senor.pv = Math.floor(senor.pvMax * 0.33) + 10; // tras el golpe, por debajo del 33 %
+    senor.pv = Math.floor(senor.pvMax * transformacion!.pvMenorQue) + 10;
     const eventos = atacar(c);
     expect(senor.fase).toBe(2);
     expect(eventos).toContainEqual(
@@ -101,7 +103,8 @@ describe('jefes', () => {
   test('un golpe que lo deja a 0 desde arriba no se salta la transformación', () => {
     const c = contra('senor_cripta');
     const senor = c.enemigos[0]!;
-    senor.pv = Math.floor(senor.pvMax * 0.66) + 5; // por encima de las dos fases
+    // Por encima de las dos fases.
+    senor.pv = Math.floor(senor.pvMax * MONSTRUOS.senor_cripta!.fases![0]!.pvMenorQue) + 5;
     c.heroina.ataque = 999; // un solo golpe lo deja a 0
     const eventos = atacar(c);
     // Las fases intermedias se saltan, pero se transforma en vez de morir.

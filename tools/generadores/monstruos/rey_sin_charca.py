@@ -1,7 +1,8 @@
 """Rey sin Charca (64x48): la forma en que se transforma el Señor de la Cripta en su última fase,
 tras siglos con el poder que bebió. Cuerpo de obsidiana encorvado, cuernos de hueso, costillar
-abierto con un corazón de fuego de agua muerta, melena de llamas y falda de humo ardiente.
-Su fuego es verde azulado, no morado: el morado es la luz de luna de la maga, lo único que teme.
+abierto con un corazón de fuego, melena de llamas y falda de humo ardiente.
+Morado como el Señor de la Cripta del que sale (antes era verde azulado y no parecía el mismo jefe);
+solo los ojos guardan el verde azulado del agua muerta que se bebió.
 
 Solo sale en combate (de frente, ×2). Como los otros jefes, cabe en 48 de alto con los pies en 46
 y no sube más de ~42 px sobre ellos: por encima van su nombre y la barra de turnos. Se diseña en
@@ -13,11 +14,12 @@ from dibujo import tile, put, line, rect, outline, poly_mask, ell_mask, shade, l
 S = 64
 H = 48
 K = 0.72
-O = [(8, 14, 18), (18, 30, 36), (32, 50, 58), (52, 76, 84), (82, 110, 116)]  # obsidiana fría
-BONE = [(104, 112, 108), (156, 166, 158), (210, 220, 210)]
-FIRE = [(26, 92, 98), (46, 150, 146), (124, 222, 204), (226, 255, 244)]  # agua muerta
-FIRE_DIM = [(18, 58, 64), (30, 96, 96), (70, 150, 140), (150, 200, 190)]
-OUT = (6, 26, 30)
+O = [(14, 8, 20), (30, 18, 40), (50, 32, 64), (76, 52, 92), (110, 82, 128)]  # obsidiana morada
+BONE = [(112, 104, 114), (166, 156, 166), (220, 210, 220)]
+FIRE = [(70, 28, 98), (126, 56, 170), (190, 120, 236), (244, 222, 255)]  # fuego morado
+FIRE_DIM = [(44, 20, 62), (80, 40, 110), (130, 90, 170), (200, 170, 230)]
+EYES = [(46, 150, 146), (124, 222, 204), (226, 255, 244)]  # el agua muerta que se bebió
+OUT = (16, 6, 26)
 
 
 def R(v):
@@ -123,7 +125,7 @@ def draw(anim, f):
     # cara: cuencas que arden y colmillos
     ex0, ey = round(hc[0]), round(hc[1])
     for ex, d in ((ex0 - 3, -1), (ex0 + 3, 1)):
-        put(t, ex, ey, fire[3]); put(t, ex + d, ey, fire[2]); put(t, ex, ey + 1, fire[1])
+        put(t, ex, ey, EYES[2]); put(t, ex + d, ey, EYES[1]); put(t, ex, ey + 1, EYES[0])
     for i, x in enumerate(range(ex0 - 2, ex0 + 3)):
         put(t, x, ey + 4, fire[1] if i % 2 else BONE[2])
     # luz del fuego sobre la cabeza y en los bordes del cuerpo

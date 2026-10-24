@@ -670,7 +670,7 @@
     },
     "fases": [
       {
-        "pvMenorQue": 0.66,
+        "pvMenorQue": 0.8,
         "aviso": "¡Las sombras despiertan a su señor!",
         "acciones": [
           {
@@ -688,7 +688,7 @@
         ]
       },
       {
-        "pvMenorQue": 0.33,
+        "pvMenorQue": 0.6,
         "aviso": "¡Bebe el poder del Rey sin Charca y se transforma!",
         "transformarEn": [
           "rey_sin_charca"
@@ -707,25 +707,25 @@
     "nombre": "Rey sin Charca",
     "sprite": "monstruos/rey_sin_charca",
     "estadisticas": {
-      "pv": 54,
+      "pv": 140,
       "pm": 60,
       "ataque": 19,
-      "magia": 16,
-      "defensa": 16,
+      "magia": 20,
+      "defensa": 4,
       "velocidad": 9
     },
     "acciones": [
       {
         "accion": "atacar",
-        "peso": 40
+        "peso": 30
       },
       {
         "accion": "cargar",
-        "peso": 40
+        "peso": 30
       },
       {
         "accion": "Niebla de agua muerta",
-        "peso": 20
+        "peso": 40
       }
     ],
     "cargado": {
@@ -740,7 +740,7 @@
         "objetivo": "todos",
         "danio": {
           "tipo": "magico",
-          "poder": 0.6
+          "poder": 0.8
         },
         "estado": "veneno"
       }
@@ -751,6 +751,6 @@
       "ancho": 30,
       "alto": 18
     },
-    "color": "#1f4a4a"
+    "color": "#4a2a6a"
   }
 }
