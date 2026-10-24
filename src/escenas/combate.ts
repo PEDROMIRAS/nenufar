@@ -27,6 +27,7 @@ import {
   partirEnLineas,
 } from '../core/descripciones';
 import { anunciar } from '../render/accesibilidad';
+import { cargarAjustes, guardarAjustes } from '../render/almacen';
 import type { Sprite } from '../render/recursos';
 import { ponerMusica, sonar } from '../render/sonido';
 import ritmo from '../data/ritmo.json';
@@ -48,9 +49,6 @@ type Modo = 'principal' | 'habilidades' | 'objetos' | 'objetivo';
 
 /** Segundos que se ven los mensajes del registro si no llega otro. */
 const SEGUNDOS_REGISTRO = 3.5;
-
-/** Modo información de la sesión: si se enciende en un combate, sigue encendido en los siguientes. */
-let infoActiva = false;
 
 /** Líneas que caben en el panel del registro. */
 const LARGO_LINEA = 57; // deja sitio al botón «i»
@@ -129,8 +127,7 @@ export class EscenaCombate implements Escena {
       cargando: new Set(),
       defendiendo: false,
       titulo: '',
-      info: infoActiva,
-      ayudaSiempre: false,
+      info: cargarAjustes().info,
     };
   }
 
@@ -261,9 +258,9 @@ export class EscenaCombate implements Escena {
             ? `${e.estado} en ${e.objetivo.nombre}`
             : `Se acaba ${e.estado} en ${e.objetivo.nombre}`,
         );
-        // La primera vez en el combate, debajo, qué hace (los probadores no lo sabían).
+        // Con el modo información, la primera vez en el combate, debajo, qué hace (los probadores no lo sabían).
         const def = Object.values(this.combate.reglas.estados).find((d) => d.nombre === e.estado);
-        if (e.activo && def && !this.estadosExplicados.has(e.estado)) {
+        if (v.info && e.activo && def && !this.estadosExplicados.has(e.estado)) {
           this.estadosExplicados.add(e.estado);
           const texto = describirEstado(def);
           this.registrar(texto.charAt(0).toUpperCase() + texto.slice(1));
@@ -379,10 +376,10 @@ export class EscenaCombate implements Escena {
     v.flotanteCura = cambio > 0;
   }
 
-  /** Enciende o apaga el modo información; se recuerda para los combates siguientes. */
+  /** Enciende o apaga el modo información; se guarda en los ajustes, también para otras partidas. */
   private alternarInfo(): void {
     this.v.info = !this.v.info;
-    infoActiva = this.v.info;
+    guardarAjustes({ info: this.v.info });
     sonar('cursor');
     anunciar(this.v.info ? 'Información activada' : 'Información desactivada');
   }
@@ -478,7 +475,6 @@ export class EscenaCombate implements Escena {
       };
     }
     this.v.menu = menu;
-    this.v.ayudaSiempre = modo === 'habilidades' || modo === 'objetos';
   }
 
   private manejarMenu(a: Acciones): void {
@@ -491,14 +487,15 @@ export class EscenaCombate implements Escena {
     }
     const menu = this.v.menu!;
     const n = menu.opciones.length;
-    // Tocar una opción la elige y la usa a la vez; en modo información, y siempre dentro de Habilidad
-    // y Objeto, el primer toque solo la elige (y enseña qué hace) y el segundo la usa. «Volver», al
-    // no tener nada que explicar, va a la primera.
+    // Tocar una opción la elige y la usa a la vez. En modo información, dentro de Habilidad y Objeto
+    // el primer toque solo la elige (y enseña qué hace) y el segundo la usa: así no se gastan PM ni
+    // objetos sin saber qué hacen. El menú principal y «Volver» van siempre al primer toque.
     if (a.toqueX >= 0) {
       const i = opcionTocada(a.toqueX, a.toqueY, n);
       if (i < 0) return;
       const soloElegir =
-        (this.v.info || this.v.ayudaSiempre) &&
+        this.v.info &&
+        (this.modo === 'habilidades' || this.modo === 'objetos') &&
         i !== menu.seleccion &&
         menu.opciones[i]?.ayuda !== undefined;
       menu.seleccion = i;
@@ -552,7 +549,7 @@ export class EscenaCombate implements Escena {
         this.abrir('principal'); // «Volver»
       } else if (hab.pm > h.pm) {
         this.registrar(`No quedan PM para ${hab.nombre}`);
-        this.registrar(`Defender recupera ${this.combate.reglas.defender.pm} PM`);
+        if (this.v.info) this.registrar(`Defender recupera ${this.combate.reglas.defender.pm} PM`);
       } else if (hab.objetivo === 'uno') {
         this.apuntar((o) => ({ tipo: 'habilidad', habilidad: hab, objetivo: o }));
       } else {

@@ -31,6 +31,8 @@ export interface Ajustes {
   senora: string;
   /** Ya se enseñaron las pistas de controles de la primera partida. */
   pistasVistas: boolean;
+  /** Modo información del combate (botón «i»): empieza encendido para quien juega por primera vez. */
+  info: boolean;
 }
 
 /** Ajustes guardados; si faltan o están dañados, los de por defecto (nada de lo leído se da por bueno sin comprobarlo). */
@@ -48,6 +50,7 @@ export function cargarAjustes(): Ajustes {
       jugarEnVertical: a?.jugarEnVertical === true,
       senora: typeof a?.senora === 'string' ? a.senora : '',
       pistasVistas: a?.pistasVistas === true,
+      info: a?.info !== false,
     };
   } catch {
     return {
@@ -58,6 +61,7 @@ export function cargarAjustes(): Ajustes {
       jugarEnVertical: false,
       senora: '',
       pistasVistas: false,
+      info: true,
     };
   }
 }

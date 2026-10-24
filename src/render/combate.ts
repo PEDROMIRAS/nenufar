@@ -69,8 +69,6 @@ export interface VistaCombate {
   titulo: string;
   /** Modo información: el panel enseña qué hace la opción elegida en vez del registro. */
   info: boolean;
-  /** Lo mismo sin el modo información: dentro de Habilidad y Objeto se ve siempre qué hace cada una. */
-  ayudaSiempre: boolean;
 }
 
 const COLOR = {
@@ -189,7 +187,7 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   if (!enRejilla) {
     // Registro de las dos últimas acciones; en modo información, la ayuda de la opción elegida ocupa
     // el panel (si cabe en una línea, debajo sigue el registro). Sin nada que leer, no hay panel.
-    const ayuda = v.info || v.ayudaSiempre ? v.menu?.opciones[v.menu.seleccion]?.ayuda : undefined;
+    const ayuda = v.info ? v.menu?.opciones[v.menu.seleccion]?.ayuda : undefined;
     if (ayuda?.[0] || v.registro[0] || v.registro[1]) {
       ctx.fillStyle = COLOR.panel;
       ctx.fillRect(8, 256, ANCHO - 16, 32);
