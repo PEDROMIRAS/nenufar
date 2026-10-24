@@ -1,95 +1,139 @@
-"""Dragón negro (64x48), el jefe violeta más raro: puede salir en cualquier zona. Escamas negras
-con reflejos morados, alas abiertas, cuernos de hueso y los ojos con la luz violeta de la
-maldición. Su golpe cargado es un aliento de fuego (naranja, para no confundirlo con el fuego
-morado de la maga). Al vencerlo da su Corazón.
+"""Dragón negro (64x48), el jefe violeta más raro: puede salir en cualquier zona. Erguido y de perfil,
+mirando a la izquierda (hacia la heroína): escamas negras, vientre de placas color arena, cresta
+de púas, ojos rojos y alas grandes de membrana oscura; la cola se enrosca a su espalda. Su golpe
+cargado es un aliento de fuego. Al vencerlo da su Corazón. (Concepto de Pedro, 2026-10-25.)
 
 Como el Rey sin Charca, mide 64x48 con los pies en 46 y no sube más de ~42 px sobre ellos.
-Hoja del repo: idle (2: respira con las alas), walk (4: no anda), atacar (3: toma aire con el
-pecho encendido, escupe el fuego y vuelve) y golpe (1, destello)."""
-from dibujo import tile, put, line, outline, poly_mask, ell_mask, shade, limb, fire_band, ground_shadow
+Hoja del repo: idle (2: respira), walk (4: no anda), atacar (3: echa la cabeza atrás con la boca
+encendida, escupe el fuego y vuelve) y golpe (1, destello)."""
+import numpy as np
+from dibujo import tile, put, line, outline, poly_mask, ell_mask, shade, limb, ground_shadow, rng, fire_band
 
 W, H = 64, 48
-NEGRO = [(12, 10, 18), (26, 22, 36), (42, 36, 56), (62, 54, 82), (90, 78, 116)]
-MEMBRANA = [(30, 18, 40), (50, 32, 66), (74, 50, 96)]
-HUESO = [(120, 112, 116), (176, 168, 168), (224, 218, 214)]
+NEGRO = [(12, 10, 18), (26, 24, 36), (42, 40, 56), (64, 60, 82), (92, 88, 114)]
+MEMBRANA = [(20, 18, 28), (34, 30, 44), (52, 46, 64)]
+PLACA = [(96, 74, 50), (140, 112, 76), (184, 154, 108), (214, 190, 140)]
+GARRA = [(150, 148, 156), (210, 208, 214)]
+OJO = [(150, 20, 20), (236, 50, 40), (255, 170, 120)]
 FUEGO = [(130, 34, 12), (226, 98, 24), (255, 186, 64), (255, 242, 200)]
-GLOW = [(96, 50, 150), (176, 124, 255), (236, 214, 255)]
-OUT = (8, 4, 12)
+OUT = (6, 4, 10)
 
 
-def ala(t, lado, alza):
-    """Ala abierta: membrana entre los dedos, con los huesos marcados."""
-    def tr(p):
-        return (W - 1 - p[0], p[1]) if lado else p
-    hombro = (25, 24)
-    puntas = [(5, 6 - alza), (3, 15 - alza), (7, 24 - alza // 2), (13, 30), (19, 31)]
-    shade(t, poly_mask(t, [tr(hombro)] + [tr(p) for p in puntas]), MEMBRANA, bias=0.1 if not lado else -0.05)
-    for p in puntas[:4]:
-        line(t, *tr(hombro), *tr(p), NEGRO[3])
-    limb(t, tr(hombro), tr(puntas[0]), 1.8, 0.8, NEGRO, bias=0.1)
+def escamas(t, m):
+    """Textura de escamas: medias lunas oscuras al tresbolillo sobre lo ya sombreado."""
+    ys, xs = m.nonzero()
+    for y, x in zip(ys, xs):
+        if (x + (y // 2) * 2) % 4 == 0 and y % 2 == 0:
+            r, g, b = (int(v) for v in t[y, x, :3])
+            t[y, x] = (max(0, r - 14), max(0, g - 14), max(0, b - 16), 255)
 
 
-def dibujar(respira=0, ojos=1.0, carga=0.0, aliento=False, alza=0, inclina=0):
+def ala(t, alza):
+    """El ala de este lado, grande, detrás del cuerpo: membrana festoneada y huesos marcados."""
+    hombro = (36, 19)
+    codo = (48, 6 - alza)
+    puntas = [(62, 10 - alza), (60, 24), (54, 21), (51, 29), (46, 25), (42, 30)]
+    m = poly_mask(t, [hombro, codo] + puntas + [(38, 26)])
+    shade(t, m, MEMBRANA, bias=0.1)
+    for p in puntas[::2]:
+        line(t, *codo, *p, NEGRO[2])
+    limb(t, hombro, codo, 2.2, 1.6, NEGRO, bias=0.1)
+    limb(t, codo, puntas[0], 1.4, 0.6, NEGRO, bias=0.1)
+
+
+def dibujar(respira=0, ojos=1.0, carga=0.0, aliento=False, alza=0, cabeza=(0, 0)):
     t = tile(H, W)
     b = respira
-    ox = inclina
-    for lado in (0, 1):
-        ala(t, lado, alza)
-    # cola que se enrosca a la derecha
-    p = [(40, 40), (50, 43), (57, 39), (60, 32)]
-    for i in range(3):
-        limb(t, p[i], p[i + 1], 3.2 - i, 2.2 - i * 0.8, NEGRO, bias=0.0)
-    # patas traseras con garras
-    for x in (23, 37):
-        limb(t, (x + ox, 37), (x + ox, 45), 3.2, 2.6, NEGRO, bias=0.05)
-        for dx in (-2, 0, 2):
-            put(t, x + ox + dx, 46, HUESO[1])
-    # cuerpo y vientre de placas
-    shade(t, ell_mask(t, 32 + ox, 33 + b, 11, 9.5), NEGRO, bias=0.05)
-    vientre = ell_mask(t, 32 + ox, 35 + b, 5.5, 6.5)
-    shade(t, vientre, [NEGRO[2], NEGRO[3], NEGRO[4]], bias=0.0, rim=False)
-    # cuello y cabeza
-    hy = 12 + b - (2 if carga > 0 else 0)
-    limb(t, (32 + ox, 28 + b), (32 + ox, hy + 4), 4.6, 3.6, NEGRO, bias=0.1)
-    shade(t, ell_mask(t, 32 + ox, hy, 6, 5), NEGRO, bias=0.15)
-    shade(t, poly_mask(t, [(28 + ox, hy + 2), (36 + ox, hy + 2), (34 + ox, hy + 8), (30 + ox, hy + 8)]), NEGRO, bias=0.0)
-    for lado in (-1, 1):  # cuernos
-        limb(t, (32 + ox + 4 * lado, hy - 3), (32 + ox + 9 * lado, hy - 8), 1.6, 0.4, HUESO, bias=0.1)
+    hx, hy = cabeza
+    # el ala de detrás (la del otro lado), solo asoma por encima del lomo
+    lejos = poly_mask(t, [(30, 18), (24, 6 - alza), (20, 9), (22, 15), (26, 20)])
+    shade(t, lejos, MEMBRANA, bias=-0.2)
+    ala(t, alza)
+    # cola que se enrosca por detrás, a la derecha
+    p = [(40, 40), (51, 44), (59, 41), (62, 34), (60, 29)]
+    for i in range(4):
+        limb(t, p[i], p[i + 1], 3.6 - i * 0.8, 2.8 - i * 0.8, NEGRO, bias=0.0)
+    for x, y in ((50, 41), (56, 39), (60, 34)):  # púas de la cola
+        put(t, x, y - 2, NEGRO[3]); put(t, x, y - 3, NEGRO[2])
+    # patas traseras: muslo grande y pie con garras
+    for cx, w in ((40, 6.5), (27, 5.5)):
+        shade(t, ell_mask(t, cx, 37 + b * 0.5, w, w), NEGRO, bias=0.05)
+        limb(t, (cx, 40), (cx - 1, 45), 2.6, 2.4, NEGRO, bias=0.0)
+        for dx in (-3, -1, 1):
+            put(t, cx - 1 + dx, 46, GARRA[1]); put(t, cx - 1 + dx, 45, GARRA[0])
+    # tronco erguido
+    tronco = poly_mask(t, [(25, 19 + b), (36, 17 + b), (41, 28), (39, 41), (26, 42), (22, 31)])
+    shade(t, tronco, NEGRO, bias=0.1)
+    escamas(t, tronco)
+    # vientre de placas, de frente a la izquierda
+    vientre = poly_mask(t, [(24, 22 + b), (29, 21 + b), (32, 41), (25, 41), (22, 32)])
+    shade(t, vientre, PLACA, bias=0.05)
+    for y in range(23 + b, 41, 3):
+        line(t, 22, y, 32, y, PLACA[0])
+    # cuello que sube y se curva hacia delante
+    cab = (18 + hx, 12 + hy)
+    cuello = [(30, 22 + b), (26, 15 + b // 2 + hy // 2), cab]
+    for i in range(2):
+        limb(t, cuello[i], cuello[i + 1], 4.6 - i * 0.6, 4.0 - i * 0.6, NEGRO, bias=0.15)
+    for i, (x, y) in enumerate(((31, 18), (29, 14), (26, 11), (23, 8))):  # cresta del cuello
+        x, y = x + hx * i // 3, y + hy * i // 3
+        line(t, x, y, x + 2, y - 3, NEGRO[3])
+    # cabeza de perfil: cráneo, hocico largo y mandíbula
+    cx, cy = cab
+    shade(t, ell_mask(t, cx + 1, cy - 1, 5, 4), NEGRO, bias=0.2)
+    abre = 2 if aliento else (1 if carga > 0 else 0)
+    shade(t, poly_mask(t, [(cx - 1, cy - 4), (cx - 10, cy - 1), (cx - 11, cy + 1), (cx - 1, cy + 1)]), NEGRO, bias=0.15)
+    shade(t, poly_mask(t, [(cx, cy + 1 + abre), (cx - 9, cy + 2 + abre), (cx - 9, cy + 4 + abre), (cx + 1, cy + 4)]), NEGRO, bias=-0.1)
+    for x, y, l in ((cx + 3, cy - 3, 6), (cx, cy - 4, 5), (cx + 4, cy, 4)):  # púas hacia atrás
+        limb(t, (x, y), (x + l, y - l // 2 - 1), 1.3, 0.3, NEGRO, bias=0.2)
+    # brazo corto delante del vientre
+    limb(t, (30, 26 + b), (25, 32 + b), 2.2, 1.6, NEGRO, bias=0.05)
+    for dx in (-1, 1):
+        put(t, 24 + dx, 34 + b, GARRA[1])
     outline(t, OUT)
-    # ojos con la luz de la maldición
-    c = GLOW[2] if ojos > 0.8 else (GLOW[1] if ojos > 0.4 else GLOW[0])
-    for ex in (29, 35):
-        put(t, ex + ox, hy, c)
-        put(t, ex + ox + (1 if ex > 32 else -1), hy, GLOW[1] if ojos > 0.4 else GLOW[0])
-    put(t, 31 + ox, hy + 7, OUT); put(t, 33 + ox, hy + 7, OUT)  # orificios
-    # el fuego que se le enciende en el pecho y la boca al tomar aire
+    # boca encendida, ojo rojo y orificio de la nariz
+    if abre:
+        c = FUEGO[2] if carga >= 1 or aliento else FUEGO[1]
+        line(t, cx - 9, cy + 1 + abre // 2, cx - 1, cy + 1 + abre // 2, c)
+        if abre > 1:
+            line(t, cx - 8, cy + 2, cx - 2, cy + 2, FUEGO[1])
+    else:
+        line(t, cx - 9, cy + 2, cx - 1, cy + 2, OJO[0])
+    c = OJO[2] if ojos > 0.8 else (OJO[1] if ojos > 0.4 else OJO[0])
+    put(t, cx - 1, cy - 2, c); put(t, cx, cy - 2, OJO[1] if ojos > 0.4 else OJO[0])
+    line(t, cx - 2, cy - 3, cx + 1, cy - 4, NEGRO[0])  # ceja
+    put(t, cx - 9, cy - 1, OUT)
+    # el pecho se enciende al tomar aire
     if carga > 0:
-        # brilla entre las placas del vientre, más fuerte por dentro
         ys, xs = vientre.nonzero()
-        cyv = ys.mean()
         for y, x in zip(ys, xs):
-            dentro = ((x - 32 - ox) / 5.5) ** 2 + ((y - cyv) / 6.5) ** 2
-            if y % 3 == 0 and dentro < 0.9:
-                t[y, x] = (*FUEGO[2 if carga >= 1 and dentro < 0.4 else 1], 255)
-            elif carga >= 1 and dentro < 0.25:
-                t[y, x] = (*FUEGO[1], 255)
-        put(t, 32 + ox, hy + 8, FUEGO[2])
-    if aliento:  # escupe el fuego hacia delante, hasta el suelo
-        for i in range(10):
-            fire_band(t, 32 + ox - i * 2, 32 + ox + i * 2, hy + 10 + i * 2, 3, i, FUEGO)
-        fire_band(t, 8, 56, H - 1, 9, 2, FUEGO, profile=lambda u: 0.4 + 0.6 * (1 - abs(u - 0.5) * 2), bright=0.45)
-    ground_shadow(t, W // 2, H - 2, 18, 2)
+            if y % 3 != (23 + b) % 3 and ((x + y) % 2 == 0 or carga >= 1) and 24 < y < 36:
+                t[y, x] = (*FUEGO[1 if carga < 1 else 2], 255)
+    if aliento:  # chorro de fuego hacia delante y abajo, donde está la heroína
+        g = rng(3)
+        x0, y0 = cx - 10, cy + 2
+        for k in range(30):
+            ancho = 1.5 + k * 0.32
+            yc = y0 + k * 1.05
+            for dy in range(-int(ancho), int(ancho) + 1):
+                x, y = x0 + 2 + dy + g.choice((-1, 0, 0, 1)), int(yc - abs(dy) * 0.3)
+                if 0 <= x < W and 0 <= y < H - 1 and t[y, int(x), 3] == 0:
+                    d = abs(dy) / max(ancho, 1)
+                    put(t, int(x), y, FUEGO[3] if d < 0.25 else FUEGO[2] if d < 0.6 else FUEGO[1])
+    if aliento:  # y se extiende por el suelo
+        fire_band(t, 0, 24, H - 1, 6, 1, FUEGO, profile=lambda u: 1 - abs(u - 0.4) * 1.4, bright=0.45)
+    ground_shadow(t, 36, H - 2, 18, 2)
     return t
 
 
 def fotograma(direccion, anim, i):
-    """Un fotograma de la hoja del repo. Solo lucha de frente: todas las filas son la misma vista."""
+    """Un fotograma de la hoja del repo. Solo lucha de perfil: todas las filas son la misma vista."""
     if anim == "idle":
-        return dibujar(respira=[0, 1][i], alza=[0, 2][i])
+        return dibujar(respira=[0, 1][i], alza=[0, 1][i])
     if anim == "walk":
         return dibujar(respira=[0, 1, 1, 0][i], alza=[0, 1, 2, 1][i])
     if anim == "atacar":
-        return [lambda: dibujar(carga=1.0, alza=3, ojos=1.0),
-                lambda: dibujar(aliento=True, alza=1, inclina=1),
+        return [lambda: dibujar(carga=1.0, alza=2, cabeza=(3, -2)),
+                lambda: dibujar(aliento=True, alza=0, cabeza=(-2, 1)),
                 lambda: dibujar(carga=0.4, ojos=0.9)][i]()
-    return dibujar(inclina=-1, ojos=0.2, alza=-1)
+    return dibujar(ojos=0.2, alza=-1, cabeza=(2, 2))

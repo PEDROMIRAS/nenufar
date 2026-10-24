@@ -1,86 +1,122 @@
-"""Árbol maldito (48x48), jefe violeta del Bosque. Un árbol muerto con cara: dos cuencas que brillan
-con la luz violeta de la maldición, una boca de corteza rota, ramas como garras y raíces que se
-agarran al suelo. Lento y muy resistente: atrapa con las raíces.
+"""Árbol maldito (48x48), jefe violeta del Bosque. Un árbol viejo y vivo, de copa frondosa, con una
+cara furiosa en el tronco: cejas de corteza, ojos ámbar que arden, una boca enorme llena de
+astillas como colmillos, ramas que acaban en garras y raíces azuladas que se agarran al suelo.
+Lento y muy resistente: atrapa con las raíces. (Concepto de Pedro, 2026-10-25.)
 
 Como los demás jefes, cabe en 48 de alto con los pies en 46 y no sube más de ~42 px sobre ellos.
-Hoja del repo: idle (2: se mece), walk (4: no anda, se mece), atacar (3: alza las garras, las
-descarga y vuelve) y golpe (1, destello)."""
+Hoja del repo: idle (2: la copa se mece), walk (4: no anda, se mece), atacar (3: alza las garras,
+las descarga y vuelve) y golpe (1, destello)."""
 import numpy as np
-from dibujo import tile, put, line, outline, poly_mask, ell_mask, shade, limb, ground_shadow
+from dibujo import tile, put, line, outline, poly_mask, ell_mask, shade, limb, ground_shadow, rng
 
 S = 48
-BARK = [(38, 26, 22), (62, 42, 32), (90, 64, 44), (122, 90, 60), (154, 120, 82)]
-TWIG = [(34, 24, 22), (56, 40, 32), (84, 60, 44), (112, 84, 58)]
-MOSS = [(60, 86, 44), (92, 124, 60)]
-GLOW = [(96, 50, 150), (176, 124, 255), (236, 214, 255)]  # la maldición, en violeta
-HOLE = (18, 10, 16)
-OUT = (24, 16, 18)
+HOJA = [(22, 58, 42), (34, 90, 52), (56, 132, 58), (98, 178, 74), (164, 218, 104)]
+CORTEZA = [(58, 34, 34), (92, 58, 52), (128, 86, 72), (164, 120, 96), (196, 156, 124)]
+RAIZ = [(36, 40, 66), (56, 62, 94), (82, 90, 124)]
+GARRA = [(70, 44, 40), (120, 82, 68), (176, 136, 108)]
+OJO = [(150, 70, 20), (240, 158, 40), (255, 232, 130)]
+BOCA = [(14, 6, 8), (34, 14, 18), (62, 26, 30)]
+COLMILLO = [(170, 136, 104), (228, 200, 160)]
+LIANA = [(44, 110, 52), (86, 156, 70)]
+OUT = (26, 14, 18)
 
-# Brazos (rama izquierda de la imagen): hombro, codo, mano y hacia dónde abren las garras.
+# Brazos (rama de la izquierda de la imagen): hombro, codo, mano y hacia dónde abren las garras.
 BRAZOS = {
-    "reposo": ((17, 19), (9, 17), (6, 27), (0, 1)),
-    "alza": ((17, 18), (9, 11), (8, 3), (0, -1)),
-    "golpe": ((17, 20), (10, 25), (15, 34), (1, 1)),
+    "reposo": ((16, 25), (9, 23), (5, 29), (0, 1)),
+    "alza": ((16, 23), (8, 22), (3, 17), (0, -1)),
+    "golpe": ((16, 26), (10, 31), (12, 38), (1, 1)),
 }
 
 
-def garras(t, mano, d, color):
+def garras(t, mano, d):
+    """Tres dedos curvos de rama, con la punta clara."""
     dx, dy = d
-    for sx, sy in ((-2, 0), (0, 1), (2, 0)) if dy else ((0, -2), (1, 0), (0, 2)):
-        x0, y0 = mano[0] + sx * 0.6, mano[1] + sy * 0.6
-        fin = (x0 + dx * 3 + sx, y0 + dy * 3 + sy * 0.5)
-        line(t, x0, y0, *fin, TWIG[1])
-        put(t, round(fin[0]), round(fin[1]), color)
+    for k, (sx, sy) in enumerate(((-2, 0), (0, 1), (2, 0)) if dy else ((0, -2), (1, 0), (0, 2))):
+        x0, y0 = mano[0] + sx * 0.7, mano[1] + sy * 0.7
+        medio = (x0 + dx * 2 + sx * 0.6, y0 + dy * 2 + sy * 0.4)
+        fin = (medio[0] + dx * 1.5 + (1 if dy else 0) * (k - 1), medio[1] + dy * 1.5 + (0 if dy else 1))
+        limb(t, (x0, y0), medio, 1.0, 0.7, GARRA)
+        line(t, *medio, *fin, GARRA[1])
+        put(t, round(fin[0]), round(fin[1]), GARRA[2])
+
+
+def copa(t, mece):
+    """Copa frondosa: matas de hojas, cada una con su luz arriba y su sombra abajo; las de delante
+    (más bajas) se dibujan después y tapan a las de atrás. Entre ellas asoman ramas."""
+    for (x0, y0), (x1, y1) in (((21, 16), (16, 9)), ((27, 16), (32, 9)), ((24, 16), (24, 6))):
+        limb(t, (x0, y0), (x1 + mece, y1), 1.6, 0.8, CORTEZA, bias=-0.1)
+    matas = [  # (centro, radios) de atrás adelante
+        ((24, 5), (6, 3.5)), ((16, 7), (5.5, 4)), ((32, 7), (5.5, 4)), ((9, 12), (5, 4)),
+        ((39, 12), (5, 4)), ((20, 10), (6, 4)), ((29, 10), (6, 4)), ((13, 15), (6, 4)),
+        ((35, 15), (6, 4)), ((24, 14), (6.5, 4)), ((18, 17), (5, 3)), ((30, 17), (5, 3)),
+    ]
+    g = rng(5)
+    for k, ((cx, cy), (rx, ry)) in enumerate(matas):
+        m = ell_mask(t, cx + (mece if cy < 12 else 0), cy, rx, ry)
+        shade(t, m, HOJA[:4], bias=0.05 * (k % 3 - 1))
+        # borde de abajo oscuro: separa cada mata de la que tiene detrás
+        abajo = np.zeros_like(m); abajo[:-1, :] = m[1:, :]
+        t[m & ~abajo] = (*HOJA[0], 255)
+        ys, xs = m.nonzero()
+        for _ in range(max(2, len(xs) // 14)):  # hojitas en «v», claras en la mitad de arriba
+            i = g.randrange(len(xs))
+            x, y = xs[i], ys[i]
+            if y < cy and m[y + 1, x]:
+                put(t, x, y, HOJA[4]); put(t, x - 1, y - 1, HOJA[3]); put(t, x + 1, y - 1, HOJA[3])
 
 
 def dibujar(brazos="reposo", mece=0, ojos=1.0, inclina=0, raices=0):
     t = tile(S, S)
     ox = inclina
-    # raíces que se agarran al suelo (en el ataque, alguna se levanta)
-    for (x1, y1), w in (((5, 46), 2.4), ((13, 47), 2.0), ((35, 47), 2.0), ((43, 46), 2.4)):
+    # raíces azuladas que se agarran al suelo (en el ataque, las de los lados se levantan)
+    for (x1, y1), w in (((5, 45), 1.8), ((12, 47), 1.6), ((36, 47), 1.6), ((43, 45), 1.8), ((22, 47), 1.4)):
         if raices and x1 in (5, 43):
             y1 -= 3
-        limb(t, (24 + (x1 - 24) * 0.25 + ox, 41), (x1 + ox * 0.5, y1), w + 1, 0.8, BARK, bias=-0.1)
-    # copa muerta: ramas finas hacia arriba
-    for (x0, y0), (x1, y1) in (((21, 13), (15, 5)), ((24, 12), (24, 3)), ((27, 13), (33, 5)),
-                               ((16, 8), (12, 6)), ((32, 8), (37, 7))):
-        limb(t, (x0 + ox, y0 + mece), (x1 + ox + mece, y1 + mece), 1.3, 0.5, TWIG, bias=0.1)
-    # tronco
-    tronco = [(15, 45), (33, 45), (31, 35), (32, 22), (29, 11), (19, 11), (16, 22), (17, 35)]
-    m = poly_mask(t, [(x + ox * (45 - y) / 34, y + (mece if y < 30 else 0)) for x, y in tronco])
-    shade(t, m, BARK, bias=0.0)
-    ys, xs = np.nonzero(m)
-    for y, x in zip(ys, xs):  # vetas de la corteza
-        if (x * 3 + y // 4) % 7 == 0:
-            t[y, x] = (*BARK[1], 255)
-    # brazos-rama con garras
+        borde = (16 if x1 < 24 else 32) if x1 != 22 else 22
+        medio = ((borde + x1) / 2 + ox * 0.5, 43)
+        limb(t, (borde + ox, 41), medio, w + 0.6, w, RAIZ, bias=-0.1)
+        limb(t, medio, (x1, y1), w, 0.6, RAIZ, bias=-0.15)
+    # tronco ancho, que se abre hacia la base
+    tronco = [(14, 44), (34, 44), (31, 36), (32, 24), (30, 15), (18, 15), (16, 24), (17, 36)]
+    m = poly_mask(t, [(x + ox * (44 - y) / 30, y) for x, y in tronco])
+    shade(t, m, CORTEZA, bias=0.05)
+    ys, xs = m.nonzero()
+    for y, x in zip(ys, xs):  # surcos de la corteza
+        if (x * 5 + (y // 3) * 2) % 9 == 0:
+            t[y, x] = (*CORTEZA[1], 255)
+    # brazos de rama con garras
     for lado in (0, 1):
         hombro, codo, mano, d = BRAZOS[brazos]
-        tr = (lambda p: (47 - p[0] + ox, p[1] + mece)) if lado else (lambda p: (p[0] + ox, p[1] + mece))
-        limb(t, tr(hombro), tr(codo), 2.6, 1.8, TWIG, bias=0.05 if lado else 0.15)
-        limb(t, tr(codo), tr(mano), 1.8, 1.0, TWIG, bias=0.0)
-        garras(t, tr(mano), (-d[0], d[1]) if lado else d, GLOW[1] if brazos != "reposo" else TWIG[3])
-    # musgo sobre los hombros del tronco
-    for x in range(17, 31):
-        if (x * 5) % 3:
-            put(t, x + ox, 12 + mece + (x % 2), MOSS[x % 2])
+        tr = (lambda p: (47 - p[0] + ox, p[1])) if lado else (lambda p: (p[0] + ox, p[1]))
+        limb(t, tr(hombro), tr(codo), 2.8, 2.0, CORTEZA, bias=0.05 if lado else 0.15)
+        limb(t, tr(codo), tr(mano), 2.0, 1.3, CORTEZA, bias=0.0)
+        garras(t, tr(mano), (-d[0], d[1]) if lado else d)
+    copa(t, mece)
     outline(t, OUT)
-    # cara: cuencas que brillan y boca de corteza rota (sin contorno: es hueco)
-    cy = 22 + mece
-    for ex in (20, 28):
-        hueco = ell_mask(t, ex + ox, cy, 2.6, 2.1)
-        t[hueco] = (*HOLE, 255)
-        c = GLOW[2] if ojos > 0.8 else (GLOW[1] if ojos > 0.4 else GLOW[0])
-        put(t, ex + ox, cy, c)
-        put(t, ex + ox - 1, cy, GLOW[1] if ojos > 0.4 else GLOW[0])
-    boca = poly_mask(t, [(19 + ox, 29 + mece), (29 + ox, 29 + mece), (27 + ox, 35 + mece), (21 + ox, 35 + mece)])
-    t[boca] = (*HOLE, 255)
-    for i, x in enumerate(range(20, 29, 2)):  # astillas como dientes
-        put(t, x + ox, 29 + mece + (i % 2), BARK[3])
-        put(t, x + ox + 1, 35 + mece - (i % 2), BARK[2])
-    if ojos > 0.8:
-        put(t, 24 + ox, 32 + mece, GLOW[0])
-    ground_shadow(t, S // 2, S - 2, 18, 2)
+    # cara: cejas fruncidas, cuencas con ojos ámbar, nariz y boca enorme con colmillos de astilla
+    for lado in (-1, 1):
+        cx = 24 + ox + 5 * lado
+        line(t, cx - 3 * lado, 20, cx + 2 * lado, 22, CORTEZA[0])  # ceja hacia el centro y abajo
+        line(t, cx - 3 * lado, 19, cx + 2 * lado, 21, CORTEZA[4])
+        hueco = ell_mask(t, cx, 24, 2.6, 1.8)
+        t[hueco] = (*BOCA[1], 255)
+        c = OJO[2] if ojos > 0.8 else (OJO[1] if ojos > 0.4 else OJO[0])
+        put(t, cx, 24, c); put(t, cx - lado, 24, OJO[1] if ojos > 0.4 else OJO[0])
+        put(t, cx, 23, OJO[1] if ojos > 0.8 else OJO[0])
+    line(t, 24 + ox, 25, 24 + ox, 27, CORTEZA[3])
+    put(t, 23 + ox, 28, CORTEZA[0]); put(t, 25 + ox, 28, CORTEZA[0])
+    abre = 2 if brazos == "golpe" else (1 if brazos == "alza" else 0)
+    boca = poly_mask(t, [(17 + ox, 30), (31 + ox, 30), (29 + ox, 37 + abre), (19 + ox, 37 + abre)])
+    shade(t, boca, BOCA, bias=-0.1, rim=False)
+    for x in range(18, 31, 2):  # colmillos arriba y abajo
+        put(t, x + ox, 30, COLMILLO[1]); put(t, x + ox, 31, COLMILLO[0])
+        if 19 <= x <= 29:
+            put(t, x + 1 + ox, 36 + abre, COLMILLO[0]); put(t, x + 1 + ox, 37 + abre, COLMILLO[1])
+    # lianas sobre las raíces
+    for x, y in ((9, 43), (10, 44), (38, 43), (37, 44), (22, 44), (26, 45)):
+        if t[y, x, 3]:
+            put(t, x, y, LIANA[(x + y) % 2])
+    ground_shadow(t, S // 2, S - 2, 20, 2)
     return t
 
 
