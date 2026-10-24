@@ -13,8 +13,10 @@
 ## Para retomar en otra conversación
 
 - **Rama:** `salas-violetas`, sacada de `main` (en `main`, el hito 7 está comprobado; commit `f03b95e`). Las tres ramas están subidas a GitHub desde el 2026-10-25; nada de esta rama está publicado (Pages solo despliega `main`).
-- **Hecho:** el diseño (commit `036b2fb`) y este plan. **No hay código todavía.**
-- **Siguiente paso:** que Pedro revise este plan y elija cómo ejecutarlo (subagentes o en la misma sesión). Después, la tarea 1.
+- **Hecho (2026-10-25):** tareas 1 a 9 y el paso 1 de la 10 (sprites de los cuatro jefes y del cofre trampa). Las salas violetas, el cofre trampa, las recompensas, el Corazón y el bestiario oculto funcionan y se probaron en el navegador con semillas 3 (árbol), 7 (dragón) y 6 (tesoro trampa) del Bosque. Decisiones tomadas por el camino, en `.superpowers/sdd/2026-10-25-salas-violetas/progress.md` (líneas `Ruling:`; carpeta local, no se sube).
+- **Cambios respecto al plan:** un cofre trampa por zona (`cofreTrampa` en zonas.json); `violetas` en dificultades.json (multiplicador propio de los jefes violetas, porque un combate suelto apenas nota la dificultad); el test de dureza mira la media de las dos heroínas a ±8; `probabilidadTrampa` 0,25.
+- **Pendiente de Pedro:** revisar los sprites de los monstruos y decidir si los jefes violetas son más duros con la maga (factor por heroína en heroes.json): contra un jefe solo, la maga gana muchísimo más que la ronin (en la Cripta, 80-97 % frente a 10-47 %).
+- **Siguiente paso:** con lo que diga Pedro, tarea 10, pasos 2 a 5 (piezas especiales sobre las ranas, efectos `tajo_llama_morada`, `cometa_arcano` y del Corazón, que hoy usan efectos que ya existían) y tarea 11.
 - **Otra rama abierta:** `prototipo-hd2d`, con el prototipo HD-2D (sin fusionar con `main`, subida a GitHub). No se toca en este plan. Está documentado en la pestaña «HD-2D: prototipo» del documento de diseño.
 - **Entorno (Windows):** ejecutar desde `C:\Users\pmira\Documents\GitHub\nenufar` con la C mayúscula (si no, Vitest falla). Python en `.venv`: `.\.venv\Scripts\python.exe tools\generadores\generar_todo.py`. No editar archivos con PowerShell 5.1 (rompe las tildes). `npm test`, `npm run lint`, `npm run build`.
 - **Forma de trabajar con Pedro:** español en todo; commits pequeños en español; no subir ni publicar sin que lo pida; enseñarle capturas del arte nuevo antes de darlo por bueno (va guiando con capturas). Al terminar, actualizar el documento de diseño (Claude Docs, enlace en `CLAUDE.md`) y `CLAUDE.md`.
