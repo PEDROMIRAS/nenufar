@@ -3,6 +3,24 @@
     "radio": 48,
     "zonaMuerta": 0.25
   },
+  "ayuda": {
+    "teclado": [
+      ["Moverse", "Flechas/WASD"],
+      ["Correr", "Mayúsculas"],
+      ["Aceptar", "Enter/Z"],
+      ["Volver", "Esc/X"],
+      ["Inventario", "Esc o I"],
+      ["Info combate", "I"],
+      ["Bestiario", "I (portada)"]
+    ],
+    "tactil": [
+      ["Moverse", "Desliza el dedo"],
+      ["Correr", "Botón »"],
+      ["Elegir", "Toca la opción"],
+      ["Inventario", "Mochila"],
+      ["Info combate", "Botón i"]
+    ]
+  },
   "pistas": {
     "segundos": 4,
     "teclado": [

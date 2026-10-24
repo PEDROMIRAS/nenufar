@@ -41,6 +41,7 @@ import historia from './data/historia.json';
 import ritmo from './data/ritmo.json';
 import zonas from './data/zonas.json';
 import { EscenaCombate } from './escenas/combate';
+import { EscenaControles } from './escenas/controles';
 import { EscenaDificultad } from './escenas/dificultad';
 import { EscenaExtras } from './escenas/extras';
 import { EscenaNombre } from './escenas/nombre';
@@ -175,10 +176,11 @@ async function iniciar(): Promise<void> {
   ]);
   // Elegir rana → ponerle nombre → dificultad; Escape vuelve al paso anterior.
   const campoNombre = crearCampoNombre(canvas, RECT_CAMPO, LARGO_NOMBRE);
-  const efectos = crearDeslizador(canvas, RECT_EFECTOS, 'Volumen de los efectos');
-  const musica = crearDeslizador(canvas, RECT_MUSICA, 'Volumen de la música', efectos);
-  const sonido = crearCasilla(canvas, RECT_SONIDO, 'Sonido', musica);
-  const sonidoHtml = { musica, efectos, sonido };
+  const sonidoHtml = {
+    sonido: crearCasilla(canvas, RECT_SONIDO, 'Sonido'),
+    musica: crearDeslizador(canvas, RECT_MUSICA, 'Volumen de la música'),
+    efectos: crearDeslizador(canvas, RECT_EFECTOS, 'Volumen de los efectos'),
+  };
   const seleccion: EscenaSeleccion = new EscenaSeleccion(opciones, ({ heroe, sprite }) => {
     const pedirNombre: EscenaNombre = new EscenaNombre(
       heroe,
@@ -261,6 +263,7 @@ async function iniciar(): Promise<void> {
         pila.apilar(
           new EscenaExtras(cargarRecords(), MONSTRUOS, hojas, LOGROS, () => pila.desapilar()),
         ),
+      () => pila.apilar(new EscenaControles(() => pila.desapilar())),
     ),
   );
 
