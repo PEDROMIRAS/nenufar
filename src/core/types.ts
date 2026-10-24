@@ -158,6 +158,11 @@ export interface EquipoJson {
   efecto?: { estado: string; probabilidad: number };
   /** Colores nuevos (hex) para la ropa o el arma de la heroína que la lleva, en el orden de sus `tintes`. */
   tinte?: string[];
+  /**
+   * Hoja (en public/assets/sprites/, sin extensión) que se pinta encima de la de la heroína cuando la
+   * lleva puesta: cambia su silueta, no solo los colores (las piezas especiales).
+   */
+  capa?: string;
 }
 
 /** `src/data/objetos.json` */

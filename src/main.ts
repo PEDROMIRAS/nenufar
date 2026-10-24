@@ -8,7 +8,7 @@ import {
   type Resultado,
 } from './core/combate';
 import { crearHeroina, type Heroina } from './core/heroina';
-import { coloresDeEquipo, inventarioInicial } from './core/equipo';
+import { capasDeEquipo, coloresDeEquipo, inventarioInicial } from './core/equipo';
 import type { Inventario } from './core/inventario';
 import { limpiarNombre } from './core/nombre';
 import { cambiosDeNivel, instantanea } from './core/progresion';
@@ -67,7 +67,7 @@ import { crearCampoNombre } from './render/campoNombre';
 import { LARGO_NOMBRE, RECT_CAMPO } from './render/nombre';
 import { RECT_EFECTOS, RECT_MUSICA, RECT_SONIDO } from './render/pausa';
 import { prepararSonido } from './render/sonido';
-import { recolorear } from './render/tinte';
+import { vestirHoja } from './render/tinte';
 import { cargarAjustes, cargarRecords, guardarAjustes, guardarRecords } from './render/almacen';
 import {
   cargarImagen,
@@ -100,6 +100,8 @@ interface Partida {
   /** La heroína: su hoja cambia de colores con el equipo (ver `vestir`); `imagenBase` es la original. */
   sprite: Sprite;
   imagenBase: HTMLImageElement;
+  /** Capas de las piezas especiales que cambian la silueta de la heroína, por su ruta. */
+  capas: ReadonlyMap<string, HTMLImageElement>;
   /** Hojas de monstruos, efectos y proyectiles, por nombre. */
   hojas: ReadonlyMap<string, Sprite>;
   combates: number;
@@ -179,6 +181,13 @@ async function iniciar(): Promise<void> {
     ...Object.values(HEROES).flatMap((h) => (h.combate.proyectil ? [h.combate.proyectil] : [])),
     'efectos',
   ]);
+  const capas = new Map(
+    await Promise.all(
+      Object.values(OBJETOS.equipo)
+        .flatMap((e) => (e.capa ? [e.capa] : []))
+        .map(async (c) => [c, await cargarImagen(`assets/sprites/${c}.png`)] as const),
+    ),
+  );
   // Elegir rana → ponerle nombre → dificultad; Escape vuelve al paso anterior.
   const campoNombre = crearCampoNombre(canvas, RECT_CAMPO, LARGO_NOMBRE);
   const sonidoHtml = {
@@ -225,6 +234,7 @@ async function iniciar(): Promise<void> {
       // Copia propia: `vestir` la recolorea y la de la selección se queda con los colores originales.
       sprite: { ...sprite },
       imagenBase: sprite.imagen as HTMLImageElement,
+      capas,
       hojas,
       combates: 0,
       inicio: performance.now(),
@@ -509,13 +519,14 @@ function monstruo(clave: string): MonstruoJson {
   return m;
 }
 
-/** Recolorea la hoja de la heroína según el arma y la armadura que lleva. */
+/** Viste la hoja de la heroína según el arma y la armadura que lleva: colores y piezas especiales. */
 function vestir(partida: Partida): void {
   const heroe = partida.luchadora.heroe;
   if (!heroe) return;
-  partida.sprite.imagen = recolorear(
+  partida.sprite.imagen = vestirHoja(
     partida.imagenBase,
     coloresDeEquipo(heroe, partida.inventario, OBJETOS),
+    capasDeEquipo(partida.inventario, OBJETOS).flatMap((k) => partida.capas.get(k) ?? []),
   );
 }
 
@@ -528,6 +539,7 @@ function datosEquipo(partida: Partida): DatosEquipo {
     estados: REGLAS.estados,
     sprite: partida.sprite,
     imagenBase: partida.imagenBase,
+    capas: partida.capas,
   };
 }
 

@@ -2,6 +2,7 @@ import type { Acciones } from '../core/acciones';
 import type { Luchador } from '../core/combate';
 import {
   bonoDe,
+  capasDeEquipo,
   coloresDeEquipo,
   describirEfecto,
   guardarPieza,
@@ -24,7 +25,7 @@ import {
 import { dentro, esTactil } from '../render/pantalla';
 import type { Sprite } from '../render/recursos';
 import { sonar } from '../render/sonido';
-import { recolorear } from '../render/tinte';
+import { vestirHoja } from '../render/tinte';
 import type { Escena } from './escena';
 
 export interface DatosEquipo {
@@ -35,6 +36,8 @@ export interface DatosEquipo {
   /** La hoja de la heroína y su imagen sin recolorear, para enseñarla con el equipo que se mire. */
   sprite: Sprite;
   imagenBase: HTMLImageElement;
+  /** Capas de las piezas especiales, por su ruta (`capa` en objetos.json). */
+  capas: ReadonlyMap<string, HTMLImageElement>;
 }
 
 /**
@@ -230,7 +233,7 @@ export class EscenaEquipo implements Escena {
 
   /** Lo que se ve: con la pieza encontrada puesta (sin ponérsela aún) o con el equipo de verdad. */
   private rehacer(): void {
-    const { luchadora, inventario, objetos, estados, sprite, imagenBase } = this.d;
+    const { luchadora, inventario, objetos, estados, sprite, imagenBase, capas } = this.d;
     const claveNueva = this.modo.tipo === 'hallazgo' ? this.modo.clave : null;
     const nueva = claveNueva ? this.pieza(claveNueva) : null;
     const vista: Inventario =
@@ -262,7 +265,11 @@ export class EscenaEquipo implements Escena {
     const heroe = luchadora.heroe;
     this.sprite = heroe
       ? {
-          imagen: recolorear(imagenBase, coloresDeEquipo(heroe, vista, objetos)),
+          imagen: vestirHoja(
+            imagenBase,
+            coloresDeEquipo(heroe, vista, objetos),
+            capasDeEquipo(vista, objetos).flatMap((k) => capas.get(k) ?? []),
+          ),
           datos: sprite.datos,
         }
       : sprite;

@@ -177,6 +177,14 @@ export function coloresDeEquipo(
   return pares;
 }
 
+/** Capas que se pintan sobre la hoja de la heroína por lo que lleva puesto: la del arma y la de la armadura. */
+export function capasDeEquipo(inv: Inventario, objetos: ObjetosJson): string[] {
+  return [inv.arma, inv.armadura].flatMap((k) => {
+    const capa = k ? objetos.equipo[k]?.capa : undefined;
+    return capa ? [capa] : [];
+  });
+}
+
 /** ¿Tiene ya esa pieza, puesta o guardada en la mochila? */
 export function laTiene(inv: Inventario, clave: string): boolean {
   return inv.arma === clave || inv.armadura === clave || inv.mochila.includes(clave);

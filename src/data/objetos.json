@@ -156,6 +156,7 @@
       ]
     },
     "katana_sagrada": {
+      "capa": "piezas/katana_sagrada",
       "nombre": "Katana sagrada",
       "hueco": "arma",
       "bonos": {
@@ -176,6 +177,7 @@
       ]
     },
     "baston_arcano": {
+      "capa": "piezas/baston_arcano",
       "nombre": "Bastón arcano",
       "hueco": "arma",
       "bonos": {
@@ -195,6 +197,7 @@
       ]
     },
     "armadura_samurai": {
+      "capa": "piezas/armadura_samurai",
       "nombre": "Armadura samurái",
       "hueco": "armadura",
       "bonos": {
@@ -210,6 +213,7 @@
       ]
     },
     "tunica_arcana": {
+      "capa": "piezas/tunica_arcana",
       "nombre": "Túnica arcana",
       "hueco": "armadura",
       "bonos": {

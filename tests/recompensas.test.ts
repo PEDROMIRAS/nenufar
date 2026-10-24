@@ -7,11 +7,21 @@ import {
   luchadorDeMonstruo,
   type Luchador,
 } from '../src/core/combate';
-import { bonosDe, crecerEquipo, equipar, inventarioInicial, ponerPieza } from '../src/core/equipo';
+import {
+  bonosDe,
+  capasDeEquipo,
+  crecerEquipo,
+  equipar,
+  inventarioInicial,
+  ponerPieza,
+} from '../src/core/equipo';
 import { experienciaParaSubir, instantanea } from '../src/core/progresion';
 import { aplicarRecompensa, elegirRecompensa, type Recompensa } from '../src/core/recompensas';
 import type { EquipoJson, MonstruoJson } from '../src/core/types';
 import { HEROES, MONSTRUOS, OBJETOS, REGLAS } from '../src/data/datos';
+
+/** Los PNG de las capas que hay en el repo (solo los nombres). */
+const CAPAS = import.meta.glob('../public/assets/sprites/piezas/*.png', { query: '?url' });
 
 const suma = (b: Partial<Record<string, number>>): number =>
   Object.values(b).reduce<number>((a, v) => a + (v ?? 0), 0);
@@ -156,4 +166,29 @@ test('las piezas especiales no salen en cofres ni en botín', () => {
       expect(OBJETOS.armaduras).not.toContain(k);
     }
   }
+});
+
+describe('capas de las piezas especiales', () => {
+  test('cada pieza especial tiene su capa, y su PNG existe', () => {
+    for (const heroe of Object.values(HEROES)) {
+      for (const clave of [heroe.especiales.arma, heroe.especiales.armadura]) {
+        const capa = OBJETOS.equipo[clave]!.capa;
+        expect(capa, clave).toBeTruthy();
+        expect(Object.keys(CAPAS), clave).toContain(`../public/assets/sprites/${capa}.png`);
+      }
+    }
+  });
+
+  test('capasDeEquipo da las capas de lo que lleva puesto, en orden arma y armadura', () => {
+    const heroe = HEROES.ronin;
+    const h = luchadorDeHeroe(heroe);
+    const inv = inventarioInicial(h, heroe, OBJETOS);
+    expect(capasDeEquipo(inv, OBJETOS)).toEqual([]);
+    ponerPieza(h, inv, OBJETOS, heroe.especiales.armadura);
+    ponerPieza(h, inv, OBJETOS, heroe.especiales.arma);
+    expect(capasDeEquipo(inv, OBJETOS)).toEqual([
+      OBJETOS.equipo[heroe.especiales.arma]!.capa,
+      OBJETOS.equipo[heroe.especiales.armadura]!.capa,
+    ]);
+  });
 });

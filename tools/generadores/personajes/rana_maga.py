@@ -10,7 +10,7 @@ PREVIEWS = os.path.join(REPO, "docs", "previews")
 import json
 from PIL import Image
 from rana import Canvas, PAL, S
-from combate_anim import derrota, golpe
+from combate_anim import derrota, golpe, guardar_capas
 
 PAL.update({
     "hat": (44, 78, 102), "hat_s": (28, 50, 70), "hat_l": (76, 118, 140),
@@ -22,7 +22,14 @@ PAL.update({
     "orb": (226, 200, 255),
     # fuego morado (sin contorno: brilla)
     "f_core": (246, 228, 255), "f_mid": (190, 110, 246), "f_out": (120, 54, 196), "f_deep": (78, 30, 140),
+    # piezas especiales: estrellas de la túnica arcana y cristal del bastón arcano
+    "star": (255, 236, 150), "arc": (54, 40, 120), "arc_l": (150, 120, 230), "cristal": (154, 224, 255),
 })
+
+# Piezas especiales que lleva puestas al dibujar. Las capas de public/assets/sprites/piezas/ salen de
+# comparar la hoja con cada pieza y sin ella (ver `build`).
+EQUIPO = set()
+PIEZAS = ["tunica_arcana", "baston_arcano"]
 
 
 def eye(c, cx, cy, look):
@@ -57,16 +64,30 @@ def wizard_hat(c, cx, brim_y, brim_hw, lean, bob):
     c.put(cx, by - 1, "sash")
     c.put(cx - 1 + lean, by - 5, "gold")
     c.put(cx + lean, by - 6, "gold")
+    if "tunica_arcana" in EQUIPO:  # luna creciente en la punta y estrellas en el cono
+        tip = cx + lean * 3
+        c.put(tip - 1, by - 10, "star"); c.put(tip - 2, by - 11, "star"); c.put(tip - 1, by - 12, "star")
+        c.put(cx - 2, by - 3, "star"); c.put(cx + 2 + lean, by - 6, "star")
+        for x in (cx - brim_hw - 1, cx + brim_hw + 1):  # ala más ancha, con ribete
+            c.put(x, by, "arc"); c.put(x, by + 1, "arc")
 
 
 def robe(c, cx, top, bottom, hw0, hw1, sway=0):
+    arcana = "tunica_arcana" in EQUIPO
     for y in range(top, bottom + 1):
         hw = hw0 + (hw1 - hw0) * (y - top) / max(bottom - top, 1)
         off = sway if y > bottom - 3 else 0
         for x in range(int(cx - hw) + off, int(cx + hw) + 1 + off):
             rel = (x - off - (cx - hw)) / (2 * hw)
             col = "robe_s" if rel > 0.66 else ("robe_l" if rel < 0.2 else "robe")
+            if arcana:  # túnica arcana: añil con estrellas
+                col = "arc" if rel > 0.2 else "arc_l"
+                if (x * 5 + y * 3) % 11 == 0:
+                    col = "star"
             c.put(x, y, "gold" if y == bottom else col)
+    if arcana:  # bajo en picos, con ribete dorado
+        for x in range(int(cx - hw1) + sway, int(cx + hw1) + 1 + sway, 3):
+            c.put(x, bottom + 1, "arc")
 
 
 def staff(c, x, top, bottom):
@@ -75,6 +96,17 @@ def staff(c, x, top, bottom):
     c.put(x - 1, top + 1, "wood")
     c.put(x + 2, top + 1, "wood_s")
     c.rect(x, top, x + 1, top + 1, "orb")
+    if "baston_arcano" in EQUIPO:  # vara añil con anillas y una media luna dorada que abraza la llama
+        c.rect(x, top + 2, x, bottom, "arc_l")
+        c.rect(x + 1, top + 2, x + 1, bottom, "arc")
+        for y in range(top + 5, bottom, 5):
+            c.rect(x, y, x + 1, y, "gold")
+        c.rect(x, top - 1, x + 1, top + 1, "cristal")
+        c.line(x - 3, top - 3, x - 3, top + 1, "gold")
+        c.line(x + 4, top - 3, x + 4, top + 1, "gold")
+        c.put(x - 2, top + 2, "gold"); c.put(x + 3, top + 2, "gold")
+        c.rect(x - 1, top + 3, x + 2, top + 3, "gold")
+        c.put(x - 3, top - 4, "gold_s"); c.put(x + 4, top - 4, "gold_s")
 
 
 def face(c, cx, bob, lx, rx):
@@ -171,7 +203,11 @@ def frame(direction, anim, i):
     if anim == "golpe":
         return golpe(frame(direction, "idle", 0))
     if anim == "derrota":
-        return derrota(frame(direction, "idle", 0))[i]
+        puestas = set(EQUIPO)
+        EQUIPO.clear()
+        caja = frame(direction, "idle", 0).getbbox()
+        EQUIPO.update(puestas)
+        return derrota(frame(direction, "idle", 0), caja=caja)[i]
     c, fx = Canvas(), Canvas()
     bob, ll, lr, swing, raise_, fsize = 0, 0, 0, 0, 0, 2
     if anim == "idle":
@@ -223,7 +259,7 @@ ANIMS = [("idle", 2, 3, True), ("walk", 4, 8, True), ("cast", 4, 10, False), ("g
          ("derrota", 2, 4, False)]
 
 
-def build(out):
+def hoja():
     cols = sum(a[1] for a in ANIMS)
     sheet = Image.new("RGBA", (cols * S, 4 * S), (0, 0, 0, 0))
     meta = {"frameWidth": S, "frameHeight": S, "anchor": {"x": 16, "y": 30},
@@ -236,7 +272,13 @@ def build(out):
             for i in range(n):
                 sheet.paste(frame(d, name, i), (col * S, r * S))
                 col += 1
+    return sheet, meta
+
+
+def build(out):
+    sheet, meta = hoja()
     sheet.save(f"{out}/rana_maga.png")
+    guardar_capas(out, sheet, hoja, PIEZAS, EQUIPO, "maga")
     json.dump(meta, open(f"{out}/rana_maga.json", "w"), indent=2)
 
     fb = Image.new("RGBA", (64, 16), (0, 0, 0, 0))

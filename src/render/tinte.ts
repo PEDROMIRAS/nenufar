@@ -28,3 +28,24 @@ export function recolorear(
   ctx.putImageData(datos, 0, 0);
   return lienzo;
 }
+
+/**
+ * La hoja de la heroína con su equipo: recoloreada y con las capas de las piezas especiales encima
+ * (cambian su silueta). Se hace al cambiar de equipo, nunca en cada fotograma.
+ */
+export function vestirHoja(
+  base: HTMLImageElement,
+  pares: readonly (readonly [string, string])[],
+  capas: readonly CanvasImageSource[],
+): CanvasImageSource {
+  const tenida = recolorear(base, pares);
+  if (capas.length === 0) return tenida;
+  const lienzo = document.createElement('canvas');
+  lienzo.width = base.naturalWidth;
+  lienzo.height = base.naturalHeight;
+  const ctx = lienzo.getContext('2d');
+  if (!ctx) return tenida;
+  ctx.drawImage(tenida, 0, 0);
+  for (const capa of capas) ctx.drawImage(capa, 0, 0);
+  return lienzo;
+}

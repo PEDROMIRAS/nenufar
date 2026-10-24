@@ -9,7 +9,7 @@ PREVIEWS = os.path.join(REPO, "docs", "previews")
 import json
 from PIL import Image
 from rana import Canvas, PAL, S, eye
-from combate_anim import derrota, golpe
+from combate_anim import derrota, golpe, guardar_capas
 
 PAL.update({
     "hat": (204, 158, 92), "hat_s": (156, 108, 60), "hat_d": (98, 62, 38), "hat_l": (234, 198, 128),
@@ -18,7 +18,14 @@ PAL.update({
     "scarf": (190, 46, 56), "scarf_s": (126, 28, 44), "scarf_l": (232, 92, 82),
     "lacquer": (30, 24, 34), "wrap": (232, 226, 206),
     "blade": (214, 224, 236), "blade_s": (140, 152, 170),
+    # piezas especiales: laca roja de la armadura samurái y luz de la katana sagrada
+    "lac": (156, 34, 42), "lac_s": (98, 20, 30), "lac_l": (204, 74, 66), "aura": (190, 140, 255),
 })
+
+# Piezas especiales que lleva puestas al dibujar. Las capas de public/assets/sprites/piezas/ salen de
+# comparar la hoja con cada pieza y sin ella (ver `build`).
+EQUIPO = set()
+PIEZAS = ["armadura_samurai", "katana_sagrada"]
 
 
 def foot(c, x, y, shade=False):
@@ -31,6 +38,9 @@ def foot(c, x, y, shade=False):
 
 def hat(c, cx, top, hw_max, bob):
     """Sombrero cónico de paja: ápice arriba, ala ancha abajo."""
+    if "armadura_samurai" in EQUIPO:
+        kabuto(c, cx, top, hw_max, bob)
+        return
     rows = 7
     for i in range(rows + 1):
         y = top + i + bob
@@ -50,6 +60,29 @@ def hat(c, cx, top, hw_max, bob):
     c.put(cx, top + bob - 1, "hat_d")
 
 
+def kabuto(c, cx, top, hw_max, bob):
+    """Yelmo samurái: casco lacado con placa dorada, cubrenuca de láminas y cuernos dorados en V.
+    Ocupa al menos lo que el sombrero (una capa no puede borrar píxeles de la hoja)."""
+    rows = 7
+    for i in range(rows + 1):
+        y = top + i + bob
+        hw = 1 + (hw_max - 1) * (i / rows) ** 0.8
+        for x in range(int(round(cx - hw)), int(round(cx + hw)) + 1):
+            rel = (x - cx) / max(hw, 1)
+            if i < 4:
+                col = "lac_s" if rel > 0.35 else ("lac_l" if rel < -0.4 else "lac")
+            else:
+                col = "lac" if (i % 2) else "lac_s"
+                if i % 2 and (x - int(cx)) % 3 == 0:
+                    col = "gold"
+            c.put(x, y, col)
+    c.rect(cx - 1, top + bob + 2, cx + 1, top + bob + 3, "gold")  # placa del frente
+    c.put(cx, top + bob - 1, "gold")
+    for lado in (-1, 1):  # cuernos (kuwagata)
+        c.line(cx + lado, top + bob + 2, cx + 4 * lado, top + bob - 3, "gold")
+        c.put(cx + 5 * lado, top + bob - 4, "gold_s")
+
+
 def robe(c, cx, top, bottom, hw0, hw1, sway=0, front=True):
     for y in range(top, bottom + 1):
         t = (y - top) / max(bottom - top, 1)
@@ -63,6 +96,14 @@ def robe(c, cx, top, bottom, hw0, hw1, sway=0, front=True):
             elif rel < 0.2:
                 col = "robe_l"
             c.put(x, y, col)
+    if "armadura_samurai" in EQUIPO:
+        # peto de láminas lacadas con cordones dorados
+        for y in range(top, top + 6):
+            hw = hw0 + (hw1 - hw0) * (y - top) / max(bottom - top, 1)
+            for x in range(int(cx - hw), int(cx + hw) + 1):
+                col = "lac" if (y - top) % 2 == 0 else "lac_s"
+                c.put(x, y, "gold" if (y - top) % 2 and x % 3 == 0 else col)
+        return
     if front:
         # cruce del kimono con ribete dorado
         c.line(cx - 3, top, cx + 1, top + 5, "gold")
@@ -85,12 +126,20 @@ def katana_hilt(c, x0, y0, x1, y1, w=2):
             c.put(x + o, y, "wrap" if i % 2 else "lacquer")
     c.rect(x0 - 1, y0, x0 + 2, y0, "gold")
     c.rect(x1, y1, x1 + w - 1, y1, "gold")
+    if "katana_sagrada" in EQUIPO:  # guarda redonda grande y un colgante de luz en el pomo
+        c.rect(x0 - 2, y0 - 1, x0 + 3, y0 + 1, "gold")
+        c.put(x1 + w, y1 + 1, "aura")
+        c.put(x1 + w, y1 + 2, "aura")
 
 
 def sleeve(c, x0, x1, y, light):
-    """Manga ancha de kimono: de la túnica hasta la mano."""
+    """Manga ancha de kimono: de la túnica hasta la mano. Con la armadura, hombrera de láminas."""
     c.rect(x0, y, x1, y + 4, "robe_l" if light else "robe_s")
     c.rect(x0, y + 4, x1, y + 4, "robe_s")
+    if "armadura_samurai" in EQUIPO:
+        c.rect(x0 - 1, y - 1, x1 + 1, y + 2, "lac")
+        c.rect(x0 - 1, y + 1, x1 + 1, y + 1, "gold")
+        c.rect(x0 - 1, y - 1, x1 + 1, y - 1, "lac_l")
 
 
 def draw_front(c, bob, lift_l, lift_r, swing, tail):
@@ -185,9 +234,13 @@ TAJO = {
 
 def katana(c, mano, punta):
     (hx, hy), (tx, ty) = mano, punta
+    if "katana_sagrada" in EQUIPO:  # la hoja sagrada va envuelta en luz
+        c.line(hx + 1, hy - 1, tx + 1, ty - 1, "aura", w=2)
     c.line(hx, hy, tx, ty, "blade", w=2)
     c.line(hx, hy, tx, ty, "blade_s")
     c.rect(hx - 1, hy - 1, hx + 1, hy + 1, "gold")
+    if "katana_sagrada" in EQUIPO:
+        c.rect(hx - 2, hy - 2, hx + 2, hy + 2, "gold")
     c.rect(hx, hy, hx, hy, "wrap")
 
 
@@ -195,7 +248,11 @@ def frame(direction, anim, i):
     if anim == "golpe":
         return golpe(frame(direction, "idle", 0))
     if anim == "derrota":
-        return derrota(frame(direction, "idle", 0))[i]
+        puestas = set(EQUIPO)
+        EQUIPO.clear()
+        caja = frame(direction, "idle", 0).getbbox()
+        EQUIPO.update(puestas)
+        return derrota(frame(direction, "idle", 0), caja=caja)[i]
     c = Canvas()
     if anim in ("idle", "atacar"):
         bob, tail = (BOB_IDLE[i], TAIL_IDLE[i]) if anim == "idle" else (0, [0, 1, 1][i])
@@ -229,7 +286,7 @@ ANIMS = [("idle", 2, 3, True), ("walk", 4, 8, True), ("atacar", 3, 12, False), (
          ("derrota", 2, 4, False)]
 
 
-def build(out):
+def hoja():
     sheet = Image.new("RGBA", (sum(a[1] for a in ANIMS) * S, 4 * S), (0, 0, 0, 0))
     meta = {"frameWidth": S, "frameHeight": S, "anchor": {"x": 16, "y": 30},
             "directions": {d: r for r, d in enumerate(DIRS)}, "animations": {}}
@@ -240,7 +297,13 @@ def build(out):
             for i in range(n):
                 sheet.paste(frame(d, name, i), (col * S, r * S))
                 col += 1
+    return sheet, meta
+
+
+def build(out):
+    sheet, meta = hoja()
     sheet.save(f"{out}/rana_ronin.png")
+    guardar_capas(out, sheet, hoja, PIEZAS, EQUIPO, "ronin")
     json.dump(meta, open(f"{out}/rana_ronin.json", "w"), indent=2)
     sheet.resize((sheet.width * 8, sheet.height * 8), Image.NEAREST).save(os.path.join(PREVIEWS, "ronin_x8.png"))
     frames = []
