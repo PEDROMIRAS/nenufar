@@ -109,6 +109,10 @@ export interface OpcionesMapa {
   gruposPorSala: { min: number; max: number };
   /** Jefe de la zona: espera en el centro de su sala, y el portal no aparece hasta vencerlo. */
   jefe: MonstruoJson | null;
+  /** Jefe de la sala violeta, si la zona la tiene: espera en su centro como el de zona, sin portal. */
+  jefeVioleta: MonstruoJson | null;
+  /** El monstruo que es el cofre de un tesoro trampa: se lucha contra él al abrirlo. */
+  cofreTrampa: MonstruoJson;
   distanciaMonstruos: number;
   /** Segundos sin poder empezar otro combate tras huir o vencer. */
   invulnerabilidad: number;
@@ -245,8 +249,13 @@ export class EscenaMapa implements Escena {
       sonar('cura');
       this.avisar('La fuente te restaura los PV y los PM');
     }
-    if (this.actual.tipo === 'tesoro') {
+    // Tras huir del cofre trampa hay un momento para apartarse antes de que vuelva a morder.
+    if (this.actual.tipo === 'tesoro' && !(this.actual.trampa && this.invulnerable > 0)) {
       const cofre = objetoAlAlcance(this.montada.sala, 'cofre_cerrado', h.cuerpo, tam, ALCANCE);
+      if (cofre && this.actual.trampa && !this.hechas.has(this.actual)) {
+        this.morder(cofre);
+        return;
+      }
       if (cofre) this.abrir(cofre);
     }
     for (const m of this.montada.monstruos) {
@@ -374,6 +383,21 @@ export class EscenaMapa implements Escena {
     }
   }
 
+  /** El cofre de un tesoro trampa es un monstruo: se abre igual (mismo sonido) y empieza el combate. */
+  private morder(cofre: ObjetoSala): void {
+    const sala = this.actual;
+    sonar('cofre');
+    this.o.iniciarCombate(
+      [this.o.cofreTrampa],
+      (resultado) => {
+        this.invulnerable = this.o.invulnerabilidad;
+        // Vencido, deja el botín de un cofre normal de la zona.
+        if (resultado === 'victoria' && this.actual === sala) this.abrir(cofre);
+      },
+      null,
+    );
+  }
+
   private refrescarHud(): void {
     const l = this.o.luchadora;
     // Firma numérica de lo que se muestra: si no cambia, los textos siguen valiendo.
@@ -427,10 +451,10 @@ export class EscenaMapa implements Escena {
       (resultado) => {
         if (resultado === 'victoria') {
           m.vivo = false;
-          if (m.grupo[0]?.jefe) {
+          if (m.grupo[0]?.jefe) this.marcarHecha(salaZona);
+          if (salaZona.tipo === 'jefe') {
             this.abrirPortal(sala);
             this.lluvia = this.o.lluviaTrasJefe;
-            this.marcarHecha(salaZona);
           }
           const cerrada = this.cerradas !== 0;
           this.soltarCierre();
@@ -463,7 +487,8 @@ export class EscenaMapa implements Escena {
    */
   private aplicarCierre(): void {
     const { sala, monstruos } = this.montada;
-    const hayMonstruos = this.actual.tipo === 'combate' && monstruos.some((m) => m.vivo);
+    const conCierre = this.actual.tipo === 'combate' || this.actual.tipo === 'violeta';
+    const hayMonstruos = conCierre && monstruos.some((m) => m.vivo);
     this.cerradas = hayMonstruos ? this.actual.puertas : 0;
     this.bloqueadas.push(...cerrarSalidas(sala, this.salidas, this.cerradas));
   }
@@ -550,12 +575,13 @@ export class EscenaMapa implements Escena {
 
   /** Grupos de monstruos de una sala de combate, en casillas libres lejos de las entradas. */
   private poblar(s: SalaZona, sala: Sala, azar: () => number): MonstruoMapa[] {
-    const { grupos, gruposPorSala, distanciaMonstruos, tam, jefe } = this.o;
-    if (s.tipo === 'jefe' && jefe) {
-      const { ancho, alto } = jefe.caja;
+    const { grupos, gruposPorSala, distanciaMonstruos, tam, jefe, jefeVioleta } = this.o;
+    const central = s.tipo === 'jefe' ? jefe : s.tipo === 'violeta' ? jefeVioleta : null;
+    if (central) {
+      const { ancho, alto } = central.caja;
       const x = Math.floor(sala.ancho / 2) * tam + tam / 2;
       const y = Math.floor(sala.alto / 2) * tam + (tam + alto) / 2;
-      return [{ p: crearPatrulla({ x, y, ancho, alto }), grupo: [jefe], vivo: true }];
+      return [{ p: crearPatrulla({ x, y, ancho, alto }), grupo: [central], vivo: true }];
     }
     if (s.tipo !== 'combate' || grupos.length === 0) return [];
     const { min, max } = gruposPorSala;

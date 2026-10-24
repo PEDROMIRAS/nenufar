@@ -21,7 +21,7 @@ import ruinasTiles from '../public/assets/tilesets/ruinas.json';
 const ZONAS: Record<string, PlantillasJson> = { bosque, ruinas, cripta };
 /** Lado de un tile en píxeles. */
 const TAM = 32;
-const TIPOS: TipoSala[] = ['inicio', 'combate', 'tesoro', 'descanso', 'jefe'];
+const TIPOS: TipoSala[] = ['inicio', 'combate', 'tesoro', 'descanso', 'jefe', 'violeta'];
 // Los JSON de assets traen 'layer' como string; aquí se tratan como el tipo que documentan.
 const TILESETS = {
   bosque: [bosqueTiles, bosqueAuto],

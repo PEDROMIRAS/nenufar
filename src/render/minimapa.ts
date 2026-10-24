@@ -18,12 +18,15 @@ const COLOR = {
   tesoro: '#e2a33a',
   descanso: '#5aa8e8',
   jefe: '#d8584a',
+  /** Violeta claro, distinto del morado del portal y del fuego. */
+  violeta: '#b07cff',
   hecha: '#6f7a6c',
 };
 const PUNTO: Partial<Record<SalaZona['tipo'], string>> = {
   tesoro: COLOR.tesoro,
   descanso: COLOR.descanso,
   jefe: COLOR.jefe,
+  violeta: COLOR.violeta,
 };
 
 /** Pinta el minimapa entero; se rehace al cambiar de sala y se copia tal cual en cada fotograma. */
@@ -66,7 +69,7 @@ export function pintarMinimapa(
       ctx.fillStyle = s === actual ? COLOR.actual : COLOR.visitada;
       ctx.fillRect(x, y, ANCHO_SALA, ALTO_SALA);
     }
-    // Tesoro, fuente o jefe a la vista: un punto en el centro de su color, gris cuando ya está hecho.
+    // Tesoro, fuente, jefe o sala violeta a la vista: un punto en el centro de su color, gris cuando ya está hecho.
     const punto = PUNTO[s.tipo];
     if (punto) {
       ctx.fillStyle = hechas.has(s) ? COLOR.hecha : punto;

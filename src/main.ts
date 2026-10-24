@@ -31,6 +31,7 @@ import type {
   PlantillasJson,
   ReglasCombate,
 } from './core/types';
+import { jefeVioleta, modoVioleta } from './core/violetas';
 import { generarZona } from './core/zona';
 import controles from './data/controles.json';
 import { DIFICULTADES, HEROES, MONSTRUOS, OBJETOS, REGLAS } from './data/datos';
@@ -113,6 +114,9 @@ interface Partida {
   controles: { musica: Deslizador; efectos: Deslizador; sonido: Casilla };
   /** Nombre del jefe final: lleva el de la última heroína que lo venció, si la hubo. */
   rival: string;
+  /** Salas violetas que han salido en las zonas ya creadas, y si una de ellas era del dragón negro. */
+  violetas: number;
+  dragonUsado: boolean;
 }
 
 /** Una pantalla de la historia. */
@@ -230,6 +234,8 @@ async function iniciar(): Promise<void> {
       reglas: reglasCon(REGLAS, dificultad),
       rival: tituloRival(),
       controles: sonidoHtml,
+      violetas: 0,
+      dragonUsado: false,
     };
     vestir(partida); // ya lleva puestas el arma y la armadura iniciales
     crearZona(partida, 0, true)
@@ -288,10 +294,30 @@ async function crearZona(
   const datos = zonas.zonas[nombre];
   // Cada zona con su propia semilla, derivada de la de la partida.
   const zona = generarZona(
-    { ...zonas.generacion, salas: datos.salas },
+    {
+      ...zonas.generacion,
+      salas: datos.salas,
+      violeta: modoVioleta(indice, ORDEN.length, partida.violetas),
+      probabilidadVioleta: zonas.violetas.probabilidad,
+      probabilidadTrampa: zonas.violetas.probabilidadTrampa,
+    },
     partida.semilla + indice * 7919,
   );
   console.info(`Zona ${nombre}, semilla ${zona.semilla}`);
+  // El jefe de la sala violeta, si la hay: a veces el dragón negro, como mucho uno por partida.
+  let violeta: MonstruoJson | null = null;
+  if (zona.salas.some((s) => s.tipo === 'violeta')) {
+    const clave = jefeVioleta(
+      nombre,
+      datos,
+      zonas.violetas,
+      partida.dragonUsado,
+      crearAzar(zona.semilla * 13 + 5),
+    );
+    partida.violetas++;
+    if (clave === zonas.violetas.dragon[nombre]) partida.dragonUsado = true;
+    violeta = monstruo(clave);
+  }
   partida.zona = datos.nombre;
   const hayOtra = indice + 1 < ORDEN.length;
   const escena: EscenaMapa = new EscenaMapa({
@@ -331,6 +357,8 @@ async function crearZona(
     })),
     gruposPorSala: zonas.monstruos.gruposPorSala,
     jefe: monstruo(datos.jefe),
+    jefeVioleta: violeta,
+    cofreTrampa: monstruo(datos.cofreTrampa),
     cofre: datos.cofre,
     inventario: partida.inventario,
     objetos: OBJETOS,
