@@ -11,8 +11,16 @@ const COLOR = {
   visitada: '#cfe3c8',
   actual: '#ffd27a',
   contorno: '#8fa88a',
-  cofre: '#e2a33a',
-  cofreAbierto: '#6f7a6c',
+  /** Punto de lo que tiene la sala: el cofre, la fuente o el jefe; gris cuando ya está hecho. */
+  tesoro: '#e2a33a',
+  descanso: '#5aa8e8',
+  jefe: '#d8584a',
+  hecha: '#6f7a6c',
+};
+const PUNTO: Partial<Record<SalaZona['tipo'], string>> = {
+  tesoro: COLOR.tesoro,
+  descanso: COLOR.descanso,
+  jefe: COLOR.jefe,
 };
 
 /** Pinta el minimapa entero; se rehace al cambiar de sala y se copia tal cual en cada fotograma. */
@@ -21,8 +29,8 @@ export function pintarMinimapa(
   visitadas: ReadonlySet<SalaZona>,
   actual: SalaZona,
   rejilla: number,
-  /** Salas del tesoro cuyo cofre ya se abrió (su punto sale gris). */
-  abiertos: ReadonlySet<SalaZona>,
+  /** Salas con el cofre abierto, la fuente usada o el jefe vencido (su punto sale gris). */
+  hechas: ReadonlySet<SalaZona>,
 ): HTMLCanvasElement {
   const pasoX = ANCHO_SALA + HUECO;
   const pasoY = ALTO_SALA + HUECO;
@@ -55,9 +63,10 @@ export function pintarMinimapa(
       ctx.fillStyle = s === actual ? COLOR.actual : COLOR.visitada;
       ctx.fillRect(x, y, ANCHO_SALA, ALTO_SALA);
     }
-    // Sala del tesoro a la vista: un punto en el centro, amarillo con el cofre cerrado y gris abierto.
-    if (s.tipo === 'tesoro') {
-      ctx.fillStyle = abiertos.has(s) ? COLOR.cofreAbierto : COLOR.cofre;
+    // Tesoro, fuente o jefe a la vista: un punto en el centro de su color, gris cuando ya está hecho.
+    const punto = PUNTO[s.tipo];
+    if (punto) {
+      ctx.fillStyle = hechas.has(s) ? COLOR.hecha : punto;
       ctx.fillRect(x + ANCHO_SALA / 2 - 1, y + ALTO_SALA / 2 - 1, 2, 2);
     }
     // Puertas al este y al sur (las del oeste y el norte las pinta la vecina). En un árbol, dos salas

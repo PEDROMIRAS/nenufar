@@ -144,8 +144,8 @@ export class EscenaMapa implements Escena {
   private readonly salidas: Salida[];
   private readonly vineta: HTMLCanvasElement;
   private readonly visitadas = new Set<SalaZona>();
-  /** Salas del tesoro con el cofre ya abierto, para el minimapa. */
-  private readonly abiertos = new Set<SalaZona>();
+  /** Salas con el cofre abierto, la fuente usada o el jefe vencido, para el minimapa. */
+  private readonly hechas = new Set<SalaZona>();
   private actual: SalaZona;
   private montada: SalaMontada;
   private minimapa: HTMLCanvasElement;
@@ -245,6 +245,7 @@ export class EscenaMapa implements Escena {
       l.pv = l.pvMax;
       l.pm = l.pmMax;
       this.fuenteUsada = true;
+      this.marcarHecha(this.actual);
       sonar('cura');
       this.avisar('La fuente te restaura los PV y los PM');
     }
@@ -360,8 +361,7 @@ export class EscenaMapa implements Escena {
     const { catalogo, cofre: tabla, luchadora, objetos, inventario } = this.o;
     const abierto = catalogo.get('cofre_abierto');
     if (abierto) cofre.inf = abierto;
-    this.abiertos.add(this.actual);
-    this.minimapa = this.visitar(this.actual);
+    this.marcarHecha(this.actual);
     sonar('cofre');
     const hallazgo = abrirCofre(tabla, this.azarMapa, luchadora.heroe, objetos, inventario);
     if (!hallazgo) {
@@ -415,6 +415,7 @@ export class EscenaMapa implements Escena {
 
   private luchar(m: MonstruoMapa): void {
     const sala = this.montada;
+    const salaZona = this.actual;
     const h = this.o.heroina;
     const [dirX, dirY] = MIRADA[h.direccion];
     // Solo los monstruos que se mueven pueden pillar o ser pillados por la espalda.
@@ -432,11 +433,12 @@ export class EscenaMapa implements Escena {
           if (m.grupo[0]?.jefe) {
             this.abrirPortal(sala);
             this.lluvia = this.o.lluviaTrasJefe;
+            this.marcarHecha(salaZona);
           }
           const cerrada = this.cerradas !== 0;
           this.soltarCierre();
           this.aplicarCierre();
-          if (cerrada && this.cerradas === 0) anunciar('Las puertas se abren');
+          if (cerrada && this.cerradas === 0) this.avisar('Las puertas se abren');
         }
         this.invulnerable = this.o.invulnerabilidad;
       },
@@ -454,12 +456,8 @@ export class EscenaMapa implements Escena {
     this.minimapa = this.visitar(vecina);
     this.colocar(posicionEntrada(entrada, this.o.tam, this.o.heroina.cuerpo.alto));
     this.aplicarCierre();
-    if (this.cerradas !== 0) {
-      const grupos = this.montada.monstruos.filter((m) => m.vivo).length;
-      anunciar(
-        `Las puertas se cierran. ${grupos === 1 ? 'Queda 1 grupo' : `Quedan ${grupos} grupos`}`,
-      );
-    }
+    // Los probadores no entendían por qué no podían salir: se dice en pantalla, no solo al lector.
+    if (this.cerradas !== 0) this.avisar('Vence a los monstruos para abrir las puertas');
   }
 
   /**
@@ -497,7 +495,13 @@ export class EscenaMapa implements Escena {
   /** Marca la sala como visitada y devuelve el minimapa al día. */
   private visitar(s: SalaZona): HTMLCanvasElement {
     this.visitadas.add(s);
-    return pintarMinimapa(this.o.zona, this.visitadas, s, this.o.rejilla, this.abiertos);
+    return pintarMinimapa(this.o.zona, this.visitadas, s, this.o.rejilla, this.hechas);
+  }
+
+  /** Su punto del minimapa pasa a gris (cofre abierto, fuente usada, jefe vencido). */
+  private marcarHecha(s: SalaZona): void {
+    this.hechas.add(s);
+    this.minimapa = this.visitar(this.actual);
   }
 
   /** Coloca a la heroína sin interpolar desde la posición anterior (evita que cruce la pantalla). */
