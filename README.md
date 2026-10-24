@@ -8,24 +8,25 @@ Dungeon crawler 2D para navegador y móvil: exploras zonas de salas en tiempo re
 
 | Elige heroína | Explora | Lucha |
 | --- | --- | --- |
-| ![Elección de heroína](docs/capturas/seleccion.png) | ![Sala del Bosque con las puertas cerradas y un grupo de limos](docs/capturas/mapa.png) | ![Combate: la ronin usa Tajo del viento contra un limo y un murciélago](docs/capturas/combate.png) |
+| ![Elección de heroína](docs/capturas/seleccion.png) | ![Sala del Bosque con las puertas cerradas, el aviso de vencer a los monstruos y limos y murciélagos acercándose](docs/capturas/mapa.png) | ![Combate contra un limo y un murciélago: la ronin elige Corte rápido y el panel explica qué hace](docs/capturas/combate.png) |
 | **Enfréntate a los jefes** | **Mejora a tu rana** | **Completa el bestiario** |
-| ![Entrada del Rey Limo](docs/capturas/jefe.png) | ![Pantalla de puntos de mejora](docs/capturas/puntos.png) | ![Bestiario con los monstruos vencidos y el resto en silueta](docs/capturas/bestiario.png) |
+| ![Entrada del Rey Limo](docs/capturas/jefe.png) | ![Inventario en la pestaña Heroína: estadísticas, equipo y habilidades](docs/capturas/inventario.png) | ![Bestiario con los monstruos vencidos y el resto en silueta](docs/capturas/bestiario.png) |
 
 ## Cómo se juega
 
 | Acción | Teclado | Táctil |
 | --- | --- | --- |
 | Moverse y elegir | Flechas o WASD | Joystick (arrastra en cualquier punto) |
-| Correr | Mantén Mayúsculas | Botón » (se queda puesto) |
+| Correr | Mantén Mayúsculas | Lleva el dedo al borde del joystick |
 | Aceptar | Enter, Espacio o Z | Tocar la opción |
 | Inventario (pausa) y volver | Escape o I (X también vuelve) | Botón de la mochila |
-| Qué hace cada opción del combate | I | Botón i (después, un toque elige y otro usa) |
+| Ayuda del combate (encendida al empezar) | I | Botón i (en Habilidad y Objeto, un toque elige y otro usa) |
 | Bestiario y logros (en el título) | I | Botón de arriba a la derecha |
+| Controles (en el título) | ← y Enter | Botón de arriba a la izquierda |
 
 En el móvil se juega mejor en horizontal. En vertical el juego lo recomienda, y con «Jugar así igualmente» se estira a todo el ancho de la pantalla.
 
-Cada zona se genera al entrar (`?semilla=N` en la URL repite una partida). Los monstruos patrullan y te persiguen; si los pillas por la espalda, atacas primero. En combate, fíjate en el golpe cargado que anuncian: es el momento de Defender. Cada nivel da puntos de mejora para repartir (vida, maná, ataque, magia, defensa, velocidad o daño crítico). Encuentra equipo en el botín y en los dos cofres de cada zona (lo que no te pones se guarda en la mochila y se cambia desde el Inventario), y bebe de la fuente una vez por zona. Cada dificultad guarda sus récords; además hay seis logros y un bestiario que se completa venciendo a cada monstruo.
+Cada zona se genera al entrar (`?semilla=N` en la URL repite una partida). Los monstruos patrullan y te persiguen; si los pillas por la espalda, atacas primero. En combate, fíjate en el golpe cargado que anuncian: es el momento de Defender. Cada nivel da puntos de mejora para repartir (vida, maná, ataque, magia, defensa, velocidad o daño crítico). Encuentra equipo en el botín y en los dos cofres de cada zona (lo que no te pones se guarda en la mochila y se cambia desde el Inventario), y bebe de la fuente una vez por zona; el minimapa marca los cofres, la fuente y al jefe. El inventario tiene tres pestañas: Heroína, Objetos y Ajustes (sonido, volumen de música y de efectos, y los controles). Cada dificultad guarda sus récords; además hay seis logros y un bestiario que se completa venciendo a cada monstruo.
 
 ## Qué tiene de interesante por dentro
 
@@ -69,7 +70,7 @@ nenufar/
 ├── src/
 │   ├── core/       # lógica pura: zona, salas, movimiento, combate, IA, progresión, música
 │   ├── data/       # JSON de diseño: héroes, monstruos, zonas, objetos, combate, historia, logros, ritmo, sonido, salas
-│   ├── escenas/    # título, selección, mapa, combate, pausa, equipo, puntos, bestiario y logros, historia (pila de escenas)
+│   ├── escenas/    # título, controles, selección, mapa, combate, inventario, equipo, puntos, bestiario y logros, historia (pila de escenas)
 │   ├── input/      # teclado, joystick y toque como fuentes de acciones abstractas
 │   └── render/     # canvas, sprites, HUD, sonido, accesibilidad y almacenamiento
 ├── public/assets/

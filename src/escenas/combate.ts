@@ -26,6 +26,7 @@ import {
   describirHabilidad,
   partirEnLineas,
 } from '../core/descripciones';
+import { haceAlgo } from '../core/inventario';
 import { anunciar } from '../render/accesibilidad';
 import { cargarAjustes, guardarAjustes } from '../render/almacen';
 import type { Sprite } from '../render/recursos';
@@ -440,7 +441,8 @@ export class EscenaCombate implements Escena {
           ...this.consumibles().map((clave) => ({
             texto: this.combate.objetos.consumibles[clave]!.nombre,
             detalle: `x${this.cuantos(clave)}`,
-            disponible: this.cuantos(clave) > 0,
+            disponible:
+              this.cuantos(clave) > 0 && haceAlgo(h, this.combate.objetos.consumibles[clave]!),
             ayuda: ayuda(
               describirConsumible(
                 this.combate.objetos.consumibles[clave]!,
@@ -540,6 +542,8 @@ export class EscenaCombate implements Escena {
       if (!clave)
         this.abrir('principal'); // «Volver»
       else if (this.cuantos(clave) === 0) this.registrar('No te queda ninguno');
+      else if (!haceAlgo(h, this.combate.objetos.consumibles[clave]!))
+        this.registrar('Ahora no te hace falta');
       else this.usar({ tipo: 'objeto', clave });
       return;
     }

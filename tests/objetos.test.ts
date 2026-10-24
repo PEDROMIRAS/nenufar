@@ -19,7 +19,7 @@ import {
   piezasDe,
   ponerPieza,
 } from '../src/core/equipo';
-import { crearInventario, guardar } from '../src/core/inventario';
+import { crearInventario, guardar, haceAlgo } from '../src/core/inventario';
 import type { MonstruoJson } from '../src/core/types';
 import { HEROES, MONSTRUOS, OBJETOS, REGLAS } from '../src/data/datos';
 import zonas from '../src/data/zonas.json';
@@ -51,6 +51,17 @@ describe('inventario', () => {
     expect(guardar(inv, 'pocion', 5)).toBe(false);
     expect(guardar(inv, 'eter', 5)).toBe(true);
     expect(inv.consumibles).toEqual({ pocion: 5, eter: 1 });
+  });
+
+  test('un consumible solo hace algo si falta lo que da (los menús apagan el resto)', () => {
+    const lleno = { pv: 10, pvMax: 10, pm: 5, pmMax: 5, estados: [] };
+    const { pocion, eter, antidoto } = OBJETOS.consumibles;
+    expect(haceAlgo(lleno, pocion!)).toBe(false);
+    expect(haceAlgo({ ...lleno, pv: 9 }, pocion!)).toBe(true);
+    expect(haceAlgo(lleno, eter!)).toBe(false);
+    expect(haceAlgo({ ...lleno, pm: 4 }, eter!)).toBe(true);
+    expect(haceAlgo(lleno, antidoto!)).toBe(false);
+    expect(haceAlgo({ ...lleno, estados: [{ id: 'veneno' }] }, antidoto!)).toBe(true);
   });
 });
 

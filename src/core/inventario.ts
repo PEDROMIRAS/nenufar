@@ -29,6 +29,21 @@ export function guardar(inv: Inventario, clave: string, maximo: number): boolean
   return true;
 }
 
+/**
+ * ¿Haría algo ahora? Con los PV llenos una poción se gastaría para nada (y contaría como usada, que
+ * quita el logro de ganar sin objetos): los menús la apagan.
+ */
+export function haceAlgo(
+  l: { pv: number; pvMax: number; pm: number; pmMax: number; estados: readonly { id: string }[] },
+  obj: ConsumibleJson,
+): boolean {
+  return (
+    (!!obj.pv && l.pv < l.pvMax) ||
+    (!!obj.pm && l.pm < l.pmMax) ||
+    (!!obj.quitaEstado && l.estados.some((e) => e.id === obj.quitaEstado))
+  );
+}
+
 /** Efecto de un consumible sobre quien lo usa: PV y PM recuperados y estado que quita. */
 export function aplicarConsumible(
   l: { pv: number; pvMax: number; pm: number; pmMax: number },

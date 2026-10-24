@@ -1,6 +1,6 @@
 import type { Acciones } from '../core/acciones';
 import { habilidadesDisponibles, type Luchador } from '../core/combate';
-import { aplicarConsumible, gastar, type Inventario } from '../core/inventario';
+import { aplicarConsumible, gastar, haceAlgo, type Inventario } from '../core/inventario';
 import { describirConsumible, partirEnLineas } from '../core/descripciones';
 import { describirEfecto } from '../core/equipo';
 import { experienciaParaSubir } from '../core/progresion';
@@ -261,7 +261,7 @@ export class EscenaPausa implements Escena {
 
   private usar(clave: string): void {
     const obj = this.objetos.consumibles[clave];
-    if (obj && (this.inv.consumibles[clave] ?? 0) > 0) {
+    if (obj && (this.inv.consumibles[clave] ?? 0) > 0 && haceAlgo(this.l, obj)) {
       aplicarConsumible(this.l, obj);
       gastar(this.inv, clave);
     }
@@ -340,7 +340,7 @@ export class EscenaPausa implements Escena {
         opciones.push({
           texto: objetos.consumibles[clave]!.nombre,
           detalle: `x${cuantos}`,
-          disponible: cuantos > 0,
+          disponible: cuantos > 0 && haceAlgo(l, objetos.consumibles[clave]!),
         });
         acciones.push(() => this.usar(clave));
       }
