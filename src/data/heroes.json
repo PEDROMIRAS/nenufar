@@ -123,7 +123,7 @@
           "tipo": "fisico",
           "poder": 1.8
         },
-        "efecto": "llamarada_grande",
+        "efecto": "tajo_llama_morada",
         "sonido": "llama_morada"
       }
     ]
@@ -239,7 +239,7 @@
           "tipo": "magico",
           "poder": 1.2
         },
-        "efecto": "lluvia_fuego",
+        "efecto": "cometa_arcano",
         "sonido": "tormenta"
       },
       {

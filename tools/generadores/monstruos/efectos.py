@@ -25,7 +25,9 @@ PALETA = {"contorno": (30, 24, 32), "blanco": (250, 250, 244), "acero": (176, 20
           "f_core": (246, 228, 255), "f_mid": (190, 110, 246), "f_out": (120, 54, 196),
           "acero_osc": (110, 128, 156), "viento": (214, 236, 244), "viento_osc": (140, 184, 204),
           "verde": (96, 200, 112), "verde_claro": (200, 255, 190),
-          "fatuo": (150, 236, 190), "fatuo_osc": (70, 150, 120)}
+          "fatuo": (150, 236, 190), "fatuo_osc": (70, 150, 120),
+          "arcano": (154, 224, 255), "arcano_osc": (90, 130, 230),
+          "rojo": (214, 38, 58), "rojo_osc": (140, 20, 40), "rojo_claro": (255, 130, 140)}
 
 
 def corte(c, i):
@@ -180,11 +182,70 @@ def lluvia_fuego(c, i):
             c.line(x, 20, x + (n - 2), 20 - r, "f_mid")
 
 
+# Quintas habilidades (recompensas de los jefes violetas) y el Corazón del dragón negro
+
+def tajo_llama_morada(c, i):
+    """Tajo de llama morada: un tajo ancho en arco que se queda ardiendo en llamas moradas."""
+    largo = [0.35, 0.8, 1.0, 1.0, 1.0, 1.0][i]
+    for n in range(44):
+        t = n / 43
+        if t > largo:
+            continue
+        a = math.radians(-160 + t * 140)
+        x, y = 16 + math.cos(a) * 14, 24 + math.sin(a) * 14
+        w = (3.2 if i < 3 else 2.0) * math.sin(t * math.pi) + 0.6
+        if i < 4:
+            c.ellipse(x, y, w, w, "f_mid")
+            c.ellipse(x, y, max(0.6, w * 0.45), max(0.6, w * 0.45), "f_core" if i < 3 else "blanco")
+        if i >= 2 and n % 6 == (i % 3):  # llamas que suben del tajo
+            alto = [0, 0, 3, 6, 7, 4][i]
+            c.line(x, y, x + (n % 3 - 1), y - alto, "f_out" if i == 5 else "f_mid")
+
+
+def cometa_arcano(c, i):
+    """Cometa arcano: cae desde arriba a la derecha con su estela y estalla en un anillo de chispas."""
+    if i < 3:
+        x, y = [27, 21, 16][i], [3, 10, 17][i]
+        for k in range(1, 6):  # estela
+            c.ellipse(x + k * 2.2, y - k * 2.6, 2.6 - k * 0.4, 2.6 - k * 0.4, "arcano_osc" if k > 2 else "f_mid")
+        c.ellipse(x, y, 3.2, 3.2, "arcano")
+        c.ellipse(x - 0.5, y - 0.5, 1.5, 1.5, "blanco")
+        return
+    r = [0, 0, 0, 7, 11, 13][i]
+    for n in range(12):
+        a = math.radians(n * 30 + i * 8)
+        px, py = 16 + math.cos(a) * r, 18 + math.sin(a) * r * 0.75
+        if i < 5:
+            c.line(16 + math.cos(a) * r * 0.5, 18 + math.sin(a) * r * 0.37, px, py, "arcano" if n % 2 else "f_mid")
+        else:
+            c.put(px, py, "arcano" if n % 2 else "chispa")
+    if i == 3:
+        c.ellipse(16, 18, 6, 4.5, "blanco")
+        c.ellipse(16, 18, 3.5, 2.5, "arcano")
+
+
+def corazon(c, i):
+    """Corazón del dragón negro: un corazón rojo que late dos veces, con destellos alrededor."""
+    s = [0.7, 1.0, 0.8, 1.05, 0.9, 0.6][i]
+    c.ellipse(16 - 3.5 * s, 13, 4.2 * s, 4.0 * s, "rojo")
+    c.ellipse(16 + 3.5 * s, 13, 4.2 * s, 4.0 * s, "rojo")
+    c.poly([(16 - 7.6 * s, 14), (16 + 7.6 * s, 14), (16, 14 + 10 * s)], "rojo")
+    c.ellipse(16 - 4 * s, 12, 1.6 * s, 1.4 * s, "rojo_claro")
+    c.line(16, 15 + 6 * s, 16 + 4 * s, 15 + 2 * s, "rojo_osc")
+    if i in (1, 3):  # destellos del latido
+        for n in range(8):
+            a = math.radians(n * 45)
+            c.line(16 + math.cos(a) * 11, 16 + math.sin(a) * 11, 16 + math.cos(a) * 14, 16 + math.sin(a) * 14,
+                   "chispa" if n % 2 else "rojo_claro")
+
+
 EFECTOS = [("corte", corte, 4, 16), ("impacto", impacto, 3, 14), ("llamarada", llamarada, 4, 12),
            ("corte_doble", corte_doble, 6, 18), ("aura_acero", aura_acero, 5, 12),
            ("viento", viento, 5, 16), ("iaido", iaido, 5, 14),
            ("llamarada_grande", llamarada_grande, 5, 12), ("chispas_verdes", chispas_verdes, 6, 14),
-           ("fuego_fatuo", fuego_fatuo, 6, 14), ("lluvia_fuego", lluvia_fuego, 5, 12)]
+           ("fuego_fatuo", fuego_fatuo, 6, 14), ("lluvia_fuego", lluvia_fuego, 5, 12),
+           ("tajo_llama_morada", tajo_llama_morada, 6, 14), ("cometa_arcano", cometa_arcano, 6, 12),
+           ("corazon", corazon, 6, 8)]
 
 
 def main():

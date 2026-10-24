@@ -77,6 +77,24 @@
       "frames": 5,
       "fps": 12,
       "loop": false
+    },
+    "tajo_llama_morada": {
+      "startColumn": 54,
+      "frames": 6,
+      "fps": 14,
+      "loop": false
+    },
+    "cometa_arcano": {
+      "startColumn": 60,
+      "frames": 6,
+      "fps": 12,
+      "loop": false
+    },
+    "corazon": {
+      "startColumn": 66,
+      "frames": 6,
+      "fps": 8,
+      "loop": false
     }
   }
 }

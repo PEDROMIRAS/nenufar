@@ -39,7 +39,7 @@ const DURACION: Record<Evento['tipo'], number> = ritmo.eventos;
 /** Efecto que deja el golpe de un monstruo sobre la heroína. */
 const EFECTO_MONSTRUO = 'impacto';
 /** Efecto sobre la heroína cuando el Corazón del dragón negro la levanta. */
-const EFECTO_CORAZON = 'chispas_verdes';
+const EFECTO_CORAZON = 'corazon';
 /** Segundos que parpadea quien recibe un golpe y flota su número. */
 const DURACION_GOLPE = ritmo.golpe;
 const TITULO: Record<Resultado, string> = {
