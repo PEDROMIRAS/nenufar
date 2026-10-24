@@ -61,6 +61,11 @@
       "katana_acero",
       "hoja_runica"
     ],
+    "especiales": {
+      "arma": "katana_sagrada",
+      "armadura": "armadura_samurai",
+      "habilidad": "Tajo de llama morada"
+    },
     "habilidades": [
       {
         "nombre": "Corte rápido",
@@ -172,6 +177,11 @@
       "baston_amatista",
       "cetro_luna"
     ],
+    "especiales": {
+      "arma": "baston_arcano",
+      "armadura": "tunica_arcana",
+      "habilidad": "Cometa arcano"
+    },
     "habilidades": [
       {
         "nombre": "Fuego morado",

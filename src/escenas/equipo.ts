@@ -1,6 +1,7 @@
 import type { Acciones } from '../core/acciones';
 import type { Luchador } from '../core/combate';
 import {
+  bonoDe,
   coloresDeEquipo,
   describirEfecto,
   guardarPieza,
@@ -250,7 +251,11 @@ export class EscenaEquipo implements Escena {
     const ahora = instantanea(luchadora);
     this.cambios = ESTADISTICAS.map(([clave, bono, nombre]) => {
       const antes = nueva ? ahora[clave] : this.antes[clave];
-      const despues = ahora[clave] + (nueva?.bonos[bono] ?? 0) - (vieja?.bonos[bono] ?? 0);
+      const nivel = luchadora.nivel;
+      const despues =
+        ahora[clave] +
+        (nueva ? bonoDe(nueva, bono, nivel) : 0) -
+        (vieja ? bonoDe(vieja, bono, nivel) : 0);
       const texto = despues === antes ? `${despues}` : `${antes} → ${despues}`;
       return { nombre, antes, ahora: despues, texto };
     });

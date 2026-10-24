@@ -35,17 +35,46 @@ export function inventarioInicial(l: Luchador, heroe: HeroeJson, objetos: Objeto
   return inv;
 }
 
+/** Lo que suma una pieza a una estadística con la heroína en `nivel` (las especiales crecen con ella). */
+export const bonoDe = (pieza: EquipoJson, clave: keyof Estadisticas, nivel: number): number =>
+  (pieza.bonos[clave] ?? 0) + (pieza.bonosPorNivel?.[clave] ?? 0) * (nivel - 1);
+
+/** Todos los bonos de una pieza con la heroína en `nivel`. */
+export function bonosDe(pieza: EquipoJson, nivel: number): Partial<Estadisticas> {
+  const bonos: Partial<Estadisticas> = {};
+  for (const clave of Object.keys({
+    ...pieza.bonos,
+    ...pieza.bonosPorNivel,
+  }) as (keyof Estadisticas)[])
+    bonos[clave] = bonoDe(pieza, clave, nivel);
+  return bonos;
+}
+
 /** Se pone la pieza `clave` en su hueco: resta los bonos de la que llevaba y suma los de la nueva. */
 export function equipar(l: Luchador, inv: Inventario, objetos: ObjetosJson, clave: string): void {
   const nueva = objetos.equipo[clave];
   if (!nueva) throw new Error(`Equipo desconocido: ${clave}`);
   const vieja = inv[nueva.hueco];
-  if (vieja) sumarBonos(l, objetos.equipo[vieja]?.bonos ?? {}, -1);
-  sumarBonos(l, nueva.bonos, 1);
+  const datosVieja = vieja ? objetos.equipo[vieja] : undefined;
+  if (datosVieja) sumarBonos(l, bonosDe(datosVieja, l.nivel), -1);
+  sumarBonos(l, bonosDe(nueva, l.nivel), 1);
   inv[nueva.hueco] = clave;
 }
 
-function sumarBonos(l: Luchador, bonos: Partial<Estadisticas>, signo: 1 | -1): void {
+/** Tras subir `niveles` niveles, las piezas puestas que crecen suman lo suyo. */
+export function crecerEquipo(
+  l: Luchador,
+  inv: Inventario,
+  objetos: ObjetosJson,
+  niveles: number,
+): void {
+  for (const clave of [inv.arma, inv.armadura]) {
+    const crece = clave ? objetos.equipo[clave]?.bonosPorNivel : undefined;
+    if (crece) sumarBonos(l, crece, niveles);
+  }
+}
+
+function sumarBonos(l: Luchador, bonos: Partial<Estadisticas>, signo: number): void {
   for (const [clave, valor] of Object.entries(bonos) as [keyof Estadisticas, number][]) {
     if (clave === 'pv') {
       l.pvMax += signo * valor;

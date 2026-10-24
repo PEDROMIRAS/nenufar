@@ -154,6 +154,75 @@
         "#5e2228",
         "#c0645a"
       ]
+    },
+    "katana_sagrada": {
+      "nombre": "Katana sagrada",
+      "hueco": "arma",
+      "bonos": {
+        "ataque": 5
+      },
+      "bonosPorNivel": {
+        "ataque": 1
+      },
+      "efecto": {
+        "estado": "quemadura",
+        "probabilidad": 0.15
+      },
+      "tinte": [
+        "#2a1840",
+        "#f4e8c0",
+        "#fff6dc",
+        "#b48cf0"
+      ]
+    },
+    "baston_arcano": {
+      "nombre": "Bastón arcano",
+      "hueco": "arma",
+      "bonos": {
+        "magia": 5
+      },
+      "bonosPorNivel": {
+        "magia": 1
+      },
+      "efecto": {
+        "estado": "aturdido",
+        "probabilidad": 0.15
+      },
+      "tinte": [
+        "#2c2050",
+        "#1a1236",
+        "#9ae0ff"
+      ]
+    },
+    "armadura_samurai": {
+      "nombre": "Armadura samurái",
+      "hueco": "armadura",
+      "bonos": {
+        "defensa": 3
+      },
+      "bonosPorNivel": {
+        "defensa": 1
+      },
+      "tinte": [
+        "#7a1e24",
+        "#4a1016",
+        "#b8424a"
+      ]
+    },
+    "tunica_arcana": {
+      "nombre": "Túnica arcana",
+      "hueco": "armadura",
+      "bonos": {
+        "defensa": 3
+      },
+      "bonosPorNivel": {
+        "defensa": 1
+      },
+      "tinte": [
+        "#3a2a78",
+        "#22184c",
+        "#6a5ac0"
+      ]
     }
   }
 }

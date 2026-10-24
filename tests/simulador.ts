@@ -140,6 +140,8 @@ export function simular(
   const sueltos: Record<string, Cuenta> = {};
   const reales: Record<string, Cuenta> = {};
   const jefes: Record<string, Cuenta> = {};
+  /** Nivel con que se llega a cada jefe. */
+  const niveles: Record<string, number[]> = {};
   const contar = (t: Record<string, Cuenta>, k: string, gana: boolean): void => {
     t[k] ??= { ganados: 0, jugados: 0 };
     t[k].jugados++;
@@ -190,15 +192,23 @@ export function simular(
         h.pv = h.pvMax;
         h.pm = h.pmMax;
       }
+      (niveles[clave] ??= []).push(h.nivel);
       viva = pelear(h, inv, [z.jefe], azar, mundo);
       contar(jefes, clave, viva);
       if (!viva) break;
     }
     if (viva) {
+      (niveles.final ??= []).push(h.nivel);
       viva = pelear(h, inv, [zonas.jefeFinal], azar, mundo);
       contar(jefes, 'final', viva);
     }
     if (viva) completas++;
   }
-  return { sueltos, reales, jefes, completas: Math.round((completas / partidas) * 1000) / 10 };
+  return {
+    sueltos,
+    reales,
+    jefes,
+    niveles,
+    completas: Math.round((completas / partidas) * 1000) / 10,
+  };
 }

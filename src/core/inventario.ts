@@ -1,3 +1,4 @@
+import type { Recompensa } from './recompensas';
 import type { ConsumibleJson } from './types';
 
 /** Lo que lleva la heroína: consumibles con su cantidad, el equipo puesto y el guardado (claves de objetos.json). */
@@ -9,10 +10,22 @@ export interface Inventario {
   mochila: string[];
   /** Consumibles gastados en toda la partida (para el logro de ganar sin usar ninguno). */
   usados: number;
+  /** Recompensas de jefes violetas ganadas en esta partida. */
+  recompensas: Recompensa[];
+  /** Corazón del dragón negro: sin conseguir (su hueco ni se ve), listo para levantarla o ya gastado. */
+  corazon: 'no' | 'lleno' | 'gastado';
 }
 
 export function crearInventario(): Inventario {
-  return { consumibles: {}, arma: null, armadura: null, mochila: [], usados: 0 };
+  return {
+    consumibles: {},
+    arma: null,
+    armadura: null,
+    mochila: [],
+    usados: 0,
+    recompensas: [],
+    corazon: 'no',
+  };
 }
 
 /** Quita uno de ese consumible y lo apunta como usado. */

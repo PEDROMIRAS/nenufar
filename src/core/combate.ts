@@ -1,5 +1,5 @@
 import { elegirConPeso } from './azar';
-import { laTiene, piezaDeBotin } from './equipo';
+import { crecerEquipo, laTiene, piezaDeBotin } from './equipo';
 import { aplicarConsumible, crearInventario, gastar, guardar, type Inventario } from './inventario';
 import { ganarExperiencia } from './progresion';
 import type {
@@ -53,6 +53,8 @@ export interface Luchador {
   estados: EstadoActivo[];
   /** Fases de jefe ya alcanzadas (0 = ninguna). */
   fase: number;
+  /** Habilidades ganadas como recompensa (por nombre), que no se desbloquean por nivel. */
+  habilidadesGanadas: string[];
   heroe: HeroeJson | null;
   monstruo: MonstruoJson | null;
 }
@@ -156,6 +158,7 @@ function luchador(
     plan: null,
     estados: [],
     fase: 0,
+    habilidadesGanadas: [],
     heroe,
     monstruo,
   };
@@ -653,9 +656,9 @@ function terminar(c: Combate, resultado: Resultado, eventos: Evento[]): void {
     if (h.nivel < c.reglas.experiencia.nivelMaximo) {
       const px = c.enemigos.reduce((suma, e) => suma + (e.monstruo?.experiencia ?? 0), 0);
       eventos.push({ tipo: 'experiencia', cantidad: px });
-      for (const nivel of ganarExperiencia(h, px, c.reglas.experiencia)) {
-        eventos.push({ tipo: 'nivel', nivel });
-      }
+      const niveles = ganarExperiencia(h, px, c.reglas.experiencia);
+      for (const nivel of niveles) eventos.push({ tipo: 'nivel', nivel });
+      crecerEquipo(h, c.inventario, c.objetos, niveles.length);
     }
     repartirBotin(c, eventos);
   }

@@ -2,7 +2,7 @@ import type { Acciones } from '../core/acciones';
 import { habilidadesDisponibles, type Luchador } from '../core/combate';
 import { aplicarConsumible, gastar, haceAlgo, type Inventario } from '../core/inventario';
 import { describirConsumible, partirEnLineas } from '../core/descripciones';
-import { describirEfecto } from '../core/equipo';
+import { bonoDe, describirEfecto } from '../core/equipo';
 import { experienciaParaSubir } from '../core/progresion';
 import type { EquipoJson, EstadoJson, ObjetosJson, ReglasProgresion } from '../core/types';
 import { opcionTocada, type MenuVista } from '../render/combate';
@@ -279,7 +279,7 @@ export class EscenaPausa implements Escena {
       etiqueta: string,
       clave: 'ataque' | 'magia' | 'defensa' | 'velocidad',
     ): string => {
-      const bono = piezas.reduce((suma, p) => suma + (p?.bonos[clave] ?? 0), 0);
+      const bono = piezas.reduce((suma, p) => suma + (p ? bonoDe(p, clave, l.nivel) : 0), 0);
       return `${etiqueta} ${l[clave]}${bono ? ` (+${bono})` : ''}`;
     };
     const pieza = (etiqueta: string, p: EquipoJson | undefined): string[] => [

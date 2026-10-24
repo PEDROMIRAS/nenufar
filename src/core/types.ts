@@ -83,6 +83,8 @@ export interface HeroeJson {
   /** Sus armas por nivel (1, 2, 3): claves de equipo en objetos.json. */
   armas: string[];
   habilidades: HabilidadJson[];
+  /** Recompensas de los jefes violetas: claves de equipo en objetos.json y el nombre de su quinta habilidad. */
+  especiales: { arma: string; armadura: string; habilidad: string };
 }
 
 /** Una habilidad: cuesta PM, se desbloquea en un nivel y hace daño, cura o aplica un estado. */
@@ -146,6 +148,8 @@ export interface EquipoJson {
   nombre: string;
   hueco: 'arma' | 'armadura';
   bonos: Partial<Estadisticas>;
+  /** Lo que crecen los bonos por cada nivel de la heroína por encima del 1 (solo las piezas especiales). */
+  bonosPorNivel?: Partial<Estadisticas>;
   /** Al golpear, probabilidad de aplicar un estado de combate.json. */
   efecto?: { estado: string; probabilidad: number };
   /** Colores nuevos (hex) para la ropa o el arma de la heroína que la lleva, en el orden de sus `tintes`. */
