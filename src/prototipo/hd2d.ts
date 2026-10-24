@@ -11,7 +11,7 @@ import { VignetteShader } from 'three/addons/shaders/VignetteShader.js';
 import { crearAcciones } from '../core/acciones';
 import { crearAzar } from '../core/azar';
 import { actualizarHeroina, crearHeroina } from '../core/heroina';
-import { construirSala, crearCatalogo, type ObjetoSala, type Tile } from '../core/sala';
+import { construirSala, crearCatalogo, type Tile } from '../core/sala';
 import controles from '../data/controles.json';
 import { HEROES } from '../data/datos';
 import plantillas from '../data/salas/plantillas_bosque.json';
@@ -32,6 +32,16 @@ const AJUSTES = {
   altoMuro: 1,
   /** Fracción de la inclinación de la cámara que se echan atrás los sprites (1 = de cara; menos, para no meterse en los muros). */
   inclinacionSprites: 0.5,
+  /** Tiles dibujados vistos desde arriba, que van tumbados en el suelo en vez de en pie. */
+  enSuelo: [
+    'fuente_izq_sup',
+    'fuente_izq_inf',
+    'fuente_der_sup',
+    'fuente_der_inf',
+    'fuente_cen_inf',
+  ],
+  /** Dónde se planta, dentro de su casilla, lo que sale de un objeto tumbado. */
+  pieSobreSuelo: 0.5,
   luzCielo: 1.6,
   luzLuna: 0.9,
   hoguera: { color: 0xff9a4a, intensidad: 14, alcance: 6, alto: 0.55, parpadeo: 0.18 },
@@ -140,30 +150,42 @@ async function iniciar(): Promise<void> {
   });
 
   // Objetos y rana: planos de pie que miran a la cámara, para que se vean como el pixel art original.
-  const animados: {
-    o: ObjetoSala;
-    ctx: CanvasRenderingContext2D;
-    tex: THREE.Texture;
-    frame: number;
-  }[] = [];
+  // Lo que está dibujado visto desde arriba (el pilón de la fuente) va tumbado en el suelo.
+  const animados: Pieza[] = [];
+  const nuevaPieza = (tiles: Tile[]): Pieza => {
+    const lienzo = pintar(1, tiles.length, tam, () => {});
+    const pieza = { tiles, ctx: lienzo.getContext('2d')!, tex: textura(lienzo), frame: -1 };
+    pintarPieza(pieza, imagenes, tam, 0);
+    if (tiles.some((t) => t.frames)) animados.push(pieza);
+    return pieza;
+  };
+  const materialDe = (p: Pieza): THREE.MeshLambertMaterial =>
+    new THREE.MeshLambertMaterial({ map: p.tex, alphaTest: 0.5, side: THREE.DoubleSide });
+  const enSuelo = (t: Tile | null): t is Tile => t !== null && AJUSTES.enSuelo.includes(t.name);
   const hoguera = new THREE.Vector3();
   for (const o of sala.objetos) {
-    const alto = o.sup ? 2 : 1;
-    const lienzo = pintar(1, alto, tam, () => {});
-    const ctx = lienzo.getContext('2d')!;
-    const tex = textura(lienzo);
-    const plano = carton(
-      new THREE.MeshLambertMaterial({ map: tex, alphaTest: 0.5, side: THREE.DoubleSide }),
-      alto,
-      0,
-    );
-    plano.position.set(o.x + 0.5, 0, o.y + 0.85);
+    for (const [t, fila] of [
+      [o.inf, o.y],
+      [o.sup, o.y - 1],
+    ] as const) {
+      if (!enSuelo(t)) continue;
+      const calco = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), materialDe(nuevaPieza([t])));
+      calco.rotation.x = -Math.PI / 2;
+      calco.position.set(o.x + 0.5, 0.01, fila + 0.5);
+      calco.receiveShadow = true;
+      escena.add(calco);
+      // shortcut: un objeto tumbado choca con sus casillas enteras (la caja del tileset es para el dibujo en 2D); en la v2, en los datos del tileset.
+      sala.solido[fila * sala.ancho + o.x] = true;
+      sala.cajas[fila * sala.ancho + o.x] = null;
+    }
+    const dePie = [o.sup, o.inf].filter((t): t is Tile => t !== null && !enSuelo(t));
+    if (dePie.length === 0) continue;
+    const plano = carton(materialDe(nuevaPieza(dePie)), dePie.length, 0);
+    // Lo que sale de un objeto tumbado (el surtidor) se planta en medio de él, no en su borde.
+    plano.position.set(o.x + 0.5, 0, o.y + (enSuelo(o.inf) ? AJUSTES.pieSobreSuelo : 0.85));
     plano.rotation.x = -giro;
     plano.scale.y = estirar;
     escena.add(plano);
-    const animado = { o, ctx, tex, frame: -1 };
-    pintarObjeto(animado, imagenes, tam, 0);
-    if (o.inf.frames || o.sup?.frames) animados.push(animado);
     if (o.inf.name === 'hoguera') hoguera.set(o.x + 0.5, AJUSTES.hoguera.alto, o.y + 0.6);
   }
 
@@ -259,7 +281,7 @@ async function iniciar(): Promise<void> {
           1 - (sprite.datos.directions[heroina.direccion] + 1) / filas,
         );
       }
-      for (const a of animados) pintarObjeto(a, imagenes, tam, tiempo);
+      for (const a of animados) pintarPieza(a, imagenes, tam, tiempo);
       const p = AJUSTES.hoguera.parpadeo;
       fuego.intensity =
         AJUSTES.hoguera.intensidad *
@@ -318,22 +340,30 @@ function carton(material: THREE.Material, alto: number, pie: number): THREE.Mesh
   return plano;
 }
 
-/** Vuelve a pintar un objeto si su fotograma ha cambiado. */
-function pintarObjeto(
-  a: { o: ObjetoSala; ctx: CanvasRenderingContext2D; tex: THREE.Texture; frame: number },
+/** Tiles de un objeto apilados de arriba abajo en una textura, que se repinta al cambiar de fotograma. */
+interface Pieza {
+  tiles: Tile[];
+  ctx: CanvasRenderingContext2D;
+  tex: THREE.Texture;
+  frame: number;
+}
+
+/** Vuelve a pintar una pieza si su fotograma ha cambiado (todos sus tiles animados van a la vez). */
+function pintarPieza(
+  p: Pieza,
   imagenes: readonly HTMLImageElement[],
   tam: number,
   tiempo: number,
 ): void {
-  const { o, ctx } = a;
-  const frame = o.inf.frames ? Math.floor(tiempo * (o.inf.fps ?? 0)) % o.inf.frames : 0;
-  if (frame === a.frame) return;
-  a.frame = frame;
-  const abajo = o.sup ? tam : 0;
-  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  dibujarTile(ctx, imagenes, o.inf, tam, 0, abajo, frame);
-  if (o.sup) dibujarTile(ctx, imagenes, o.sup, tam, 0, 0, o.sup.frames ? frame % o.sup.frames : 0);
-  a.tex.needsUpdate = true;
+  const guia = p.tiles.find((t) => t.frames) ?? p.tiles[0];
+  const frame = guia?.frames ? Math.floor(tiempo * (guia.fps ?? 0)) % guia.frames : 0;
+  if (frame === p.frame) return;
+  p.frame = frame;
+  p.ctx.clearRect(0, 0, p.ctx.canvas.width, p.ctx.canvas.height);
+  p.tiles.forEach((t, fila) =>
+    dibujarTile(p.ctx, imagenes, t, tam, 0, fila * tam, t.frames ? frame % t.frames : 0),
+  );
+  p.tex.needsUpdate = true;
 }
 
 iniciar().catch((error: unknown) => {
