@@ -12,10 +12,10 @@
 
 ## Para retomar en otra conversación
 
-- **Rama:** `salas-violetas`, sacada de `main` (en `main`, el hito 7 está comprobado; commit `f03b95e`, sin subir). Nada de esta rama está subido ni publicado.
+- **Rama:** `salas-violetas`, sacada de `main` (en `main`, el hito 7 está comprobado; commit `f03b95e`). Las tres ramas están subidas a GitHub desde el 2026-10-25; nada de esta rama está publicado (Pages solo despliega `main`).
 - **Hecho:** el diseño (commit `036b2fb`) y este plan. **No hay código todavía.**
 - **Siguiente paso:** que Pedro revise este plan y elija cómo ejecutarlo (subagentes o en la misma sesión). Después, la tarea 1.
-- **Otra rama abierta:** `prototipo-hd2d`, con el prototipo HD-2D (sin fusionar, sin subir). No se toca en este plan. Está documentado en la pestaña «HD-2D: prototipo» del documento de diseño.
+- **Otra rama abierta:** `prototipo-hd2d`, con el prototipo HD-2D (sin fusionar con `main`, subida a GitHub). No se toca en este plan. Está documentado en la pestaña «HD-2D: prototipo» del documento de diseño.
 - **Entorno (Windows):** ejecutar desde `C:\Users\pmira\Documents\GitHub\nenufar` con la C mayúscula (si no, Vitest falla). Python en `.venv`: `.\.venv\Scripts\python.exe tools\generadores\generar_todo.py`. No editar archivos con PowerShell 5.1 (rompe las tildes). `npm test`, `npm run lint`, `npm run build`.
 - **Forma de trabajar con Pedro:** español en todo; commits pequeños en español; no subir ni publicar sin que lo pida; enseñarle capturas del arte nuevo antes de darlo por bueno (va guiando con capturas). Al terminar, actualizar el documento de diseño (Claude Docs, enlace en `CLAUDE.md`) y `CLAUDE.md`.
 
