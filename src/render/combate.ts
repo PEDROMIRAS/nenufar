@@ -110,13 +110,13 @@ function animacionAtaque(l: Luchador): string {
   return l.heroe?.combate.ataque ?? 'atacar';
 }
 
-/** Segundos desde que `l` empieza su animación de ataque hasta que el golpe llega (y se ve el daño). */
 /** Segundos que dura el efecto que se ve ahora (0 si no hay ninguno). */
 export function duracionEfecto(v: VistaCombate): number {
   const anim = v.hojas.get('efectos')?.datos.animations[v.efecto];
   return anim ? anim.frames / anim.fps : 0;
 }
 
+/** Segundos desde que `l` empieza su animación de ataque hasta que el golpe llega (y se ve el daño). */
 export function anticipoAtaque(v: VistaCombate, l: Luchador): number {
   const hoja = hojaDe(v, l);
   const anim = hoja?.datos.animations[animacionAtaque(l)];
@@ -141,20 +141,27 @@ export function xEnemigo(i: number, n: number): number {
   return ANCHO / 2 + (i - (n - 1) / 2) * ENEMIGO.separacion;
 }
 
+const RECT = { x: 0, y: 0, ancho: 0, alto: 0 };
+
 /**
  * Rectángulo del botón `i` de un menú de `n` opciones. Hasta 6 caben en una fila; más, en una
  * rejilla de 3 columnas que ocupa también el registro. Altos de sobra para un dedo.
+ * Devuelve siempre el mismo objeto (se pide en cada fotograma): vale hasta la siguiente llamada.
  */
-export function rectOpcion(
-  i: number,
-  n: number,
-): { x: number; y: number; ancho: number; alto: number } {
+function rectOpcion(i: number, n: number): typeof RECT {
+  const r = RECT;
   if (n <= 6) {
-    const ancho = (ANCHO - 32 - (n - 1) * 8) / n;
-    return { x: 16 + i * (ancho + 8), y: 292, ancho, alto: 48 };
+    r.ancho = (ANCHO - 32 - (n - 1) * 8) / n;
+    r.x = 16 + i * (r.ancho + 8);
+    r.y = 292;
+    r.alto = 48;
+  } else {
+    r.ancho = (ANCHO - 32 - 2 * 8) / 3;
+    r.x = 16 + (i % 3) * (r.ancho + 8);
+    r.y = 252 + Math.floor(i / 3) * 46;
+    r.alto = 40;
   }
-  const ancho = (ANCHO - 32 - 2 * 8) / 3;
-  return { x: 16 + (i % 3) * (ancho + 8), y: 252 + Math.floor(i / 3) * 46, ancho, alto: 40 };
+  return r;
 }
 
 /** Opción de un menú de `n` que hay bajo el toque (x, y), o -1 si no hay ninguna. */
@@ -169,7 +176,8 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   ctx.fillRect(0, 0, ANCHO, ALTO);
 
   dibujarOrden(ctx, v);
-  v.enemigos.forEach((e, i) => dibujarEnemigo(ctx, v, e, xEnemigo(i, v.enemigos.length)));
+  for (let i = 0; i < v.enemigos.length; i++)
+    dibujarEnemigo(ctx, v, v.enemigos[i]!, xEnemigo(i, v.enemigos.length));
   dibujarHeroina(ctx, v);
   dibujarProyectil(ctx, v);
   dibujarEfecto(ctx, v);
@@ -291,7 +299,6 @@ export function dibujarMenu(ctx: CanvasRenderingContext2D, menu: MenuVista | nul
   }
 }
 
-/** Barra con quién actúa en lo que queda de ronda; el primero es el que tiene el turno. */
 /** Nombres cortos para la barra de turnos y sobre cada enemigo («Kero, Señora de la Cripta» → «Kero»), hechos una vez. */
 const CORTOS = new WeakMap<Luchador, string>();
 const nombreCorto = (l: Luchador): string => {
@@ -303,6 +310,7 @@ const nombreCorto = (l: Luchador): string => {
   return corto;
 };
 
+/** Barra con quién actúa en lo que queda de ronda; el primero es el que tiene el turno. */
 function dibujarOrden(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   escribir(ctx, 'Turno', 12, 10, '#aab8a6');
   let x = 64;

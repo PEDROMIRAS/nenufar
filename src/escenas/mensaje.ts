@@ -46,13 +46,11 @@ export class EscenaMensaje implements Escena {
   draw(ctx: CanvasRenderingContext2D): void {
     ctx.fillStyle = FONDO;
     ctx.fillRect(0, 0, ANCHO, ALTO);
-    this.titulos.forEach((t, i) =>
-      escribir(ctx, t, ANCHO / 2, 40 + i * 30, this.color, 'center', FUENTE_GRANDE),
-    );
+    for (let i = 0; i < this.titulos.length; i++)
+      escribir(ctx, this.titulos[i]!, ANCHO / 2, 40 + i * 30, this.color, 'center', FUENTE_GRANDE);
     const y = Math.max(96, 40 + this.titulos.length * 30 + 26);
-    this.lineas.forEach((linea, i) =>
-      escribir(ctx, linea, ANCHO / 2, y + i * 20, '#e8efe4', 'center'),
-    );
+    for (let i = 0; i < this.lineas.length; i++)
+      escribir(ctx, this.lineas[i]!, ANCHO / 2, y + i * 20, '#e8efe4', 'center');
     escribir(ctx, this.pie, ANCHO / 2, 312, '#aab8a6', 'center');
   }
 }

@@ -11,6 +11,7 @@ import {
   siluetaDe,
   type FichaMonstruo,
   type LogroVisto,
+  type VistaExtras,
 } from '../render/extras';
 import { dentro, esTactil } from '../render/pantalla';
 import type { Sprite } from '../render/recursos';
@@ -43,6 +44,7 @@ export class EscenaExtras implements Escena {
   private readonly logros: LogroVisto[];
   private readonly vistos: string;
   private readonly conseguidos: string;
+  private readonly vista: VistaExtras;
   private readonly menu: MenuVista = {
     opciones: [{ texto: 'Volver', detalle: '', disponible: true }],
     seleccion: -1,
@@ -84,6 +86,17 @@ export class EscenaExtras implements Escena {
     }));
     this.vistos = `Vencidos ${this.fichas.filter((f) => f.visto).length} de ${this.fichas.length}`;
     this.conseguidos = `Conseguidos ${this.logros.filter((l) => l.conseguido).length} de ${this.logros.length}`;
+    this.vista = {
+      pagina: this.pagina,
+      focoPestanas: false,
+      subtitulo: this.vistos,
+      pista: PISTA.bestiario,
+      fichas: this.fichas,
+      elegido: 0,
+      logros: this.logros,
+      menu: this.menu,
+      tiempo: 0,
+    };
   }
 
   enter(): void {
@@ -126,18 +139,15 @@ export class EscenaExtras implements Escena {
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
-    const bestiario = this.pagina === 'bestiario';
-    dibujarExtras(ctx, {
-      pagina: this.pagina,
-      focoPestanas: this.foco === 'pestanas',
-      subtitulo: bestiario ? this.vistos : this.conseguidos,
-      pista: PISTA[this.pagina],
-      fichas: this.fichas,
-      elegido: this.elegido,
-      logros: this.logros,
-      menu: this.menu,
-      tiempo: this.tiempo,
-    });
+    // La misma vista en cada fotograma, puesta al día (crear una nueva sería memoria en el bucle).
+    const v = this.vista;
+    v.pagina = this.pagina;
+    v.focoPestanas = this.foco === 'pestanas';
+    v.subtitulo = this.pagina === 'bestiario' ? this.vistos : this.conseguidos;
+    v.pista = PISTA[this.pagina];
+    v.elegido = this.elegido;
+    v.tiempo = this.tiempo;
+    dibujarExtras(ctx, v);
   }
 
   private tocar(x: number, y: number): void {

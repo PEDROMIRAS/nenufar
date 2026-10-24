@@ -181,17 +181,19 @@ export class EscenaPausa implements Escena {
       ...(p?.efecto ? [describirEfecto(p.efecto, this.estados)] : []),
     ];
     const siguiente = experienciaParaSubir(l.nivel, this.progresion);
+    // En el nivel máximo la barra de PX se ve llena y sin cuenta.
+    const maximo = l.nivel >= this.progresion.nivelMaximo;
     this.ficha = {
       cabecera: `${l.nombre} · Nivel ${l.nivel}`,
       pv: l.pv,
       pvMax: l.pvMax,
       pm: l.pm,
       pmMax: l.pmMax,
-      px: l.experiencia,
-      pxSiguiente: siguiente,
+      px: maximo ? 1 : l.experiencia,
+      pxSiguiente: maximo ? 1 : siguiente,
       textoPv: `${l.pv}/${l.pvMax}`,
       textoPm: `${l.pm}/${l.pmMax}`,
-      textoPx: `${l.experiencia}/${siguiente}`,
+      textoPx: maximo ? 'Máx.' : `${l.experiencia}/${siguiente}`,
       habilidades: habilidadesDisponibles(l).map((h) => h.nombre),
       derecha: [
         'Estadísticas:',

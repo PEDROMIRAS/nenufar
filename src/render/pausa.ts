@@ -69,15 +69,17 @@ export function dibujarInventario(
   barraConTexto(ctx, x, 184, 'PM', f.pm / Math.max(1, f.pmMax), COLOR_BARRA.pm, f.textoPm);
   barraConTexto(ctx, x, 200, 'PX', f.px / Math.max(1, f.pxSiguiente), COLOR.px, f.textoPx);
   escribir(ctx, 'Habilidades:', x, 220, COLOR.apartado);
-  f.habilidades.forEach((h, i) => escribir(ctx, h, x, 236 + i * 12, COLOR.texto));
+  for (let i = 0; i < f.habilidades.length; i++)
+    escribir(ctx, f.habilidades[i]!, x, 236 + i * 12, COLOR.texto);
 
   let y = PANEL.y + 8;
-  f.derecha.forEach((linea, i) => {
+  for (let i = 0; i < f.derecha.length; i++) {
+    const linea = f.derecha[i]!;
     const apartado = linea.endsWith(':');
     if (apartado && i > 0) y += 6; // aire antes de cada apartado
     escribir(ctx, linea, DERECHA + 10, y, apartado ? COLOR.apartado : COLOR.texto);
     y += 15;
-  });
+  }
   dibujarMenu(ctx, menu);
 }
 

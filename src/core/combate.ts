@@ -370,7 +370,7 @@ function actuarMonstruo(c: Combate, m: Luchador, eventos: Evento[]): void {
     eventos.push({ tipo: 'aviso', actor: m, texto: datos.invocacion.aviso, retira: false });
     for (const clave of datos.invocacion.monstruos) {
       if (vivos(c.enemigos) >= datos.invocacion.maximo) break;
-      sumarEnemigo(c, clave, eventos);
+      sumarEnemigo(c, clave, datos.invocacion.monstruos, eventos);
     }
   } else if (accion === 'defender') {
     // Normalmente ya se puso en guardia al empezar la ronda; si no (lo pillaron por la espalda), ahora.
@@ -429,14 +429,15 @@ function cumple(c: Combate, m: Luchador, a: AccionMonstruoJson): boolean {
 /** ¿Puede hacer esa acción ahora? Una habilidad necesita sus PM y, si es de apoyo, un aliado al que ayudar. */
 const vivos = (lista: readonly Luchador[]): number => lista.filter((l) => l.pv > 0).length;
 
-/** Añade al combate un monstruo del bestiario a mitad de pelea. */
-function sumarEnemigo(c: Combate, clave: string, eventos: Evento[]): void {
+/** Añade al combate un monstruo del bestiario a mitad de pelea; `lote`, todos los que llegan con él. */
+function sumarEnemigo(c: Combate, clave: string, lote: readonly string[], eventos: Evento[]): void {
   const datos = c.bestiario[clave];
   if (!datos) throw new Error(`Monstruo desconocido en el bestiario: ${clave}`);
   const nuevo = luchadorDeMonstruo(datos);
-  // Una letra para distinguirlo de los que ya hay del mismo tipo («Araña B»).
+  // Una letra si ya hay de su tipo o llegan varios a la vez («Araña A», «Araña B»), como en los grupos.
   const iguales = c.enemigos.filter((e) => e.monstruo === datos).length;
-  if (iguales > 0) nuevo.nombre += ` ${String.fromCharCode(65 + iguales)}`;
+  if (iguales > 0 || lote.filter((k) => k === clave).length > 1)
+    nuevo.nombre += ` ${String.fromCharCode(65 + iguales)}`;
   c.enemigos.push(nuevo);
   eventos.push({ tipo: 'aparece', objetivo: nuevo });
 }
@@ -454,7 +455,7 @@ function comprobarFase(c: Combate, m: Luchador, eventos: Evento[]): boolean {
     if (retira) {
       m.pv = 0;
       m.estados = [];
-      for (const clave of fase.transformarEn!) sumarEnemigo(c, clave, eventos);
+      for (const clave of fase.transformarEn!) sumarEnemigo(c, clave, fase.transformarEn!, eventos);
       return true;
     }
   }
@@ -641,10 +642,13 @@ function terminar(c: Combate, resultado: Resultado, eventos: Evento[]): void {
     h.pv += pv;
     h.pm += pm;
     eventos.push({ tipo: 'recupera', pv, pm });
-    const px = c.enemigos.reduce((suma, e) => suma + (e.monstruo?.experiencia ?? 0), 0);
-    eventos.push({ tipo: 'experiencia', cantidad: px });
-    for (const nivel of ganarExperiencia(c.heroina, px, c.reglas.experiencia)) {
-      eventos.push({ tipo: 'nivel', nivel });
+    // En el nivel máximo ya no se gana experiencia: ni se cobra ni se anuncia.
+    if (h.nivel < c.reglas.experiencia.nivelMaximo) {
+      const px = c.enemigos.reduce((suma, e) => suma + (e.monstruo?.experiencia ?? 0), 0);
+      eventos.push({ tipo: 'experiencia', cantidad: px });
+      for (const nivel of ganarExperiencia(h, px, c.reglas.experiencia)) {
+        eventos.push({ tipo: 'nivel', nivel });
+      }
     }
     repartirBotin(c, eventos);
   }

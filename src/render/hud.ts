@@ -75,7 +75,7 @@ export function dibujarBotonCorrer(ctx: CanvasRenderingContext2D, activo: boolea
   ctx.fillStyle = activo ? 'rgba(255, 210, 122, 0.3)' : 'rgba(8, 14, 10, 0.6)';
   ctx.fillRect(x, y, ancho, alto);
   ctx.fillStyle = activo ? '#ffd27a' : '#e8efe4';
-  for (const dx of [9, 22]) {
+  for (let dx = 9; dx <= 22; dx += 13) {
     for (let i = 0; i <= 10; i++) {
       // Cada flecha, dos trazos que bajan y suben hasta juntarse en la punta.
       ctx.fillRect(x + dx + i, y + 12 + i, 3, 2);

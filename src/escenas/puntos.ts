@@ -5,7 +5,13 @@ import type { Mejora, ReglasCombate } from '../core/types';
 import { anunciar } from '../render/accesibilidad';
 import { opcionTocada, type MenuVista } from '../render/combate';
 import { dentro, esTactil } from '../render/pantalla';
-import { dibujarPuntos, FILAS_PUNTOS, SIGNO, type FilaPuntos } from '../render/puntos';
+import {
+  dibujarPuntos,
+  FILAS_PUNTOS,
+  SIGNO,
+  type FilaPuntos,
+  type VistaPuntos,
+} from '../render/puntos';
 import { sonar } from '../render/sonido';
 import type { Escena } from './escena';
 
@@ -37,6 +43,7 @@ export class EscenaPuntos implements Escena {
   private filas: FilaPuntos[] = [];
   private libres = '';
   private readonly menu: MenuVista;
+  private readonly vista: VistaPuntos;
 
   constructor(
     private readonly l: Luchador,
@@ -53,6 +60,13 @@ export class EscenaPuntos implements Escena {
       seleccion: 1,
     };
     this.rehacer();
+    this.vista = {
+      titulo: 'Puntos de mejora',
+      libres: this.libres,
+      pista: PISTA,
+      filas: this.filas,
+      menu: this.menu,
+    };
   }
 
   enter(): void {
@@ -97,13 +111,10 @@ export class EscenaPuntos implements Escena {
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
-    dibujarPuntos(ctx, {
-      titulo: 'Puntos de mejora',
-      libres: this.libres,
-      pista: PISTA,
-      filas: this.filas,
-      menu: this.menu,
-    });
+    // La misma vista en cada fotograma, puesta al día (crear una nueva sería memoria en el bucle).
+    this.vista.libres = this.libres;
+    this.vista.filas = this.filas;
+    dibujarPuntos(ctx, this.vista);
   }
 
   private tocar(x: number, y: number): void {

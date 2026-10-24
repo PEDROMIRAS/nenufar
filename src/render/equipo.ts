@@ -18,6 +18,8 @@ export interface CambioEstadistica {
   nombre: string;
   antes: number;
   ahora: number;
+  /** «12», o «12 → 15» si cambia (hecho al rehacer, no en cada fotograma). */
+  texto: string;
 }
 
 export interface VistaEquipo {
@@ -60,7 +62,8 @@ export function dibujarEquipo(ctx: CanvasRenderingContext2D, v: VistaEquipo): vo
   ctx.fillRect(16, 56, 168, 228);
   dibujarFotograma(ctx, v.sprite, 'idle', 'down', v.tiempo, 100, 200, 3);
 
-  v.filas.forEach((f, i) => {
+  for (let i = 0; i < v.filas.length; i++) {
+    const f = v.filas[i]!;
     const r = FILAS_EQUIPO[i]!;
     ctx.fillStyle = COLOR.fila;
     ctx.fillRect(r.x, r.y, r.ancho, r.alto);
@@ -76,18 +79,19 @@ export function dibujarEquipo(ctx: CanvasRenderingContext2D, v: VistaEquipo): vo
     }
     if (f.efecto)
       escribir(ctx, f.efecto, r.x + r.ancho / 2, r.y + r.alto + 3, COLOR.efecto, 'center');
-  });
+  }
 
   // Estadísticas en dos columnas: en verde lo que sube, en rojo lo que baja.
   ctx.fillStyle = COLOR.panel;
   ctx.fillRect(200, 196, 264, 88);
-  v.cambios.forEach((c, i) => {
+  for (let i = 0; i < v.cambios.length; i++) {
+    const c = v.cambios[i]!;
     const x = 210 + (i % 2) * 130;
     const y = 204 + Math.floor(i / 2) * 26;
     const color = c.ahora > c.antes ? COLOR.sube : c.ahora < c.antes ? COLOR.baja : COLOR.texto;
     escribir(ctx, c.nombre, x, y, COLOR.tenue);
-    escribir(ctx, c.ahora === c.antes ? `${c.ahora}` : `${c.antes} → ${c.ahora}`, x, y + 12, color);
-  });
+    escribir(ctx, c.texto, x, y + 12, color);
+  }
 
   dibujarMenu(ctx, v.menu);
 }

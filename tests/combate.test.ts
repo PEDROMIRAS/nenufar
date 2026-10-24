@@ -170,6 +170,17 @@ describe('final', () => {
     expect(c.esperando).toBe(false);
   });
 
+  test('en el nivel máximo ya no se gana ni se anuncia experiencia', () => {
+    const c = combate(cola());
+    c.heroina.nivel = reglas.experiencia.nivelMaximo;
+    avanzar(c);
+    let eventos = actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
+    while (!c.resultado) eventos = actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
+    expect(c.resultado).toBe('victoria');
+    expect(eventos.some((e) => e.tipo === 'experiencia' || e.tipo === 'nivel')).toBe(false);
+    expect(c.heroina.experiencia).toBe(0);
+  });
+
   test('si la heroína se queda sin vida se pierde', () => {
     const c = combate(cola());
     c.heroina.pv = 1;

@@ -18,6 +18,7 @@ import {
   FILAS_EQUIPO,
   type CambioEstadistica,
   type FilaEquipo,
+  type VistaEquipo,
 } from '../render/equipo';
 import { dentro, esTactil } from '../render/pantalla';
 import type { Sprite } from '../render/recursos';
@@ -68,6 +69,7 @@ export class EscenaEquipo implements Escena {
   private cambios: CambioEstadistica[] = [];
   private readonly titulo: string;
   private readonly pista: string;
+  private readonly vista: VistaEquipo;
 
   constructor(
     private readonly d: DatosEquipo,
@@ -98,6 +100,15 @@ export class EscenaEquipo implements Escena {
       this.menu = { opciones: [{ texto: 'Listo', detalle: '', disponible: true }], seleccion: 0 };
     }
     this.rehacer();
+    this.vista = {
+      titulo: this.titulo,
+      pista: this.pista,
+      sprite: this.sprite,
+      tiempo: 0,
+      filas: this.filas,
+      cambios: this.cambios,
+      menu: this.menu,
+    };
   }
 
   enter(): void {
@@ -149,15 +160,13 @@ export class EscenaEquipo implements Escena {
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
-    dibujarEquipo(ctx, {
-      titulo: this.titulo,
-      pista: this.pista,
-      sprite: this.sprite,
-      tiempo: this.tiempo,
-      filas: this.filas,
-      cambios: this.cambios,
-      menu: this.menu,
-    });
+    // La misma vista en cada fotograma, puesta al día (crear una nueva sería memoria en el bucle).
+    const v = this.vista;
+    v.sprite = this.sprite;
+    v.tiempo = this.tiempo;
+    v.filas = this.filas;
+    v.cambios = this.cambios;
+    dibujarEquipo(ctx, v);
   }
 
   private tocar(x: number, y: number): void {
@@ -239,11 +248,12 @@ export class EscenaEquipo implements Escena {
     // Con una pieza encontrada, «ahora» es lo de hoy más lo que suma la nueva y menos lo que suma la de ese hueco.
     const vieja = nueva ? objetos.equipo[inventario[nueva.hueco] ?? ''] : undefined;
     const ahora = instantanea(luchadora);
-    this.cambios = ESTADISTICAS.map(([clave, bono, nombre]) => ({
-      nombre,
-      antes: nueva ? ahora[clave] : this.antes[clave],
-      ahora: ahora[clave] + (nueva?.bonos[bono] ?? 0) - (vieja?.bonos[bono] ?? 0),
-    }));
+    this.cambios = ESTADISTICAS.map(([clave, bono, nombre]) => {
+      const antes = nueva ? ahora[clave] : this.antes[clave];
+      const despues = ahora[clave] + (nueva?.bonos[bono] ?? 0) - (vieja?.bonos[bono] ?? 0);
+      const texto = despues === antes ? `${despues}` : `${antes} → ${despues}`;
+      return { nombre, antes, ahora: despues, texto };
+    });
     const heroe = luchadora.heroe;
     this.sprite = heroe
       ? {

@@ -289,9 +289,12 @@ export class EscenaCombate implements Escena {
         break;
       }
       case 'defensa':
-        v.defendiendo = true;
-        if (e.actor.esHeroina) this.verPm(v.pmHeroina + e.pm);
-        this.registrar(`${e.actor.nombre} se defiende (+${e.pm} PM)`);
+        // Solo la heroína gana PM al defenderse y lleva el rótulo «Defendiendo».
+        if (e.actor.esHeroina) {
+          v.defendiendo = true;
+          this.verPm(v.pmHeroina + e.pm);
+          this.registrar(`${e.actor.nombre} se defiende (+${e.pm} PM)`);
+        } else this.registrar(`${e.actor.nombre} se defiende`);
         break;
       case 'carga':
         v.cargando.add(e.actor);

@@ -22,7 +22,8 @@ export function dibujarDificultad(
   ctx.fillStyle = '#1f2a24';
   ctx.fillRect(40, 96, ANCHO - 80, 140);
   escribir(ctx, ficha.nombre, ANCHO / 2, 112, '#e8efe4', 'center', FUENTE_GRANDE);
-  ficha.lineas.forEach((linea, i) => escribir(ctx, linea, 56, 160 + i * 18, '#e8efe4'));
+  for (let i = 0; i < ficha.lineas.length; i++)
+    escribir(ctx, ficha.lineas[i]!, 56, 160 + i * 18, '#e8efe4');
   escribir(
     ctx,
     esTactil() ? 'Toca una dificultad para empezar' : '← → elegir · Enter empezar · Esc volver',

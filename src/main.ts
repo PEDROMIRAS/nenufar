@@ -108,7 +108,7 @@ interface Partida {
   dificultad: DificultadJson;
   bestiario: Record<string, MonstruoJson>;
   reglas: ReglasCombate;
-  /** Volumen de la música y sonido sí o no en el inventario (controles HTML, uno por partida). */
+  /** Volumen de música y efectos y sonido sí o no en el inventario (controles HTML, uno por partida). */
   controles: { musica: Deslizador; efectos: Deslizador; sonido: Casilla };
   /** Nombre del jefe final: lleva el de la última heroína que lo venció, si la hubo. */
   rival: string;

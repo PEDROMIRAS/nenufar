@@ -73,7 +73,8 @@ export function dibujarExtras(ctx: CanvasRenderingContext2D, v: VistaExtras): vo
   ctx.fillStyle = FONDO;
   ctx.fillRect(0, 0, ANCHO, ALTO);
   // Pestañas en lugar de título: la de la página que se ve, en dorado y subrayada.
-  PESTANAS.forEach((r, i) => {
+  for (let i = 0; i < PESTANAS.length; i++) {
+    const r = PESTANAS[i]!;
     const activa = (i === 0) === (v.pagina === 'bestiario');
     const texto = i === 0 ? 'Bestiario' : 'Logros';
     escribir(
@@ -85,14 +86,14 @@ export function dibujarExtras(ctx: CanvasRenderingContext2D, v: VistaExtras): vo
       'center',
       FUENTE_GRANDE,
     );
-    if (!activa) return;
+    if (!activa) continue;
     ctx.fillStyle = COLOR.oro;
     ctx.fillRect(r.x + 8, r.y + r.alto - 3, r.ancho - 16, 2);
-    if (!v.focoPestanas) return;
+    if (!v.focoPestanas) continue;
     ctx.strokeStyle = COLOR.oro;
     ctx.lineWidth = 1;
     ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.ancho - 1, r.alto - 1);
-  });
+  }
   escribir(ctx, v.subtitulo, ANCHO / 2, 36, COLOR.texto, 'center');
   escribir(ctx, v.pista, ANCHO / 2, 50, COLOR.tenue, 'center');
   if (v.pagina === 'bestiario') dibujarBestiario(ctx, v);
@@ -101,7 +102,8 @@ export function dibujarExtras(ctx: CanvasRenderingContext2D, v: VistaExtras): vo
 }
 
 function dibujarBestiario(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
-  v.fichas.forEach((f, i) => {
+  for (let i = 0; i < v.fichas.length; i++) {
+    const f = v.fichas[i]!;
     const c = CELDAS[i]!;
     // La casilla elegida solo se marca con las flechas en la rejilla (no en las pestañas ni en Volver).
     if (i === v.elegido && !v.focoPestanas && v.menu.seleccion < 0) {
@@ -124,15 +126,17 @@ function dibujarBestiario(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
       pie,
       escala,
     );
-  });
+  }
   const f = v.fichas[v.elegido];
   if (!f) return;
   escribir(ctx, f.nombre, ANCHO / 2, 196, f.visto ? COLOR.oro : COLOR.apagado, 'center');
-  f.lineas.forEach((l, i) => escribir(ctx, l, ANCHO / 2, 216 + i * 15, COLOR.texto, 'center'));
+  for (let i = 0; i < f.lineas.length; i++)
+    escribir(ctx, f.lineas[i]!, ANCHO / 2, 216 + i * 15, COLOR.texto, 'center');
 }
 
 function dibujarLogros(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
-  v.logros.forEach((l, i) => {
+  for (let i = 0; i < v.logros.length; i++) {
+    const l = v.logros[i]!;
     const y = 68 + i * 36;
     ctx.fillStyle = COLOR.celda;
     ctx.fillRect(40, y, ANCHO - 80, 32);
@@ -146,5 +150,5 @@ function dibujarLogros(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
     );
     escribir(ctx, l.nombre, 70, y + 3, l.conseguido ? COLOR.oro : COLOR.tenue);
     escribir(ctx, l.descripcion, 70, y + 17, l.conseguido ? COLOR.texto : COLOR.apagado);
-  });
+  }
 }

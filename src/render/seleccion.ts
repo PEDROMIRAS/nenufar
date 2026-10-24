@@ -29,9 +29,10 @@ export function dibujarSeleccion(
   ctx.fillRect(0, 0, ANCHO, ALTO);
   escribir(ctx, 'Elige heroína', ANCHO / 2, 14, '#ffd27a', 'center', FUENTE_GRANDE);
 
-  opciones.forEach(({ heroe, sprite }, i) => {
+  for (let i = 0; i < opciones.length; i++) {
+    const { heroe, sprite } = opciones[i]!;
     const t = TARJETAS[i];
-    if (!t) return;
+    if (!t) continue;
     const elegida = i === seleccion;
     ctx.fillStyle = elegida ? '#2f4438' : '#1f2a24';
     ctx.fillRect(t.x, t.y, t.ancho, t.alto);
@@ -62,12 +63,13 @@ export function dibujarSeleccion(
       );
     }
     escribir(ctx, heroe.nombre, t.x + t.ancho / 2, t.y + 108, '#e8efe4', 'center');
-    ETIQUETAS.forEach(([clave, etiqueta], fila) => {
+    for (let fila = 0; fila < ETIQUETAS.length; fila++) {
+      const e = ETIQUETAS[fila]!;
       const y = t.y + 132 + fila * 16;
-      escribir(ctx, etiqueta, t.x + 24, y, '#aab8a6');
-      escribir(ctx, String(heroe.estadisticas[clave]), t.x + t.ancho - 24, y, '#e8efe4', 'right');
-    });
-  });
+      escribir(ctx, e[1], t.x + 24, y, '#aab8a6');
+      escribir(ctx, String(heroe.estadisticas[e[0]]), t.x + t.ancho - 24, y, '#e8efe4', 'right');
+    }
+  }
 
   const pista = esTactil() ? 'Toca una rana para elegirla' : '← → elegir · Enter seguir';
   escribir(ctx, pista, ANCHO / 2, 316, '#aab8a6', 'center');

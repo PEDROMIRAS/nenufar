@@ -42,7 +42,7 @@ describe('jefes', () => {
       retira: true,
     });
     expect(rey.pv).toBe(0);
-    expect(c.enemigos.slice(1).map((e) => e.nombre)).toEqual(['Limo grande', 'Limo grande B']);
+    expect(c.enemigos.slice(1).map((e) => e.nombre)).toEqual(['Limo grande A', 'Limo grande B']);
     expect(eventos.filter((e) => e.tipo === 'aparece')).toHaveLength(2);
     // Sigue el combate, y tampoco se puede huir de los Limos grandes.
     expect(c.resultado).toBeNull();
@@ -76,7 +76,7 @@ describe('jefes', () => {
     const c = contra('reina_arana', fijo(0.99));
     for (let i = 0; i < 4; i++) actuar(c, { tipo: 'defender' });
     expect(c.enemigos.filter((e) => e.pv > 0)).toHaveLength(3);
-    expect(c.enemigos.map((e) => e.nombre)).toEqual(['Reina Araña', 'Araña', 'Araña B']);
+    expect(c.enemigos.map((e) => e.nombre)).toEqual(['Reina Araña', 'Araña A', 'Araña B']);
   });
 
   test('el Señor de la Cripta pasa por sus fases y al final se transforma en el Rey sin Charca', () => {

@@ -55,7 +55,8 @@ export function dibujarPuntos(ctx: CanvasRenderingContext2D, v: VistaPuntos): vo
   escribir(ctx, v.libres, ANCHO / 2, 34, COLOR.texto, 'center');
   escribir(ctx, v.pista, ANCHO / 2, 52, COLOR.tenue, 'center');
 
-  v.filas.forEach((f, i) => {
+  for (let i = 0; i < v.filas.length; i++) {
+    const f = v.filas[i]!;
     const r = FILAS_PUNTOS[i]!;
     ctx.fillStyle = COLOR.fila;
     ctx.fillRect(r.x, r.y, r.ancho, r.alto);
@@ -69,7 +70,7 @@ export function dibujarPuntos(ctx: CanvasRenderingContext2D, v: VistaPuntos): vo
     escribir(ctx, f.valor, r.x + 200, y, f.sube ? COLOR.sube : COLOR.texto);
     dibujarSigno(ctx, r.x + SIGNO.menos, r.y, r.alto, '−', f.activa, f.puedeQuitar);
     dibujarSigno(ctx, r.x + SIGNO.mas, r.y, r.alto, '+', f.activa, f.puedePoner);
-  });
+  }
 
   dibujarMenu(ctx, v.menu);
 }
