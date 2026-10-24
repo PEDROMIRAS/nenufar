@@ -251,6 +251,8 @@ export interface DificultadJson {
   vida: number;
   /** Multiplica lo que la heroína recupera tras cada victoria. */
   recuperacion: number;
+  /** Multiplica, además, el ataque, la magia y los PV de los jefes violetas. */
+  violetas: number;
 }
 
 /** `src/data/combate.json`: reglas comunes de todos los combates. */

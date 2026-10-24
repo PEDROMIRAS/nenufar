@@ -89,12 +89,12 @@ function gastarPuntos(h: Luchador): void {
 }
 
 /** Monstruos y reglas con la dificultad de la partida ya aplicada. */
-interface Mundo {
+export interface Mundo {
   bestiario: Record<string, MonstruoJson>;
   reglas: ReglasCombate;
 }
 
-function pelear(
+export function pelear(
   h: Luchador,
   inv: Inventario,
   grupo: string[],
@@ -130,6 +130,17 @@ export function simular(
   nombre: string,
   partidas = 300,
   dificultad: DificultadJson = DIFICULTADES.normal,
+  /**
+   * Se llama al terminar de explorar cada zona (antes de la fuente y del jefe), con la heroína tal
+   * como entraría a la sala violeta: para probar combates con una copia sin tocar la partida.
+   */
+  alExplorar?: (
+    zona: keyof typeof zonas.zonas,
+    h: Luchador,
+    inv: Inventario,
+    mundo: Mundo,
+    s: number,
+  ) => void,
 ) {
   const mundo: Mundo = {
     bestiario: bestiarioCon(MONSTRUOS, dificultad),
@@ -140,6 +151,7 @@ export function simular(
   const sueltos: Record<string, Cuenta> = {};
   const reales: Record<string, Cuenta> = {};
   const jefes: Record<string, Cuenta> = {};
+  const trampas: Record<string, Cuenta> = {};
   /** Nivel con que se llega a cada jefe. */
   const niveles: Record<string, number[]> = {};
   const contar = (t: Record<string, Cuenta>, k: string, gana: boolean): void => {
@@ -155,19 +167,37 @@ export function simular(
     let viva = true;
     for (const [i, clave] of claves.entries()) {
       const z = zonas.zonas[clave];
-      const zona = generarZona({ ...zonas.generacion, salas: z.salas }, s + i * 7919);
+      // Sin salas violetas (son opcionales), pero con el tesoro trampa, que no se distingue de uno normal.
+      const zona = generarZona(
+        {
+          ...zonas.generacion,
+          salas: z.salas,
+          probabilidadTrampa: zonas.violetas.probabilidadTrampa,
+        },
+        s + i * 7919,
+      );
       let fuente = zona.salas.some((x) => x.tipo === 'descanso');
+      const abrir = (): void => {
+        const hallazgo = abrirCofre(z.cofre, azar, heroe, OBJETOS, inv);
+        if (hallazgo?.tipo === 'equipo') quizaEquipar(h, inv, hallazgo.clave);
+      };
       for (const sala of zona.salas) {
-        if (sala.tipo === 'tesoro') {
-          const hallazgo = abrirCofre(z.cofre, azar, heroe, OBJETOS, inv);
-          if (hallazgo?.tipo === 'equipo') quizaEquipar(h, inv, hallazgo.clave);
+        if (sala.tipo !== 'combate' && !sala.trampa) {
+          if (sala.tipo === 'tesoro') abrir();
+          continue;
         }
-        if (sala.tipo !== 'combate') continue;
         // La fuente se guarda para cuando hace falta.
         if (fuente && h.pv < h.pvMax * 0.5) {
           fuente = false;
           h.pv = h.pvMax;
           h.pm = h.pmMax;
+        }
+        if (sala.trampa) {
+          viva = pelear(h, inv, [z.cofreTrampa], azar, mundo);
+          contar(trampas, clave, viva);
+          if (!viva) break;
+          abrir();
+          continue;
         }
         const grupos = zonas.monstruos.gruposPorSala;
         const n = grupos.min + Math.floor(azar() * (grupos.max - grupos.min + 1));
@@ -188,6 +218,7 @@ export function simular(
         if (!viva) break;
       }
       if (!viva) break;
+      alExplorar?.(clave, h, inv, mundo, s);
       if (fuente) {
         h.pv = h.pvMax;
         h.pm = h.pmMax;
@@ -208,6 +239,7 @@ export function simular(
     sueltos,
     reales,
     jefes,
+    trampas,
     niveles,
     completas: Math.round((completas / partidas) * 1000) / 10,
   };

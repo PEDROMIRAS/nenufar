@@ -1,15 +1,20 @@
 import type { DificultadJson, MonstruoJson, ReglasCombate } from './types';
 
-/** Copia del monstruo con la dificultad aplicada: ataque y magia por `ataque`, PV por `vida`. */
+/**
+ * Copia del monstruo con la dificultad aplicada: ataque y magia por `ataque`, PV por `vida`. Los
+ * jefes violetas, además, por `violetas`: un combate suelto apenas nota la recuperación entre
+ * combates, que es lo que más cambia de una dificultad a otra.
+ */
 export function monstruoCon(m: MonstruoJson, d: DificultadJson): MonstruoJson {
   const e = m.estadisticas;
+  const extra = m.jefe && m.oculto ? d.violetas : 1;
   return {
     ...m,
     estadisticas: {
       ...e,
-      ataque: Math.round(e.ataque * d.ataque),
-      magia: Math.round(e.magia * d.ataque),
-      pv: Math.round(e.pv * d.vida),
+      ataque: Math.round(e.ataque * d.ataque * extra),
+      magia: Math.round(e.magia * d.ataque * extra),
+      pv: Math.round(e.pv * d.vida * extra),
     },
   };
 }

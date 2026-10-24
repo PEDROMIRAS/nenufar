@@ -8,7 +8,7 @@
   "violetas": {
     "probabilidad": 0.45,
     "probabilidadDragon": 0.2,
-    "probabilidadTrampa": 0.35,
+    "probabilidadTrampa": 0.25,
     "dragon": {
       "bosque": "dragon_negro_bosque",
       "ruinas": "dragon_negro_ruinas",
