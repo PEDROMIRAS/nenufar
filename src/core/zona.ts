@@ -38,6 +38,11 @@ export interface AjustesZona {
   salas: number;
   /** Salas del tesoro (con un cofre cada una), si hay callejones libres para ellas. */
   tesoros: number;
+  /** Sala violeta en un callejón libre: nunca, con `probabilidadVioleta` o siempre. Sin el campo, nunca. */
+  violeta?: 'no' | 'quiza' | 'seguro';
+  probabilidadVioleta?: number;
+  /** Probabilidad de un tesoro trampa en otro callejón libre. */
+  probabilidadTrampa?: number;
 }
 
 const MAX_SEMILLAS = 1000;
@@ -49,7 +54,8 @@ export function generarZona(ajustes: AjustesZona, semilla: number): Zona {
   }
   for (let s = semilla; s < semilla + MAX_SEMILLAS; s++) {
     const salas = intentar(ajustes, crearAzar(s));
-    if (salas) return { semilla: s, salas };
+    // Las tiradas de las salas violetas van con su propio azar: así una semilla da el trazado de siempre.
+    if (salas && colocarExtras(ajustes, salas, crearAzar(s * 31 + 7))) return { semilla: s, salas };
   }
   throw new Error(`Ninguna semilla desde ${semilla} genera una zona válida`);
 }
@@ -105,6 +111,26 @@ function intentar(a: AjustesZona, azar: () => number): SalaZona[] | null {
   }
   elegir(resto, azar)!.tipo = 'descanso';
   return salas;
+}
+
+/** Sala violeta y tesoro trampa en los callejones que quedan libres. Falso si la violeta es segura y no cabe. */
+function colocarExtras(a: AjustesZona, salas: SalaZona[], azar: () => number): boolean {
+  let libres = salas.filter((s) => s.tipo === 'combate' && (s.puertas & (s.puertas - 1)) === 0);
+  const violeta = a.violeta ?? 'no';
+  if (violeta === 'seguro' || (violeta === 'quiza' && azar() < (a.probabilidadVioleta ?? 0))) {
+    const sala = elegir(libres, azar);
+    if (!sala) return violeta !== 'seguro';
+    sala.tipo = 'violeta';
+    libres = libres.filter((s) => s !== sala);
+  }
+  if (azar() < (a.probabilidadTrampa ?? 0)) {
+    const sala = elegir(libres, azar);
+    if (sala) {
+      sala.tipo = 'tesoro';
+      sala.trampa = true;
+    }
+  }
+  return true;
 }
 
 function elegir<T>(lista: readonly T[], azar: () => number): T | undefined {
