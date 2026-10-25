@@ -45,6 +45,10 @@
         grid-area: 1 / 1;
         image-rendering: pixelated;
       }
+      /* Posicionado, para pintarse sobre #mundo: sin esto Safari dejaba el canvas WebGL encima. */
+      #juego {
+        position: relative;
+      }
       #mundo {
         pointer-events: none;
         image-rendering: auto;
