@@ -542,9 +542,9 @@
     "nombre": "Reina Araña",
     "sprite": "monstruos/reina_arana",
     "estadisticas": {
-      "pv": 115,
+      "pv": 167,
       "pm": 40,
-      "ataque": 16,
+      "ataque": 23,
       "magia": 0,
       "defensa": 12,
       "velocidad": 10
@@ -626,11 +626,11 @@
     "nombre": "Señor de la Cripta",
     "sprite": "monstruos/senor_cripta",
     "estadisticas": {
-      "pv": 187,
+      "pv": 271,
       "pm": 60,
-      "ataque": 19,
+      "ataque": 25,
       "magia": 16,
-      "defensa": 16,
+      "defensa": 12,
       "velocidad": 9
     },
     "acciones": [
@@ -707,10 +707,10 @@
     "nombre": "Rey sin Charca",
     "sprite": "monstruos/rey_sin_charca",
     "estadisticas": {
-      "pv": 140,
+      "pv": 203,
       "pm": 60,
-      "ataque": 19,
-      "magia": 20,
+      "ataque": 25,
+      "magia": 26,
       "defensa": 4,
       "velocidad": 9
     },
@@ -782,7 +782,7 @@
   "caballero_maldito": {
     "nombre": "Caballero maldito",
     "sprite": "monstruos/caballero_maldito",
-    "estadisticas": { "pv": 215, "pm": 0, "ataque": 13, "magia": 0, "defensa": 11, "velocidad": 3 },
+    "estadisticas": { "pv": 225, "pm": 0, "ataque": 13, "magia": 0, "defensa": 11, "velocidad": 3 },
     "acciones": [
       { "accion": "atacar", "peso": 55 },
       { "accion": "cargar", "peso": 30 },
@@ -798,12 +798,12 @@
   "ojo_flotante": {
     "nombre": "Ojo flotante",
     "sprite": "monstruos/ojo_flotante",
-    "estadisticas": { "pv": 125, "pm": 50, "ataque": 33, "magia": 39, "defensa": 6, "velocidad": 9 },
+    "estadisticas": { "pv": 140, "pm": 50, "ataque": 28, "magia": 32, "defensa": 6, "velocidad": 9 },
     "acciones": [
-      { "accion": "atacar", "peso": 30 },
+      { "accion": "atacar", "peso": 20 },
       { "accion": "Mirada venenosa", "peso": 25 },
       { "accion": "Mirada ardiente", "peso": 25 },
-      { "accion": "Mirada paralizante", "peso": 20 }
+      { "accion": "Mirada paralizante", "peso": 30 }
     ],
     "habilidades": [
       {
@@ -865,7 +865,7 @@
   "dragon_negro_ruinas": {
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
-    "estadisticas": { "pv": 140, "pm": 0, "ataque": 20, "magia": 0, "defensa": 10, "velocidad": 6 },
+    "estadisticas": { "pv": 150, "pm": 0, "ataque": 20, "magia": 0, "defensa": 10, "velocidad": 6 },
     "acciones": [
       { "accion": "atacar", "peso": 55 },
       { "accion": "cargar", "peso": 45 }
@@ -890,7 +890,7 @@
   "dragon_negro_cripta": {
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
-    "estadisticas": { "pv": 260, "pm": 0, "ataque": 27, "magia": 0, "defensa": 8, "velocidad": 10 },
+    "estadisticas": { "pv": 262, "pm": 0, "ataque": 27, "magia": 0, "defensa": 8, "velocidad": 10 },
     "acciones": [
       { "accion": "atacar", "peso": 55 },
       { "accion": "cargar", "peso": 45 }

@@ -40,7 +40,7 @@
     },
     "margenEsquina": 8,
     "estadisticas": {
-      "pv": 41,
+      "pv": 37,
       "pm": 8,
       "ataque": 9,
       "magia": 3,
@@ -49,10 +49,10 @@
     },
     "porNivel": {
       "pv": 6,
-      "pm": 1,
+      "pm": 2,
       "ataque": 1,
       "magia": 0,
-      "defensa": 1,
+      "defensa": 2,
       "velocidad": 1
     },
     "armaInicial": "katana_gastada",
@@ -169,8 +169,8 @@
     },
     "margenEsquina": 8,
     "estadisticas": {
-      "pv": 34,
-      "pm": 18,
+      "pv": 35,
+      "pm": 20,
       "ataque": 5,
       "magia": 10,
       "defensa": 4,
@@ -246,7 +246,7 @@
         "nombre": "Cometa arcano",
         "nivel": 99,
         "recompensa": true,
-        "pm": 22,
+        "pm": 24,
         "objetivo": "todos",
         "danio": {
           "tipo": "magico",
