@@ -2,25 +2,25 @@
   "facil": {
     "nombre": "Fácil",
     "descripcion": "Para disfrutar de la historia: te recuperas mucho más al ganar cada combate.",
-    "ataque": 1.08,
-    "vida": 0.97,
+    "ataque": 1.11,
+    "vida": 0.88,
     "recuperacion": 1,
-    "violetas": 1.05
+    "violetas": 1.04
   },
   "normal": {
     "nombre": "Normal",
     "descripcion": "El reto pensado para una primera partida: hay que usar bien Defender, las habilidades y los objetos.",
-    "ataque": 1.08,
-    "vida": 0.97,
-    "recuperacion": 0.53,
-    "violetas": 1.06
+    "ataque": 1.11,
+    "vida": 0.94,
+    "recuperacion": 0.69,
+    "violetas": 1.09
   },
   "dificil": {
     "nombre": "Difícil",
     "descripcion": "Para quien ya lo ha terminado: apenas te recuperas entre combates, cada golpe cuenta.",
-    "ataque": 1.05,
+    "ataque": 1.13,
     "vida": 0.95,
-    "recuperacion": 0.27,
-    "violetas": 1.06
+    "recuperacion": 0.4,
+    "violetas": 1.07
   }
 }

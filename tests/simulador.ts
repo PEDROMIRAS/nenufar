@@ -54,9 +54,19 @@ function decidir(c: Combate, azar: () => number): AccionHeroina {
   }
   const area = habs.find((x) => x.objetivo === 'todos' && x.danio);
   if (area && vivos.length > 1) return { tipo: 'habilidad', habilidad: area, objetivo: null };
-  const uno = habs
+  const porPoder = habilidadesDisponibles(h)
     .filter((x) => x.objetivo === 'uno' && x.danio)
-    .sort((a, b) => b.danio!.poder - a.danio!.poder)[0];
+    .sort((a, b) => b.danio!.poder - a.danio!.poder);
+  // Contra un jefe bebe éter si no le llega para su golpe más fuerte, como haría una persona.
+  if (
+    porPoder[0] &&
+    porPoder[0].pm > h.pm &&
+    vivos.some((e) => e.monstruo?.jefe) &&
+    (c.inventario?.consumibles.eter ?? 0) > 0
+  ) {
+    return { tipo: 'objeto', clave: 'eter' };
+  }
+  const uno = porPoder.find((x) => x.pm <= h.pm);
   if (uno) return { tipo: 'habilidad', habilidad: uno, objetivo };
   return { tipo: 'atacar', objetivo };
 }

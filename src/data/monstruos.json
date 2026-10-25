@@ -710,8 +710,8 @@
       "pv": 213,
       "pm": 60,
       "ataque": 25,
-      "magia": 26,
-      "defensa": 10,
+      "magia": 30,
+      "defensa": 8,
       "velocidad": 9
     },
     "acciones": [
@@ -756,7 +756,7 @@
   "arbol_maldito": {
     "nombre": "Árbol maldito",
     "sprite": "monstruos/arbol_maldito",
-    "estadisticas": { "pv": 88, "pm": 20, "ataque": 11, "magia": 0, "defensa": 7, "velocidad": 2 },
+    "estadisticas": { "pv": 106, "pm": 20, "ataque": 11, "magia": 0, "defensa": 7, "velocidad": 2 },
     "acciones": [
       { "accion": "atacar", "peso": 50 },
       { "accion": "Raíces", "peso": 25 },
@@ -782,7 +782,7 @@
   "caballero_maldito": {
     "nombre": "Caballero maldito",
     "sprite": "monstruos/caballero_maldito",
-    "estadisticas": { "pv": 232, "pm": 0, "ataque": 13, "magia": 0, "defensa": 11, "velocidad": 3 },
+    "estadisticas": { "pv": 240, "pm": 0, "ataque": 13, "magia": 0, "defensa": 11, "velocidad": 3 },
     "acciones": [
       { "accion": "atacar", "peso": 55 },
       { "accion": "cargar", "peso": 30 },
@@ -798,7 +798,7 @@
   "ojo_flotante": {
     "nombre": "Ojo flotante",
     "sprite": "monstruos/ojo_flotante",
-    "estadisticas": { "pv": 165, "pm": 50, "ataque": 28, "magia": 32, "defensa": 6, "velocidad": 9 },
+    "estadisticas": { "pv": 335, "pm": 50, "ataque": 28, "magia": 18, "defensa": 14, "velocidad": 9 },
     "acciones": [
       { "accion": "atacar", "peso": 20 },
       { "accion": "Mirada venenosa", "peso": 25 },
@@ -840,7 +840,7 @@
   "dragon_negro_bosque": {
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
-    "estadisticas": { "pv": 66, "pm": 0, "ataque": 22, "magia": 0, "defensa": 5, "velocidad": 6 },
+    "estadisticas": { "pv": 70, "pm": 0, "ataque": 22, "magia": 0, "defensa": 4, "velocidad": 6 },
     "acciones": [
       { "accion": "atacar", "peso": 55 },
       { "accion": "cargar", "peso": 45 }
@@ -865,7 +865,7 @@
   "dragon_negro_ruinas": {
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
-    "estadisticas": { "pv": 150, "pm": 0, "ataque": 20, "magia": 0, "defensa": 10, "velocidad": 6 },
+    "estadisticas": { "pv": 148, "pm": 0, "ataque": 20, "magia": 0, "defensa": 10, "velocidad": 6 },
     "acciones": [
       { "accion": "atacar", "peso": 55 },
       { "accion": "cargar", "peso": 45 }
@@ -890,7 +890,7 @@
   "dragon_negro_cripta": {
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
-    "estadisticas": { "pv": 270, "pm": 0, "ataque": 27, "magia": 0, "defensa": 8, "velocidad": 10 },
+    "estadisticas": { "pv": 330, "pm": 0, "ataque": 27, "magia": 0, "defensa": 8, "velocidad": 10 },
     "acciones": [
       { "accion": "atacar", "peso": 55 },
       { "accion": "cargar", "peso": 45 }

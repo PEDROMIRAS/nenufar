@@ -75,7 +75,7 @@
         "objetivo": "uno",
         "danio": {
           "tipo": "fisico",
-          "poder": 1.4
+          "poder": 1.6
         },
         "efecto": "corte_doble",
         "sonido": "corte_doble"
@@ -108,7 +108,7 @@
         "objetivo": "uno",
         "danio": {
           "tipo": "fisico",
-          "poder": 2.5,
+          "poder": 2.1,
           "criticoSeguro": true
         },
         "efecto": "iaido",
