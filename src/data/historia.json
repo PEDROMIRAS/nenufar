@@ -51,6 +51,14 @@
       "caida": "«Toma mi corazón... aún late. Que lata por ti.»"
     }
   },
+  "recompensas": {
+    "habilidad": { "titulo": "Nueva habilidad", "texto": "Has aprendido {habilidad}." },
+    "pieza": { "titulo": "¡Recompensa!", "texto": "{jefe} deja {pieza}." },
+    "corazon": {
+      "titulo": "Corazón del dragón negro",
+      "texto": "Late contigo. Si caes en combate, te levantará una vez."
+    }
+  },
   "jefeFinal": {
     "heredado": "{nombre}, Señora de la Cripta",
     "inicio": "«Yo también llegué hasta aquí, hace mil años. Yo también lo vencí. Bebe, y no morirás nunca.»",

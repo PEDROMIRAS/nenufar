@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import type { AjustesVioletas } from '../src/core/types';
+import historia from '../src/data/historia.json';
 import zonas from '../src/data/zonas.json';
 
 test('cada zona tiene su jefe violeta y su dragón, y las probabilidades de las violetas están en (0, 1)', () => {
@@ -16,4 +17,12 @@ test('cada zona tiene su jefe violeta y su dragón, y las probabilidades de las 
   ]) {
     expect(p > 0 && p < 1).toBe(true);
   }
+});
+
+test('los textos de las recompensas están en historia.json, con sus huecos', () => {
+  const r = historia.recompensas;
+  expect(r.habilidad.texto).toContain('{habilidad}');
+  expect(r.pieza.texto).toContain('{jefe}');
+  expect(r.pieza.texto).toContain('{pieza}');
+  for (const t of [r.habilidad, r.pieza, r.corazon]) expect(t.titulo).toBeTruthy();
 });

@@ -494,19 +494,21 @@ function premiar(partida: Partida, jefe: MonstruoJson, alFinal: () => void): voi
   if (r) {
     const ganado = aplicarRecompensa(l, inv, heroe, r);
     if (r === 'habilidad') {
-      textos.push({ titulo: 'Nueva habilidad', texto: `Has aprendido ${ganado}.` });
+      const t = historia.recompensas.habilidad;
+      textos.push({ titulo: t.titulo, texto: t.texto.replace('{habilidad}', ganado) });
     } else {
       pieza = ganado;
       const nombre = OBJETOS.equipo[ganado]?.nombre ?? ganado;
-      textos.push({ titulo: '¡Recompensa!', texto: `${jefe.nombre} deja ${nombre}.` });
+      const t = historia.recompensas.pieza;
+      textos.push({
+        titulo: t.titulo,
+        texto: t.texto.replace('{jefe}', jefe.nombre).replace('{pieza}', nombre),
+      });
     }
   }
   if (Object.values(zonas.violetas.dragon).includes(jefe.clave ?? '')) {
     inv.corazon = 'lleno';
-    textos.push({
-      titulo: 'Corazón del dragón negro',
-      texto: 'Late contigo. Si caes en combate, te levantará una vez.',
-    });
+    textos.push(historia.recompensas.corazon);
   }
   contar(partida.pila, textos, () =>
     pieza ? ofrecerEquipo(partida, [pieza], alFinal) : alFinal(),
