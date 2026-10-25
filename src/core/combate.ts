@@ -315,6 +315,11 @@ export function actuar(c: Combate, accion: AccionHeroina): Evento[] {
   c.esperando = false;
   const eventos: Evento[] = [];
   if (accion.tipo === 'atacar') {
+    const pm = Math.min(h.pmMax - h.pm, h.heroe?.pmAlAtacar ?? 0);
+    if (pm > 0) {
+      h.pm += pm;
+      eventos.push({ tipo: 'mana', objetivo: h, cantidad: pm });
+    }
     golpear(c, h, accion.objetivo, 1, false, false, false, eventos);
   } else if (accion.tipo === 'habilidad') {
     usarHabilidad(c, h, accion.habilidad, accion.objetivo, eventos);

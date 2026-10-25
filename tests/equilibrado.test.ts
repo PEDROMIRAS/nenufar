@@ -2,13 +2,13 @@ import { expect, test } from 'vitest';
 import { DIFICULTADES, HEROES } from '../src/data/datos';
 import { pct, simular, type Cuenta } from './simulador';
 
-// Equilibrado (decisión de Pedro): porcentaje de partidas jugadas con cabeza que llegan al final en
+// Equilibrado (decisión de Pedro, rangos del 2026-10-25): porcentaje de partidas jugadas con cabeza que llegan al final en
 // cada dificultad, y ninguna heroína a más de 5 puntos de la otra. Si falla, se ajustan los JSON,
 // nunca las fórmulas.
 const OBJETIVO: Record<keyof typeof DIFICULTADES, [number, number]> = {
-  facil: [85, 90],
-  normal: [70, 75],
-  dificil: [50, 55],
+  facil: [85, 95],
+  normal: [65, 75],
+  dificil: [45, 55],
 };
 
 test.each(Object.entries(OBJETIVO))(

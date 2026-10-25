@@ -75,6 +75,8 @@ export interface HeroeJson {
   caja: { ancho: number; alto: number };
   /** Píxeles que se la empuja de lado para que no se enganche en la esquina de un hueco. */
   margenEsquina: number;
+  /** PM que recupera con cada ataque normal (la ronin), para llegar a los jefes con sus técnicas. */
+  pmAlAtacar?: number;
   estadisticas: Estadisticas;
   /** Lo que suma cada estadística al subir de nivel. */
   porNivel: Estadisticas;

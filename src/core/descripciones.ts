@@ -1,4 +1,4 @@
-import type { ConsumibleJson, EstadoJson, HabilidadJson, ReglasCombate } from './types';
+import type { ConsumibleJson, EstadoJson, HabilidadJson, HeroeJson, ReglasCombate } from './types';
 
 // Textos de ayuda del combate, sacados de los datos: si se reequilibra un número, la ayuda cambia sola.
 
@@ -61,10 +61,11 @@ export function describirConsumible(
 }
 
 /** Ayuda de las cinco acciones del menú principal, en su orden. */
-export function describirAcciones(reglas: ReglasCombate): string[] {
+export function describirAcciones(reglas: ReglasCombate, heroe?: HeroeJson | null): string[] {
   const { defender, huida } = reglas;
+  const pm = heroe?.pmAlAtacar;
   return [
-    'Golpe normal a un enemigo.',
+    pm ? `Golpe normal a un enemigo. Recuperas ${pm} PM.` : 'Golpe normal a un enemigo.',
     'Técnicas especiales que gastan PM.',
     'Usa algo del inventario.',
     `Recibes un ${pct(1 - defender.factorDanio)} menos de daño hasta tu turno y recuperas ${defender.pm} PM.`,

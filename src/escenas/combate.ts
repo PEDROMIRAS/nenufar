@@ -95,7 +95,7 @@ export class EscenaCombate implements Escena {
     fondo: HTMLCanvasElement,
     private readonly alTerminar: (resultado: Resultado) => void,
   ) {
-    this.ayudaAcciones = describirAcciones(combate.reglas).map(ayuda);
+    this.ayudaAcciones = describirAcciones(combate.reglas, combate.heroina.heroe).map(ayuda);
     this.pista = combate.enemigos.some((e) => e.monstruo?.jefe) ? 'jefe' : 'combate';
     const todos = [combate.heroina, ...combate.enemigos];
     const h = combate.heroina;

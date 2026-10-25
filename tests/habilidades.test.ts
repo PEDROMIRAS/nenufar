@@ -11,6 +11,7 @@ import {
   type Combate,
   type Evento,
 } from '../src/core/combate';
+import { describirAcciones } from '../src/core/descripciones';
 import type { HabilidadJson, HeroeJson, MonstruoJson, ReglasCombate } from '../src/core/types';
 import { HEROES as heroes, MONSTRUOS, REGLAS } from '../src/data/datos';
 
@@ -48,12 +49,14 @@ describe('habilidades', () => {
     expect(habilidadesDisponibles(h)).toHaveLength(4);
   });
 
-  test('Corte rápido: daño físico con poder 1,6 y cuesta 3 PM', () => {
+  test('Corte rápido: daño físico con su poder y cuesta sus PM', () => {
     const c = combate(heroes.ronin);
+    const corte = habilidad(heroes.ronin, 'Corte rápido');
     usar(c, 'Corte rápido', heroes.ronin);
-    // (9 × 1,6 − 3 × 0,5) = 12,9 → 12
-    expect(c.enemigos[0]!.pv).toBe(100 - 12);
-    expect(c.heroina.pm).toBe(8 - 3);
+    // (ATQ × poder − DEF × 0,5), sin varianza ni crítico.
+    const danio = Math.floor(heroes.ronin.estadisticas.ataque * corte.danio!.poder - 3 * 0.5);
+    expect(c.enemigos[0]!.pv).toBe(100 - danio);
+    expect(c.heroina.pm).toBe(heroes.ronin.estadisticas.pm - corte.pm);
   });
 
   test('si la habilidad gana el combate, su evento lleva los PM tras pagarla, no los recuperados después', () => {
@@ -241,5 +244,34 @@ describe('Cometa arcano rompe el golpe cargado', () => {
     expect(c.resultado).toBe('victoria');
     expect(eventos.some((e) => e.tipo === 'cargaRota')).toBe(false);
     for (const e of c.enemigos) expect(e.cargando).toBe(false);
+  });
+});
+
+describe('PM al atacar (lo que diga heroes.json)', () => {
+  test('la ronin recupera PM con el ataque normal, sin pasar del máximo, y se anuncia', () => {
+    const pmAlAtacar = heroes.ronin.pmAlAtacar!;
+    expect(pmAlAtacar).toBeGreaterThan(0);
+    const c = combate(heroes.ronin);
+    c.heroina.pm = 0;
+    const eventos = actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
+    expect(eventos).toContainEqual({ tipo: 'mana', objetivo: c.heroina, cantidad: pmAlAtacar });
+    expect(c.heroina.pm).toBe(pmAlAtacar);
+    const lleno = combate(heroes.ronin);
+    const eventosLleno = actuar(lleno, { tipo: 'atacar', objetivo: lleno.enemigos[0]! });
+    expect(lleno.heroina.pm).toBe(lleno.heroina.pmMax);
+    expect(eventosLleno.some((e) => e.tipo === 'mana')).toBe(false);
+  });
+
+  test('la maga no recupera PM al atacar', () => {
+    const c = combate(heroes.maga);
+    c.heroina.pm = 0;
+    const eventos = actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
+    expect(eventos.some((e) => e.tipo === 'mana')).toBe(false);
+    expect(c.heroina.pm).toBe(0);
+  });
+
+  test('la ayuda del ataque lo cuenta solo a quien recupera PM', () => {
+    expect(describirAcciones(REGLAS, heroes.ronin)[0]).toContain('PM');
+    expect(describirAcciones(REGLAS, heroes.maga)[0]).not.toContain('PM');
   });
 });
