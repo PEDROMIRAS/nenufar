@@ -53,11 +53,18 @@ export function pintarMinimapa(
     const v = zona.salas.find((o) => o.x === x && o.y === y);
     return v !== undefined && estado.get(v) !== 'oculta';
   };
-  for (const s of zona.salas) {
+  // Lo que se ve, centrado en el panel: en su sitio de la rejilla quedaba pegado a un borde.
+  const vistas = zona.salas.filter((s) => estado.get(s) !== 'oculta');
+  const minX = Math.min(...vistas.map((s) => s.x));
+  const maxX = Math.max(...vistas.map((s) => s.x));
+  const minY = Math.min(...vistas.map((s) => s.y));
+  const maxY = Math.max(...vistas.map((s) => s.y));
+  const desdeX = BORDE + Math.round(((rejilla - 1 - maxX - minX) * pasoX) / 2);
+  const desdeY = BORDE + Math.round(((rejilla - 1 - maxY - minY) * pasoY) / 2);
+  for (const s of vistas) {
     const e = estado.get(s);
-    if (e === 'oculta') continue;
-    const x = BORDE + s.x * pasoX;
-    const y = BORDE + s.y * pasoY;
+    const x = desdeX + s.x * pasoX;
+    const y = desdeY + s.y * pasoY;
     if (e === 'contorno') {
       // Marco de 1 px: rectángulo lleno y su interior devuelto al fondo, sin trazos que se emborronen.
       ctx.fillStyle = COLOR.contorno;
