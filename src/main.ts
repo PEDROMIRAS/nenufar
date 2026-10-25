@@ -725,4 +725,7 @@ function mostrarError(error: unknown): void {
   console.error(error);
 }
 
+// Un fallo dentro del bucle corta el requestAnimationFrame: sin esto el juego se congela sin avisar.
+addEventListener('error', (e) => mostrarError(e.error ?? e.message));
+addEventListener('unhandledrejection', (e) => mostrarError(e.reason));
 iniciar().catch(mostrarError);
