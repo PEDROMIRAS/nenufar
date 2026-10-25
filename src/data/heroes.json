@@ -40,7 +40,7 @@
     },
     "margenEsquina": 8,
     "estadisticas": {
-      "pv": 37,
+      "pv": 36,
       "pm": 8,
       "ataque": 9,
       "magia": 3,
@@ -103,7 +103,7 @@
       {
         "nombre": "Iaido",
         "nivel": 7,
-        "pm": 7,
+        "pm": 6,
         "objetivo": "uno",
         "danio": {
           "tipo": "fisico",
