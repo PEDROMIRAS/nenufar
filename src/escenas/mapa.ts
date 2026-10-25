@@ -47,11 +47,10 @@ import {
 import { pintarMinimapa } from '../render/minimapa';
 import { crearLluvia, dibujarLluvia, moverLluvia, type Lluvia } from '../render/lluvia';
 import { direccionDe } from '../render/monstruo';
-import type { Actor, Mundo, VistaSala } from '../render/mundo/mundo';
+import type { Actor, FondoSala, Mundo, VistaSala } from '../render/mundo/mundo';
 import type { Sprite } from '../render/recursos';
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
 import { ponerMusica, sonar } from '../render/sonido';
-import { pintarFondo } from '../render/sala';
 import { ALTO, ANCHO, dentro } from '../render/pantalla';
 import type { Escena } from './escena';
 
@@ -80,8 +79,6 @@ interface MonstruoMapa {
 
 interface SalaMontada {
   sala: Sala;
-  /** Fondo en 2D: hasta el hito 9 es el decorado del combate. */
-  fondo: HTMLCanvasElement;
   /** La sala en 3D y un actor por monstruo de cada grupo; se montan la primera vez que se ve. */
   vista: { sala: VistaSala; actores: Actor[][] } | null;
   monstruos: MonstruoMapa[];
@@ -469,10 +466,9 @@ export class EscenaMapa implements Escena {
     return m.vista;
   }
 
-  /** Fondo ya pintado de la sala actual (el combate lo usa de decorado). */
-  get fondoSala(): HTMLCanvasElement {
-    return this.montada.fondo;
-  }
+  /** La sala actual en 3D, de decorado del combate y de la presentación de los jefes. */
+  readonly fondoSala: FondoSala = (tiempo, temblor, luz) =>
+    this.o.mundo.dibujarFondo(this.vistaDe(this.montada).sala, tiempo, temblor, luz);
 
   private luchar(m: MonstruoMapa): void {
     const sala = this.montada;
@@ -563,7 +559,7 @@ export class EscenaMapa implements Escena {
   private montar(s: SalaZona): SalaMontada {
     const hecha = this.montadas.get(s);
     if (hecha) return hecha;
-    const { zona, plantillas, catalogo, imagenes, tam } = this.o;
+    const { zona, plantillas, catalogo, tam } = this.o;
     // Semilla propia por sala: la misma zona da siempre las mismas salas, se visiten en el orden que sea.
     const azar = crearAzar(zona.semilla * 1009 + zona.salas.indexOf(s));
     const candidatas = plantillas.plantillas.filter((p) => p.tipo === s.tipo);
@@ -580,7 +576,7 @@ export class EscenaMapa implements Escena {
       const f = this.o.fuente;
       chocarConElipse(sala, tam, fuente.x + 0.5, fuente.y + f.centroZ, f.radioX, f.radioZ);
     }
-    // Con jefe, el portal se saca de la sala antes de pintar el fondo (sin él ni su halo).
+    // Con jefe, el portal se saca de la sala hasta vencerlo.
     let portal: ObjetoSala | null = null;
     if (s.tipo === 'jefe' && this.o.jefe) {
       portal = sala.objetos.find((o) => o.inf.name === 'portal') ?? null;
@@ -588,7 +584,6 @@ export class EscenaMapa implements Escena {
     }
     const montada = {
       sala,
-      fondo: pintarFondo(sala, imagenes, tam),
       vista: null,
       monstruos: this.poblar(s, sala, azar),
       portal,
@@ -606,7 +601,6 @@ export class EscenaMapa implements Escena {
       this.o.mundo.refrescarLuces();
     }
     m.portal = null;
-    m.fondo = pintarFondo(m.sala, this.o.imagenes, this.o.tam);
   }
 
   /** Grupos de monstruos de una sala de combate, en casillas libres lejos de las entradas. */

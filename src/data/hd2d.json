@@ -7,6 +7,7 @@
   "inclinacionSprites": 0.5,
   "resolucionMaxima": 2,
   "desenfoque": 2.4,
+  "combate": { "desenfoque": 3, "foco": 0.5 },
   "bloom": { "fuerza": 0.55, "radio": 0.5, "umbral": 0.72 },
   "vineta": { "offset": 1.0, "oscuridad": 1.15 },
   "sombras": { "principal": 1024, "puntual": 512 },
@@ -48,6 +49,14 @@
       "alcance": 4.5,
       "alto": 0.9,
       "parpadeo": 0.12,
+      "sombra": false
+    },
+    "fuego_morado": {
+      "color": "#b46cff",
+      "intensidad": 10,
+      "alcance": 5,
+      "alto": 0.6,
+      "parpadeo": 0,
       "sombra": false
     },
     "portal": {

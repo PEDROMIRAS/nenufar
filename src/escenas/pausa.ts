@@ -19,6 +19,7 @@ import {
 import { dentro } from '../render/pantalla';
 import type { Sprite } from '../render/recursos';
 import type { Casilla, Deslizador } from '../render/deslizador';
+import { esCalidadAlta, ponerCalidadAlta } from '../render/mundo/mundo';
 import {
   estaSilenciado,
   leerVolumenEfectos,
@@ -65,8 +66,13 @@ export class EscenaPausa implements Escena {
     private readonly objetos: ObjetosJson,
     private readonly progresion: ReglasProgresion,
     private readonly estados: Record<string, EstadoJson>,
-    /** Sonido sí o no y volumen de música y efectos: controles HTML sobre el canvas en la pestaña Ajustes. */
-    private readonly controles: { sonido: Casilla; musica: Deslizador; efectos: Deslizador },
+    /** Sonido sí o no, calidad alta o baja y volumen de música y efectos: controles HTML sobre el canvas en la pestaña Ajustes. */
+    private readonly controles: {
+      sonido: Casilla;
+      calidad: Casilla;
+      musica: Deslizador;
+      efectos: Deslizador;
+    },
     /** Abre la pantalla de Equipo para cambiar arma y armadura. */
     private readonly alEquipo: () => void,
     /** Abre la pantalla de puntos de mejora. */
@@ -86,15 +92,19 @@ export class EscenaPausa implements Escena {
       ficha: this.ficha,
       menu: this.menu,
     };
-    // Con el foco en un control HTML, ↑ y ↓ van de uno a otro; ↑ desde Sonido sube a las pestañas
-    // y ↓ desde Efectos baja al menú.
-    const { sonido, musica, efectos } = controles;
+    // Con el foco en un control HTML, ↑ y ↓ van de uno a otro (Sonido, Calidad, Música, Efectos); ↑ desde
+    // Sonido sube a las pestañas y ↓ desde Efectos baja al menú.
+    const { sonido, calidad, musica, efectos } = controles;
     sonido.enlazar(
       () => (this.enPestanas = true),
+      () => calidad.enfocar(),
+    );
+    calidad.enlazar(
+      () => sonido.enfocar(),
       () => musica.enfocar(),
     );
     musica.enlazar(
-      () => sonido.enfocar(),
+      () => calidad.enfocar(),
       () => efectos.enfocar(),
     );
     efectos.enlazar(() => musica.enfocar(), null);
@@ -158,7 +168,11 @@ export class EscenaPausa implements Escena {
     const seleccion = this.menu.seleccion;
     const c = this.controles;
     const arriba =
-      this.enPestanas || c.sonido.enfocado() || c.musica.enfocado() || c.efectos.enfocado();
+      this.enPestanas ||
+      c.sonido.enfocado() ||
+      c.calidad.enfocado() ||
+      c.musica.enfocado() ||
+      c.efectos.enfocado();
     if (arriba) this.menu.seleccion = -1;
     const v = this.vista;
     v.pagina = this.pagina;
@@ -225,7 +239,7 @@ export class EscenaPausa implements Escena {
           ]
         : this.pagina === 'objetos'
           ? f.objetos.map((o) => `${o.titulo}: ${o.lineas.join(' ')}`)
-          : ['Sonido, música y efectos', `Controles. ${TEXTO_CONTROLES}`];
+          : ['Sonido, calidad, música y efectos', `Controles. ${TEXTO_CONTROLES}`];
     anunciar([`Inventario, pestaña ${NOMBRE_PAGINA[this.pagina]}`, ...contenido].join('. '));
   }
 
@@ -236,12 +250,14 @@ export class EscenaPausa implements Escena {
       return;
     }
     this.controles.sonido.mostrar(!estaSilenciado(), (si) => silenciar(!si));
+    this.controles.calidad.mostrar(esCalidadAlta(), ponerCalidadAlta);
     this.controles.musica.mostrar(leerVolumenMusica(), ponerVolumenMusica);
     this.controles.efectos.mostrar(leerVolumenEfectos(), ponerVolumenEfectos);
   }
 
   private ocultarControles(): void {
     this.controles.sonido.ocultar();
+    this.controles.calidad.ocultar();
     this.controles.musica.ocultar();
     this.controles.efectos.ocultar();
   }

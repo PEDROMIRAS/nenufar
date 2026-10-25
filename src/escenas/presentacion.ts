@@ -2,6 +2,7 @@ import { anunciar, movimientoReducido } from '../render/accesibilidad';
 import { ALTO, ANCHO } from '../render/pantalla';
 import { sonar } from '../render/sonido';
 import { escribir, FUENTE_TITULO } from '../render/texto';
+import type { FondoSala } from '../render/mundo/mundo';
 import type { Escena } from './escena';
 
 // Medio segundo de temblor que se apaga, y el nombre que aparece en otro tanto.
@@ -19,7 +20,7 @@ export class EscenaPresentacion implements Escena {
   private readonly subtitulo: string;
 
   constructor(
-    private readonly fondo: HTMLCanvasElement,
+    private readonly fondo: FondoSala,
     nombre: string,
     private readonly duracion: number,
     private readonly alTerminar: () => void,
@@ -46,9 +47,8 @@ export class EscenaPresentacion implements Escena {
   draw(ctx: CanvasRenderingContext2D): void {
     const queda = Math.max(0, 1 - this.t / TEMBLOR);
     const dx = movimientoReducido() ? 0 : Math.round(Math.sin(this.t * 60) * 4 * queda);
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, ANCHO, ALTO);
-    ctx.drawImage(this.fondo, dx, 0);
+    this.fondo(this.t, dx, null);
+    ctx.clearRect(0, 0, ANCHO, ALTO);
     ctx.fillStyle = 'rgba(8, 4, 12, 0.6)';
     ctx.fillRect(0, 0, ANCHO, ALTO);
     ctx.globalAlpha = Math.min(1, this.t / APARICION);

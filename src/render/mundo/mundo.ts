@@ -11,6 +11,7 @@ import { crearAzar } from '../../core/azar';
 import type { ObjetoSala, Sala, Salida, Tile } from '../../core/sala';
 import type { Direccion, Hd2dJson, LuzHd2d, ZonaHd2d } from '../../core/types';
 import { N, S } from '../../core/zona';
+import { cargarAjustes, guardarAjustes } from '../almacen';
 import { ALTO, ANCHO } from '../pantalla';
 import type { Sprite } from '../recursos';
 import { dibujarTile } from '../sala';
@@ -21,12 +22,30 @@ import { crearBarrera, crearModelo } from './modelos';
 import { ajustarPixelArt, cuentaColores, pintar, textura } from './texturas';
 import { transparentar, uniformesTransparencia } from './transparencia';
 
+// Calidad elegida en la pausa (como el sonido): el mundo la aplica al dibujar el siguiente fotograma.
+let calidadAlta = !cargarAjustes().calidadBaja;
+
+export const esCalidadAlta = (): boolean => calidadAlta;
+
+/** Alta, con desenfoque y sombras; baja, sin ellos. Se guarda en los ajustes. */
+export function ponerCalidadAlta(alta: boolean): void {
+  calidadAlta = alta;
+  guardarAjustes({ calidadBaja: !alta });
+}
+
 /** Luces puntuales que hay siempre en la escena: cambiar cuántas hay obliga a recompilar los materiales. */
 const PUNTUALES = 4;
 /** Píxeles de una casilla (el tileSize de todos los tilesets): una unidad del mundo. */
 const TAM = 32;
 
 /** Un sprite de pie (heroína o monstruo) con su hoja de animaciones; el fotograma se elige moviendo la textura. */
+/** Dibuja la sala de fondo del combate: tiempo de sus animaciones, temblor en píxeles y luz de un proyectil. */
+export type FondoSala = (
+  tiempo: number,
+  temblor: number,
+  luz: { nombre: string; x: number; y: number } | null,
+) => void;
+
 export interface Actor {
   malla: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshLambertMaterial>;
   tex: THREE.Texture;
@@ -57,6 +76,8 @@ export interface VistaSala {
   /** Barrera de cada salida, que se ve mientras está cerrada. */
   barreras: { lado: number; obj: THREE.Object3D }[];
   azar: () => number;
+  /** Monstruos de la sala (sprites de pie), que no salen en el fondo del combate. */
+  actores: Actor[];
   /** Punto al que mira la cámara y casillas de ancho que caben, en casillas (la sala entera, salvo en la portada). */
   encuadre: { x: number; z: number; ancho: number };
 }
@@ -93,8 +114,18 @@ export class Mundo {
   private vista: VistaSala | null = null;
   private readonly giro: number;
   private readonly estirar: number;
-  /** Vector de trabajo para proyectar a pantalla (sin crear nada en el bucle). */
+  /** Vectores de trabajo para proyectar a pantalla y al revés (sin crear nada en el bucle). */
   private readonly pantalla = new THREE.Vector3();
+  private readonly rayo = new THREE.Vector3();
+  /** Desenfoque normal del tilt-shift, en fracción de pantalla (depende del tamaño del dibujo). */
+  private desenfoqueH = 0;
+  private desenfoqueV = 0;
+  /** X de la cámara en la sala que se ve, para volver a ella tras el temblor. */
+  private camaraX = 0;
+  /** Calidad aplicada ahora mismo (null = aún ninguna). */
+  private alta: boolean | null = null;
+  /** Luz del proyectil de la maga sobre la sala de fondo del combate; apagada el resto del tiempo. */
+  private readonly luzCombate = new THREE.PointLight(0xffffff, 0, 1, 1.5);
 
   constructor(
     private readonly lienzo: HTMLCanvasElement,
@@ -133,6 +164,11 @@ export class Mundo {
       this.escena.add(luz);
     }
 
+    this.escena.add(this.luzCombate);
+    const t = a.transparencia;
+    uniformesTransparencia.uMargen.value = t.margen;
+    uniformesTransparencia.uMaximo.value = t.maximo;
+
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.escena, this.camara));
     this.tiltH = new ShaderPass(HorizontalTiltShiftShader);
@@ -169,8 +205,8 @@ export class Mundo {
     this.renderer.domElement.style.width = `${ancho}px`;
     this.renderer.domElement.style.height = `${alto}px`;
     this.composer.setSize(w, h);
-    this.tiltH.uniforms.h!.value = this.a.desenfoque / w;
-    this.tiltV.uniforms.v!.value = this.a.desenfoque / h;
+    this.desenfoqueH = this.a.desenfoque / w;
+    this.desenfoqueV = this.a.desenfoque / h;
     uniformesTransparencia.uRadioPx.value = (this.a.transparencia.radio * w) / 15;
   }
 
@@ -246,6 +282,7 @@ export class Mundo {
       barreras: [],
       azar,
       encuadre,
+      actores: [],
     };
 
     const borde = crearBorde(sala, aspecto.borde, imagenes, catalogo, tam, z.bosque, azar);
@@ -407,7 +444,9 @@ export class Mundo {
     malla.rotation.x = -this.giro;
     malla.scale.y = this.estirar;
     (v?.grupo ?? this.escena).add(malla);
-    return { malla, tex, sprite, columnas, filas };
+    const actor = { malla, tex, sprite, columnas, filas };
+    v?.actores.push(actor);
+    return actor;
   }
 
   /** Coloca un actor con los pies en (x, y) píxeles del juego y el fotograma de `animacion` a los `tiempo` segundos. */
@@ -446,6 +485,7 @@ export class Mundo {
     cerradas: number,
     tiempo: number,
   ): void {
+    this.aplicarCalidad();
     if (v !== this.vista) this.mostrar(v);
     if (this.heroe?.sprite !== sprite) this.cambiarHeroina(sprite);
     const h = this.heroe!;
@@ -458,21 +498,9 @@ export class Mundo {
     h.malla.visible = opacidad > 0;
     h.malla.material.opacity = opacidad;
     for (const b of v.barreras) b.obj.visible = (cerradas & b.lado) !== 0;
-    const z = this.zona;
-    if (z) for (const p of v.piezas.values()) pintarPieza(p, z.imagenes, z.tam, tiempo);
-    v.fuente?.actualizar(tiempo);
-    v.hundidos?.actualizar(tiempo);
-    this.puntuales.forEach((luz, i) => {
-      const l = v.luces[i];
-      if (!l) {
-        luz.intensity = 0;
-        return;
-      }
-      const p = l.luz.parpadeo;
-      const t = tiempo + l.fase;
-      luz.intensity =
-        l.luz.intensidad * (1 + p * Math.sin(t * 13) + p * 0.6 * Math.sin(t * 7.3 + 1));
-    });
+    this.animar(v, tiempo);
+    this.luzCombate.intensity = 0;
+    this.camara.position.x = this.camaraX;
 
     // La franja enfocada y el hueco de transparencia siguen a la heroína.
     const u = uniformesTransparencia;
@@ -483,9 +511,88 @@ export class Mundo {
       ((this.pantalla.x + 1) / 2) * lienzo.width,
       ((this.pantalla.y + 1) / 2) * lienzo.height,
     );
-    this.tiltH.uniforms.r!.value = (this.pantalla.y + 1) / 2;
-    this.tiltV.uniforms.r!.value = (this.pantalla.y + 1) / 2;
+    this.enfocar((this.pantalla.y + 1) / 2, 1);
     this.composer.render();
+  }
+
+  /**
+   * Dibuja la sala `v` de fondo del combate o de la presentación de un jefe: sin la heroína ni los monstruos
+   * del mapa, más desenfocada y, si se pide, temblando `temblor` píxeles a los lados y con la luz de un
+   * proyectil (de `luces`) en el punto (x, y) de la pantalla.
+   */
+  dibujarFondo(
+    v: VistaSala,
+    tiempo: number,
+    temblor: number,
+    luz: { nombre: string; x: number; y: number } | null,
+  ): void {
+    this.aplicarCalidad();
+    if (v !== this.vista) this.mostrar(v);
+    if (this.heroe) this.heroe.malla.visible = false;
+    for (const a of v.actores) a.malla.visible = false;
+    this.animar(v, tiempo);
+    this.camara.position.x = this.camaraX + (temblor / ANCHO) * v.encuadre.ancho;
+    const datos = luz ? this.a.luces[luz.nombre] : undefined;
+    if (luz && datos) {
+      // El punto de la pantalla, llevado al mundo a la altura de la luz.
+      this.pantalla
+        .set((luz.x / ANCHO) * 2 - 1, 1 - (luz.y / ALTO) * 2, 0.5)
+        .unproject(this.camara);
+      this.rayo.copy(this.pantalla).sub(this.camara.position).normalize();
+      const t = (datos.alto - this.camara.position.y) / this.rayo.y;
+      this.luzCombate.position.copy(this.camara.position).addScaledVector(this.rayo, t);
+      this.luzCombate.color.set(datos.color);
+      this.luzCombate.distance = datos.alcance;
+      this.luzCombate.intensity = datos.intensidad;
+    } else {
+      this.luzCombate.intensity = 0;
+    }
+    // Nada se vuelve transparente: el hueco se va fuera de la pantalla.
+    uniformesTransparencia.uHeroePx.value.set(-1e5, -1e5);
+    this.enfocar(this.a.combate.foco, this.a.combate.desenfoque);
+    this.composer.render();
+  }
+
+  /**
+   * Si ha cambiado la calidad: en baja, sin desenfoque ni sombras. Quitar las sombras cambia las luces, y three.js
+   * recompila los materiales una vez (luego los guarda).
+   */
+  private aplicarCalidad(): void {
+    if (this.alta === calidadAlta) return;
+    this.alta = calidadAlta;
+    this.tiltH.enabled = this.tiltV.enabled = calidadAlta;
+    this.principal.castShadow = calidadAlta;
+    const v = this.vista;
+    this.vista = null;
+    if (v) this.mostrar(v);
+  }
+
+  /** Lo que se mueve solo: tiles animados, agua y luces que parpadean. */
+  private animar(v: VistaSala, tiempo: number): void {
+    const z = this.zona;
+    if (z) for (const p of v.piezas.values()) pintarPieza(p, z.imagenes, z.tam, tiempo);
+    v.fuente?.actualizar(tiempo);
+    v.hundidos?.actualizar(tiempo);
+    for (let i = 0; i < this.puntuales.length; i++) {
+      const luz = this.puntuales[i]!;
+      const l = v.luces[i];
+      if (!l) {
+        luz.intensity = 0;
+        continue;
+      }
+      const p = l.luz.parpadeo;
+      const t = tiempo + l.fase;
+      luz.intensity =
+        l.luz.intensidad * (1 + p * Math.sin(t * 13) + p * 0.6 * Math.sin(t * 7.3 + 1));
+    }
+  }
+
+  /** Franja enfocada del tilt-shift (0 abajo, 1 arriba) y cuántas veces el desenfoque normal. */
+  private enfocar(franja: number, veces: number): void {
+    this.tiltH.uniforms.r!.value = franja;
+    this.tiltV.uniforms.r!.value = franja;
+    this.tiltH.uniforms.h!.value = this.desenfoqueH * veces;
+    this.tiltV.uniforms.v!.value = this.desenfoqueV * veces;
   }
 
   /** Cambia la sala que se ve: su grupo, la cámara centrada en ella y sus luces. */
@@ -506,6 +613,7 @@ export class Mundo {
       centro.z + Math.cos(angulo) * distancia,
     );
     this.camara.lookAt(centro);
+    this.camaraX = this.camara.position.x;
     // La luz principal, desde arriba a la izquierda y del lado de la cámara, como la luz pintada en el arte:
     // desde detrás dejaba a oscuras la cara de los sprites.
     this.principal.position.set(centro.x - 6, 12, centro.z + 5);
@@ -517,7 +625,7 @@ export class Mundo {
       luz.color.set(l.luz.color);
       luz.distance = l.luz.alcance;
       luz.position.set(l.x, l.luz.alto, l.z);
-      luz.castShadow = i === 0 && l.luz.sombra;
+      luz.castShadow = i === 0 && l.luz.sombra && calidadAlta;
     });
   }
 

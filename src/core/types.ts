@@ -378,6 +378,8 @@ export interface Hd2dJson {
   resolucionMaxima: number;
   /** Tilt-shift: cuánto se emborrona lejos de la franja enfocada, que sigue a la heroína. */
   desenfoque: number;
+  /** Fondo del combate: cuántas veces el desenfoque normal y dónde queda la franja enfocada (0 abajo, 1 arriba). */
+  combate: { desenfoque: number; foco: number };
   bloom: { fuerza: number; radio: number; umbral: number };
   vineta: { offset: number; oscuridad: number };
   /** Lado de los mapas de sombras de la luz principal y de las puntuales. */
@@ -413,7 +415,7 @@ export interface Hd2dJson {
     murcielago: number[];
     limo: number[];
   };
-  /** Luces puntuales, por el nombre del tile que las lleva. */
+  /** Luces puntuales, por el nombre del tile que las lleva (o del proyectil, en el combate). */
   luces: Record<string, LuzHd2d>;
   zonas: Record<string, ZonaHd2d>;
 }

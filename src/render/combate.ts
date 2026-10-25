@@ -3,6 +3,7 @@ import { partirTexto } from '../core/texto';
 import { ALTO, ANCHO, aPixel, dentro } from './pantalla';
 import { movimientoReducido } from './accesibilidad';
 import { dibujarFotograma, type Sprite } from './recursos';
+import type { FondoSala } from './mundo/mundo';
 import { escribir, FUENTE_BOTON, FUENTE_GRANDE } from './texto';
 
 export interface OpcionMenu {
@@ -25,8 +26,8 @@ export interface VistaCombate {
   sprite: Sprite;
   /** Hojas de monstruos, efectos y proyectiles, por nombre. */
   hojas: ReadonlyMap<string, Sprite>;
-  /** La sala donde empezó el combate, que se ve oscurecida detrás. */
-  fondo: HTMLCanvasElement;
+  /** La sala donde empezó el combate, que se ve desenfocada y oscurecida detrás (en 3D). */
+  fondo: FondoSala;
   tiempo: number;
   /** Enemigos que se ven: los que aparecen a mitad de combate entran con su evento, no antes. */
   enemigos: Luchador[];
@@ -171,7 +172,9 @@ export function opcionTocada(x: number, y: number, n: number): number {
 }
 
 export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
-  ctx.drawImage(v.fondo, 0, 0);
+  v.fondo(v.tiempo, 0, posicionProyectil(v));
+  // El canvas 2D queda transparente encima de la sala en 3D.
+  ctx.clearRect(0, 0, ANCHO, ALTO);
   ctx.fillStyle = COLOR.velo;
   ctx.fillRect(0, 0, ANCHO, ALTO);
 
@@ -446,23 +449,35 @@ function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   escribir(ctx, v.textoPm, bx + 128, 208);
 }
 
-/** Proyectil del ataque en curso, en vuelo del atacante al objetivo durante el último tramo antes del golpe. */
-function dibujarProyectil(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
+/** Dónde va el proyectil del ataque en curso (y de qué hoja es), o null si no hay ninguno en vuelo. */
+const PROYECTIL = { nombre: '', x: 0, y: 0, angulo: 0 };
+function posicionProyectil(v: VistaCombate): typeof PROYECTIL | null {
   const a = v.atacante;
   const o = v.objetivoAtaque;
   const nombre = a?.heroe?.combate.proyectil;
-  const hoja = nombre ? v.hojas.get(nombre) : undefined;
-  if (!a || !o || !hoja) return;
+  if (!a || !o || !nombre) return null;
   const t = (v.tiempoAtaque - (anticipoAtaque(v, a) - VUELO)) / VUELO;
-  if (t < 0 || t > 1) return;
+  if (t < 0 || t > 1) return null;
   const x0 = centroX(v, a);
   const y0 = centroY(a);
   const x1 = centroX(v, o);
   const y1 = centroY(o);
+  PROYECTIL.nombre = nombre;
+  PROYECTIL.x = x0 + (x1 - x0) * t;
+  PROYECTIL.y = y0 + (y1 - y0) * t;
+  PROYECTIL.angulo = Math.atan2(y1 - y0, x1 - x0);
+  return PROYECTIL;
+}
+
+/** Proyectil del ataque en curso, en vuelo del atacante al objetivo durante el último tramo antes del golpe. */
+function dibujarProyectil(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
+  const p = posicionProyectil(v);
+  const hoja = p ? v.hojas.get(p.nombre) : undefined;
+  if (!p || !hoja) return;
   ctx.save();
-  ctx.translate(aPixel(x0 + (x1 - x0) * t), aPixel(y0 + (y1 - y0) * t));
+  ctx.translate(aPixel(p.x), aPixel(p.y));
   // La hoja mira a la derecha: se gira hacia el objetivo.
-  ctx.rotate(Math.atan2(y1 - y0, x1 - x0));
+  ctx.rotate(p.angulo);
   dibujarFotograma(ctx, hoja, 'vuelo', 'right', v.tiempo, 0, 0, 2);
   ctx.restore();
 }

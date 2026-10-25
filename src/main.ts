@@ -66,10 +66,10 @@ import { esTactil, prepararPantalla } from './render/pantalla';
 import { crearCasilla, crearDeslizador, type Casilla, type Deslizador } from './render/deslizador';
 import { crearCampoNombre } from './render/campoNombre';
 import { LARGO_NOMBRE, RECT_CAMPO } from './render/nombre';
-import { RECT_EFECTOS, RECT_MUSICA, RECT_SONIDO } from './render/pausa';
+import { RECT_CALIDAD, RECT_EFECTOS, RECT_MUSICA, RECT_SONIDO } from './render/pausa';
 import { prepararSonido } from './render/sonido';
 import { vestirHoja } from './render/tinte';
-import { Mundo } from './render/mundo/mundo';
+import { Mundo, type FondoSala } from './render/mundo/mundo';
 import { crearPortada, type Portada3d } from './render/mundo/portada';
 import { cargarAjustes, cargarRecords, guardarAjustes, guardarRecords } from './render/almacen';
 import {
@@ -117,7 +117,7 @@ interface Partida {
   bestiario: Record<string, MonstruoJson>;
   reglas: ReglasCombate;
   /** Volumen de música y efectos y sonido sí o no en el inventario (controles HTML, uno por partida). */
-  controles: { musica: Deslizador; efectos: Deslizador; sonido: Casilla };
+  controles: { musica: Deslizador; efectos: Deslizador; sonido: Casilla; calidad: Casilla };
   /** Nombre del jefe final: lleva el de la última heroína que lo venció, si la hubo. */
   rival: string;
   /** Salas violetas que han salido en las zonas ya creadas, y si una de ellas era del dragón negro. */
@@ -205,6 +205,7 @@ async function iniciar(): Promise<void> {
   const campoNombre = crearCampoNombre(canvas, RECT_CAMPO, LARGO_NOMBRE);
   const sonidoHtml = {
     sonido: crearCasilla(canvas, RECT_SONIDO, 'Sonido'),
+    calidad: crearCasilla(canvas, RECT_CALIDAD, 'Calidad alta: desenfoque y sombras'),
     musica: crearDeslizador(canvas, RECT_MUSICA, 'Volumen de la música'),
     efectos: crearDeslizador(canvas, RECT_EFECTOS, 'Volumen de los efectos'),
   };
@@ -460,7 +461,7 @@ function lucharJefe(
   partida: Partida,
   jefe: MonstruoJson,
   frases: { inicio: string; caida: string },
-  fondo: HTMLCanvasElement,
+  fondo: FondoSala,
   alTerminar: (resultado: Resultado) => void,
 ): void {
   // Primero su entrada (la sala tiembla y sale su nombre), luego su frase y el combate.
@@ -484,7 +485,7 @@ const FRASES_VIOLETAS: Record<string, { inicio: string; caida: string }> = histo
 function lucharVioleta(
   partida: Partida,
   jefe: MonstruoJson,
-  fondo: HTMLCanvasElement,
+  fondo: FondoSala,
   alTerminar: (resultado: Resultado) => void,
 ): void {
   const frases = FRASES_VIOLETAS[jefe.sprite.split('/').pop() ?? ''];
@@ -650,7 +651,7 @@ function luchar(
   partida: Partida,
   grupo: MonstruoJson[],
   /** Sala en la que empieza el combate, que se ve de fondo. */
-  fondo: HTMLCanvasElement,
+  fondo: FondoSala,
   alTerminar: (resultado: Resultado) => void,
   iniciativa: 'heroina' | 'monstruos' | null = null,
   /** Lo que dice el jefe al caer, antes de la subida de nivel y del equipo. */

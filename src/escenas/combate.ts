@@ -32,6 +32,7 @@ import { cargarAjustes, guardarAjustes } from '../render/almacen';
 import type { Sprite } from '../render/recursos';
 import { ponerMusica, sonar } from '../render/sonido';
 import ritmo from '../data/ritmo.json';
+import type { FondoSala } from '../render/mundo/mundo';
 import type { Escena } from './escena';
 
 /** Segundos que se muestra cada tipo de evento antes de pasar al siguiente (src/data/ritmo.json). */
@@ -92,7 +93,7 @@ export class EscenaCombate implements Escena {
     private readonly combate: Combate,
     sprite: Sprite,
     hojas: ReadonlyMap<string, Sprite>,
-    fondo: HTMLCanvasElement,
+    fondo: FondoSala,
     private readonly alTerminar: (resultado: Resultado) => void,
   ) {
     this.ayudaAcciones = describirAcciones(combate.reglas, combate.heroina.heroe).map(ayuda);

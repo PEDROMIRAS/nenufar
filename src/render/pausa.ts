@@ -61,6 +61,8 @@ const IZQUIERDA = 16;
 const DERECHA = 248;
 /** Controles HTML de la pestaña Ajustes, en el panel izquierdo. 40 px de alto: con el dedo, ~44 px CSS. */
 export const RECT_SONIDO = { x: 28, y: 58, ancho: 40, alto: 40 };
+/** Calidad del mapa en 3D, a la derecha de Sonido. */
+export const RECT_CALIDAD = { x: 126, y: 58, ancho: 40, alto: 40 };
 export const RECT_MUSICA = { x: 28, y: 128, ancho: 192, alto: 40 };
 export const RECT_EFECTOS = { x: 28, y: 204, ancho: 192, alto: 40 };
 const COLOR = {
@@ -160,10 +162,17 @@ function dibujarObjetos(ctx: CanvasRenderingContext2D, f: FichaInventario): void
   }
 }
 
-/** A la izquierda, las etiquetas de los controles HTML de sonido; a la derecha, los controles del juego. */
+/** A la izquierda, las etiquetas de los controles HTML de sonido y calidad; a la derecha, los controles del juego. */
 function dibujarAjustes(ctx: CanvasRenderingContext2D): void {
   paneles(ctx);
   escribir(ctx, 'Sonido', RECT_SONIDO.x + RECT_SONIDO.ancho + 8, RECT_SONIDO.y + 14, COLOR.texto);
+  escribir(
+    ctx,
+    'Calidad',
+    RECT_CALIDAD.x + RECT_CALIDAD.ancho + 8,
+    RECT_CALIDAD.y + 14,
+    COLOR.texto,
+  );
   escribir(ctx, 'Música', RECT_MUSICA.x, RECT_MUSICA.y - 16, COLOR.titulo);
   escribir(ctx, 'Efectos', RECT_EFECTOS.x, RECT_EFECTOS.y - 16, COLOR.titulo);
   escribir(ctx, 'Controles:', DERECHA + 10, PANEL.y + 8, COLOR.apartado);

@@ -33,6 +33,8 @@ export interface Ajustes {
   pistasVistas: boolean;
   /** Modo información del combate (botón «i»): empieza encendido para quien juega por primera vez. */
   info: boolean;
+  /** Calidad baja del mapa en 3D: sin desenfoque ni sombras, para móviles que no llegan a 60 fps. */
+  calidadBaja: boolean;
 }
 
 /** Ajustes guardados; si faltan o están dañados, los de por defecto (nada de lo leído se da por bueno sin comprobarlo). */
@@ -51,6 +53,7 @@ export function cargarAjustes(): Ajustes {
       senora: typeof a?.senora === 'string' ? a.senora : '',
       pistasVistas: a?.pistasVistas === true,
       info: a?.info !== false,
+      calidadBaja: a?.calidadBaja === true,
     };
   } catch {
     return {
@@ -62,6 +65,7 @@ export function cargarAjustes(): Ajustes {
       senora: '',
       pistasVistas: false,
       info: true,
+      calidadBaja: false,
     };
   }
 }
