@@ -626,7 +626,7 @@
     "nombre": "Señor de la Cripta",
     "sprite": "monstruos/senor_cripta",
     "estadisticas": {
-      "pv": 271,
+      "pv": 285,
       "pm": 60,
       "ataque": 25,
       "magia": 16,
@@ -707,7 +707,7 @@
     "nombre": "Rey sin Charca",
     "sprite": "monstruos/rey_sin_charca",
     "estadisticas": {
-      "pv": 203,
+      "pv": 213,
       "pm": 60,
       "ataque": 25,
       "magia": 26,
@@ -782,7 +782,7 @@
   "caballero_maldito": {
     "nombre": "Caballero maldito",
     "sprite": "monstruos/caballero_maldito",
-    "estadisticas": { "pv": 225, "pm": 0, "ataque": 13, "magia": 0, "defensa": 11, "velocidad": 3 },
+    "estadisticas": { "pv": 232, "pm": 0, "ataque": 13, "magia": 0, "defensa": 11, "velocidad": 3 },
     "acciones": [
       { "accion": "atacar", "peso": 55 },
       { "accion": "cargar", "peso": 30 },
@@ -798,7 +798,7 @@
   "ojo_flotante": {
     "nombre": "Ojo flotante",
     "sprite": "monstruos/ojo_flotante",
-    "estadisticas": { "pv": 140, "pm": 50, "ataque": 28, "magia": 32, "defensa": 6, "velocidad": 9 },
+    "estadisticas": { "pv": 165, "pm": 50, "ataque": 28, "magia": 32, "defensa": 6, "velocidad": 9 },
     "acciones": [
       { "accion": "atacar", "peso": 20 },
       { "accion": "Mirada venenosa", "peso": 25 },
@@ -890,7 +890,7 @@
   "dragon_negro_cripta": {
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
-    "estadisticas": { "pv": 262, "pm": 0, "ataque": 27, "magia": 0, "defensa": 8, "velocidad": 10 },
+    "estadisticas": { "pv": 270, "pm": 0, "ataque": 27, "magia": 0, "defensa": 8, "velocidad": 10 },
     "acciones": [
       { "accion": "atacar", "peso": 55 },
       { "accion": "cargar", "peso": 45 }

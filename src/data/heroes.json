@@ -40,7 +40,7 @@
     },
     "margenEsquina": 8,
     "estadisticas": {
-      "pv": 36,
+      "pv": 37,
       "pm": 8,
       "ataque": 9,
       "magia": 3,
@@ -169,7 +169,7 @@
     },
     "margenEsquina": 8,
     "estadisticas": {
-      "pv": 35,
+      "pv": 36,
       "pm": 20,
       "ataque": 5,
       "magia": 10,
@@ -177,7 +177,7 @@
       "velocidad": 7
     },
     "porNivel": {
-      "pv": 5,
+      "pv": 6,
       "pm": 3,
       "ataque": 0,
       "magia": 2,

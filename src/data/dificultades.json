@@ -12,7 +12,7 @@
     "descripcion": "El reto pensado para una primera partida: hay que usar bien Defender, las habilidades y los objetos.",
     "ataque": 1.08,
     "vida": 0.97,
-    "recuperacion": 0.555,
+    "recuperacion": 0.53,
     "violetas": 1.03
   },
   "dificil": {
