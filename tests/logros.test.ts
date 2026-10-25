@@ -1,5 +1,12 @@
 import { expect, test } from 'vitest';
-import { CONDICIONES, logrosNuevos, monstruosDelMundo } from '../src/core/logros';
+import {
+  CONDICIONES,
+  CASILLAS_BESTIARIO,
+  entradasBestiario,
+  logrosNuevos,
+  monstruosDelMundo,
+} from '../src/core/logros';
+
 import { MONSTRUOS } from '../src/data/datos';
 import {
   actualizarRecords,
@@ -66,4 +73,23 @@ test('el bestiario del logro no cuenta los monstruos ocultos (jefes violetas y c
   expect(
     logrosNuevos(visto, partida(), { heroes: [], monstruos: claves }, logros.logros),
   ).toContain('bestiario');
+});
+
+test('el bestiario con todo vencido cabe en su rejilla y los dragones y cofres trampa van en una ficha', () => {
+  const todos = Object.keys(MONSTRUOS);
+  const entradas = entradasBestiario(MONSTRUOS, todos);
+  const nombres = entradas.map((e) => MONSTRUOS[e.clave]!.nombre);
+  expect(new Set(nombres).size).toBe(nombres.length);
+  expect(entradas.length).toBeLessThanOrEqual(CASILLAS_BESTIARIO);
+  expect(entradas.every((e) => e.visto)).toBe(true);
+});
+
+test('el bestiario no enseña los ocultos sin vencer y sí los normales sin vencer', () => {
+  const entradas = entradasBestiario(MONSTRUOS, ['limo']);
+  expect(entradas.map((e) => e.clave)).toEqual(monstruosDelMundo(MONSTRUOS));
+  expect(entradas.find((e) => e.clave === 'limo')?.visto).toBe(true);
+  const conDragon = entradasBestiario(MONSTRUOS, ['dragon_negro_ruinas']);
+  expect(conDragon.filter((e) => MONSTRUOS[e.clave]!.nombre === 'Dragón negro')).toEqual([
+    { clave: 'dragon_negro_ruinas', visto: true },
+  ]);
 });

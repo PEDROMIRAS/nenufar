@@ -1,5 +1,5 @@
 import type { Acciones } from '../core/acciones';
-import type { Logro } from '../core/logros';
+import { entradasBestiario, type Logro } from '../core/logros';
 import type { Records } from '../core/records';
 import type { MonstruoJson } from '../core/types';
 import { anunciar } from '../render/accesibilidad';
@@ -57,12 +57,11 @@ export class EscenaExtras implements Escena {
     logros: readonly Logro[],
     private readonly alVolver: () => void,
   ) {
-    this.fichas = Object.entries(monstruos).flatMap(([clave, m]) => {
+    // Los ocultos no salen ni como «???» hasta vencerlos: el bestiario no los delata.
+    this.fichas = entradasBestiario(monstruos, records.bestiario).flatMap(({ clave, visto }) => {
+      const m = monstruos[clave]!;
       const sprite = hojas.get(m.sprite);
       if (!sprite) return [];
-      const visto = records.bestiario.includes(clave);
-      // Los ocultos no salen ni como «???» hasta vencerlos: el bestiario no los delata.
-      if (m.oculto && !visto) return [];
       const e = m.estadisticas;
       const habilidades = m.habilidades?.map((h) => h.nombre).join(', ') || 'ninguna';
       return [

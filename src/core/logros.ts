@@ -18,6 +18,27 @@ export interface Mundo {
 export const monstruosDelMundo = (monstruos: Readonly<Record<string, MonstruoJson>>): string[] =>
   Object.keys(monstruos).filter((k) => !monstruos[k]!.oculto);
 
+/** Casillas de la rejilla del bestiario (3 filas de 6). */
+export const CASILLAS_BESTIARIO = 18;
+
+/**
+ * Fichas del bestiario, en el orden de monstruos.json: los normales siempre (vencidos o no) y los
+ * ocultos solo ya vencidos. Los ocultos que comparten nombre (los tres dragones negros, los tres
+ * cofres trampa) van en una sola ficha, la del primero vencido.
+ */
+export function entradasBestiario(
+  monstruos: Readonly<Record<string, MonstruoJson>>,
+  vencidos: readonly string[],
+): { clave: string; visto: boolean }[] {
+  const ocultos = new Set<string>();
+  return Object.entries(monstruos).flatMap(([clave, m]) => {
+    const visto = vencidos.includes(clave);
+    if (m.oculto && (!visto || ocultos.has(m.nombre))) return [];
+    if (m.oculto) ocultos.add(m.nombre);
+    return [{ clave, visto }];
+  });
+}
+
 /** Condición de cada logro, con los récords ya actualizados con la partida. */
 export const CONDICIONES: Record<string, (r: Records, s: Resumen, m: Mundo) => boolean> = {
   primera: (_r, s) => s.victoria,

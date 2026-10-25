@@ -1,3 +1,4 @@
+import { CASILLAS_BESTIARIO } from '../core/logros';
 import { dibujarMenu, type MenuVista } from './combate';
 import { ALTO, ANCHO, FONDO } from './pantalla';
 import { dibujarFotograma, type Sprite } from './recursos';
@@ -32,11 +33,11 @@ export interface VistaExtras {
 }
 
 /** Casillas del bestiario: 6 por fila (también para saber dónde se toca). */
-export const CELDAS = Array.from({ length: 12 }, (_, i) => ({
+export const CELDAS = Array.from({ length: CASILLAS_BESTIARIO }, (_, i) => ({
   x: 60 + (i % 6) * 60,
-  y: 64 + Math.floor(i / 6) * 60,
+  y: 64 + Math.floor(i / 6) * 56,
   ancho: 56,
-  alto: 56,
+  alto: 52,
 }));
 
 /** Pestañas Bestiario y Logros, arriba (también para saber dónde se toca). */
@@ -129,9 +130,9 @@ function dibujarBestiario(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
   }
   const f = v.fichas[v.elegido];
   if (!f) return;
-  escribir(ctx, f.nombre, ANCHO / 2, 196, f.visto ? COLOR.oro : COLOR.apagado, 'center');
+  escribir(ctx, f.nombre, ANCHO / 2, 234, f.visto ? COLOR.oro : COLOR.apagado, 'center');
   for (let i = 0; i < f.lineas.length; i++)
-    escribir(ctx, f.lineas[i]!, ANCHO / 2, 216 + i * 15, COLOR.texto, 'center');
+    escribir(ctx, f.lineas[i]!, ANCHO / 2, 250 + i * 14, COLOR.texto, 'center');
 }
 
 function dibujarLogros(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
