@@ -399,6 +399,20 @@ export interface Hd2dJson {
     gotas: number;
     vidaGota: number;
   };
+  /**
+   * Portada: una sala de una zona en 3D con las ranas y dos monstruos. `encuadre`, punto al que mira la cámara
+   * y casillas de ancho que caben; las posiciones, en píxeles de la sala (los pies).
+   */
+  portada: {
+    zona: string;
+    plantilla: string;
+    semilla: number;
+    encuadre: { x: number; z: number; ancho: number };
+    ronin: number[];
+    maga: number[];
+    murcielago: number[];
+    limo: number[];
+  };
   /** Luces puntuales, por el nombre del tile que las lleva. */
   luces: Record<string, LuzHd2d>;
   zonas: Record<string, ZonaHd2d>;

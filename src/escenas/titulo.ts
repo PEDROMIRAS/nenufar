@@ -2,19 +2,10 @@ import type { Acciones } from '../core/acciones';
 import { formatearTiempo, textoPorDificultad, type Records } from '../core/records';
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
 import { ALTO, ANCHO, dentro, esTactil } from '../render/pantalla';
-import { dibujarFotograma, type Sprite } from '../render/recursos';
+import type { Portada3d } from '../render/mundo/portada';
 import { ponerMusica, sonar } from '../render/sonido';
 import { escribir, FUENTE, FUENTE_LOGO } from '../render/texto';
 import type { Escena } from './escena';
-
-/** Lo que se ve en la portada: la sala de fondo, las ranas y dos monstruos acechando. */
-export interface ArtePortada {
-  fondo: CanvasImageSource;
-  ronin: Sprite;
-  maga: Sprite;
-  limo: Sprite | undefined;
-  murcielago: Sprite | undefined;
-}
 
 const AVISO = 'Pulsa o toca para empezar';
 /** Botón del bestiario y los logros, arriba a la derecha (con teclado, la tecla I). */
@@ -45,7 +36,8 @@ export class EscenaTitulo implements Escena {
     /** Clave y nombre de cada dificultad, en orden. */
     dificultades: readonly [string, string][],
     totalLogros: number,
-    private readonly arte: ArtePortada,
+    /** La sala de fondo en 3D, con las ranas y dos monstruos acechando. */
+    private readonly arte: Portada3d,
     private readonly alEmpezar: () => void,
     private readonly alExtras: () => void,
     private readonly alControles: () => void,
@@ -66,10 +58,13 @@ export class EscenaTitulo implements Escena {
   }
 
   enter(): void {
+    this.arte.preparar();
     this.foco = 1;
     anunciar(['Nenúfar', this.records, this.recordsDificultad, AVISO].filter((t) => t).join('. '));
   }
-  exit(): void {}
+  exit(): void {
+    this.arte.vaciar();
+  }
 
   update(dt: number, acciones: Acciones): void {
     ponerMusica(null);
@@ -101,21 +96,14 @@ export class EscenaTitulo implements Escena {
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
-    const { fondo, ronin, maga, limo, murcielago } = this.arte;
     const t = this.tiempo;
-    ctx.drawImage(fondo, 0, 0);
-    ctx.fillStyle = 'rgba(10, 12, 16, 0.35)';
-    ctx.fillRect(0, 0, ANCHO, ALTO);
+    this.arte.dibujar(t);
+    // El canvas 2D queda transparente encima de la sala en 3D, solo con el logo y los textos.
+    ctx.clearRect(0, 0, ANCHO, ALTO);
     // Bandas más oscuras arriba y abajo, para que el logo y los textos se lean sobre la sala.
     ctx.fillStyle = 'rgba(10, 12, 16, 0.55)';
     ctx.fillRect(0, 0, ANCHO, 104);
     ctx.fillRect(0, ALTO - 72, ANCHO, 72);
-
-    // Las ranas junto a la fuente de la sala, mirándose; los monstruos acechan a un lado.
-    dibujarFotograma(ctx, ronin, 'idle', 'right', t, 166, 214, 2);
-    dibujarFotograma(ctx, maga, 'idle', 'left', t + 0.4, 314, 212, 2);
-    if (murcielago) dibujarFotograma(ctx, murcielago, 'walk', 'down', t, 400, 150);
-    if (limo) dibujarFotograma(ctx, limo, 'idle', 'left', t, 404, 246);
 
     escribir(ctx, 'Nenúfar', ANCHO / 2, 18, '#c89bff', 'center', FUENTE_LOGO);
     escribir(ctx, 'Un dungeon crawler de ranas', ANCHO / 2, 74, '#e8efe4', 'center');

@@ -22,7 +22,7 @@ import {
 } from './core/records';
 import { logrosNuevos, monstruosDelMundo, type Logro } from './core/logros';
 import logrosJson from './data/logros.json';
-import { crearCatalogo } from './core/sala';
+import { construirSala, crearCatalogo } from './core/sala';
 import { bestiarioCon, monstruoCon, reglasCon } from './core/dificultad';
 import type {
   DificultadJson,
@@ -70,6 +70,7 @@ import { RECT_EFECTOS, RECT_MUSICA, RECT_SONIDO } from './render/pausa';
 import { prepararSonido } from './render/sonido';
 import { vestirHoja } from './render/tinte';
 import { Mundo } from './render/mundo/mundo';
+import { crearPortada, type Portada3d } from './render/mundo/portada';
 import { cargarAjustes, cargarRecords, guardarAjustes, guardarRecords } from './render/almacen';
 import {
   cargarImagen,
@@ -281,13 +282,12 @@ async function iniciar(): Promise<void> {
       cargarRecords(),
       Object.entries(DIFICULTADES).map(([clave, d]) => [clave, d.nombre]),
       LOGROS.length,
-      {
-        fondo: await cargarImagen('assets/portada.png'),
+      await portada(mundo, {
         ronin: ronin!,
         maga: maga!,
         limo: hojas.get('monstruos/limo'),
         murcielago: hojas.get('monstruos/murcielago'),
-      },
+      }),
       () => pila.cambiar(seleccion),
       () =>
         pila.apilar(
@@ -529,6 +529,22 @@ function premiar(partida: Partida, jefe: MonstruoJson, alFinal: () => void): voi
   contar(partida.pila, textos, () =>
     pieza ? ofrecerEquipo(partida, [pieza], alFinal) : alFinal(),
   );
+}
+
+/** La portada en 3D: la sala de hd2d.json con su zona cargada. */
+async function portada(
+  mundo: Mundo,
+  sprites: Parameters<typeof crearPortada>[7],
+): Promise<Portada3d> {
+  const datos = HD2D.portada;
+  const zona = datos.zona as NombreZona;
+  const { tilesets, imagenes } = await cargarTilesets(zona);
+  const catalogo = crearCatalogo(tilesets);
+  const plantilla = PLANTILLAS[zona].plantillas.find((p) => p.id === datos.plantilla);
+  if (!plantilla) throw new Error(`No existe la plantilla ${datos.plantilla} de la portada`);
+  const sala = construirSala(plantilla.mapa, PLANTILLAS[zona], catalogo, crearAzar(datos.semilla));
+  const tam = tilesets[0]?.tileSize ?? 32;
+  return crearPortada(mundo, datos, aspecto(zona), sala, catalogo, imagenes, tam, sprites);
 }
 
 /** Aspecto 3D de la zona, de hd2d.json. */

@@ -57,6 +57,8 @@ export interface VistaSala {
   /** Barrera de cada salida, que se ve mientras está cerrada. */
   barreras: { lado: number; obj: THREE.Object3D }[];
   azar: () => number;
+  /** Punto al que mira la cámara y casillas de ancho que caben, en casillas (la sala entera, salvo en la portada). */
+  encuadre: { x: number; z: number; ancho: number };
 }
 
 /** Lo que se necesita de la zona actual para montar sus salas. */
@@ -221,8 +223,13 @@ export class Mundo {
     this.vista = null;
   }
 
-  /** Monta una sala en 3D. `semilla` fija el azar de su decorado. */
-  montar(sala: Sala, salidas: readonly Salida[], semilla: number): VistaSala {
+  /** Monta una sala en 3D. `semilla` fija el azar de su decorado; `encuadre`, si no se ve entera. */
+  montar(
+    sala: Sala,
+    salidas: readonly Salida[],
+    semilla: number,
+    encuadre = { x: sala.ancho / 2, z: sala.alto / 2, ancho: sala.ancho },
+  ): VistaSala {
     const z = this.zona;
     if (!z) throw new Error('Falta prepararZona antes de montar una sala');
     const { aspecto, imagenes, catalogo, tam } = z;
@@ -238,6 +245,7 @@ export class Mundo {
       luces: [],
       barreras: [],
       azar,
+      encuadre,
     };
 
     const borde = crearBorde(sala, aspecto.borde, imagenes, catalogo, tam, z.bosque, azar);
@@ -485,13 +493,13 @@ export class Mundo {
     if (this.vista) this.escena.remove(this.vista.grupo);
     this.vista = v;
     this.escena.add(v.grupo);
-    const { sala } = v;
-    const centro = new THREE.Vector3(sala.ancho / 2, 0, sala.alto / 2);
+    const { encuadre } = v;
+    const centro = new THREE.Vector3(encuadre.x, 0, encuadre.z);
     const { inclinacion, fov, margen } = this.a.camara;
     const angulo = THREE.MathUtils.degToRad(inclinacion);
-    // La distancia, para que quepan las casillas de ancho de la sala.
+    // La distancia, para que quepan las casillas de ancho del encuadre.
     const verAncho = Math.tan(THREE.MathUtils.degToRad(fov / 2)) * (ANCHO / ALTO);
-    const distancia = sala.ancho / 2 / verAncho + margen;
+    const distancia = encuadre.ancho / 2 / verAncho + margen;
     this.camara.position.set(
       centro.x,
       Math.sin(angulo) * distancia,

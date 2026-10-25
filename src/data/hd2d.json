@@ -23,6 +23,16 @@
     "gotas": 40,
     "vidaGota": 0.55
   },
+  "portada": {
+    "zona": "bosque",
+    "plantilla": "bosque_descanso_01",
+    "semilla": 3,
+    "encuadre": { "x": 7.7, "z": 5.4, "ancho": 11 },
+    "ronin": [166, 214],
+    "maga": [314, 212],
+    "murcielago": [400, 150],
+    "limo": [404, 246]
+  },
   "luces": {
     "hoguera": {
       "color": "#ff9a4a",
