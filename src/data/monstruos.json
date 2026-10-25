@@ -630,7 +630,7 @@
       "pm": 60,
       "ataque": 25,
       "magia": 16,
-      "defensa": 12,
+      "defensa": 20,
       "velocidad": 9
     },
     "acciones": [
@@ -711,7 +711,7 @@
       "pm": 60,
       "ataque": 25,
       "magia": 26,
-      "defensa": 4,
+      "defensa": 10,
       "velocidad": 9
     },
     "acciones": [
