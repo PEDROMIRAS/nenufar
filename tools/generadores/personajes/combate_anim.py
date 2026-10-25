@@ -18,13 +18,15 @@ def derrota(img, pie_y=30, caja=None):
     """Dos fotogramas: se encoge sobre los pies y luego queda tumbada en el suelo. `caja` fija el
     recorte (el de la heroína sin piezas especiales, para que sus capas encajen)."""
     s = img.width
+    fija = caja is not None
     caja = caja or img.getbbox()
     figura = img.crop(caja)
     encogida = figura.resize((figura.width, max(1, round(figura.height * 0.75))), Image.NEAREST)
     f0 = Image.new("RGBA", (s, s), (0, 0, 0, 0))
     f0.alpha_composite(encogida, ((s - encogida.width) // 2, pie_y + 1 - encogida.height))
     tumbada = figura.rotate(90, expand=True)
-    tumbada = tumbada.crop(tumbada.getbbox())
+    if not fija:  # con el recorte fijo ya está ajustada, y así no se mueve con las piezas
+        tumbada = tumbada.crop(tumbada.getbbox())
     f1 = Image.new("RGBA", (s, s), (0, 0, 0, 0))
     f1.alpha_composite(tumbada, (max(0, (s - tumbada.width) // 2), pie_y + 1 - tumbada.height))
     return [f0, f1]

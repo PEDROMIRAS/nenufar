@@ -248,9 +248,12 @@ def frame(direction, anim, i):
     if anim == "golpe":
         return golpe(frame(direction, "idle", 0))
     if anim == "derrota":
+        # Mismo recorte con y sin piezas (el de todas puestas): así las capas encajan y nada se corta.
         puestas = set(EQUIPO)
         EQUIPO.clear()
+        EQUIPO.update(PIEZAS)
         caja = frame(direction, "idle", 0).getbbox()
+        EQUIPO.clear()
         EQUIPO.update(puestas)
         return derrota(frame(direction, "idle", 0), caja=caja)[i]
     c = Canvas()
