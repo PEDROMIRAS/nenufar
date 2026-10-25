@@ -179,3 +179,47 @@ export function aplicarPuertas(mapa: readonly string[], puertas: number): string
   }
   return filas.map((f) => f.join(''));
 }
+
+/**
+ * La fuente choca con la elipse de su pilón (centro y semiejes en casillas), no con las cajas del dibujo en 2D:
+ * en 3D es un modelo con relieve y las cajas dejaban paredes invisibles. Rehace las casillas que toca la elipse.
+ */
+export function chocarConElipse(
+  sala: Pick<Sala, 'ancho' | 'alto' | 'solido' | 'cajas'>,
+  tam: number,
+  cx: number,
+  cz: number,
+  rx: number,
+  rz: number,
+): void {
+  for (
+    let fila = Math.max(0, Math.floor(cz - rz));
+    fila <= Math.min(sala.alto - 1, cz + rz);
+    fila++
+  ) {
+    for (
+      let col = Math.max(0, Math.floor(cx - rx));
+      col <= Math.min(sala.ancho - 1, cx + rx);
+      col++
+    ) {
+      let [x0, y0, x1, y1] = [tam, tam, 0, 0];
+      for (let y = 0; y < tam; y++) {
+        for (let x = 0; x < tam; x++) {
+          const dx = (col + (x + 0.5) / tam - cx) / rx;
+          const dz = (fila + (y + 0.5) / tam - cz) / rz;
+          if (dx * dx + dz * dz > 1) continue;
+          x0 = Math.min(x0, x);
+          y0 = Math.min(y0, y);
+          x1 = Math.max(x1, x + 1);
+          y1 = Math.max(y1, y + 1);
+        }
+      }
+      const i = fila * sala.ancho + col;
+      const dentro = x1 > 0;
+      sala.solido[i] = dentro;
+      // La casilla entera choca con null: con la elipse entera dentro basta con eso.
+      sala.cajas[i] =
+        dentro && !(x0 === 0 && y0 === 0 && x1 === tam && y1 === tam) ? [x0, y0, x1, y1] : null;
+    }
+  }
+}

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { crearAzar } from '../src/core/azar';
-import { aplicarPuertas, construirSala, crearCatalogo } from '../src/core/sala';
+import { aplicarPuertas, chocarConElipse, construirSala, crearCatalogo } from '../src/core/sala';
 import { N, O } from '../src/core/zona';
 import type { TileJson } from '../src/core/types';
 
@@ -99,5 +99,20 @@ describe('aplicarPuertas', () => {
 
   test('sin puertas la puerta norte pasa a ser muro norte', () => {
     expect(aplicarPuertas(abierta, 0).slice(0, 2)).toEqual(['#######', 'NNNNNNN']);
+  });
+});
+
+describe('chocarConElipse', () => {
+  test('rehace las casillas de su recuadro según lo que toca la elipse', () => {
+    const sala = { ancho: 5, alto: 3, solido: Array(15).fill(true), cajas: Array(15).fill(null) };
+    // Elipse centrada en (2,5; 1,5), más ancha que alta: llega de x = 1,3 a 3,7.
+    chocarConElipse(sala, 32, 2.5, 1.5, 1.2, 0.6);
+    expect(sala.solido[7]).toBe(true);
+    expect(sala.cajas[7]).toBeNull(); // la casilla del centro queda entera dentro
+    expect(sala.solido[5]).toBe(true); // fuera de su recuadro no toca nada
+    expect(sala.solido[6]).toBe(true);
+    const [x0, , x1] = sala.cajas[6] ?? [];
+    expect(x0).toBeGreaterThan(0); // la de la izquierda solo choca por su lado derecho
+    expect(x1).toBe(32);
   });
 });
