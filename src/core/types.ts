@@ -297,3 +297,109 @@ export interface ReglasProgresion {
 
 /** Lo que se puede mejorar con puntos al subir de nivel. */
 export type Mejora = 'pv' | 'pm' | 'ataque' | 'magia' | 'defensa' | 'velocidad' | 'critico';
+
+/** Una luz puntual de `src/data/hd2d.json` (hoguera, candelabro, portal): parpadea sumando dos senos. */
+export interface LuzHd2d {
+  color: string;
+  intensidad: number;
+  /** Casillas hasta donde llega, y altura sobre el suelo. */
+  alcance: number;
+  alto: number;
+  /** Cuánto sube y baja la intensidad (fracción). */
+  parpadeo: number;
+  /** Solo las que proyectan sombras (caras en el móvil: seis pasadas cada una). */
+  sombra: boolean;
+}
+
+/** Borde de la sala en 3D: árboles (Bosque) o sillares de piedra (Ruinas, Cripta). */
+export type BordeHd2d =
+  | {
+      tipo: 'arboles';
+      /** Alto de los troncos, en casillas. */
+      alto: number;
+      /** Copas por casilla, radio mínimo y máximo, cuánto se separan del centro, altura sobre el tronco y cuánto se aplastan. */
+      porCasilla: number;
+      radioMin: number;
+      radioMax: number;
+      desvio: number;
+      altoCopa: number;
+      aplastar: number;
+      troncoMin: number;
+      troncoMax: number;
+      /** Sombra en el suelo bajo cada copa: radio (por el de la copa) y opacidad en el centro. */
+      sombra: { radio: number; fuerza: number };
+      /** Colores de la corteza (clara, media, oscura). */
+      corteza: string[];
+    }
+  | {
+      tipo: 'sillares';
+      /** Alto del muro en casillas, hiladas de piedras y piedras por casilla en cada hilada. */
+      alto: number;
+      hiladas: number;
+      porCasilla: number;
+      /** Cuánto varía el alto de la última hilada (0 = muro recto; más, muro derruido). */
+      irregular: number;
+      /** Cuánto sobresale o se mete cada piedra, hueco entre piedras y variación de color. */
+      salida: number;
+      hueco: number;
+      tono: number;
+    };
+
+/** Agua o fosa hundida en el suelo: el autotile que se hunde, cuánto baja y cómo se ve. */
+export interface HundidoHd2d {
+  autotile: string;
+  /** Casillas que bajan la lámina y el fondo oscuro que se ve en la orilla. */
+  nivel: number;
+  fondo: number;
+  /** Píxeles de orilla oscura entre el borde del suelo y la lámina. */
+  orilla: number;
+  colorFondo: string;
+  /** Brillo especular de la lámina (0 = mate). */
+  brillo: number;
+}
+
+/** Aspecto 3D de una zona: color de fondo, luces y borde. */
+export interface ZonaHd2d {
+  fondo: string;
+  cielo: { arriba: string; abajo: string; intensidad: number };
+  /** Luz principal (direccional, con sombras), desde arriba a la izquierda y del lado de la cámara. */
+  principal: { color: string; intensidad: number };
+  borde: BordeHd2d;
+  hundido: HundidoHd2d;
+}
+
+/** `src/data/hd2d.json`: el aspecto HD-2D del mapa. */
+export interface Hd2dJson {
+  /** Grados que mira hacia abajo la cámara, su campo de visión vertical y casillas de margen alrededor de la sala. */
+  camara: { inclinacion: number; fov: number; margen: number };
+  /** Fracción de la inclinación de la cámara que se echan atrás los sprites (1 = de cara; menos, para no meterse en los muros). */
+  inclinacionSprites: number;
+  /** Píxeles de dibujo por píxel CSS, como mucho (en móviles con mucha densidad, el posprocesado sale caro). */
+  resolucionMaxima: number;
+  /** Tilt-shift: cuánto se emborrona lejos de la franja enfocada, que sigue a la heroína. */
+  desenfoque: number;
+  bloom: { fuerza: number; radio: number; umbral: number };
+  vineta: { offset: number; oscuridad: number };
+  /** Lado de los mapas de sombras de la luz principal y de las puntuales. */
+  sombras: { principal: number; puntual: number };
+  /** Lo que queda entre la cámara y la heroína se vuelve transparente: radio en casillas alrededor de ella, casillas por delante desde las que empieza y opacidad que se quita como mucho. */
+  transparencia: { radio: number; margen: number; maximo: number };
+  fuente: {
+    /** Cuánto baja la fuente dentro de su casilla central, semiejes del pilón y altos, en casillas. */
+    centroZ: number;
+    radioX: number;
+    radioZ: number;
+    altoBorde: number;
+    altoAgua: number;
+    altoColumna: number;
+    /** Piedra (clara, media, oscura) y agua (honda, clara). */
+    piedra: string[];
+    agua: string[];
+    /** Gotas que caen de la taza y segundos que tarda cada una. */
+    gotas: number;
+    vidaGota: number;
+  };
+  /** Luces puntuales, por el nombre del tile que las lleva. */
+  luces: Record<string, LuzHd2d>;
+  zonas: Record<string, ZonaHd2d>;
+}

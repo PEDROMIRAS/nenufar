@@ -40,8 +40,14 @@
         display: grid;
         place-items: center;
       }
+      /* El mapa en 3D (#mundo) va debajo del canvas del juego, que queda para la interfaz. */
       canvas {
+        grid-area: 1 / 1;
         image-rendering: pixelated;
+      }
+      #mundo {
+        pointer-events: none;
+        image-rendering: auto;
       }
       /* En un móvil en vertical el juego se ve pequeño: se recomienda girarlo, o jugar así igualmente. */
       #girar {

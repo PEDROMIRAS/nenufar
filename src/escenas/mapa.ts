@@ -17,6 +17,7 @@ import { actualizarPatrulla, crearPatrulla, iniciativa, type Patrulla } from '..
 import { buscarInicio } from '../core/movimiento';
 import {
   aplicarPuertas,
+  chocarConElipse,
   construirSala,
   salidas,
   type Sala,
@@ -32,9 +33,9 @@ import type {
   MonstruoJson,
   ObjetosJson,
   PlantillasJson,
+  ZonaHd2d,
 } from '../core/types';
-import { N, S, type SalaZona, type Zona } from '../core/zona';
-import { dibujarHeroina } from '../render/heroina';
+import type { SalaZona, Zona } from '../core/zona';
 import {
   BOTON_MENU,
   dibujarAviso,
@@ -45,12 +46,13 @@ import {
 } from '../render/hud';
 import { pintarMinimapa } from '../render/minimapa';
 import { crearLluvia, dibujarLluvia, moverLluvia, type Lluvia } from '../render/lluvia';
-import { dibujarMonstruoMapa, direccionDe } from '../render/monstruo';
+import { direccionDe } from '../render/monstruo';
+import type { Actor, Mundo, VistaSala } from '../render/mundo/mundo';
 import type { Sprite } from '../render/recursos';
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
 import { ponerMusica, sonar } from '../render/sonido';
-import { dibujarObjetos, dibujarTile, pintarFondo, pintarVineta } from '../render/sala';
-import { dentro } from '../render/pantalla';
+import { pintarFondo } from '../render/sala';
+import { ALTO, ANCHO, dentro } from '../render/pantalla';
 import type { Escena } from './escena';
 
 /** Vector hacia el que mira la heroína según su dirección. */
@@ -78,7 +80,10 @@ interface MonstruoMapa {
 
 interface SalaMontada {
   sala: Sala;
+  /** Fondo en 2D: hasta el hito 9 es el decorado del combate. */
   fondo: HTMLCanvasElement;
+  /** La sala en 3D y un actor por monstruo de cada grupo; se montan la primera vez que se ve. */
+  vista: { sala: VistaSala; actores: Actor[][] } | null;
   monstruos: MonstruoMapa[];
   /** Portal de la sala del jefe, guardado fuera de la sala hasta que se vence al jefe. */
   portal: ObjetoSala | null;
@@ -138,13 +143,17 @@ export interface OpcionesMapa {
   ofrecerEquipo: (clave: string, alFinal: () => void) => void;
   /** Abre la pausa (MENU o el botón de la esquina). */
   abrirPausa: () => void;
+  /** El mapa en 3D, compartido por todas las zonas, y el aspecto de esta. */
+  mundo: Mundo;
+  aspecto: ZonaHd2d;
+  /** La fuente choca con la elipse de su pilón: cuánto baja su centro en la casilla y sus semiejes, en casillas. */
+  fuente: { centroZ: number; radioX: number; radioZ: number };
 }
 
 /** Exploración de una zona: la sala actual, la heroína y el paso de una sala a otra o a la zona siguiente. */
 export class EscenaMapa implements Escena {
   private readonly montadas = new Map<SalaZona, SalaMontada>();
   private readonly salidas: Salida[];
-  private readonly vineta: HTMLCanvasElement;
   private readonly visitadas = new Set<SalaZona>();
   /** Salas con el cofre abierto, la fuente usada o el jefe vencido, para el minimapa. */
   private readonly hechas = new Set<SalaZona>();
@@ -191,14 +200,20 @@ export class EscenaMapa implements Escena {
     this.montada = this.montar(inicio);
     this.minimapa = this.visitar(inicio);
     const { sala } = this.montada;
-    this.vineta = pintarVineta(this.montada.fondo.width, this.montada.fondo.height);
     const c = o.heroina.cuerpo;
     this.colocar(buscarInicio(sala, o.tam, c.ancho, c.alto));
     if (o.entrarDesdeNegro) this.fundido = o.duracionFundido / 2;
   }
 
-  enter(): void {}
-  exit(): void {}
+  enter(): void {
+    const { mundo, aspecto, imagenes, catalogo, tam } = this.o;
+    mundo.prepararZona(aspecto, imagenes, catalogo, tam);
+  }
+
+  exit(): void {
+    this.o.mundo.vaciar();
+    for (const m of this.montadas.values()) m.vista = null;
+  }
 
   update(dt: number, acciones: Acciones): void {
     const { heroina: h, tam, duracionFundido } = this.o;
@@ -299,31 +314,31 @@ export class EscenaMapa implements Escena {
   }
 
   draw(ctx: CanvasRenderingContext2D, alpha: number): void {
-    const { heroina: h, imagenes, tam, sprite, duracionFundido } = this.o;
-    const { sala, fondo } = this.montada;
-    // Los objetos con la base por encima de los pies quedan detrás de la heroína; el resto, delante.
-    const pies = Math.round(h.yAnterior + (h.cuerpo.y - h.yAnterior) * alpha);
-    ctx.drawImage(fondo, 0, 0);
-    this.dibujarCierre(ctx);
-    const { monstruos } = this.montada;
-    dibujarObjetos(ctx, sala, imagenes, tam, this.tiempo, -Infinity, pies);
-    for (const m of monstruos) {
-      if (m.vivo && m.p.cuerpo.y <= pies) this.dibujarMonstruo(ctx, m, alpha);
-    }
+    const { heroina: h, duracionFundido, mundo } = this.o;
+    const vista = this.vistaDe(this.montada);
+    this.montada.monstruos.forEach((m, i) => this.colocarMonstruos(m, vista.actores[i], alpha));
     // Parpadea 3 veces por segundo (tope de WCAG) mientras no se puede empezar otro combate; con menos
     // movimiento, medio transparente.
+    let opacidad = 1;
     if (movimientoReducido()) {
-      if (this.invulnerable > 0) ctx.globalAlpha = 0.5;
-      dibujarHeroina(ctx, sprite, h, alpha);
-      ctx.globalAlpha = 1;
-    } else if (Math.floor(this.invulnerable * 6) % 2 === 0) {
-      dibujarHeroina(ctx, sprite, h, alpha);
+      if (this.invulnerable > 0) opacidad = 0.5;
+    } else if (Math.floor(this.invulnerable * 6) % 2 !== 0) {
+      opacidad = 0;
     }
-    for (const m of monstruos) {
-      if (m.vivo && m.p.cuerpo.y > pies) this.dibujarMonstruo(ctx, m, alpha);
-    }
-    dibujarObjetos(ctx, sala, imagenes, tam, this.tiempo, pies, Infinity);
-    ctx.drawImage(this.vineta, 0, 0);
+    mundo.dibujar(
+      vista.sala,
+      this.o.sprite,
+      h.xAnterior + (h.cuerpo.x - h.xAnterior) * alpha,
+      h.yAnterior + (h.cuerpo.y - h.yAnterior) * alpha,
+      h.animacion,
+      h.direccion,
+      h.tiempoAnimacion,
+      opacidad,
+      this.cerradas,
+      this.tiempo,
+    );
+    // El canvas 2D queda transparente encima del 3D, solo con la interfaz.
+    ctx.clearRect(0, 0, ANCHO, ALTO);
     if (this.lluvia > 0 && this.gotas) {
       // Entra y se va poco a poco: un segundo al principio y otro al final.
       const total = this.o.lluviaTrasJefe;
@@ -334,7 +349,7 @@ export class EscenaMapa implements Escena {
       const t = 1 - Math.abs((2 * this.fundido) / duracionFundido - 1);
       ctx.globalAlpha = t * t * (3 - 2 * t);
       ctx.fillStyle = '#000';
-      ctx.fillRect(0, 0, this.vineta.width, this.vineta.height);
+      ctx.fillRect(0, 0, ANCHO, ALTO);
       ctx.globalAlpha = 1;
     }
     this.refrescarHud();
@@ -367,6 +382,7 @@ export class EscenaMapa implements Escena {
     const { catalogo, cofre: tabla, luchadora, objetos, inventario } = this.o;
     const abierto = catalogo.get('cofre_abierto');
     if (abierto) cofre.inf = abierto;
+    if (this.montada.vista) this.o.mundo.rehacerObjeto(this.montada.vista.sala, cofre);
     this.marcarHecha(this.actual);
     sonar('cofre');
     const hallazgo = abrirCofre(tabla, this.azarMapa, luchadora.heroe, objetos, inventario);
@@ -410,23 +426,47 @@ export class EscenaMapa implements Escena {
     this.hud.pm = `${l.pm}/${l.pmMax}`;
   }
 
-  private dibujarMonstruo(ctx: CanvasRenderingContext2D, m: MonstruoMapa, alpha: number): void {
+  /** Coloca los actores de un grupo: el primero delante y los demás asomando a los lados. */
+  private colocarMonstruos(m: MonstruoMapa, actores: Actor[] | undefined, alpha: number): void {
+    if (!actores) return;
     const { cuerpo: c, xAnterior, yAnterior } = m.p;
     const x = xAnterior + (c.x - xAnterior) * alpha;
     const y = yAnterior + (c.y - yAnterior) * alpha;
     const andando = c.x !== xAnterior || c.y !== yAnterior;
     const direccion = direccionDe(m.p.dirX, m.p.dirY);
-    dibujarMonstruoMapa(
-      ctx,
-      this.o.spritesMonstruos,
-      x,
-      y,
-      c.ancho,
-      m.grupo,
-      direccion,
-      andando,
-      this.tiempo,
+    actores.forEach((a, i) => {
+      a.malla.visible = m.vivo;
+      if (!m.vivo) return;
+      const dx = i === 0 ? 0 : i % 2 === 1 ? -10 : 10;
+      // Desfase por posición en el grupo: así no andan todos al paso.
+      this.o.mundo.colocarActor(
+        a,
+        x + dx,
+        y - (i > 0 ? 5 : 0),
+        andando ? 'walk' : 'idle',
+        direccion,
+        this.tiempo + i * 0.37,
+      );
+    });
+  }
+
+  /** La sala en 3D, montada la primera vez que se ve, con un actor por monstruo. */
+  private vistaDe(m: SalaMontada): { sala: VistaSala; actores: Actor[][] } {
+    if (m.vista) return m.vista;
+    const { mundo, zona, spritesMonstruos } = this.o;
+    const sala = mundo.montar(
+      m.sala,
+      this.salidas,
+      zona.semilla * 31 + zona.salas.indexOf(this.actual),
     );
+    const actores = m.monstruos.map((g) =>
+      g.grupo.flatMap((monstruo) => {
+        const sprite = spritesMonstruos.get(monstruo.sprite);
+        return sprite ? [mundo.crearActor(sala, sprite)] : [];
+      }),
+    );
+    m.vista = { sala, actores };
+    return m.vista;
   }
 
   /** Fondo ya pintado de la sala actual (el combate lo usa de decorado). */
@@ -500,20 +540,6 @@ export class EscenaMapa implements Escena {
     this.cerradas = 0;
   }
 
-  /** Una barrera en cada salida cerrada. */
-  private dibujarCierre(ctx: CanvasRenderingContext2D): void {
-    if (!this.cerradas) return;
-    const { catalogo, imagenes, tam } = this.o;
-    for (const salida of this.salidas) {
-      if (!(this.cerradas & salida.lado)) continue;
-      const norte = salida.lado === N;
-      const tile = catalogo.get(norte || salida.lado === S ? 'barrera_h' : 'barrera_v');
-      // La norte cruza el muro de dos filas: la barrera va en la de dentro, junto al suelo.
-      const [x, y] = salida.celdas[norte ? 1 : 0]!;
-      if (tile) dibujarTile(ctx, imagenes, tile, tam, x * tam, y * tam);
-    }
-  }
-
   /** Marca la sala como visitada y devuelve el minimapa al día. */
   private visitar(s: SalaZona): HTMLCanvasElement {
     this.visitadas.add(s);
@@ -549,6 +575,11 @@ export class EscenaMapa implements Escena {
       catalogo,
       azar,
     );
+    const fuente = sala.objetos.find((o) => o.inf.name === 'fuente_cen_inf');
+    if (fuente) {
+      const f = this.o.fuente;
+      chocarConElipse(sala, tam, fuente.x + 0.5, fuente.y + f.centroZ, f.radioX, f.radioZ);
+    }
     // Con jefe, el portal se saca de la sala antes de pintar el fondo (sin él ni su halo).
     let portal: ObjetoSala | null = null;
     if (s.tipo === 'jefe' && this.o.jefe) {
@@ -558,6 +589,7 @@ export class EscenaMapa implements Escena {
     const montada = {
       sala,
       fondo: pintarFondo(sala, imagenes, tam),
+      vista: null,
       monstruos: this.poblar(s, sala, azar),
       portal,
     };
@@ -569,6 +601,10 @@ export class EscenaMapa implements Escena {
   private abrirPortal(m: SalaMontada): void {
     if (!m.portal) return;
     m.sala.objetos = [...m.sala.objetos, m.portal].sort((a, b) => a.y - b.y);
+    if (m.vista) {
+      this.o.mundo.rehacerObjeto(m.vista.sala, m.portal);
+      this.o.mundo.refrescarLuces();
+    }
     m.portal = null;
     m.fondo = pintarFondo(m.sala, this.o.imagenes, this.o.tam);
   }

@@ -30,12 +30,13 @@ import type {
   MonstruoJson,
   PlantillasJson,
   ReglasCombate,
+  ZonaHd2d,
 } from './core/types';
 import { aplicarRecompensa, elegirRecompensa } from './core/recompensas';
 import { jefeVioleta, modoVioleta } from './core/violetas';
 import { generarZona } from './core/zona';
 import controles from './data/controles.json';
-import { DIFICULTADES, HEROES, MONSTRUOS, OBJETOS, REGLAS } from './data/datos';
+import { DIFICULTADES, HD2D, HEROES, MONSTRUOS, OBJETOS, REGLAS } from './data/datos';
 import plantillasBosque from './data/salas/plantillas_bosque.json';
 import plantillasCripta from './data/salas/plantillas_cripta.json';
 import plantillasRuinas from './data/salas/plantillas_ruinas.json';
@@ -68,6 +69,7 @@ import { LARGO_NOMBRE, RECT_CAMPO } from './render/nombre';
 import { RECT_EFECTOS, RECT_MUSICA, RECT_SONIDO } from './render/pausa';
 import { prepararSonido } from './render/sonido';
 import { vestirHoja } from './render/tinte';
+import { Mundo } from './render/mundo/mundo';
 import { cargarAjustes, cargarRecords, guardarAjustes, guardarRecords } from './render/almacen';
 import {
   cargarImagen,
@@ -120,6 +122,8 @@ interface Partida {
   /** Salas violetas que han salido en las zonas ya creadas, y si una de ellas era del dragón negro. */
   violetas: number;
   dragonUsado: boolean;
+  /** El mapa en 3D (uno para todas las partidas: cada WebGLRenderer es un contexto del navegador). */
+  mundo: Mundo;
 }
 
 /** Una pantalla de la historia. */
@@ -154,6 +158,7 @@ async function iniciar(): Promise<void> {
   const canvas = document.querySelector<HTMLCanvasElement>('#juego');
   if (!canvas) throw new Error('Falta el canvas #juego');
   const ctx = prepararPantalla(canvas);
+  const mundo = new Mundo(canvas, HD2D);
   prepararSonido();
 
   // ?semilla=N repite una partida; sin ella, cada carga es distinta.
@@ -161,6 +166,13 @@ async function iniciar(): Promise<void> {
   const semilla =
     Number.isInteger(pedida) && pedida > 0 ? pedida : Math.floor(Math.random() * 2 ** 31);
   console.info('Semilla de la partida:', semilla);
+  // ?zona=N empieza en la zona N (0 = Bosque), solo en desarrollo: para revisar el arte de cada zona.
+  const zonaInicial = import.meta.env.DEV
+    ? Math.max(
+        0,
+        Math.min(ORDEN.length - 1, Number(new URLSearchParams(location.search).get('zona')) || 0),
+      )
+    : 0;
 
   // El joystick escucha en todo el body: también responde en las franjas negras fuera del canvas.
   const fuentes = [
@@ -247,9 +259,10 @@ async function iniciar(): Promise<void> {
       controles: sonidoHtml,
       violetas: 0,
       dragonUsado: false,
+      mundo,
     };
     vestir(partida); // ya lleva puestas el arma y la armadura iniciales
-    crearZona(partida, 0, true)
+    crearZona(partida, zonaInicial, true)
       .then((zona) => {
         pila.cambiar(zona);
         guardarAjustes({ pistasVistas: true }); // las pistas, si tocaban, ya van en esta zona
@@ -333,6 +346,9 @@ async function crearZona(
   const hayOtra = indice + 1 < ORDEN.length;
   const escena: EscenaMapa = new EscenaMapa({
     zona,
+    mundo: partida.mundo,
+    aspecto: aspecto(nombre),
+    fuente: HD2D.fuente,
     plantillas: PLANTILLAS[nombre],
     catalogo: crearCatalogo(tilesets),
     imagenes,
@@ -513,6 +529,13 @@ function premiar(partida: Partida, jefe: MonstruoJson, alFinal: () => void): voi
   contar(partida.pila, textos, () =>
     pieza ? ofrecerEquipo(partida, [pieza], alFinal) : alFinal(),
   );
+}
+
+/** Aspecto 3D de la zona, de hd2d.json. */
+function aspecto(zona: string): ZonaHd2d {
+  const a = HD2D.zonas[zona];
+  if (!a) throw new Error(`Falta la zona ${zona} en hd2d.json`);
+  return a;
 }
 
 function monstruo(clave: string): MonstruoJson {
