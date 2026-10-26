@@ -410,8 +410,14 @@ function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
 export const LISTA_COMBATE: Rect = { x: 8, y: 201, ancho: 210, alto: 144 };
 export const FILA_COMBATE = 24;
 const PANEL = { x: 8, y: 200, ancho: 464, alto: 146 };
-/** Columna derecha: texto desde aquí; la ficha de la heroína, abajo. */
-const DERECHA = { x: 230, ancho: 230, yFicha: 296 };
+/** Columna derecha: arriba la ficha de la heroína (Pedro, 2026-10-26) y debajo qué hace lo elegido. */
+const DERECHA = {
+  x: 230,
+  ancho: 230,
+  yFicha: PANEL.y + 12,
+  yTitulo: PANEL.y + 66,
+  yTexto: PANEL.y + 90,
+};
 /** Letras por línea de la descripción en la columna derecha. */
 const LETRAS_DERECHA = Math.floor(DERECHA.ancho / 7.2);
 /** La ayuda de cada opción, partida al ancho de la columna derecha (una vez por texto). */
@@ -460,11 +466,11 @@ function dibujarPanel(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
       dibujarFila(ctx, x, y + i * FILA_COMBATE, ancho, FILA_COMBATE, o.texto, o.detalle, estado);
     }
     const elegida = menu.opciones[menu.seleccion];
-    if (elegida) dibujarTitulo(ctx, DERECHA.x, PANEL.y + 12, DERECHA.ancho, elegida.texto);
+    if (elegida) dibujarTitulo(ctx, DERECHA.x, DERECHA.yTitulo, DERECHA.ancho, elegida.texto);
     if (v.aviso && v.registro[1]) {
       // Un aviso reciente con el menú abierto («No quedan PM…» y la pista que lo sigue) ocupa el
       // sitio de la descripción hasta que caduca el registro.
-      let y = PANEL.y + 36;
+      let y = DERECHA.yTexto;
       for (let r = 0; r < v.registro.length; r++) {
         const lineas = avisoPartido(v.registro[r]!);
         for (let i = 0; i < lineas.length; i++, y += 14)
@@ -473,7 +479,7 @@ function dibujarPanel(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
     } else if (elegida?.ayuda) {
       const lineas = ayudaPartida(elegida.ayuda);
       for (let i = 0; i < lineas.length; i++)
-        escribir(ctx, lineas[i]!, DERECHA.x, PANEL.y + 36 + i * 14, PALETA.texto);
+        escribir(ctx, lineas[i]!, DERECHA.x, DERECHA.yTexto + i * 14, PALETA.texto);
     }
   } else {
     // Mientras se animan los turnos, el panel cuenta lo que pasa.
