@@ -372,6 +372,8 @@ export interface ZonaHd2d {
 export interface Hd2dJson {
   /** Grados que mira hacia abajo la cámara, su campo de visión vertical y casillas de margen alrededor de la sala. */
   camara: { inclinacion: number; fov: number; margen: number };
+  /** Casillas de decorado fuera de la sala, para llenar la pantalla más allá del canvas 2D. */
+  exterior: { x: number; arriba: number; abajo: number };
   /** Fracción de la inclinación de la cámara que se echan atrás los sprites (1 = de cara; menos, para no meterse en los muros). */
   inclinacionSprites: number;
   /** Píxeles de dibujo por píxel CSS, como mucho (en móviles con mucha densidad, el posprocesado sale caro). */

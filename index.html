@@ -54,7 +54,10 @@
       #juego {
         position: relative;
       }
+      /* Ocupa toda la ventana: fuera del canvas 2D se ve el decorado de alrededor de la sala. */
       #mundo {
+        position: fixed;
+        inset: 0;
         pointer-events: none;
         image-rendering: auto;
       }

@@ -4,6 +4,7 @@
     "fov": 28,
     "margen": 1
   },
+  "exterior": { "x": 8, "arriba": 6, "abajo": 4 },
   "inclinacionSprites": 0.5,
   "resolucionMaxima": 2,
   "desenfoque": 2.4,
