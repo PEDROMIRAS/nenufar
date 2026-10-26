@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menú de combate: bocetos</title>
+<style>
+  body { margin: 0; padding: 24px 16px; background: #111614; color: #e8efe4; font-family: system-ui, sans-serif; }
+  h2 { margin: 0 0 4px; } .subtitle { color: #9aa; margin: 0 0 20px; }
+  .options { display: flex; flex-direction: column; gap: 28px; max-width: 640px; margin: 0 auto; }
+  .option { display: flex; gap: 12px; } .letter { font-size: 22px; font-weight: bold; color: #ffd27a; }
+  .content h3 { margin: 0 0 8px; }
+  .option[data-choice="b"] h3::after { content: '  ← elegido por Pedro (2026-10-26)'; color: #ffd27a; font-size: 14px; }
+</style>
+</head>
+<body>
+<style>
+  .pant { --u: 1.25px; position: relative; width: calc(var(--u) * 480); height: calc(var(--u) * 352);
+    background: radial-gradient(ellipse at 50% 35%, #4a4438 0%, #2a2620 55%, #15130f 100%);
+    font-family: monospace; font-weight: bold; color: #e8efe4; overflow: hidden; border-radius: 4px; margin: 0 auto; }
+  .pant * { box-sizing: border-box; }
+  .abs { position: absolute; }
+  .t { font-size: calc(var(--u) * 12); line-height: 1.2; white-space: nowrap; }
+  .tg { font-size: calc(var(--u) * 14); }
+  .turno { left: calc(var(--u)*12); top: calc(var(--u)*6); color: #aab8a6; }
+  .golem { left: calc(var(--u)*200); top: calc(var(--u)*58); width: calc(var(--u)*80); height: calc(var(--u)*86);
+    background: #8a7c66; border-radius: calc(var(--u)*14) calc(var(--u)*14) calc(var(--u)*6) calc(var(--u)*6); box-shadow: inset 0 0 0 calc(var(--u)*4) #6d6150; }
+  .nomb { left: 0; width: 100%; text-align: center; }
+  .hp { height: calc(var(--u)*5); background: #d8584a; }
+  .rana { width: calc(var(--u)*44); height: calc(var(--u)*50); background: #5f9b45; border-radius: 40% 40% 20% 20%;
+    box-shadow: inset 0 calc(var(--u)*-14) 0 #3b5f8a, 0 calc(var(--u)*-10) 0 calc(var(--u)*-6) #c9a46a; }
+  .panel { background: rgba(10, 14, 12, 0.82); border: calc(var(--u)*1) solid #b89a5a; box-shadow: 0 0 0 calc(var(--u)*1) rgba(0,0,0,.6); }
+  .fila { display: flex; justify-content: space-between; padding: 0 calc(var(--u)*8); height: calc(var(--u)*20); align-items: center; }
+  .fila.sel { background: linear-gradient(90deg, rgba(232,196,110,.35), rgba(232,196,110,0)); color: #ffd27a; }
+  .fila.sel::before { content: '▶'; position: absolute; left: calc(var(--u)*-1); font-size: calc(var(--u)*9); color: #ffd27a; }
+  .pm { color: #8fb4ff; }
+  .off { color: #8a8a8a; }
+  .ayuda { color: #ffd27a; }
+  .barra { height: calc(var(--u)*5); background: #333; }
+  .barra > i { display: block; height: 100%; }
+  .nota { font-size: 13px; color: #9aa; margin: 6px 0 0; }
+  .mockup { margin-bottom: 18px; }
+</style>
+
+<h2>¿Qué menú de combate te gusta más?</h2>
+<p class="subtitle">La misma escena del golem, con el submenú de Habilidad abierto y la ayuda «i» encendida. Haz clic en el que prefieras (o dime qué mezclarías).</p>
+
+<div class="options">
+
+<div class="option" data-choice="a" onclick="toggleSelect(this)">
+<div class="letter">A</div>
+<div class="content">
+<h3>Lista junto a la heroína (Octopath fiel)</h3>
+<div class="pant">
+  <div class="abs t turno">Turno ▮ Rana ronin ▮ Golem de piedra</div>
+  <div class="abs t nomb" style="top: calc(var(--u)*40)">Golem de piedra</div>
+  <div class="abs golem"></div>
+  <div class="abs hp" style="left: calc(var(--u)*200); top: calc(var(--u)*150); width: calc(var(--u)*80)"></div>
+  <div class="abs rana" style="left: calc(var(--u)*60); top: calc(var(--u)*190)"></div>
+  <!-- lista de habilidades flotando a la derecha de la heroína -->
+  <div class="abs panel" style="left: calc(var(--u)*122); top: calc(var(--u)*168); width: calc(var(--u)*170); padding: calc(var(--u)*4) 0">
+    <div class="fila t sel" style="position:relative"><span>Corte rápido</span><span class="pm">3</span></div>
+    <div class="fila t"><span>Postura de hierro</span><span class="pm">3</span></div>
+    <div class="fila t"><span>Tajo del viento</span><span class="pm">5</span></div>
+    <div class="fila t"><span>Iaido</span><span class="pm">6</span></div>
+    <div class="fila t off"><span>Tajo de llama morada</span><span>12</span></div>
+  </div>
+  <!-- ficha de la heroína abajo a la derecha, como el grupo en Octopath -->
+  <div class="abs panel" style="left: calc(var(--u)*300); top: calc(var(--u)*190); width: calc(var(--u)*172); padding: calc(var(--u)*6) calc(var(--u)*8)">
+    <div class="t">Rana ronin</div>
+    <div class="t" style="display:flex;gap:6px;align-items:center">PV <div class="barra" style="flex:1"><i style="width:100%;background:#d8584a"></i></div> 78</div>
+    <div class="t" style="display:flex;gap:6px;align-items:center">PM <div class="barra" style="flex:1"><i style="width:100%;background:#5b8ad8"></i></div> 23</div>
+  </div>
+  <!-- ayuda: franja abajo, de lado a lado -->
+  <div class="abs panel t ayuda" style="left: calc(var(--u)*8); top: calc(var(--u)*300); width: calc(var(--u)*464); height: calc(var(--u)*44); padding: calc(var(--u)*6) calc(var(--u)*10); white-space: normal">Daño físico (160 % de tu ataque) a un enemigo.</div>
+</div>
+<p class="nota">La lista sale al lado de quien actúa, filas finas con el coste a la derecha. La ficha pasa a la esquina. La ayuda, siempre en la franja de abajo: nunca tapa a nadie.</p>
+</div>
+</div>
+
+<div class="option" data-choice="b" onclick="toggleSelect(this)">
+<div class="letter">B</div>
+<div class="content">
+<h3>Panel de abajo en dos columnas</h3>
+<div class="pant">
+  <div class="abs t turno">Turno ▮ Rana ronin ▮ Golem de piedra</div>
+  <div class="abs t nomb" style="top: calc(var(--u)*30)">Golem de piedra</div>
+  <div class="abs golem" style="top: calc(var(--u)*46)"></div>
+  <div class="abs hp" style="left: calc(var(--u)*200); top: calc(var(--u)*138); width: calc(var(--u)*80)"></div>
+  <div class="abs rana" style="left: calc(var(--u)*90); top: calc(var(--u)*150)"></div>
+  <div class="abs" style="left: calc(var(--u)*150); top: calc(var(--u)*156); width: calc(var(--u)*170)">
+    <div class="t">Rana ronin</div>
+    <div class="barra" style="margin:4px 0"><i style="width:100%;background:#d8584a"></i></div>
+    <div class="barra"><i style="width:100%;background:#5b8ad8"></i></div>
+  </div>
+  <div class="abs panel" style="left: calc(var(--u)*8); top: calc(var(--u)*214); width: calc(var(--u)*464); height: calc(var(--u)*132); display:flex">
+    <div style="width: calc(var(--u)*200); padding: calc(var(--u)*4) 0; border-right: calc(var(--u)*1) solid #b89a5a55">
+      <div class="fila t sel" style="position:relative"><span>Corte rápido</span><span class="pm">3</span></div>
+      <div class="fila t"><span>Postura de hierro</span><span class="pm">3</span></div>
+      <div class="fila t"><span>Tajo del viento</span><span class="pm">5</span></div>
+      <div class="fila t"><span>Iaido</span><span class="pm">6</span></div>
+      <div class="fila t off"><span>Tajo de llama morada</span><span>12</span></div>
+      <div class="fila t"><span>Volver</span><span></span></div>
+    </div>
+    <div class="t ayuda" style="flex:1; padding: calc(var(--u)*8) calc(var(--u)*10); white-space: normal">Corte rápido<br><span style="color:#e8efe4">Daño físico (160 % de tu ataque) a un enemigo.</span></div>
+  </div>
+</div>
+<p class="nota">El menú clásico de JRPG: a la izquierda la lista, a la derecha qué hace la elegida. Todo el combate se sube un poco para dejarle sitio.</p>
+</div>
+</div>
+
+<div class="option" data-choice="c" onclick="toggleSelect(this)">
+<div class="letter">C</div>
+<div class="content">
+<h3>Columna a la derecha y ayuda abajo</h3>
+<div class="pant">
+  <div class="abs t turno">Turno ▮ Rana ronin ▮ Golem de piedra</div>
+  <div class="abs t" style="left: calc(var(--u)*110); top: calc(var(--u)*40)">Golem de piedra</div>
+  <div class="abs golem" style="left: calc(var(--u)*125)"></div>
+  <div class="abs hp" style="left: calc(var(--u)*125); top: calc(var(--u)*150); width: calc(var(--u)*80)"></div>
+  <div class="abs rana" style="left: calc(var(--u)*40); top: calc(var(--u)*196)"></div>
+  <div class="abs" style="left: calc(var(--u)*96); top: calc(var(--u)*200); width: calc(var(--u)*150)">
+    <div class="t">Rana ronin</div>
+    <div class="barra" style="margin:4px 0"><i style="width:100%;background:#d8584a"></i></div>
+    <div class="barra"><i style="width:100%;background:#5b8ad8"></i></div>
+  </div>
+  <div class="abs panel" style="left: calc(var(--u)*290); top: calc(var(--u)*32); width: calc(var(--u)*182); padding: calc(var(--u)*4) 0">
+    <div class="t" style="padding: 0 calc(var(--u)*8) calc(var(--u)*4); color:#b89a5a">Habilidad</div>
+    <div class="fila t sel" style="position:relative; height: calc(var(--u)*30)"><span>Corte rápido</span><span class="pm">3</span></div>
+    <div class="fila t" style="height: calc(var(--u)*30)"><span>Postura de hierro</span><span class="pm">3</span></div>
+    <div class="fila t" style="height: calc(var(--u)*30)"><span>Tajo del viento</span><span class="pm">5</span></div>
+    <div class="fila t" style="height: calc(var(--u)*30)"><span>Iaido</span><span class="pm">6</span></div>
+    <div class="fila t off" style="height: calc(var(--u)*30)"><span>Tajo de llama morada</span><span>12</span></div>
+    <div class="fila t" style="height: calc(var(--u)*30)"><span>Volver</span><span></span></div>
+  </div>
+  <div class="abs panel t ayuda" style="left: calc(var(--u)*8); top: calc(var(--u)*300); width: calc(var(--u)*274); height: calc(var(--u)*44); padding: calc(var(--u)*6) calc(var(--u)*10); white-space: normal">Daño físico (160 % de tu ataque) a un enemigo.</div>
+</div>
+<p class="nota">Una columna fija en el borde derecho, con filas altas para el dedo (mejor en el móvil). Los enemigos se corren a la izquierda; la ayuda va abajo.</p>
+</div>
+</div>
+
+</div>
+
+</body>
+</html>

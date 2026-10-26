@@ -25,3 +25,6 @@ graphify-out/
 .agents/
 .claude/
 skills-lock.json
+
+# Espacio de trabajo de las habilidades (bocetos del visor y registro de planes)
+.superpowers/
