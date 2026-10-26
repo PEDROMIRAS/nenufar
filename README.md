@@ -22,7 +22,7 @@ Dungeon crawler HD-2D para navegador y móvil (pixel art en escenarios 3D, al es
 | Correr | Mantén Mayúsculas | Lleva el dedo al borde del joystick |
 | Aceptar | Enter, Espacio o Z | Tocar la opción |
 | Inventario (pausa) y volver | Escape o I (X también vuelve) | Botón de la mochila |
-| Ayuda del combate (encendida al empezar) | I | Botón i (en Habilidad y Objeto, un toque elige y otro usa) |
+| Usar una habilidad, un objeto o elegir enemigo | Enter (lo que hace se ve siempre a la derecha) | Dos toques: el primero elige y enseña qué hace, el segundo lo usa |
 | Bestiario y logros (en el título) | I | Botón de arriba a la derecha |
 | Controles (en el título) | ← y Enter | Botón de arriba a la izquierda |
 

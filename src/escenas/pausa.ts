@@ -3,20 +3,23 @@ import { habilidadesDisponibles, type Luchador } from '../core/combate';
 import { aplicarConsumible, gastar, haceAlgo, type Inventario } from '../core/inventario';
 import { describirConsumible, partirEnLineas } from '../core/descripciones';
 import { bonoDe, describirEfecto } from '../core/equipo';
+import { efectoToque, filaTocada } from '../core/menu';
 import { experienciaParaSubir } from '../core/progresion';
 import type { EquipoJson, EstadoJson, ObjetosJson, ReglasProgresion } from '../core/types';
-import { opcionTocada, type MenuVista } from '../render/combate';
 import { TEXTO_CONTROLES } from '../render/controles';
 import {
   dibujarInventario,
-  NOMBRE_PAGINA,
-  PAGINAS,
-  PESTANAS_INVENTARIO,
+  FILA_INVENTARIO,
+  LETRAS_COLUMNA,
+  LETRAS_PANEL,
+  NOMBRE_SECCION,
+  OBJETOS_INVENTARIO,
+  SECCIONES,
+  seccionTocada,
   type FichaInventario,
   type PaginaInventario,
   type VistaInventario,
 } from '../render/pausa';
-import { dentro } from '../render/pantalla';
 import type { Sprite } from '../render/recursos';
 import type { Casilla, Deslizador } from '../render/deslizador';
 import { esCalidadAlta, ponerCalidadAlta } from '../render/mundo/mundo';
@@ -32,25 +35,21 @@ import {
 import { anunciar } from '../render/accesibilidad';
 import type { Escena } from './escena';
 
-/** Letras que caben en una línea del panel de Objetos (a todo lo ancho). */
-const LARGO_DESCRIPCION = 58;
-
 /**
- * Inventario (botón de la mochila, Escape o I en el mapa): pausa el juego. Tres pestañas: la heroína
- * (estadísticas, equipo y puntos de mejora), los objetos (y usar pociones y éteres) y los ajustes
- * (sonido, música, efectos y la lista de controles).
+ * Inventario (botón de la mochila, Escape o I en el mapa): pausa el juego. A la izquierda la lista
+ * (Heroína, Objetos, Equipo, Mejorar, Ajustes; Seguir y Salir abajo) y a la derecha la sección
+ * elegida: la heroína, los objetos (usar pociones y éteres) o los ajustes (sonido, calidad, volumen
+ * y la lista de controles). Equipo y Mejorar abren sus pantallas encima.
  */
 export class EscenaPausa implements Escena {
-  /** Consumibles que sirven fuera de combate (los que restauran PV o PM). */
-  private readonly usables: string[];
-  private readonly menu: MenuVista = { opciones: [], seleccion: 0 };
-  /** Lo que hace cada botón del menú de la página que se ve, en su orden. */
-  private acciones: (() => void)[] = [];
   private ficha!: FichaInventario;
   private readonly vista: VistaInventario;
   private pagina: PaginaInventario = 'heroina';
-  /** Las flechas en las pestañas de arriba en vez de en el menú de abajo. */
-  private enPestanas = false;
+  /** Fila de la lista con el cursor (posición en `SECCIONES`). */
+  private elegida = 0;
+  /** El foco dentro de la sección Objetos (arriba y abajo eligen consumible). */
+  private enObjetos = false;
+  private objeto = 0;
   private tiempo = 0;
   private ultimoX = 0;
   private ultimoY = 0;
@@ -66,7 +65,7 @@ export class EscenaPausa implements Escena {
     private readonly objetos: ObjetosJson,
     private readonly progresion: ReglasProgresion,
     private readonly estados: Record<string, EstadoJson>,
-    /** Sonido sí o no, calidad alta o baja y volumen de música y efectos: controles HTML sobre el canvas en la pestaña Ajustes. */
+    /** Sonido sí o no, calidad alta o baja y volumen de música y efectos: controles HTML sobre el canvas en Ajustes. */
     private readonly controles: {
       sonido: Casilla;
       calidad: Casilla;
@@ -80,23 +79,21 @@ export class EscenaPausa implements Escena {
     private readonly alSeguir: () => void,
     private readonly alSalir: () => void,
   ) {
-    this.usables = Object.entries(objetos.consumibles)
-      .filter(([, o]) => o.pv || o.pm)
-      .map(([clave]) => clave);
     this.rehacer();
     this.vista = {
       pagina: this.pagina,
-      focoPestanas: false,
+      elegida: 0,
+      enObjetos: false,
+      objeto: 0,
       sprite,
       tiempo: 0,
       ficha: this.ficha,
-      menu: this.menu,
     };
     // Con el foco en un control HTML, ↑ y ↓ van de uno a otro (Sonido, Calidad, Música, Efectos); ↑ desde
-    // Sonido sube a las pestañas y ↓ desde Efectos baja al menú.
+    // Sonido y ↓ desde Efectos devuelven las teclas a la lista.
     const { sonido, calidad, musica, efectos } = controles;
     sonido.enlazar(
-      () => (this.enPestanas = true),
+      () => this.anunciarFila(),
       () => calidad.enfocar(),
     );
     calidad.enlazar(
@@ -121,8 +118,18 @@ export class EscenaPausa implements Escena {
 
   update(dt: number, a: Acciones): void {
     this.tiempo += dt;
-    if (a.cancelar || a.menu || a.info) {
+    if (a.info) {
       this.alSeguir();
+      return;
+    }
+    // Escape llega como cancelar y como menú a la vez.
+    if (a.cancelar || a.menu) {
+      // Escape dentro de una sección vuelve a la lista; en la lista, sigue jugando.
+      if (this.enObjetos) this.volverALista();
+      else if (this.controlEnfocado()) {
+        this.soltarControles();
+        this.volverALista();
+      } else this.alSeguir();
       return;
     }
     if (a.toqueX >= 0) {
@@ -135,52 +142,33 @@ export class EscenaPausa implements Escena {
     const nuevoY = dy !== 0 && dy !== this.ultimoY;
     this.ultimoX = dx;
     this.ultimoY = dy;
-    if (this.enPestanas) {
-      if (nuevoX) {
-        const n = PAGINAS.length;
-        this.verPagina(PAGINAS[(PAGINAS.indexOf(this.pagina) + dx + n) % n]!);
-      } else if (nuevoY && dy > 0) {
-        // En Ajustes se baja a los controles HTML; en las demás, al menú.
-        this.enPestanas = false;
-        if (this.pagina === 'ajustes') this.controles.sonido.enfocar();
-        else this.anunciarOpcion();
-      }
+    if (this.enObjetos) {
+      const n = this.ficha.objetos.length;
+      if (nuevoY) {
+        this.objeto = (this.objeto + dy + n) % n;
+        sonar('cursor');
+        this.anunciarObjeto();
+      } else if (nuevoX && dx < 0) this.volverALista();
+      else if (a.confirmar) this.usar(this.objeto);
       return;
     }
-    const n = this.menu.opciones.length;
-    if (nuevoX) {
-      this.menu.seleccion = (this.menu.seleccion + dx + n) % n;
-      sonar('cursor');
-      this.anunciarOpcion();
-    } else if (nuevoY && dy < 0) {
-      // ↑ desde el menú: a Efectos en Ajustes (lo que hay justo encima), si no a las pestañas.
-      if (this.pagina === 'ajustes') this.controles.efectos.enfocar();
-      else {
-        this.enPestanas = true;
-        anunciar(`Pestaña ${NOMBRE_PAGINA[this.pagina]}`);
-      }
+    if (nuevoY) {
+      const n = SECCIONES.length;
+      this.elegirFila((this.elegida + dy + n) % n);
+    } else if ((nuevoX && dx > 0) || a.confirmar) {
+      this.activar(this.elegida);
     }
-    if (a.confirmar) this.elegir(this.menu.seleccion);
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
-    // Con el foco arriba (pestañas o un control HTML), ningún botón de abajo se ve elegido.
-    const seleccion = this.menu.seleccion;
-    const c = this.controles;
-    const arriba =
-      this.enPestanas ||
-      c.sonido.enfocado() ||
-      c.calidad.enfocado() ||
-      c.musica.enfocado() ||
-      c.efectos.enfocado();
-    if (arriba) this.menu.seleccion = -1;
     const v = this.vista;
     v.pagina = this.pagina;
-    v.focoPestanas = this.enPestanas;
+    v.elegida = this.controlEnfocado() ? -1 : this.elegida;
+    v.enObjetos = this.enObjetos;
+    v.objeto = this.objeto;
     v.tiempo = this.tiempo;
     v.ficha = this.ficha;
     dibujarInventario(ctx, v);
-    this.menu.seleccion = seleccion;
   }
 
   /** Vuelve a leer a la heroína (al volver de la pantalla de Equipo o de la de puntos). */
@@ -191,56 +179,126 @@ export class EscenaPausa implements Escena {
   }
 
   private tocar(x: number, y: number): void {
-    const pestana = PESTANAS_INVENTARIO.findIndex((r) => dentro(x, y, r));
-    if (pestana >= 0) {
-      this.verPagina(PAGINAS[pestana]!);
+    const i = seccionTocada(x, y);
+    if (i >= 0) {
+      this.enObjetos = false;
+      this.soltarControles();
+      this.elegirFila(i);
+      // Heroína, Objetos y Ajustes ya se ven al elegirlas; lo demás (Equipo, Mejorar, Seguir, Salir) se hace.
+      const s = SECCIONES[i]!;
+      if (s !== 'heroina' && s !== 'objetos' && s !== 'ajustes') this.activar(i);
       return;
     }
-    const i = opcionTocada(x, y, this.menu.opciones.length);
-    if (i >= 0) {
-      this.enPestanas = false;
-      this.menu.seleccion = i;
-      this.elegir(i);
+    if (this.pagina !== 'objetos') return;
+    const n = this.ficha.objetos.length;
+    const o = filaTocada(x, y, OBJETOS_INVENTARIO, FILA_INVENTARIO, n);
+    if (o < 0) return;
+    // Usar un objeto pide dos toques, como en el combate: el primero solo lo elige y dice qué hace.
+    const usar = this.enObjetos && efectoToque(this.objeto, o, true) === 'usar';
+    this.enObjetos = true;
+    this.objeto = o;
+    if (usar) this.usar(o);
+    else {
+      sonar('cursor');
+      this.anunciarObjeto();
+    }
+  }
+
+  /** Mueve el cursor de la lista; Heroína, Objetos y Ajustes se ven a la derecha al momento. */
+  private elegirFila(i: number): void {
+    if (i !== this.elegida) sonar('cursor');
+    this.elegida = i;
+    const s = SECCIONES[i]!;
+    if (s === 'heroina' || s === 'objetos' || s === 'ajustes') this.verPagina(s);
+    else this.anunciarFila();
+  }
+
+  /** Enter (o →) o un toque en la fila `i`. */
+  private activar(i: number): void {
+    const s = SECCIONES[i]!;
+    if (s === 'objetos' && this.ficha.objetos.length > 0) {
+      sonar('confirmar');
+      this.enObjetos = true;
+      this.anunciarObjeto();
+    } else if (s === 'ajustes') {
+      if (!this.controlEnfocado()) this.controles.sonido.enfocar();
+    } else if (s === 'equipo') {
+      sonar('confirmar');
+      this.abrirEncima(this.alEquipo);
+    } else if (s === 'mejorar') {
+      if (this.l.puntos > 0) {
+        sonar('confirmar');
+        this.abrirEncima(this.alMejorar);
+      }
+    } else if (s === 'seguir') this.alSeguir();
+    else if (s === 'salir') {
+      sonar('confirmar');
+      this.salir();
     }
   }
 
   private verPagina(p: PaginaInventario): void {
-    if (p === this.pagina) return;
+    if (p === this.pagina) {
+      this.anunciarFila();
+      return;
+    }
     this.pagina = p;
-    this.menu.seleccion = 0;
-    sonar('confirmar');
-    this.rehacer();
+    this.objeto = 0;
     this.mostrarControles();
     this.anunciarPagina();
   }
 
-  private elegir(i: number): void {
-    sonar('confirmar');
-    this.acciones[i]?.();
+  private volverALista(): void {
+    this.enObjetos = false;
+    this.anunciarFila();
   }
 
-  private anunciarOpcion(): void {
-    const o = this.menu.opciones[this.menu.seleccion];
-    if (o) anunciar(`${o.texto} ${o.detalle}`);
+  private controlEnfocado(): boolean {
+    const c = this.controles;
+    return (
+      c.sonido.enfocado() || c.calidad.enfocado() || c.musica.enfocado() || c.efectos.enfocado()
+    );
   }
 
-  /** Lo que se ve en la pestaña, para el lector de pantalla. */
+  private soltarControles(): void {
+    const c = this.controles;
+    c.sonido.soltar();
+    c.calidad.soltar();
+    c.musica.soltar();
+    c.efectos.soltar();
+  }
+
+  private anunciarFila(): void {
+    const s = SECCIONES[this.elegida]!;
+    anunciar(`${NOMBRE_SECCION[s]} ${this.ficha.detalles[s]}`);
+  }
+
+  private anunciarObjeto(): void {
+    const o = this.ficha.objetos[this.objeto];
+    if (o) anunciar(`${o.nombre} ${o.cantidad}. ${o.lineas.join(' ')}`);
+  }
+
+  /** Lo que se ve en la sección, para el lector de pantalla. */
   private anunciarPagina(): void {
     const f = this.ficha;
     const contenido =
       this.pagina === 'heroina'
         ? [
-            f.cabecera,
+            `${f.nombre}, ${f.nivel}`,
             `PV ${f.textoPv}`,
             `PM ${f.textoPm}`,
             `PX ${f.textoPx}`,
+            'Habilidades',
             ...f.habilidades,
-            ...f.derecha,
+            'Estadísticas',
+            ...f.estadisticas,
+            'Equipo',
+            ...f.equipo,
           ]
         : this.pagina === 'objetos'
-          ? f.objetos.map((o) => `${o.titulo}: ${o.lineas.join(' ')}`)
+          ? f.objetos.map((o) => `${o.nombre} ${o.cantidad}: ${o.lineas.join(' ')}`)
           : ['Sonido, calidad, música y efectos', `Controles. ${TEXTO_CONTROLES}`];
-    anunciar([`Inventario, pestaña ${NOMBRE_PAGINA[this.pagina]}`, ...contenido].join('. '));
+    anunciar([`Inventario, ${NOMBRE_SECCION[this.pagina]}`, ...contenido].join('. '));
   }
 
   /** Los controles HTML solo se ven en Ajustes y si no hay otra pantalla encima. */
@@ -273,18 +331,23 @@ export class EscenaPausa implements Escena {
     if (this.salirPulsado) this.alSalir();
     this.salirPulsado = true;
     this.rehacer();
+    this.anunciarFila();
   }
 
-  private usar(clave: string): void {
-    const obj = this.objetos.consumibles[clave];
-    if (obj && (this.inv.consumibles[clave] ?? 0) > 0 && haceAlgo(this.l, obj)) {
-      aplicarConsumible(this.l, obj);
-      gastar(this.inv, clave);
-    }
+  /** Usa el consumible `i` si se puede (si no, no pasa nada: se ve apagado). */
+  private usar(i: number): void {
+    const o = this.ficha.objetos[i];
+    const clave = Object.keys(this.objetos.consumibles)[i];
+    const obj = clave ? this.objetos.consumibles[clave] : undefined;
+    if (!o?.disponible || !clave || !obj) return;
+    sonar('confirmar');
+    aplicarConsumible(this.l, obj);
+    gastar(this.inv, clave);
     this.rehacer();
+    this.anunciarObjeto();
   }
 
-  /** Rehace la ficha y el menú de la página (al abrir, al cambiar de pestaña y después de usar algo). */
+  /** Rehace la ficha (al abrir, al volver de otra pantalla y después de usar algo). */
   private rehacer(): void {
     const { l, inv, objetos } = this;
     const piezas = [inv.arma, inv.armadura].map((clave) =>
@@ -298,15 +361,17 @@ export class EscenaPausa implements Escena {
       const bono = piezas.reduce((suma, p) => suma + (p ? bonoDe(p, clave, l.nivel) : 0), 0);
       return `${etiqueta} ${l[clave]}${bono ? ` (+${bono})` : ''}`;
     };
-    const pieza = (etiqueta: string, p: EquipoJson | undefined): string[] => [
-      `${etiqueta}: ${p?.nombre ?? 'Nada'}`,
-      ...(p?.efecto ? [describirEfecto(p.efecto, this.estados)] : []),
+    const columna = (texto: string): string[] => partirEnLineas(texto, LETRAS_COLUMNA);
+    const pieza = (p: EquipoJson | undefined): string[] => [
+      ...columna(p?.nombre ?? 'Nada'),
+      ...(p?.efecto ? columna(describirEfecto(p.efecto, this.estados)) : []),
     ];
     const siguiente = experienciaParaSubir(l.nivel, this.progresion);
     // En el nivel máximo la barra de PX se ve llena y sin cuenta.
     const maximo = l.nivel >= this.progresion.nivelMaximo;
     this.ficha = {
-      cabecera: `${l.nombre} · Nivel ${l.nivel}`,
+      nombre: l.nombre,
+      nivel: `Nivel ${l.nivel}`,
       pv: l.pv,
       pvMax: l.pvMax,
       pm: l.pm,
@@ -317,62 +382,41 @@ export class EscenaPausa implements Escena {
       textoPm: `${l.pm}/${l.pmMax}`,
       textoPx: maximo ? 'Máx.' : `${l.experiencia}/${siguiente}`,
       habilidades: habilidadesDisponibles(l).map((h) => h.nombre),
-      derecha: [
-        'Estadísticas:',
+      estadisticas: [
         conBono('Ataque', 'ataque'),
         conBono('Magia', 'magia'),
         conBono('Defensa', 'defensa'),
         conBono('Velocidad', 'velocidad'),
-        'Equipo:',
-        ...pieza('Arma', piezas[0]),
-        ...pieza('Armadura', piezas[1]),
+      ],
+      equipo: [
+        ...pieza(piezas[0]),
+        ...pieza(piezas[1]),
         // El hueco del Corazón no existe hasta vencer al dragón negro; gastado, sigue como recuerdo.
         ...(inv.corazon === 'no'
           ? []
-          : [`Corazón: ${inv.corazon === 'lleno' ? 'Corazón del dragón negro' : 'Vacío'}`]),
-        ...(inv.mochila.length > 0 ? [`En la mochila: ${inv.mochila.length}`] : []),
+          : columna(`Corazón: ${inv.corazon === 'lleno' ? 'del dragón negro' : 'vacío'}`)),
+        ...(inv.mochila.length > 0 ? [`Mochila: ${inv.mochila.length}`] : []),
       ],
-      objetos: Object.entries(objetos.consumibles).map(([clave, o]) => ({
-        titulo: `${o.nombre} x${inv.consumibles[clave] ?? 0}`,
-        lineas: partirEnLineas(describirConsumible(o, this.estados), LARGO_DESCRIPCION),
-      })),
-    };
-
-    // Seguir el primero y Salir el último en todas las páginas; en medio, lo de cada una.
-    const opciones: MenuVista['opciones'] = [{ texto: 'Seguir', detalle: '', disponible: true }];
-    const acciones: (() => void)[] = [this.alSeguir];
-    if (this.pagina === 'heroina') {
-      opciones.push(
-        { texto: 'Equipo', detalle: '', disponible: true },
-        {
-          texto: 'Mejorar',
-          detalle: l.puntos > 0 ? `${l.puntos} libres` : '',
-          disponible: l.puntos > 0,
-        },
-      );
-      acciones.push(
-        () => this.abrirEncima(this.alEquipo),
-        () => (l.puntos > 0 ? this.abrirEncima(this.alMejorar) : undefined),
-      );
-    } else if (this.pagina === 'objetos') {
-      for (const clave of this.usables) {
+      // Todos los consumibles; solo se pueden usar aquí los que restauran PV o PM y si hacen algo.
+      objetos: Object.entries(objetos.consumibles).map(([clave, o]) => {
         const cuantos = inv.consumibles[clave] ?? 0;
-        opciones.push({
-          texto: objetos.consumibles[clave]!.nombre,
-          detalle: `x${cuantos}`,
-          disponible: cuantos > 0 && haceAlgo(l, objetos.consumibles[clave]!),
-        });
-        acciones.push(() => this.usar(clave));
-      }
-    }
-    opciones.push({
-      texto: 'Salir',
-      detalle: this.salirPulsado ? '¿Seguro?' : '',
-      disponible: true,
-    });
-    acciones.push(() => this.salir());
-    this.menu.opciones = opciones;
-    this.acciones = acciones;
-    if (this.menu.seleccion >= opciones.length) this.menu.seleccion = 0;
+        return {
+          nombre: o.nombre,
+          cantidad: `x${cuantos}`,
+          disponible: Boolean(o.pv || o.pm) && cuantos > 0 && haceAlgo(l, o),
+          lineas: partirEnLineas(describirConsumible(o, this.estados), LETRAS_PANEL),
+        };
+      }),
+      detalles: {
+        heroina: '',
+        objetos: '',
+        equipo: '',
+        mejorar: l.puntos > 0 ? String(l.puntos) : '',
+        ajustes: '',
+        seguir: '',
+        salir: this.salirPulsado ? '¿Seguro?' : '',
+      },
+      mejorar: l.puntos > 0,
+    };
   }
 }
