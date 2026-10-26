@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menús: tono</title>
+<style>
+  body { margin: 0; padding: 24px 16px; background: #111614; color: #e8efe4; font-family: system-ui, sans-serif; }
+  h2 { margin: 0 0 4px; } .subtitle { color: #9aa; margin: 0 0 20px; }
+  .options { display: flex; flex-direction: column; gap: 28px; max-width: 720px; margin: 0 auto; }
+  .option { display: flex; gap: 12px; } .letter { font-size: 22px; font-weight: bold; color: #ffd27a; }
+  .content h3 { margin: 0 0 8px; }
+  .option[data-choice="lav"] h3::after { content: '  ← elegido por Pedro (2026-10-26)'; color: #ffd27a; font-size: 14px; }
+</style>
+</head>
+<body>
+<style>
+  .pant { --u: 1.15px; position: relative; width: calc(var(--u) * 480); height: calc(var(--u) * 352);
+    background: radial-gradient(ellipse at 50% 40%, #1d2a24 0%, #0d1311 70%, #070a09 100%);
+    font-family: monospace; font-weight: bold; color: #efe9da; overflow: hidden; margin: 0 auto; }
+  .pant * { box-sizing: border-box; }
+  .abs { position: absolute; }
+  .t { font-size: calc(var(--u) * 12); line-height: 1.3; white-space: nowrap; }
+  .panel { background: linear-gradient(180deg, var(--fondo1), var(--fondo2)); border: calc(var(--u)*1) solid var(--filete);
+    box-shadow: inset 0 0 0 calc(var(--u)*2) var(--fondo2), inset 0 0 0 calc(var(--u)*3) var(--interior); }
+  .esq { position: absolute; width: calc(var(--u)*6); height: calc(var(--u)*6); background: var(--claro); transform: rotate(45deg); }
+  .tit { color: var(--claro); } .apag { color: #8e8e9a; } .pm { color: #9ec0ff; } .suave { color: #b9b3a3; }
+  .linea { height: calc(var(--u)*1); background: linear-gradient(90deg, var(--filete), transparent); margin: calc(var(--u)*3) 0 calc(var(--u)*5); }
+  .barra { height: calc(var(--u)*5); background: #2a2a30; flex: 1; }
+  .barra > i { display: block; height: 100%; }
+  .fb { display: flex; align-items: center; gap: calc(var(--u)*6); }
+  .rana { width: calc(var(--u)*54); height: calc(var(--u)*62); background: #5f9b45; border-radius: 40% 40% 20% 20%;
+    box-shadow: inset 0 calc(var(--u)*-18) 0 #9b3b3b, 0 calc(var(--u)*-12) 0 calc(var(--u)*-7) #c9a46a; }
+  .fila { position: relative; display: flex; align-items: center; height: calc(var(--u)*28); padding: 0 calc(var(--u)*10) 0 calc(var(--u)*18); }
+  .sel { background: linear-gradient(90deg, var(--brillo), transparent 80%); color: var(--elegida); }
+  .sel::before { content: ''; position: absolute; left: calc(var(--u)*6); top: calc(var(--u)*11); width: calc(var(--u)*6); height: calc(var(--u)*6); background: var(--cursor); transform: rotate(45deg); }
+  .muestras { display:flex; gap:6px; margin: 4px 0 8px; } .muestras span { width: 26px; height: 14px; border-radius: 2px; display:inline-block; border: 1px solid #0006; }
+  .nota { font-size: 13px; color: #9aa; margin: 6px 0 0; max-width: 600px; }
+
+  /* 1. Dorado como el boceto (referencia) */
+  .oro { --fondo1: rgba(14,16,30,.93); --fondo2: rgba(6,8,16,.95); --filete: #c9a45a; --interior: #6b5428; --claro: #e6c77e;
+         --brillo: rgba(230,199,126,.45); --cursor: #ffe6a0; --elegida: #fff4d6; }
+  /* 2. Lavanda de Nenúfar: el morado del logo y del fuego de la maga */
+  .lav { --fondo1: rgba(18,14,32,.93); --fondo2: rgba(9,7,18,.95); --filete: #9b7fd6; --interior: #4a3a75; --claro: #c9b6ff;
+         --brillo: rgba(180,140,255,.42); --cursor: #e4d8ff; --elegida: #f4eeff; }
+  /* 3. Jade de estanque con nácar: verde de nenúfar y un brillo claro */
+  .jade { --fondo1: rgba(10,22,20,.93); --fondo2: rgba(5,12,11,.95); --filete: #6fae84; --interior: #2f5a44; --claro: #a8dcb6;
+          --brillo: rgba(127,198,150,.40); --cursor: #e4f6e8; --elegida: #f0fff4; }
+  /* 4. Bronce mate: el dorado rebajado, más cálido y menos brillante */
+  .bron { --fondo1: rgba(20,16,14,.93); --fondo2: rgba(10,8,7,.95); --filete: #b07a4f; --interior: #5a3b26; --claro: #d9a77c;
+          --brillo: rgba(201,140,90,.40); --cursor: #f2d2b4; --elegida: #fbeee2; }
+</style>
+
+<h2>¿Qué tono para el filete y lo elegido?</h2>
+<p class="subtitle">Mismas formas (filete doble, rombos, brillo y rombo de cursor). Cambian el filete, los títulos y la selección. Vale para el inventario y para el combate.</p>
+
+<div class="options">
+<!-- cada opción: mismo inventario B con otra paleta -->
+</div>
+
+<script>
+  const variantes = [
+    ['oro', '1', 'Dorado (el del boceto)', 'La referencia: lo que ya viste. Elegante, pero es el dorado de Octopath, no el de Nenúfar.', ['#c9a45a', '#e6c77e', '#ffe6a0']],
+    ['lav', '2', 'Lavanda de Nenúfar', 'El morado del logo, de la Señora y del fuego de la maga. El que más dice «Nenúfar».', ['#9b7fd6', '#c9b6ff', '#e4d8ff']],
+    ['jade', '3', 'Jade de estanque', 'El verde de los nenúfares con un brillo de nácar. Tranquilo; se lleva bien con el Bosque, menos con la Cripta.', ['#6fae84', '#a8dcb6', '#e4f6e8']],
+    ['bron', '4', 'Bronce mate', 'El dorado rebajado y cálido: la misma sensación de Octopath, más apagada y más de piedra y ruinas.', ['#b07a4f', '#d9a77c', '#f2d2b4']],
+  ];
+  const cuerpo = `
+  <div class="abs panel" style="left: calc(var(--u)*12); top: calc(var(--u)*12); width: calc(var(--u)*128); height: calc(var(--u)*328); padding: calc(var(--u)*8) 0">
+    <div class="esq" style="left: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div><div class="esq" style="right: calc(var(--u)*-3); bottom: calc(var(--u)*-3)"></div>
+    <div class="fila t sel">Heroína</div><div class="fila t">Objetos</div><div class="fila t">Equipo</div>
+    <div class="fila t apag">Mejorar</div><div class="fila t">Ajustes</div>
+    <div style="height: calc(var(--u)*94)"></div><div class="fila t">Seguir</div><div class="fila t">Salir</div>
+  </div>
+  <div class="abs panel" style="left: calc(var(--u)*150); top: calc(var(--u)*12); width: calc(var(--u)*318); height: calc(var(--u)*328); padding: calc(var(--u)*12)">
+    <div class="esq" style="right: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div><div class="esq" style="left: calc(var(--u)*-3); bottom: calc(var(--u)*-3)"></div>
+    <div style="display:flex; gap: calc(var(--u)*12)">
+      <div class="rana"></div>
+      <div style="flex:1">
+        <div class="t">Rana ronin</div><div class="t tit">Nivel 10</div>
+        <div class="t fb" style="margin-top: calc(var(--u)*4)"><span class="suave">PV</span><div class="barra"><i style="width:100%;background:#d8584a"></i></div>96/96</div>
+        <div class="t fb"><span class="suave">PM</span><div class="barra"><i style="width:66%;background:#5b8ad8"></i></div>21/32</div>
+        <div class="t fb"><span class="suave">PX</span><div class="barra"><i style="width:100%;background:#b48cff"></i></div>Máx.</div>
+      </div>
+    </div>
+    <div style="display:flex; gap: calc(var(--u)*14); margin-top: calc(var(--u)*12)">
+      <div style="flex:1">
+        <div class="t tit">Estadísticas</div><div class="linea"></div>
+        <div class="t">Ataque 42 <span class="pm">(+10)</span><br>Magia 3<br>Defensa 32 <span class="pm">(+8)</span><br>Velocidad 15</div>
+        <div class="t tit" style="margin-top: calc(var(--u)*10)">Equipo</div><div class="linea"></div>
+        <div class="t">Hoja rúnica<br>Armadura de placas<br><span class="suave">Mochila: 6</span></div>
+      </div>
+      <div style="flex:1">
+        <div class="t tit">Habilidades</div><div class="linea"></div>
+        <div class="t">Corte rápido<br>Postura de hierro<br>Tajo del viento<br>Iaido<br>Tajo de llama morada</div>
+      </div>
+    </div>
+  </div>`;
+  const cont = document.querySelector('.options');
+  for (const [clase, letra, titulo, nota, colores] of variantes) {
+    const d = document.createElement('div');
+    d.className = 'option'; d.dataset.choice = clase; d.setAttribute('onclick', 'toggleSelect(this)');
+    d.innerHTML = `<div class="letter">${letra}</div><div class="content"><h3>${titulo}</h3>
+      <div class="muestras">${colores.map((c) => `<span style="background:${c}"></span>`).join('')}</div>
+      <div class="pant ${clase}">${cuerpo}</div><p class="nota">${nota}</p></div>`;
+    cont.appendChild(d);
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menús: decisiones</title>
+<style>
+  body { margin: 0; padding: 24px 16px; background: #111614; color: #e8efe4; font-family: system-ui, sans-serif; }
+  h2 { margin: 0 0 4px; } .subtitle { color: #9aa; margin: 0 0 20px; }
+</style>
+</head>
+<body>
+<style>
+  .pant { --u: 1.3px; position: relative; width: calc(var(--u) * 480); height: calc(var(--u) * 352);
+    background: radial-gradient(ellipse at 50% 30%, #57503f 0%, #2d2922 55%, #15130f 100%);
+    font-family: monospace; font-weight: bold; color: #efe9da; overflow: hidden; margin: 0 auto; }
+  .pant.inv { background: radial-gradient(ellipse at 50% 40%, #1d2a24 0%, #0d1311 70%, #070a09 100%); }
+  .pant * { box-sizing: border-box; }
+  .abs { position: absolute; }
+  .t { font-size: calc(var(--u) * 12); line-height: 1.3; white-space: nowrap; }
+  .panel { background: linear-gradient(180deg, rgba(18,14,32,.93), rgba(9,7,18,.95)); border: calc(var(--u)*1) solid #9b7fd6;
+    box-shadow: inset 0 0 0 calc(var(--u)*2) rgba(9,7,18,.95), inset 0 0 0 calc(var(--u)*3) #4a3a75; }
+  .esq { position: absolute; width: calc(var(--u)*6); height: calc(var(--u)*6); background: #c9b6ff; transform: rotate(45deg); }
+  .pest { background: rgba(9,7,18,.95); border: calc(var(--u)*1) solid #9b7fd6; color: #c9b6ff; padding: 0 calc(var(--u)*8); }
+  .tit { color: #c9b6ff; } .apag { color: #8e8e9a; } .pm { color: #9ec0ff; } .suave { color: #b9b3a3; }
+  .linea { height: calc(var(--u)*1); background: linear-gradient(90deg, #9b7fd6, transparent); margin: calc(var(--u)*3) 0 calc(var(--u)*5); }
+  .barra { height: calc(var(--u)*4); background: #2a2a30; margin: calc(var(--u)*2) 0; }
+  .barra.f { flex: 1; height: calc(var(--u)*5); margin: 0; }
+  .barra > i { display: block; height: 100%; }
+  .fb { display: flex; align-items: center; gap: calc(var(--u)*6); }
+  .golem { left: calc(var(--u)*204); top: calc(var(--u)*40); width: calc(var(--u)*72); height: calc(var(--u)*76);
+    background: #8a7c66; border-radius: calc(var(--u)*12) calc(var(--u)*12) calc(var(--u)*5) calc(var(--u)*5); box-shadow: inset 0 0 0 calc(var(--u)*4) #6d6150; }
+  .rana { left: calc(var(--u)*92); top: calc(var(--u)*140); width: calc(var(--u)*40); height: calc(var(--u)*46); background: #5f9b45; border-radius: 40% 40% 20% 20%;
+    box-shadow: inset 0 calc(var(--u)*-13) 0 #9b3b3b, 0 calc(var(--u)*-9) 0 calc(var(--u)*-5) #c9a46a; }
+  .fila { position: relative; display: flex; justify-content: space-between; align-items: center; height: calc(var(--u)*24); padding: 0 calc(var(--u)*10) 0 calc(var(--u)*16); }
+  .fila.alta { height: calc(var(--u)*28); }
+  .sel { background: linear-gradient(90deg, rgba(180,140,255,.42), transparent 80%); color: #f4eeff; }
+  .sel::before { content: ''; position: absolute; left: calc(var(--u)*5); top: 50%; margin-top: calc(var(--u)*-3); width: calc(var(--u)*6); height: calc(var(--u)*6); background: #e4d8ff; transform: rotate(45deg); }
+  .n { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #ffd27a; color: #1a1408; font: bold 13px system-ui; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px #1a1408; z-index: 5; }
+  .ctl { border: calc(var(--u)*1) dashed #9b7fd6aa; color: #b9b3a3; display:flex; align-items:center; padding: 0 calc(var(--u)*6); height: calc(var(--u)*30); }
+  .bloque { margin-bottom: 30px; }
+  .bloque h3 { margin: 0 0 8px; }
+  ol.dec { max-width: 640px; margin: 10px auto 0; padding-left: 22px; color: #cfd8cc; font-size: 14px; line-height: 1.45; }
+  ol.dec li { margin-bottom: 4px; } ol.dec b { color: #ffd27a; }
+</style>
+
+<h2>Lo que he decidido yo</h2>
+<p class="subtitle">Los números amarillos marcan cada decisión; la lista de debajo de cada pantalla la explica. Ya en lavanda y con la PX en verde.</p>
+
+<div class="bloque">
+<h3>Combate: menú principal</h3>
+<div class="pant">
+  <div class="abs t" style="left: calc(var(--u)*12); top: calc(var(--u)*6); color:#aab8a6">Turno ▮ Rana ronin ▮ Golem de piedra</div>
+  <div class="abs t" style="left:0;width:100%;text-align:center; top: calc(var(--u)*24)">Golem de piedra</div>
+  <div class="abs golem"></div>
+  <div class="abs" style="left: calc(var(--u)*204); top: calc(var(--u)*120); width: calc(var(--u)*72)"><div class="barra"><i style="width:100%;background:#d8584a"></i></div></div>
+  <div class="abs rana"></div>
+  <div class="abs" style="left: calc(var(--u)*146); top: calc(var(--u)*146); width: calc(var(--u)*150)">
+    <div class="t">Rana ronin <span class="suave">78/78 · 23/23</span></div>
+    <div class="barra"><i style="width:100%;background:#d8584a"></i></div>
+    <div class="barra"><i style="width:100%;background:#5b8ad8"></i></div>
+  </div>
+  <div class="n" style="left: calc(var(--u)*300); top: calc(var(--u)*120)">1</div>
+  <div class="abs t pest" style="left: calc(var(--u)*16); top: calc(var(--u)*186)">Acción</div>
+  <div class="abs panel" style="left: calc(var(--u)*8); top: calc(var(--u)*200); width: calc(var(--u)*464); height: calc(var(--u)*146); display:flex">
+    <div class="esq" style="left: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div><div class="esq" style="right: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div>
+    <div class="esq" style="left: calc(var(--u)*-3); bottom: calc(var(--u)*-3)"></div><div class="esq" style="right: calc(var(--u)*-3); bottom: calc(var(--u)*-3)"></div>
+    <div style="width: calc(var(--u)*210); padding: calc(var(--u)*1) 0; position: relative">
+      <div class="fila t sel"><span>Atacar</span></div>
+      <div class="fila t"><span>Habilidad</span></div>
+      <div class="fila t"><span>Objeto</span><span class="pm">3</span></div>
+      <div class="fila t"><span>Defender</span></div>
+      <div class="fila t apag"><span>Huir</span><span>no se puede</span></div>
+    </div>
+    <div style="flex:1; padding: calc(var(--u)*10) calc(var(--u)*12)">
+      <div class="t tit">Atacar</div><div class="linea"></div>
+      <div class="t" style="white-space:normal">Golpe normal a un enemigo. Recuperas 1 PM.</div>
+    </div>
+  </div>
+  <div class="n" style="left: calc(var(--u)*196); top: calc(var(--u)*206)">3</div>
+  <div class="n" style="left: calc(var(--u)*444); top: calc(var(--u)*206)">2</div>
+</div>
+<ol class="dec">
+  <li><b>La escena sube.</b> Enemigos, heroína y su ficha caben entre la barra de turnos y el panel: nada del menú puede tapar a un jefe.</li>
+  <li><b>Sin botón «i».</b> La derecha del panel dice siempre qué hace lo elegido; ya no hace falta encender la ayuda.</li>
+  <li><b>Un toque en el menú principal.</b> Atacar, Habilidad, Objeto, Defender y Huir no gastan nada al tocarlos (Atacar lleva a elegir enemigo), así que basta un toque. Filas de 24: el mínimo para el dedo en el móvil.</li>
+</ol>
+</div>
+
+<div class="bloque">
+<h3>Combate: mientras se animan los turnos</h3>
+<div class="pant">
+  <div class="abs t" style="left: calc(var(--u)*12); top: calc(var(--u)*6); color:#aab8a6">Turno ▮ Golem de piedra ▮ Rana ronin</div>
+  <div class="abs t" style="left:0;width:100%;text-align:center; top: calc(var(--u)*24)">Golem de piedra</div>
+  <div class="abs golem"></div>
+  <div class="abs" style="left: calc(var(--u)*204); top: calc(var(--u)*120); width: calc(var(--u)*72)"><div class="barra"><i style="width:82%;background:#d8584a"></i></div></div>
+  <div class="abs rana"></div>
+  <div class="abs t" style="left: calc(var(--u)*100); top: calc(var(--u)*124); color:#ff8a7a">-12</div>
+  <div class="abs" style="left: calc(var(--u)*146); top: calc(var(--u)*146); width: calc(var(--u)*150)">
+    <div class="t">Rana ronin <span class="suave">66/78 · 23/23</span></div>
+    <div class="barra"><i style="width:85%;background:#d8584a"></i></div>
+    <div class="barra"><i style="width:100%;background:#5b8ad8"></i></div>
+  </div>
+  <div class="abs panel" style="left: calc(var(--u)*8); top: calc(var(--u)*200); width: calc(var(--u)*464); height: calc(var(--u)*146); padding: calc(var(--u)*12) calc(var(--u)*16)">
+    <div class="esq" style="left: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div><div class="esq" style="right: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div>
+    <div class="esq" style="left: calc(var(--u)*-3); bottom: calc(var(--u)*-3)"></div><div class="esq" style="right: calc(var(--u)*-3); bottom: calc(var(--u)*-3)"></div>
+    <div class="t suave">Rana ronin usa Corte rápido: 17 de daño.</div>
+    <div class="t">El golem alza el puño… te golpea: 12 de daño.</div>
+  </div>
+  <div class="n" style="left: calc(var(--u)*444); top: calc(var(--u)*206)">4</div>
+</div>
+<ol class="dec" start="4">
+  <li><b>Sin menú, el panel cuenta lo que pasa.</b> Mientras se animan los turnos no hay lista: el panel enseña las últimas acciones (lo que hoy sale en el registro de una línea).</li>
+</ol>
+</div>
+
+<div class="bloque">
+<h3>Inventario: Objetos</h3>
+<div class="pant inv">
+  <div class="abs panel" style="left: calc(var(--u)*12); top: calc(var(--u)*12); width: calc(var(--u)*128); height: calc(var(--u)*328); padding: calc(var(--u)*8) 0">
+    <div class="esq" style="left: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div><div class="esq" style="right: calc(var(--u)*-3); bottom: calc(var(--u)*-3)"></div>
+    <div class="fila alta t">Heroína</div>
+    <div class="fila alta t" style="color:#c9b6ff">◆ Objetos</div>
+    <div class="fila alta t">Equipo</div>
+    <div class="fila alta t"><span>Mejorar</span><span class="pm">2</span></div>
+    <div class="fila alta t">Ajustes</div>
+    <div style="height: calc(var(--u)*94)"></div>
+    <div class="fila alta t">Seguir</div><div class="fila alta t">Salir</div>
+  </div>
+  <div class="abs panel" style="left: calc(var(--u)*150); top: calc(var(--u)*12); width: calc(var(--u)*318); height: calc(var(--u)*328); padding: calc(var(--u)*12)">
+    <div class="esq" style="right: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div><div class="esq" style="left: calc(var(--u)*-3); bottom: calc(var(--u)*-3)"></div>
+    <div class="t tit">Objetos</div><div class="linea"></div>
+    <div class="fila alta t sel"><span>Poción</span><span class="pm">x3</span></div>
+    <div class="fila alta t"><span>Éter</span><span class="pm">x1</span></div>
+    <div class="fila alta t apag"><span>Antídoto</span><span>x0</span></div>
+    <div class="t tit" style="margin-top: calc(var(--u)*16)">Poción</div><div class="linea"></div>
+    <div class="t" style="white-space:normal">Recupera 25 PV. Toca otra vez para usarla.</div>
+    <div class="t suave" style="margin-top: calc(var(--u)*30)">PV 52/96 · PM 21/32</div>
+  </div>
+  <div class="n" style="left: calc(var(--u)*120); top: calc(var(--u)*76)">5</div>
+  <div class="n" style="left: calc(var(--u)*440); top: calc(var(--u)*50)">6</div>
+</div>
+<ol class="dec" start="5">
+  <li><b>Equipo y Mejorar abren sus pantallas de ahora.</b> No se rehacen: el diseño no las toca. «Mejorar» enseña a la derecha los puntos libres (aquí 2) y sale apagada si no hay.</li>
+  <li><b>Usar un objeto: dos toques,</b> como en el combate. Con el teclado: Enter (o →) entra en la lista de objetos, Enter la usa, Escape (o ←) vuelve a la lista de la izquierda. Debajo, tus PV y PM para saber si te hace falta.</li>
+</ol>
+</div>
+
+<div class="bloque">
+<h3>Inventario: Ajustes</h3>
+<div class="pant inv">
+  <div class="abs panel" style="left: calc(var(--u)*12); top: calc(var(--u)*12); width: calc(var(--u)*128); height: calc(var(--u)*328); padding: calc(var(--u)*8) 0">
+    <div class="esq" style="left: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div><div class="esq" style="right: calc(var(--u)*-3); bottom: calc(var(--u)*-3)"></div>
+    <div class="fila alta t">Heroína</div><div class="fila alta t">Objetos</div><div class="fila alta t">Equipo</div>
+    <div class="fila alta t apag">Mejorar</div>
+    <div class="fila alta t sel">Ajustes</div>
+    <div style="height: calc(var(--u)*94)"></div>
+    <div class="fila alta t">Seguir</div><div class="fila alta t">Salir</div>
+  </div>
+  <div class="abs panel" style="left: calc(var(--u)*150); top: calc(var(--u)*12); width: calc(var(--u)*318); height: calc(var(--u)*328); padding: calc(var(--u)*12)">
+    <div class="esq" style="right: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div><div class="esq" style="left: calc(var(--u)*-3); bottom: calc(var(--u)*-3)"></div>
+    <div class="t tit">Ajustes</div><div class="linea"></div>
+    <div style="display:flex; gap: calc(var(--u)*10)"><div class="ctl t" style="flex:1">☑ Sonido</div><div class="ctl t" style="flex:1">☑ Calidad alta</div></div>
+    <div class="t" style="margin-top: calc(var(--u)*14)">Música</div>
+    <div class="ctl t">━━━━━━━━━●━━━━</div>
+    <div class="t" style="margin-top: calc(var(--u)*10)">Efectos</div>
+    <div class="ctl t">━━━━━━━━━━━●━━</div>
+    <div class="t suave" style="margin-top: calc(var(--u)*14); white-space: normal">Los controles son los de ahora (casillas y deslizadores de verdad, para el lector de pantalla), solo que dentro de este panel.</div>
+  </div>
+  <div class="n" style="left: calc(var(--u)*440); top: calc(var(--u)*50)">7</div>
+</div>
+<ol class="dec" start="7">
+  <li><b>Ajustes dentro del panel derecho.</b> Los mismos controles HTML de hoy (sonido, calidad, música, efectos), solo recolocados.</li>
+  <li><b>El resto de pantallas no cambian ahora</b> (portada, elegir rana, nombre, dificultad, equipo, puntos, mensajes de historia). Pueden adoptar el lavanda más adelante.</li>
+</ol>
+</div>
+
+<p class="subtitle" style="text-align:center">Aprobado por Pedro el 2026-10-26.</p>
+</body>
+</html>

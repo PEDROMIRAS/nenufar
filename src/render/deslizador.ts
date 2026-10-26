@@ -10,6 +10,8 @@ export interface ControlHtml<T> {
   enfocar(): void;
   /** Si tiene el foco (entonces el menú de debajo no se ve elegido). */
   enfocado(): boolean;
+  /** Le quita el foco: las teclas vuelven al juego. */
+  soltar(): void;
   /**
    * Qué hacen ↑ y ↓ con el foco en él (pasar al control de arriba o de abajo). Sin `abajo`, ↓ suelta
    * el foco y las teclas vuelven al juego; sin `arriba`, ↑ es del control.
@@ -61,7 +63,7 @@ function crearInput(tipo: string, etiqueta: string): HTMLInputElement {
   control.type = tipo;
   control.setAttribute('aria-label', etiqueta);
   control.style.cssText =
-    'position:fixed;display:none;box-sizing:border-box;margin:0;accent-color:#ffd27a;cursor:pointer';
+    'position:fixed;display:none;box-sizing:border-box;margin:0;accent-color:#c9b6ff;cursor:pointer';
   document.body.append(control);
   return control;
 }
@@ -105,6 +107,7 @@ function sobreCanvas<T>(
     },
     enfocar: () => control.focus(),
     enfocado: () => document.activeElement === control,
+    soltar: () => control.blur(),
     enlazar(a, b) {
       arriba = a;
       abajo = b;

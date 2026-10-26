@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menú de combate: estilos</title>
+<style>
+  body { margin: 0; padding: 24px 16px; background: #111614; color: #e8efe4; font-family: system-ui, sans-serif; }
+  h2 { margin: 0 0 4px; } .subtitle { color: #9aa; margin: 0 0 20px; }
+  .options { display: flex; flex-direction: column; gap: 28px; max-width: 720px; margin: 0 auto; }
+  .option { display: flex; gap: 12px; } .letter { font-size: 22px; font-weight: bold; color: #ffd27a; }
+  .content h3 { margin: 0 0 8px; }
+  .option[data-choice="octopath"] h3::after { content: '  ← elegido por Pedro (2026-10-26)'; color: #ffd27a; font-size: 14px; }
+</style>
+</head>
+<body>
+<style>
+  .pant { --u: 1.4px; position: relative; width: calc(var(--u) * 480); height: calc(var(--u) * 352);
+    background: radial-gradient(ellipse at 50% 30%, #57503f 0%, #2d2922 55%, #15130f 100%);
+    font-family: monospace; font-weight: bold; color: #e8efe4; overflow: hidden; margin: 0 auto; image-rendering: pixelated; }
+  .pant * { box-sizing: border-box; }
+  .abs { position: absolute; }
+  .t { font-size: calc(var(--u) * 12); line-height: 1.25; white-space: nowrap; }
+  .golem { left: calc(var(--u)*204); top: calc(var(--u)*40); width: calc(var(--u)*72); height: calc(var(--u)*76);
+    background: #8a7c66; border-radius: calc(var(--u)*12) calc(var(--u)*12) calc(var(--u)*5) calc(var(--u)*5); box-shadow: inset 0 0 0 calc(var(--u)*4) #6d6150; }
+  .rana { left: calc(var(--u)*92); top: calc(var(--u)*140); width: calc(var(--u)*40); height: calc(var(--u)*46); background: #5f9b45; border-radius: 40% 40% 20% 20%;
+    box-shadow: inset 0 calc(var(--u)*-13) 0 #3b5f8a, 0 calc(var(--u)*-9) 0 calc(var(--u)*-5) #c9a46a; }
+  .barra { height: calc(var(--u)*4); background: #2a2a2a; margin: calc(var(--u)*2) 0; }
+  .barra > i { display: block; height: 100%; }
+  .fila { position: relative; display: flex; justify-content: space-between; align-items: center; height: calc(var(--u)*24); padding: 0 calc(var(--u)*10) 0 calc(var(--u)*16); }
+  .nota { font-size: 13px; color: #9aa; margin: 6px 0 0; max-width: 680px; }
+
+  /* 1. Octopath: negro azulado translúcido, doble filete dorado, rombos en las esquinas */
+  .o .panel { background: linear-gradient(180deg, rgba(14,16,30,.93), rgba(6,8,16,.95)); border: calc(var(--u)*1) solid #c9a45a; box-shadow: inset 0 0 0 calc(var(--u)*2) rgba(6,8,16,.95), inset 0 0 0 calc(var(--u)*3) #6b5428; }
+  .o .esq { position: absolute; width: calc(var(--u)*6); height: calc(var(--u)*6); background: #e6c77e; transform: rotate(45deg); }
+  .o .pest { background: #0e101e; border: calc(var(--u)*1) solid #c9a45a; color: #e6c77e; padding: 0 calc(var(--u)*8); }
+  .o .sel { background: linear-gradient(90deg, rgba(230,199,126,.45), rgba(230,199,126,.08) 75%, transparent); color: #fff4d6; }
+  .o .sel::before { content: ''; position: absolute; left: calc(var(--u)*5); top: calc(var(--u)*9); width: calc(var(--u)*6); height: calc(var(--u)*6); background: #ffe6a0; transform: rotate(45deg); }
+  .o .pm { color: #9ec0ff; } .o .off { color: #8e8e9a; }
+  .o .tit { color: #e6c77e; } .o .linea { height: calc(var(--u)*1); background: linear-gradient(90deg, #c9a45a, transparent); margin: calc(var(--u)*3) 0 calc(var(--u)*5); }
+  .o .desc { color: #efe9da; }
+
+  /* 2. Charca: verde de estanque, borde de nenúfar con esquinas de píxel, selección morada */
+  .c .panel { background: linear-gradient(180deg, #12302b, #0b1f1c); border: calc(var(--u)*2) solid #5d9a4c; border-radius: calc(var(--u)*3); box-shadow: 0 0 0 calc(var(--u)*1) #0a1512; }
+  .c .pest { background: #5d9a4c; color: #0b1f1c; padding: 0 calc(var(--u)*8); border-radius: calc(var(--u)*3) calc(var(--u)*3) 0 0; }
+  .c .sel { background: linear-gradient(90deg, rgba(142,92,230,.6), rgba(142,92,230,.12) 80%, transparent); color: #fff; box-shadow: inset calc(var(--u)*2) 0 0 #c9a0ff; }
+  .c .sel::before { content: ''; position: absolute; left: calc(var(--u)*5); top: calc(var(--u)*8); width: calc(var(--u)*8); height: calc(var(--u)*8); background: #7fc65e; border-radius: 50%; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 55%, 50% 50%, 0 45%); }
+  .c .pm { color: #8fd0ff; } .c .off { color: #7f9690; }
+  .c .tit { color: #c9a0ff; } .c .linea { height: calc(var(--u)*1); background: #5d9a4c88; margin: calc(var(--u)*3) 0 calc(var(--u)*5); }
+  .c .desc { color: #e3efe0; }
+
+  /* 3. Ventana azul clásica de JRPG de 16 bits */
+  .a .panel { background: linear-gradient(180deg, #2c45a8, #101b5c); border: calc(var(--u)*2) solid #e8e8f0; border-radius: calc(var(--u)*4); box-shadow: 0 0 0 calc(var(--u)*1) #0a0f30, inset 0 0 0 calc(var(--u)*1) #0a0f30; }
+  .a .pest { background: #101b5c; border: calc(var(--u)*2) solid #e8e8f0; border-bottom: none; color: #fff; padding: 0 calc(var(--u)*8); border-radius: calc(var(--u)*4) calc(var(--u)*4) 0 0; }
+  .a .sel { color: #fff; }
+  .a .sel::before { content: '☞'; position: absolute; left: calc(var(--u)*1); font-size: calc(var(--u)*12); color: #fff; }
+  .a .pm { color: #ffe08a; } .a .off { color: #9aa3cc; }
+  .a .tit { color: #ffe08a; } .a .linea { height: calc(var(--u)*1); background: #e8e8f055; margin: calc(var(--u)*3) 0 calc(var(--u)*5); }
+  .a .desc { color: #fff; }
+</style>
+
+<h2>¿Qué estilo para el panel de combate?</h2>
+<p class="subtitle">La misma disposición B en tres estilos. Filas de 24 píxeles del juego (el mínimo para tocar en el móvil), con la ayuda siempre a la derecha.</p>
+
+<div class="options">
+
+<!-- PLANTILLA: misma escena y mismo panel; solo cambia la clase de estilo -->
+<div class="option" data-choice="octopath" onclick="toggleSelect(this)">
+<div class="letter">1</div>
+<div class="content">
+<h3>Octopath: filete dorado</h3>
+<div class="pant o">
+  <div class="abs t" style="left: calc(var(--u)*12); top: calc(var(--u)*6); color:#aab8a6">Turno ▮ Rana ronin ▮ Golem de piedra</div>
+  <div class="abs t" style="left:0;width:100%;text-align:center; top: calc(var(--u)*24)">Golem de piedra</div>
+  <div class="abs golem"></div>
+  <div class="abs" style="left: calc(var(--u)*204); top: calc(var(--u)*120); width: calc(var(--u)*72)"><div class="barra"><i style="width:100%;background:#d8584a"></i></div></div>
+  <div class="abs rana"></div>
+  <div class="abs" style="left: calc(var(--u)*146); top: calc(var(--u)*146); width: calc(var(--u)*150)">
+    <div class="t">Rana ronin <span style="color:#aab8a6">78/78 · 23/23</span></div>
+    <div class="barra"><i style="width:100%;background:#d8584a"></i></div>
+    <div class="barra"><i style="width:100%;background:#5b8ad8"></i></div>
+  </div>
+  <div class="abs t pest" style="left: calc(var(--u)*16); top: calc(var(--u)*186)">Habilidad</div>
+  <div class="abs panel" style="left: calc(var(--u)*8); top: calc(var(--u)*200); width: calc(var(--u)*464); height: calc(var(--u)*146); display:flex">
+    <div class="esq" style="left: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div><div class="esq" style="right: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div>
+    <div class="esq" style="left: calc(var(--u)*-3); bottom: calc(var(--u)*-3)"></div><div class="esq" style="right: calc(var(--u)*-3); bottom: calc(var(--u)*-3)"></div>
+    <div style="width: calc(var(--u)*210); padding: calc(var(--u)*1) 0">
+      <div class="fila t sel"><span>Corte rápido</span><span class="pm">3 PM</span></div>
+      <div class="fila t"><span>Postura de hierro</span><span class="pm">3 PM</span></div>
+      <div class="fila t"><span>Tajo del viento</span><span class="pm">5 PM</span></div>
+      <div class="fila t"><span>Iaido</span><span class="pm">6 PM</span></div>
+      <div class="fila t off"><span>Tajo de llama morada</span><span>12 PM</span></div>
+      <div class="fila t"><span>Volver</span><span></span></div>
+    </div>
+    <div style="flex:1; padding: calc(var(--u)*10) calc(var(--u)*12)">
+      <div class="t tit">Corte rápido</div><div class="linea"></div>
+      <div class="t desc" style="white-space:normal">Daño físico (160 % de tu ataque) a un enemigo.</div>
+    </div>
+  </div>
+</div>
+<p class="nota">Fondo casi negro y translúcido, doble filete dorado con rombos en las esquinas, la elegida con un brillo dorado y un rombo de cursor. Lo más parecido a Octopath.</p>
+</div>
+</div>
+
+<div class="option" data-choice="charca" onclick="toggleSelect(this)">
+<div class="letter">2</div>
+<div class="content">
+<h3>Charca: verde de estanque y morado</h3>
+<div class="pant c">
+  <div class="abs t" style="left: calc(var(--u)*12); top: calc(var(--u)*6); color:#aab8a6">Turno ▮ Rana ronin ▮ Golem de piedra</div>
+  <div class="abs t" style="left:0;width:100%;text-align:center; top: calc(var(--u)*24)">Golem de piedra</div>
+  <div class="abs golem"></div>
+  <div class="abs" style="left: calc(var(--u)*204); top: calc(var(--u)*120); width: calc(var(--u)*72)"><div class="barra"><i style="width:100%;background:#d8584a"></i></div></div>
+  <div class="abs rana"></div>
+  <div class="abs" style="left: calc(var(--u)*146); top: calc(var(--u)*146); width: calc(var(--u)*150)">
+    <div class="t">Rana ronin <span style="color:#aab8a6">78/78 · 23/23</span></div>
+    <div class="barra"><i style="width:100%;background:#d8584a"></i></div>
+    <div class="barra"><i style="width:100%;background:#5b8ad8"></i></div>
+  </div>
+  <div class="abs t pest" style="left: calc(var(--u)*16); top: calc(var(--u)*186)">Habilidad</div>
+  <div class="abs panel" style="left: calc(var(--u)*8); top: calc(var(--u)*200); width: calc(var(--u)*464); height: calc(var(--u)*146); display:flex">
+    <div style="width: calc(var(--u)*210); padding: calc(var(--u)*1) 0">
+      <div class="fila t sel"><span>Corte rápido</span><span class="pm">3 PM</span></div>
+      <div class="fila t"><span>Postura de hierro</span><span class="pm">3 PM</span></div>
+      <div class="fila t"><span>Tajo del viento</span><span class="pm">5 PM</span></div>
+      <div class="fila t"><span>Iaido</span><span class="pm">6 PM</span></div>
+      <div class="fila t off"><span>Tajo de llama morada</span><span>12 PM</span></div>
+      <div class="fila t"><span>Volver</span><span></span></div>
+    </div>
+    <div style="flex:1; padding: calc(var(--u)*10) calc(var(--u)*12); border-left: calc(var(--u)*1) solid #5d9a4c55">
+      <div class="t tit">Corte rápido</div><div class="linea"></div>
+      <div class="t desc" style="white-space:normal">Daño físico (160 % de tu ataque) a un enemigo.</div>
+    </div>
+  </div>
+</div>
+<p class="nota">Propio de Nenúfar: el verde del estanque, un nenúfar de cursor y la selección del morado del fuego de la maga. Menos Octopath, más del juego.</p>
+</div>
+</div>
+
+<div class="option" data-choice="azul" onclick="toggleSelect(this)">
+<div class="letter">3</div>
+<div class="content">
+<h3>Ventana azul clásica</h3>
+<div class="pant a">
+  <div class="abs t" style="left: calc(var(--u)*12); top: calc(var(--u)*6); color:#aab8a6">Turno ▮ Rana ronin ▮ Golem de piedra</div>
+  <div class="abs t" style="left:0;width:100%;text-align:center; top: calc(var(--u)*24)">Golem de piedra</div>
+  <div class="abs golem"></div>
+  <div class="abs" style="left: calc(var(--u)*204); top: calc(var(--u)*120); width: calc(var(--u)*72)"><div class="barra"><i style="width:100%;background:#d8584a"></i></div></div>
+  <div class="abs rana"></div>
+  <div class="abs" style="left: calc(var(--u)*146); top: calc(var(--u)*146); width: calc(var(--u)*150)">
+    <div class="t">Rana ronin <span style="color:#aab8a6">78/78 · 23/23</span></div>
+    <div class="barra"><i style="width:100%;background:#d8584a"></i></div>
+    <div class="barra"><i style="width:100%;background:#5b8ad8"></i></div>
+  </div>
+  <div class="abs t pest" style="left: calc(var(--u)*16); top: calc(var(--u)*184)">Habilidad</div>
+  <div class="abs panel" style="left: calc(var(--u)*8); top: calc(var(--u)*200); width: calc(var(--u)*464); height: calc(var(--u)*146); display:flex">
+    <div style="width: calc(var(--u)*210); padding: calc(var(--u)*1) 0">
+      <div class="fila t sel"><span>Corte rápido</span><span class="pm">3 PM</span></div>
+      <div class="fila t"><span>Postura de hierro</span><span class="pm">3 PM</span></div>
+      <div class="fila t"><span>Tajo del viento</span><span class="pm">5 PM</span></div>
+      <div class="fila t"><span>Iaido</span><span class="pm">6 PM</span></div>
+      <div class="fila t off"><span>Tajo de llama morada</span><span>12 PM</span></div>
+      <div class="fila t"><span>Volver</span><span></span></div>
+    </div>
+    <div style="flex:1; padding: calc(var(--u)*10) calc(var(--u)*12); border-left: calc(var(--u)*1) solid #e8e8f055">
+      <div class="t tit">Corte rápido</div><div class="linea"></div>
+      <div class="t desc" style="white-space:normal">Daño físico (160 % de tu ataque) a un enemigo.</div>
+    </div>
+  </div>
+</div>
+<p class="nota">El azul de los JRPG de 16 bits, con borde blanco y la manita de cursor. Muy legible y nostálgico, pero choca más con la escena 3D.</p>
+</div>
+</div>
+
+</div>
+
+</body>
+</html>

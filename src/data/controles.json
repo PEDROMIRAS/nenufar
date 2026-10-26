@@ -11,15 +11,13 @@
       ["Aceptar", "Enter/Z"],
       ["Volver", "Esc/X"],
       ["Inventario", "Esc o I"],
-      ["Info combate", "I"],
       ["Bestiario", "I (portada)"]
     ],
     "tactil": [
       ["Moverse", "Desliza el dedo"],
       ["Correr", "Dedo al borde"],
       ["Elegir", "Toca la opción"],
-      ["Inventario", "Mochila"],
-      ["Info combate", "Botón i"]
+      ["Inventario", "Mochila"]
     ]
   },
   "pistas": {

@@ -32,8 +32,6 @@ export interface Ajustes {
   senora: string;
   /** Ya se enseñaron las pistas de controles de la primera partida. */
   pistasVistas: boolean;
-  /** Modo información del combate (botón «i»): empieza encendido para quien juega por primera vez. */
-  info: boolean;
   /** Calidad baja del mapa en 3D: sin desenfoque ni sombras, para móviles que no llegan a 60 fps. */
   calidadBaja: boolean;
 }
@@ -53,7 +51,6 @@ export function cargarAjustes(): Ajustes {
       jugarEnVertical: a?.jugarEnVertical === true,
       senora: typeof a?.senora === 'string' ? a.senora : '',
       pistasVistas: a?.pistasVistas === true,
-      info: a?.info !== false,
       calidadBaja: a?.calidadBaja === true,
     };
   } catch {
@@ -65,7 +62,6 @@ export function cargarAjustes(): Ajustes {
       jugarEnVertical: false,
       senora: '',
       pistasVistas: false,
-      info: true,
       calidadBaja: false,
     };
   }
