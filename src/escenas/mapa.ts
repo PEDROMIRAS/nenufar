@@ -244,8 +244,8 @@ export class EscenaMapa implements Escena {
     }
   }
 
-  /** Lo que hay que guardar de la zona (se llama una vez al entrar en cada sala). */
-  private estado(): EstadoMapa {
+  /** Lo que hay que guardar de la zona (al entrar en cada sala y al empezar y acabar cada combate). */
+  estado(): EstadoMapa {
     const { salas } = this.o.zona;
     const vencidos: Record<number, number[]> = {};
     for (const [s, m] of this.montadas) {

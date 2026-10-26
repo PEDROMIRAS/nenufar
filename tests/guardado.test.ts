@@ -36,6 +36,7 @@ function ejemplo(): PartidaGuardada {
     dragonAntes: true,
     rival: 'Señor de la Cripta',
     segundos: 321.5,
+    enCombate: false,
     heroina: heroinaGuardada(l),
     inventario,
     mapa: {
@@ -53,6 +54,11 @@ describe('guardado de la partida', () => {
   test('ida y vuelta', () => {
     const g = ejemplo();
     expect(leerGuardado(JSON.stringify(g), conocido)).toEqual(g);
+  });
+
+  test('conserva la marca de combate', () => {
+    const g = { ...ejemplo(), enCombate: true };
+    expect(leerGuardado(JSON.stringify(g), conocido)?.enCombate).toBe(true);
   });
 
   test('conserva violetasAntes y dragonAntes', () => {
@@ -108,6 +114,7 @@ describe('guardado de la partida', () => {
   test.each<[string, (g: Record<string, unknown> & PartidaGuardada) => void]>([
     ['otra versión', (g) => ((g as Record<string, unknown>).version = 2)],
     ['sin mapa', (g) => delete (g as Record<string, unknown>).mapa],
+    ['sin marca de combate', (g) => delete (g as Record<string, unknown>).enCombate],
     ['heroína desconocida', (g) => (g.heroe = 'sapo')],
     ['dificultad desconocida', (g) => (g.dificultad = 'imposible')],
     ['arma desconocida', (g) => (g.inventario.arma = 'espada_inexistente')],

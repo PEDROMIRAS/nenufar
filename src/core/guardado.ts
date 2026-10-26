@@ -53,6 +53,11 @@ export interface PartidaGuardada {
   dragonAntes: boolean;
   rival: string;
   segundos: number;
+  /**
+   * Se guardó al empezar un combate que no ha terminado: si se recupera así, cuenta como derrota
+   * (cerrar a mitad de un combate no puede servir para repetirlo).
+   */
+  enCombate: boolean;
   heroina: HeroinaGuardada;
   inventario: Inventario;
   mapa: EstadoMapa;
@@ -177,6 +182,7 @@ export function leerGuardado(texto: string | null, conocido: Conocido): PartidaG
     typeof g.rival === 'string' &&
     esNumero(g.segundos) &&
     g.segundos >= 0 &&
+    typeof g.enCombate === 'boolean' &&
     heroinaValida(g.heroina) &&
     inventarioValido(g.inventario, conocido) &&
     mapaValido(g.mapa);

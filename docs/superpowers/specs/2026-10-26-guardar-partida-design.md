@@ -19,8 +19,9 @@ de partidas guardadas: hay una sola partida en curso, se guarda sola y no hay me
 ## No objetivos
 
 - Varias partidas o ranuras, guardar a mano, exportar partidas.
-- Recuperar un combate a medias: si se cerró durante un combate, se vuelve a la sala con los
-  monstruos que quedaban vivos al entrar.
+- Recuperar un combate a medias: cerrar durante un combate **cuenta como derrota** (decisión de
+  Pedro tras la primera versión: «no quiero trampas»). Al volver sale «Partida perdida» y la
+  portada.
 - Recuperar la posición exacta, los monstruos en mitad de su patrulla o la lluvia tras el jefe.
 
 ## Lo que lo estropearía (anti-objetivos)
@@ -37,12 +38,16 @@ de partidas guardadas: hay una sola partida en curso, se guarda sola y no hay me
 - **Se guarda al entrar en cada sala**, ya pasado el fundido: al empezar la zona (sala de inicio)
   y al cruzar una puerta. El portal no guarda por sí mismo: guarda la sala de inicio de la zona
   siguiente al entrar en ella.
+- **Al empezar cada combate** (también el cofre trampa y el jefe final) se guarda con la marca
+  `enCombate`; si se recupera con ella, cuenta como derrota y la partida se borra.
+- **Al acabar un combate** ganado o huyendo se guarda el estado de ese momento, para que tampoco
+  se pueda repetir un combate ya ganado buscando un resultado mejor.
 - **Se borra** al morir (fin de la partida), al ganar al jefe final y con «Salir» en la pausa.
-- Durante un combate o una escena encima del mapa (pausa, equipo, puntos, historia) no se guarda.
+- Durante una escena encima del mapa (pausa, equipo, puntos, historia) no se guarda.
 
-Consecuencia aceptada: lo que pase dentro de una sala (combates ganados, cofre abierto, fuente,
-puntos gastados, objetos usados) no queda guardado hasta entrar en la sala siguiente. Si se cierra
-antes, se repite esa sala desde su entrada.
+Consecuencia aceptada: lo demás que pase dentro de una sala (cofre abierto, fuente, puntos
+gastados, objetos usados) no queda guardado hasta el siguiente combate o la sala siguiente. Si se
+cierra antes, se repite desde ese punto; el cofre da lo mismo y no se gana nada.
 
 ## Qué se guarda
 

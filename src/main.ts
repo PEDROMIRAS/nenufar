@@ -165,7 +165,12 @@ const claveDe = <T>(tabla: Record<string, T>, valor: T): string =>
   Object.entries(tabla).find(([, v]) => v === valor)?.[0] ?? '';
 
 /** La partida tal como hay que guardarla al entrar en una sala de la zona `zona`. */
-function guardado(partida: Partida, zona: number, mapa: EstadoMapa): PartidaGuardada {
+function guardado(
+  partida: Partida,
+  zona: number,
+  mapa: EstadoMapa,
+  enCombate = false,
+): PartidaGuardada {
   const l = partida.luchadora;
   return {
     version: VERSION_GUARDADO,
@@ -179,6 +184,7 @@ function guardado(partida: Partida, zona: number, mapa: EstadoMapa): PartidaGuar
     dragonAntes: partida.dragonAntes,
     rival: partida.rival,
     segundos: (performance.now() - partida.inicio) / 1000,
+    enCombate,
     heroina: heroinaGuardada(l),
     inventario: partida.inventario,
     mapa,
@@ -354,7 +360,25 @@ async function iniciar(): Promise<void> {
 
   // Una partida a medias (se cerró el navegador): se vuelve a la sala donde se guardó, sin portada.
   const guardada = cargarPartida(CONOCIDO);
-  if (guardada) {
+  if (guardada?.enCombate) {
+    // Se cerró a mitad de un combate: cuenta como derrota (si no, cerrar serviría para repetirlo).
+    borrarPartida();
+    pila.apilar(
+      new EscenaMensaje(
+        'Partida perdida',
+        '#d8584a',
+        [
+          'El juego se cerró en mitad de un combate.',
+          'Eso cuenta como derrota: la partida no se puede recuperar.',
+        ],
+        VOLVER_AL_TITULO,
+        () => {
+          pila.desapilar();
+          void mostrarPortada();
+        },
+      ),
+    );
+  } else if (guardada) {
     const heroe = HEROES[guardada.heroe as keyof typeof HEROES];
     const sprite = opciones.find((o) => o.heroe === heroe)!.sprite;
     const luchadora = luchadorDeHeroe(heroe);
@@ -492,14 +516,16 @@ async function crearZona(
             })
             .catch(mostrarError);
         }
-      : () =>
+      : () => {
+          guardarPartida(guardado(partida, indice, escena.estado(), true));
           lucharJefe(
             partida,
             { ...monstruo(zonas.jefeFinal), nombre: partida.rival },
             historia.jefeFinal,
             escena.fondoSala,
             () => terminarPartida(partida, true),
-          ),
+          );
+        },
     entrarDesdeNegro,
     recuperado,
     alEntrarEnSala: (estado) => guardarPartida(guardado(partida, indice, estado)),
@@ -555,7 +581,14 @@ async function crearZona(
         ? controles.pistas[esTactil() ? 'tactil' : 'teclado']
         : [],
     segundosPista: controles.pistas.segundos,
-    iniciarCombate: (grupo, alTerminar, quien) => {
+    iniciarCombate: (grupo, alTerminarMapa, quien) => {
+      // Cerrar a mitad de un combate cuenta como derrota; al acabarlo (ganado o huyendo) se guarda
+      // tal cual, para que tampoco se pueda repetir un combate ya ganado.
+      guardarPartida(guardado(partida, indice, escena.estado(), true));
+      const alTerminar = (resultado: Resultado): void => {
+        alTerminarMapa(resultado);
+        guardarPartida(guardado(partida, indice, escena.estado()));
+      };
       const jefe = grupo[0];
       if (jefe?.jefe && jefe.oculto) lucharVioleta(partida, jefe, escena.fondoSala, alTerminar);
       else if (jefe?.jefe)
