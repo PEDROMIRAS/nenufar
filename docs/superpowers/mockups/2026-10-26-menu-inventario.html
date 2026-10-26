@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventario: bocetos</title>
+<style>
+  body { margin: 0; padding: 24px 16px; background: #111614; color: #e8efe4; font-family: system-ui, sans-serif; }
+  h2 { margin: 0 0 4px; } .subtitle { color: #9aa; margin: 0 0 20px; }
+  .options { display: flex; flex-direction: column; gap: 28px; max-width: 720px; margin: 0 auto; }
+  .option { display: flex; gap: 12px; } .letter { font-size: 22px; font-weight: bold; color: #ffd27a; }
+  .content h3 { margin: 0 0 8px; }
+  .option[data-choice="octopath"] h3::after { content: '  ← elegido por Pedro (2026-10-26)'; color: #ffd27a; font-size: 14px; }
+</style>
+</head>
+<body>
+<style>
+  .pant { --u: 1.4px; position: relative; width: calc(var(--u) * 480); height: calc(var(--u) * 352);
+    background: radial-gradient(ellipse at 50% 40%, #1d2a24 0%, #0d1311 70%, #070a09 100%);
+    font-family: monospace; font-weight: bold; color: #efe9da; overflow: hidden; margin: 0 auto; }
+  .pant * { box-sizing: border-box; }
+  .abs { position: absolute; }
+  .t { font-size: calc(var(--u) * 12); line-height: 1.3; white-space: nowrap; }
+  .tg { font-size: calc(var(--u) * 16); }
+  .panel { background: linear-gradient(180deg, rgba(14,16,30,.93), rgba(6,8,16,.95)); border: calc(var(--u)*1) solid #c9a45a;
+    box-shadow: inset 0 0 0 calc(var(--u)*2) rgba(6,8,16,.95), inset 0 0 0 calc(var(--u)*3) #6b5428; }
+  .esq { position: absolute; width: calc(var(--u)*6); height: calc(var(--u)*6); background: #e6c77e; transform: rotate(45deg); }
+  .tit { color: #e6c77e; } .apag { color: #8e8e9a; } .pm { color: #9ec0ff; } .suave { color: #b9b3a3; }
+  .linea { height: calc(var(--u)*1); background: linear-gradient(90deg, #c9a45a, transparent); margin: calc(var(--u)*3) 0 calc(var(--u)*5); }
+  .barra { height: calc(var(--u)*5); background: #2a2a30; flex: 1; }
+  .barra > i { display: block; height: 100%; }
+  .fb { display: flex; align-items: center; gap: calc(var(--u)*6); }
+  .rana { width: calc(var(--u)*54); height: calc(var(--u)*62); background: #5f9b45; border-radius: 40% 40% 20% 20%;
+    box-shadow: inset 0 calc(var(--u)*-18) 0 #9b3b3b, 0 calc(var(--u)*-12) 0 calc(var(--u)*-7) #c9a46a; }
+  .fila { position: relative; display: flex; justify-content: space-between; align-items: center; height: calc(var(--u)*28); padding: 0 calc(var(--u)*10) 0 calc(var(--u)*18); }
+  .sel { background: linear-gradient(90deg, rgba(230,199,126,.45), rgba(230,199,126,.08) 75%, transparent); color: #fff4d6; }
+  .sel::before { content: ''; position: absolute; left: calc(var(--u)*6); top: calc(var(--u)*11); width: calc(var(--u)*6); height: calc(var(--u)*6); background: #ffe6a0; transform: rotate(45deg); }
+  .pest { padding: 0 calc(var(--u)*10); height: calc(var(--u)*22); display:flex; align-items:center; }
+  .pest.on { color: #ffe6a0; border-bottom: calc(var(--u)*2) solid #e6c77e; }
+  .boton { display:flex; align-items:center; justify-content:center; height: calc(var(--u)*40); }
+  .nota { font-size: 13px; color: #9aa; margin: 6px 0 0; max-width: 680px; }
+</style>
+
+<h2>¿Cómo quedaría el inventario?</h2>
+<p class="subtitle">Tu captura (ronin nivel 10, 5 habilidades) en el estilo Octopath elegido para el combate.</p>
+
+<div class="options">
+
+<div class="option" data-choice="vestido" onclick="toggleSelect(this)">
+<div class="letter">A</div>
+<div class="content">
+<h3>La misma organización, con el estilo nuevo</h3>
+<div class="pant">
+  <div class="abs t tg" style="left: calc(var(--u)*24); top: calc(var(--u)*8); display:flex; gap: calc(var(--u)*24)">
+    <div class="pest on">Heroína</div><div class="pest suave">Objetos</div><div class="pest suave">Ajustes</div>
+  </div>
+  <div class="abs panel" style="left: calc(var(--u)*16); top: calc(var(--u)*40); width: calc(var(--u)*216); height: calc(var(--u)*244); padding: calc(var(--u)*10)">
+    <div class="esq" style="left: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div><div class="esq" style="right: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div>
+    <div class="rana" style="margin: 0 auto"></div>
+    <div class="t" style="text-align:center; margin-top: calc(var(--u)*4)">Rana ronin · <span class="tit">Nivel 10</span></div>
+    <div class="t fb" style="margin-top: calc(var(--u)*6)"><span class="suave">PV</span><div class="barra"><i style="width:100%;background:#d8584a"></i></div>96/96</div>
+    <div class="t fb"><span class="suave">PM</span><div class="barra"><i style="width:66%;background:#5b8ad8"></i></div>21/32</div>
+    <div class="t fb"><span class="suave">PX</span><div class="barra"><i style="width:100%;background:#b48cff"></i></div>Máx.</div>
+    <div class="t tit" style="margin-top: calc(var(--u)*6)">Habilidades</div><div class="linea"></div>
+    <div class="t">Corte rápido<br>Postura de hierro<br>Tajo del viento<br>Iaido<br>Tajo de llama morada</div>
+  </div>
+  <div class="abs panel" style="left: calc(var(--u)*248); top: calc(var(--u)*40); width: calc(var(--u)*216); height: calc(var(--u)*244); padding: calc(var(--u)*10)">
+    <div class="esq" style="left: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div><div class="esq" style="right: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div>
+    <div class="t tit">Estadísticas</div><div class="linea"></div>
+    <div class="t">Ataque 42 <span class="pm">(+10)</span><br>Magia 3<br>Defensa 32 <span class="pm">(+8)</span><br>Velocidad 15</div>
+    <div class="t tit" style="margin-top: calc(var(--u)*10)">Equipo</div><div class="linea"></div>
+    <div class="t" style="white-space:normal">Arma: Hoja rúnica<br><span class="suave">10 % de Veneno al golpear</span><br>Armadura: Armadura de placas<br>En la mochila: 6</div>
+  </div>
+  <div class="abs" style="left: calc(var(--u)*16); top: calc(var(--u)*296); width: calc(var(--u)*448); display:flex; gap: calc(var(--u)*8)">
+    <div class="panel boton t sel" style="flex:1">Seguir</div><div class="panel boton t" style="flex:1">Equipo</div>
+    <div class="panel boton t apag" style="flex:1">Mejorar</div><div class="panel boton t" style="flex:1">Salir</div>
+  </div>
+</div>
+<p class="nota">Nada cambia de sitio: pestañas arriba, dos paneles y los botones abajo. Solo el aspecto pasa a ser el del combate (filete dorado, títulos dorados, brillo en lo elegido).</p>
+</div>
+</div>
+
+<div class="option" data-choice="octopath" onclick="toggleSelect(this)">
+<div class="letter">B</div>
+<div class="content">
+<h3>Organizado como Octopath: menú a la izquierda</h3>
+<div class="pant">
+  <div class="abs panel" style="left: calc(var(--u)*12); top: calc(var(--u)*12); width: calc(var(--u)*128); height: calc(var(--u)*328); padding: calc(var(--u)*8) 0">
+    <div class="esq" style="left: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div><div class="esq" style="right: calc(var(--u)*-3); bottom: calc(var(--u)*-3)"></div>
+    <div class="fila t sel">Heroína</div>
+    <div class="fila t">Objetos</div>
+    <div class="fila t">Equipo</div>
+    <div class="fila t apag">Mejorar</div>
+    <div class="fila t">Ajustes</div>
+    <div style="height: calc(var(--u)*94)"></div>
+    <div class="fila t">Seguir</div>
+    <div class="fila t">Salir</div>
+  </div>
+  <div class="abs panel" style="left: calc(var(--u)*150); top: calc(var(--u)*12); width: calc(var(--u)*318); height: calc(var(--u)*328); padding: calc(var(--u)*12)">
+    <div class="esq" style="right: calc(var(--u)*-3); top: calc(var(--u)*-3)"></div><div class="esq" style="left: calc(var(--u)*-3); bottom: calc(var(--u)*-3)"></div>
+    <div style="display:flex; gap: calc(var(--u)*12)">
+      <div class="rana"></div>
+      <div style="flex:1">
+        <div class="t">Rana ronin</div><div class="t tit">Nivel 10</div>
+        <div class="t fb" style="margin-top: calc(var(--u)*4)"><span class="suave">PV</span><div class="barra"><i style="width:100%;background:#d8584a"></i></div>96/96</div>
+        <div class="t fb"><span class="suave">PM</span><div class="barra"><i style="width:66%;background:#5b8ad8"></i></div>21/32</div>
+        <div class="t fb"><span class="suave">PX</span><div class="barra"><i style="width:100%;background:#b48cff"></i></div>Máx.</div>
+      </div>
+    </div>
+    <div style="display:flex; gap: calc(var(--u)*14); margin-top: calc(var(--u)*12)">
+      <div style="flex:1">
+        <div class="t tit">Estadísticas</div><div class="linea"></div>
+        <div class="t">Ataque 42 <span class="pm">(+10)</span><br>Magia 3<br>Defensa 32 <span class="pm">(+8)</span><br>Velocidad 15</div>
+        <div class="t tit" style="margin-top: calc(var(--u)*10)">Equipo</div><div class="linea"></div>
+        <div class="t">Hoja rúnica<br>Armadura de placas<br><span class="suave">Mochila: 6</span></div>
+      </div>
+      <div style="flex:1">
+        <div class="t tit">Habilidades</div><div class="linea"></div>
+        <div class="t">Corte rápido<br>Postura de hierro<br>Tajo del viento<br>Iaido<br>Tajo de llama morada</div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="nota">Como el menú de Octopath y como el panel del combate: la lista a la izquierda (todas las secciones y acciones juntas, Seguir y Salir abajo) y a la derecha lo elegido. Sobra el sitio para las 5 habilidades.</p>
+</div>
+</div>
+
+</div>
+
+</body>
+</html>
