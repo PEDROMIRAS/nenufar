@@ -6,8 +6,6 @@ export const ALTO = 352;
 /** Fondo común de las pantallas de menú (título aparte, que tiene su sala). */
 export const FONDO = '#10161a';
 
-// En pantallas táctiles (móvil y tableta) el juego llena todo lo que cabe, sin esperar a un
-// múltiplo entero: con él se quedaba en dos tercios del ancho en vertical y con franjas en horizontal.
 const TACTIL = window.matchMedia('(pointer: coarse)');
 
 /** ¿Pantalla táctil (móvil, tableta)? */
@@ -25,8 +23,8 @@ export const aPixel = (v: number): number => Math.round(v * escalaPantalla) / es
 /**
  * Escala el canvas para que la sala se vea entera y lo más grande posible. Se dibuja en coordenadas
  * lógicas (ANCHO × ALTO), pero el canvas mide por dentro los píxeles reales que ocupa: así lo que se
- * mueve avanza a saltos de píxel real. En el ordenador, al mayor múltiplo entero (pixel art perfecto);
- * en táctil, a todo lo que cabe, aunque algunos píxeles salgan un poco desiguales.
+ * mueve avanza a saltos de píxel real. A todo lo que cabe, también en el ordenador (con el mayor
+ * múltiplo entero quedaba un marco negro), aunque algunos píxeles salgan un poco desiguales.
  */
 export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
   const ctx = canvas.getContext('2d');
@@ -39,11 +37,18 @@ export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingCont
     guardarAjustes({ jugarEnVertical: true });
   });
 
+  // En táctil, pantalla completa con cada toque mientras no lo esté (el navegador solo la da tras un gesto;
+  // en el iPhone no existe y se usa el icono de la pantalla de inicio). En el ordenador no: Escape, que
+  // abre la pausa, la quitaría.
+  addEventListener('pointerdown', () => {
+    if (TACTIL.matches && !document.fullscreenElement)
+      void document.documentElement.requestFullscreen?.().catch(() => {});
+  });
+
   const ajustar = (): void => {
     const dpr = window.devicePixelRatio || 1;
     // En píxeles físicos, no CSS: en un móvil con dpr 3 cada píxel lógico ocupa N×N píxeles reales.
-    const cabe = Math.min((innerWidth * dpr) / ANCHO, (innerHeight * dpr) / ALTO);
-    const escala = TACTIL.matches ? cabe : Math.max(1, Math.floor(cabe));
+    const escala = Math.min((innerWidth * dpr) / ANCHO, (innerHeight * dpr) / ALTO);
     canvas.width = Math.round(ANCHO * escala);
     canvas.height = Math.round(ALTO * escala);
     canvas.style.width = `${canvas.width / dpr}px`;
