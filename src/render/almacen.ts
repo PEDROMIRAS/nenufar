@@ -1,6 +1,7 @@
 import { leerRecords, type Records } from '../core/records';
+import { leerGuardado, type Conocido, type PartidaGuardada } from '../core/guardado';
 
-// localStorage solo para ajustes y récords (decisión fija del proyecto).
+// localStorage solo para ajustes, récords y la partida en curso (decisión fija del proyecto).
 const CLAVE = 'nenufar.records';
 
 /** Récords guardados; vacíos si el navegador no deja leer (modo privado, almacenamiento bloqueado…). */
@@ -89,5 +90,32 @@ export function guardarRecords(r: Records): void {
     localStorage.setItem(CLAVE, JSON.stringify(r));
   } catch {
     // Sin almacenamiento disponible los récords se pierden, pero el juego sigue.
+  }
+}
+
+const CLAVE_PARTIDA = 'nenufar.partida';
+
+/** La partida guardada al entrar en la última sala; null si no hay, no se puede leer o no vale. */
+export function cargarPartida(conocido: Conocido): PartidaGuardada | null {
+  try {
+    return leerGuardado(localStorage.getItem(CLAVE_PARTIDA), conocido);
+  } catch {
+    return null;
+  }
+}
+
+export function guardarPartida(p: PartidaGuardada): void {
+  try {
+    localStorage.setItem(CLAVE_PARTIDA, JSON.stringify(p));
+  } catch {
+    // Sin almacenamiento no hay red de seguridad, pero el juego sigue.
+  }
+}
+
+export function borrarPartida(): void {
+  try {
+    localStorage.removeItem(CLAVE_PARTIDA);
+  } catch {
+    // Nada que borrar si no hay almacenamiento.
   }
 }

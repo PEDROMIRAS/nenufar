@@ -7,6 +7,15 @@ import {
   type Luchador,
   type Resultado,
 } from './core/combate';
+import {
+  heroinaGuardada,
+  restaurarHeroina,
+  VERSION_GUARDADO,
+  type CombateGuardado,
+  type Conocido,
+  type EstadoMapa,
+  type PartidaGuardada,
+} from './core/guardado';
 import { crearHeroina, type Heroina } from './core/heroina';
 import { capasDeEquipo, coloresDeEquipo, inventarioInicial } from './core/equipo';
 import type { Inventario } from './core/inventario';
@@ -71,7 +80,15 @@ import { prepararSonido } from './render/sonido';
 import { vestirHoja } from './render/tinte';
 import { Mundo, type FondoSala } from './render/mundo/mundo';
 import { crearPortada, type Portada3d } from './render/mundo/portada';
-import { cargarAjustes, cargarRecords, guardarAjustes, guardarRecords } from './render/almacen';
+import {
+  borrarPartida,
+  cargarAjustes,
+  cargarPartida,
+  cargarRecords,
+  guardarAjustes,
+  guardarPartida,
+  guardarRecords,
+} from './render/almacen';
 import {
   cargarImagen,
   cargarSprite,
@@ -123,8 +140,56 @@ interface Partida {
   /** Salas violetas que han salido en las zonas ya creadas, y si una de ellas era del dragón negro. */
   violetas: number;
   dragonUsado: boolean;
+  /** Los dos de antes, tal como estaban antes de crear la zona actual: es lo que se guarda. */
+  violetasAntes: number;
+  dragonAntes: boolean;
   /** El mapa en 3D (uno para todas las partidas: cada WebGLRenderer es un contexto del navegador). */
   mundo: Mundo;
+}
+
+/** Lo que existe en el juego, para descartar una partida guardada que nombre algo que ya no está. */
+const CONOCIDO: Conocido = {
+  heroes: Object.keys(HEROES),
+  dificultades: Object.keys(DIFICULTADES),
+  equipo: Object.keys(OBJETOS.equipo),
+  consumibles: Object.keys(OBJETOS.consumibles),
+  zonas: ORDEN.length,
+};
+
+/** Hay una partida en marcha: cerrar la pestaña pregunta antes (Ctrl+W sin querer). */
+let enCurso = false;
+addEventListener('beforeunload', (e) => {
+  if (enCurso) e.preventDefault();
+});
+
+const claveDe = <T>(tabla: Record<string, T>, valor: T): string =>
+  Object.entries(tabla).find(([, v]) => v === valor)?.[0] ?? '';
+
+/** La partida tal como hay que guardarla al entrar en una sala de la zona `zona`. */
+function guardado(
+  partida: Partida,
+  zona: number,
+  mapa: EstadoMapa,
+  combate: CombateGuardado | null = null,
+): PartidaGuardada {
+  const l = partida.luchadora;
+  return {
+    version: VERSION_GUARDADO,
+    semilla: partida.semilla,
+    zona,
+    heroe: l.heroe ? claveDe(HEROES, l.heroe) : '',
+    dificultad: claveDe(DIFICULTADES, partida.dificultad),
+    combates: partida.combates,
+    vencidos: partida.vencidos,
+    violetasAntes: partida.violetasAntes,
+    dragonAntes: partida.dragonAntes,
+    rival: partida.rival,
+    segundos: (performance.now() - partida.inicio) / 1000,
+    combate,
+    heroina: heroinaGuardada(l),
+    inventario: partida.inventario,
+    mapa,
+  };
 }
 
 /** Una pantalla de la historia. */
@@ -229,22 +294,22 @@ async function iniciar(): Promise<void> {
     );
     pila.cambiar(pedirNombre);
   });
-  /** Crea la partida con la heroína, su nombre y la dificultad elegidas y carga la primera zona. */
-  const empezar = (
+  /** La partida con su heroína, inventario y dificultad (nueva o recuperada), aún sin zona. */
+  const crearPartida = (
     heroe: HeroeJson,
     sprite: Sprite,
     dificultad: DificultadJson,
-    nombre: string,
-  ): void => {
-    const luchadora = luchadorDeHeroe(heroe);
-    luchadora.nombre = nombre;
+    luchadora: Luchador,
+    inventario: Inventario,
+    semillaPartida: number,
+  ): Partida => {
     const partida: Partida = {
-      semilla,
+      semilla: semillaPartida,
       pila,
-      heroina: crearHeroina(heroe, 0, 0), // cada escena la coloca en su sala de inicio
+      heroina: crearHeroina(heroe, 0, 0), // cada escena la coloca en su sala
       // La misma luchadora en todos los combates: la vida perdida se arrastra.
       luchadora,
-      inventario: inventarioInicial(luchadora, heroe, OBJETOS),
+      inventario,
       // Copia propia: `vestir` la recolorea y la de la selección se queda con los colores originales.
       sprite: { ...sprite },
       imagenBase: sprite.imagen as HTMLImageElement,
@@ -261,9 +326,25 @@ async function iniciar(): Promise<void> {
       controles: sonidoHtml,
       violetas: 0,
       dragonUsado: false,
+      violetasAntes: 0,
+      dragonAntes: false,
       mundo,
     };
-    vestir(partida); // ya lleva puestas el arma y la armadura iniciales
+    vestir(partida); // con el arma y la armadura que lleve
+    enCurso = true;
+    return partida;
+  };
+  /** Crea la partida con la heroína, su nombre y la dificultad elegidas y carga la primera zona. */
+  const empezar = (
+    heroe: HeroeJson,
+    sprite: Sprite,
+    dificultad: DificultadJson,
+    nombre: string,
+  ): void => {
+    const luchadora = luchadorDeHeroe(heroe);
+    luchadora.nombre = nombre;
+    const inventario = inventarioInicial(luchadora, heroe, OBJETOS);
+    const partida = crearPartida(heroe, sprite, dificultad, luchadora, inventario, semilla);
     crearZona(partida, zonaInicial, true)
       .then((zona) => {
         pila.cambiar(zona);
@@ -277,26 +358,77 @@ async function iniciar(): Promise<void> {
       })
       .catch(mostrarError);
   };
-  const [ronin, maga] = opciones.map((o) => o.sprite);
-  pila.apilar(
-    new EscenaTitulo(
-      cargarRecords(),
-      Object.entries(DIFICULTADES).map(([clave, d]) => [clave, d.nombre]),
-      LOGROS.length,
-      await portada(mundo, {
-        ronin: ronin!,
-        maga: maga!,
-        limo: hojas.get('monstruos/limo'),
-        murcielago: hojas.get('monstruos/murcielago'),
-      }),
-      () => pila.cambiar(seleccion),
-      () =>
-        pila.apilar(
-          new EscenaExtras(cargarRecords(), MONSTRUOS, hojas, LOGROS, () => pila.desapilar()),
-        ),
-      () => pila.apilar(new EscenaControles(() => pila.desapilar())),
-    ),
-  );
+
+  // Una partida a medias (se cerró el navegador): se vuelve a la sala donde se guardó, sin portada.
+  const guardada = cargarPartida(CONOCIDO);
+  if (guardada) {
+    const heroe = HEROES[guardada.heroe as keyof typeof HEROES];
+    const sprite = opciones.find((o) => o.heroe === heroe)!.sprite;
+    const luchadora = luchadorDeHeroe(heroe);
+    restaurarHeroina(luchadora, guardada.heroina);
+    const partida = crearPartida(
+      heroe,
+      sprite,
+      DIFICULTADES[guardada.dificultad as keyof typeof DIFICULTADES],
+      luchadora,
+      guardada.inventario,
+      guardada.semilla,
+    );
+    partida.combates = guardada.combates;
+    partida.vencidos = guardada.vencidos;
+    partida.rival = guardada.rival;
+    partida.inicio = performance.now() - guardada.segundos * 1000;
+    partida.violetas = guardada.violetasAntes;
+    partida.dragonUsado = guardada.dragonAntes;
+    crearZona(partida, guardada.zona, false, guardada.mapa)
+      .then((zona) => {
+        pila.cambiar(zona);
+        contar(
+          pila,
+          [
+            guardada.combate
+              ? {
+                  titulo: 'Combate interrumpido',
+                  texto:
+                    'El juego se cerró en mitad de un combate: vuelves a empezarlo con la vida que tenías.',
+                }
+              : {
+                  titulo: 'Partida recuperada',
+                  texto: `${luchadora.nombre}, nivel ${luchadora.nivel}, en ${partida.zona}. Sigues donde lo dejaste.`,
+                },
+          ],
+          () => {
+            if (guardada.combate) zona.reanudarCombate(guardada.combate);
+          },
+        );
+      })
+      .catch(mostrarError);
+  } else {
+    await mostrarPortada();
+  }
+
+  async function mostrarPortada(): Promise<void> {
+    const [ronin, maga] = opciones.map((o) => o.sprite);
+    pila.apilar(
+      new EscenaTitulo(
+        cargarRecords(),
+        Object.entries(DIFICULTADES).map(([clave, d]) => [clave, d.nombre]),
+        LOGROS.length,
+        await portada(mundo, {
+          ronin: ronin!,
+          maga: maga!,
+          limo: hojas.get('monstruos/limo'),
+          murcielago: hojas.get('monstruos/murcielago'),
+        }),
+        () => pila.cambiar(seleccion),
+        () =>
+          pila.apilar(
+            new EscenaExtras(cargarRecords(), MONSTRUOS, hojas, LOGROS, () => pila.desapilar()),
+          ),
+        () => pila.apilar(new EscenaControles(() => pila.desapilar())),
+      ),
+    );
+  }
 
   iniciarBucle(
     (dt) => {
@@ -312,6 +444,8 @@ async function crearZona(
   partida: Partida,
   indice: number,
   entrarDesdeNegro: boolean,
+  /** Estado de la zona en una partida recuperada. */
+  recuperado: EstadoMapa | null = null,
 ): Promise<EscenaMapa> {
   const nombre = ORDEN[indice];
   if (!nombre) throw new Error(`No hay zona número ${indice}`);
@@ -329,6 +463,9 @@ async function crearZona(
     partida.semilla + indice * 7919,
   );
   console.info(`Zona ${nombre}, semilla ${zona.semilla}`);
+  // Lo que se guarda es lo de antes de crear la zona: al recuperarla se vuelve a crear igual.
+  partida.violetasAntes = partida.violetas;
+  partida.dragonAntes = partida.dragonUsado;
   // El jefe de la sala violeta, si la hay: a veces el dragón negro, como mucho uno por partida.
   let violeta: MonstruoJson | null = null;
   if (zona.salas.some((s) => s.tipo === 'violeta')) {
@@ -370,15 +507,19 @@ async function crearZona(
             })
             .catch(mostrarError);
         }
-      : () =>
+      : () => {
+          guardarPartida(guardado(partida, indice, escena.estado(), { tipo: 'final' }));
           lucharJefe(
             partida,
             { ...monstruo(zonas.jefeFinal), nombre: partida.rival },
             historia.jefeFinal,
             escena.fondoSala,
             () => terminarPartida(partida, true),
-          ),
+          );
+        },
     entrarDesdeNegro,
+    recuperado,
+    alEntrarEnSala: (estado) => guardarPartida(guardado(partida, indice, estado)),
     grupos: datos.grupos.map(({ monstruos, peso }) => ({
       peso,
       monstruos: monstruos.map(monstruo),
@@ -427,11 +568,19 @@ async function crearZona(
     lluviaTrasJefe: historia.zonas[nombre].jefe.lluvia,
     // Las pistas de controles, solo en la primera zona de la primera partida.
     pistas:
-      indice === 0 && !cargarAjustes().pistasVistas
+      indice === 0 && !recuperado && !cargarAjustes().pistasVistas
         ? controles.pistas[esTactil() ? 'tactil' : 'teclado']
         : [],
     segundosPista: controles.pistas.segundos,
-    iniciarCombate: (grupo, alTerminar, quien) => {
+    iniciarCombate: (grupo, alTerminarMapa, quien, combate) => {
+      // Se guarda al empezar, con el combate: si se cierra a mitad, al volver se repite desde el
+      // principio (cerrar no salva de un combate). Al acabarlo (ganado o huyendo) se guarda tal cual,
+      // para que tampoco se pueda repetir uno ya ganado.
+      guardarPartida(guardado(partida, indice, escena.estado(), combate));
+      const alTerminar = (resultado: Resultado): void => {
+        alTerminarMapa(resultado);
+        guardarPartida(guardado(partida, indice, escena.estado()));
+      };
       const jefe = grupo[0];
       if (jefe?.jefe && jefe.oculto) lucharVioleta(partida, jefe, escena.fondoSala, alTerminar);
       else if (jefe?.jefe)
@@ -604,10 +753,17 @@ function ofrecerEquipo(partida: Partida, piezas: readonly string[], alFinal: () 
 const VOLVER_AL_TITULO = 'Pulsa o toca para volver al título';
 
 /** Vuelve al título para empezar otra partida con un mapa nuevo (sin la semilla de la URL). */
-const empezarOtra = (): void => location.assign(location.pathname);
+const empezarOtra = (): void => {
+  enCurso = false;
+  borrarPartida();
+  location.assign(location.pathname);
+};
 
 /** Fin de la partida: guarda los récords y enseña el resumen. */
 function terminarPartida(partida: Partida, victoria: boolean): void {
+  // Morir o ganar acaba la partida: no hay nada que recuperar.
+  enCurso = false;
+  borrarPartida();
   const l = partida.luchadora;
   const resumen: Resumen = {
     victoria,

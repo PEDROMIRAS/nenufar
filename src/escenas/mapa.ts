@@ -26,6 +26,7 @@ import {
   type Tile,
 } from '../core/sala';
 import { abrirCofre } from '../core/equipo';
+import type { CombateGuardado, EstadoMapa } from '../core/guardado';
 import type { Inventario } from '../core/inventario';
 import type {
   BotinJson,
@@ -123,6 +124,8 @@ export interface OpcionesMapa {
     grupo: MonstruoJson[],
     alTerminar: (r: Resultado) => void,
     iniciativa: 'heroina' | 'monstruos' | null,
+    /** Qué combate es, para poder volver a él si se cierra el navegador a mitad. */
+    combate: CombateGuardado,
   ) => void;
   /** Estadísticas de combate de la heroína y nombre de la zona, para el HUD. */
   luchadora: Luchador;
@@ -145,6 +148,10 @@ export interface OpcionesMapa {
   aspecto: ZonaHd2d;
   /** La fuente choca con la elipse de su pilón: cuánto baja su centro en la casilla y sus semiejes, en casillas. */
   fuente: { centroZ: number; radioX: number; radioZ: number };
+  /** Estado recuperado de una partida guardada; null o ausente en una zona nueva. */
+  recuperado?: EstadoMapa | null;
+  /** Se llama al terminar de entrar en una sala (también la inicial y la recuperada), para guardar. */
+  alEntrarEnSala?: (estado: EstadoMapa) => void;
 }
 
 /** Exploración de una zona: la sala actual, la heroína y el paso de una sala a otra o a la zona siguiente. */
@@ -155,6 +162,8 @@ export class EscenaMapa implements Escena {
   /** Salas con el cofre abierto, la fuente usada o el jefe vencido, para el minimapa. */
   private readonly hechas = new Set<SalaZona>();
   private actual: SalaZona;
+  /** Lado por el que se entró en la sala actual; null en la de inicio. */
+  private ladoEntrada: number | null = null;
   private montada: SalaMontada;
   private minimapa: HTMLCanvasElement;
   private tiempo = 0;
@@ -193,13 +202,66 @@ export class EscenaMapa implements Escena {
     this.gotas = o.lluviaTrasJefe > 0 ? crearLluvia() : null;
     const referencia = o.plantillas.plantillas[0]?.mapa ?? [];
     this.salidas = salidas(referencia[0]?.length ?? 0, referencia.length);
-    this.actual = inicio;
-    this.montada = this.montar(inicio);
-    this.minimapa = this.visitar(inicio);
-    const { sala } = this.montada;
+    const r = o.recuperado;
+    if (r) this.recuperar(r);
+    this.actual = (r && o.zona.salas[r.sala]) || inicio;
+    this.montada = this.montar(this.actual);
+    this.minimapa = this.visitar(this.actual);
+    const entrada = r?.lado != null ? this.salidas.find((s) => s.lado === r.lado) : undefined;
     const c = o.heroina.cuerpo;
-    this.colocar(buscarInicio(sala, o.tam, c.ancho, c.alto));
+    if (entrada) {
+      this.ladoEntrada = entrada.lado;
+      this.colocar(posicionEntrada(entrada, o.tam, c.alto));
+    } else {
+      this.colocar(buscarInicio(this.montada.sala, o.tam, c.ancho, c.alto));
+    }
+    this.aplicarCierre();
     if (o.entrarDesdeNegro) this.fundido = o.duracionFundido / 2;
+    o.alEntrarEnSala?.(this.estado());
+  }
+
+  /** Vuelve a dejar la zona como estaba al guardar: salas vistas y hechas, grupos vencidos, fuente. */
+  private recuperar(r: EstadoMapa): void {
+    const { salas } = this.o.zona;
+    for (const i of r.visitadas) if (salas[i]) this.visitadas.add(salas[i]);
+    for (const [i, posiciones] of Object.entries(r.vencidos)) {
+      const s = salas[Number(i)];
+      if (!s) continue;
+      const m = this.montar(s);
+      for (const p of posiciones) if (m.monstruos[p]) m.monstruos[p].vivo = false;
+    }
+    this.fuenteUsada = r.fuenteUsada;
+    const abierto = this.o.catalogo.get('cofre_abierto');
+    for (const i of r.hechas) {
+      const s = salas[i];
+      if (!s) continue;
+      this.hechas.add(s);
+      // Lo que se deduce de una sala hecha: el cofre abierto o el portal del jefe.
+      if (s.tipo === 'tesoro' && abierto) {
+        for (const o of this.montar(s).sala.objetos)
+          if (o.inf.name === 'cofre_cerrado') o.inf = abierto;
+      } else if (s.tipo === 'jefe') {
+        this.abrirPortal(this.montar(s));
+      }
+    }
+  }
+
+  /** Lo que hay que guardar de la zona (al entrar en cada sala y al empezar y acabar cada combate). */
+  estado(): EstadoMapa {
+    const { salas } = this.o.zona;
+    const vencidos: Record<number, number[]> = {};
+    for (const [s, m] of this.montadas) {
+      const posiciones = m.monstruos.flatMap((g, i) => (g.vivo ? [] : [i]));
+      if (posiciones.length > 0) vencidos[salas.indexOf(s)] = posiciones;
+    }
+    return {
+      sala: salas.indexOf(this.actual),
+      lado: this.ladoEntrada,
+      visitadas: [...this.visitadas].map((s) => salas.indexOf(s)),
+      hechas: [...this.hechas].map((s) => salas.indexOf(s)),
+      vencidos,
+      fuenteUsada: this.fuenteUsada,
+    };
   }
 
   enter(): void {
@@ -382,7 +444,10 @@ export class EscenaMapa implements Escena {
     if (this.montada.vista) this.o.mundo.rehacerObjeto(this.montada.vista.sala, cofre);
     this.marcarHecha(this.actual);
     sonar('cofre');
-    const hallazgo = abrirCofre(tabla, this.azarMapa, luchadora.heroe, objetos, inventario);
+    // Cada cofre sortea con su propio azar (zona y sala): cerrar el navegador y volver no lo cambia.
+    const { zona } = this.o;
+    const azar = crearAzar(zona.semilla * 1013 + zona.salas.indexOf(this.actual));
+    const hallazgo = abrirCofre(tabla, azar, luchadora.heroe, objetos, inventario);
     if (!hallazgo) {
       this.avisar('El cofre está vacío');
     } else if (hallazgo.tipo === 'consumible') {
@@ -408,7 +473,25 @@ export class EscenaMapa implements Escena {
         if (resultado === 'victoria' && this.actual === sala) this.abrir(cofre);
       },
       null,
+      { tipo: 'trampa' },
     );
+  }
+
+  /**
+   * Vuelve a empezar el combate que se interrumpió al cerrar el navegador (la partida se recupera tal
+   * como estaba al empezarlo). Si ya no está en la sala, no hace nada.
+   */
+  reanudarCombate(c: CombateGuardado): void {
+    if (c.tipo === 'grupo') {
+      const m = this.montada.monstruos[c.indice];
+      if (m?.vivo) this.luchar(m, c.quien);
+    } else if (c.tipo === 'trampa' && this.actual.trampa && !this.hechas.has(this.actual)) {
+      const cofre = this.montada.sala.objetos.find((o) => o.inf.name === 'cofre_cerrado');
+      if (cofre) this.morder(cofre);
+    } else if (c.tipo === 'final') {
+      // En la última zona, el portal lleva al jefe final.
+      this.o.alUsarPortal?.();
+    }
   }
 
   private refrescarHud(): void {
@@ -470,18 +553,22 @@ export class EscenaMapa implements Escena {
   readonly fondoSala: FondoSala = (tiempo, temblor, luz) =>
     this.o.mundo.dibujarFondo(this.vistaDe(this.montada).sala, tiempo, temblor, luz);
 
-  private luchar(m: MonstruoMapa): void {
+  /** Empieza el combate contra el grupo `m`; `forzada` es la iniciativa de un combate reanudado. */
+  private luchar(m: MonstruoMapa, forzada?: 'heroina' | 'monstruos' | null): void {
     const sala = this.montada;
     const salaZona = this.actual;
     const h = this.o.heroina;
     const [dirX, dirY] = MIRADA[h.direccion];
     // Solo los monstruos que se mueven pueden pillar o ser pillados por la espalda.
-    const quien = m.grupo[0]?.mapa
-      ? iniciativa(
-          { x: h.cuerpo.x, y: h.cuerpo.y, dirX, dirY },
-          { x: m.p.cuerpo.x, y: m.p.cuerpo.y, dirX: m.p.dirX, dirY: m.p.dirY },
-        )
-      : null;
+    const quien =
+      forzada !== undefined
+        ? forzada
+        : m.grupo[0]?.mapa
+          ? iniciativa(
+              { x: h.cuerpo.x, y: h.cuerpo.y, dirX, dirY },
+              { x: m.p.cuerpo.x, y: m.p.cuerpo.y, dirX: m.p.dirX, dirY: m.p.dirY },
+            )
+          : null;
     this.o.iniciarCombate(
       m.grupo,
       (resultado) => {
@@ -500,6 +587,7 @@ export class EscenaMapa implements Escena {
         this.invulnerable = this.o.invulnerabilidad;
       },
       quien,
+      { tipo: 'grupo', indice: sala.monstruos.indexOf(m), quien },
     );
   }
 
@@ -512,9 +600,11 @@ export class EscenaMapa implements Escena {
     this.montada = this.montar(vecina);
     this.minimapa = this.visitar(vecina);
     this.colocar(posicionEntrada(entrada, this.o.tam, this.o.heroina.cuerpo.alto));
+    this.ladoEntrada = entrada.lado;
     this.aplicarCierre();
     // Los probadores no entendían por qué no podían salir: se dice en pantalla, no solo al lector.
     if (this.cerradas !== 0) this.avisar('Vence a los monstruos para abrir las puertas');
+    this.o.alEntrarEnSala?.(this.estado());
   }
 
   /**
