@@ -11,6 +11,7 @@ import {
   heroinaGuardada,
   restaurarHeroina,
   VERSION_GUARDADO,
+  type CombateGuardado,
   type Conocido,
   type EstadoMapa,
   type PartidaGuardada,
@@ -169,7 +170,7 @@ function guardado(
   partida: Partida,
   zona: number,
   mapa: EstadoMapa,
-  enCombate = false,
+  combate: CombateGuardado | null = null,
 ): PartidaGuardada {
   const l = partida.luchadora;
   return {
@@ -184,7 +185,7 @@ function guardado(
     dragonAntes: partida.dragonAntes,
     rival: partida.rival,
     segundos: (performance.now() - partida.inicio) / 1000,
-    enCombate,
+    combate,
     heroina: heroinaGuardada(l),
     inventario: partida.inventario,
     mapa,
@@ -360,25 +361,7 @@ async function iniciar(): Promise<void> {
 
   // Una partida a medias (se cerró el navegador): se vuelve a la sala donde se guardó, sin portada.
   const guardada = cargarPartida(CONOCIDO);
-  if (guardada?.enCombate) {
-    // Se cerró a mitad de un combate: cuenta como derrota (si no, cerrar serviría para repetirlo).
-    borrarPartida();
-    pila.apilar(
-      new EscenaMensaje(
-        'Partida perdida',
-        '#d8584a',
-        [
-          'El juego se cerró en mitad de un combate.',
-          'Eso cuenta como derrota: la partida no se puede recuperar.',
-        ],
-        VOLVER_AL_TITULO,
-        () => {
-          pila.desapilar();
-          void mostrarPortada();
-        },
-      ),
-    );
-  } else if (guardada) {
+  if (guardada) {
     const heroe = HEROES[guardada.heroe as keyof typeof HEROES];
     const sprite = opciones.find((o) => o.heroe === heroe)!.sprite;
     const luchadora = luchadorDeHeroe(heroe);
@@ -403,12 +386,20 @@ async function iniciar(): Promise<void> {
         contar(
           pila,
           [
-            {
-              titulo: 'Partida recuperada',
-              texto: `${luchadora.nombre}, nivel ${luchadora.nivel}, en ${partida.zona}. Sigues donde lo dejaste.`,
-            },
+            guardada.combate
+              ? {
+                  titulo: 'Combate interrumpido',
+                  texto:
+                    'El juego se cerró en mitad de un combate: vuelves a empezarlo con la vida que tenías.',
+                }
+              : {
+                  titulo: 'Partida recuperada',
+                  texto: `${luchadora.nombre}, nivel ${luchadora.nivel}, en ${partida.zona}. Sigues donde lo dejaste.`,
+                },
           ],
-          () => {},
+          () => {
+            if (guardada.combate) zona.reanudarCombate(guardada.combate);
+          },
         );
       })
       .catch(mostrarError);
@@ -517,7 +508,7 @@ async function crearZona(
             .catch(mostrarError);
         }
       : () => {
-          guardarPartida(guardado(partida, indice, escena.estado(), true));
+          guardarPartida(guardado(partida, indice, escena.estado(), { tipo: 'final' }));
           lucharJefe(
             partida,
             { ...monstruo(zonas.jefeFinal), nombre: partida.rival },
@@ -581,10 +572,11 @@ async function crearZona(
         ? controles.pistas[esTactil() ? 'tactil' : 'teclado']
         : [],
     segundosPista: controles.pistas.segundos,
-    iniciarCombate: (grupo, alTerminarMapa, quien) => {
-      // Cerrar a mitad de un combate cuenta como derrota; al acabarlo (ganado o huyendo) se guarda
-      // tal cual, para que tampoco se pueda repetir un combate ya ganado.
-      guardarPartida(guardado(partida, indice, escena.estado(), true));
+    iniciarCombate: (grupo, alTerminarMapa, quien, combate) => {
+      // Se guarda al empezar, con el combate: si se cierra a mitad, al volver se repite desde el
+      // principio (cerrar no salva de un combate). Al acabarlo (ganado o huyendo) se guarda tal cual,
+      // para que tampoco se pueda repetir uno ya ganado.
+      guardarPartida(guardado(partida, indice, escena.estado(), combate));
       const alTerminar = (resultado: Resultado): void => {
         alTerminarMapa(resultado);
         guardarPartida(guardado(partida, indice, escena.estado()));

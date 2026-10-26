@@ -19,9 +19,11 @@ de partidas guardadas: hay una sola partida en curso, se guarda sola y no hay me
 ## No objetivos
 
 - Varias partidas o ranuras, guardar a mano, exportar partidas.
-- Recuperar un combate a medias: cerrar durante un combate **cuenta como derrota** (decisión de
-  Pedro tras la primera versión: «no quiero trampas»). Al volver sale «Partida perdida» y la
-  portada.
+- Recuperar un combate a medias: cerrar durante un combate **lo aplaza, no lo salva** (decisión de
+  Pedro, «no quiero trampas» y «lo más justo»): al volver sale «Combate interrumpido» y se repite
+  ese mismo combate desde el principio, con la vida, los PM y los dados que había al empezarlo.
+  Perder la partida por cerrar castigaba a quien no hace trampas (en el móvil, cambiar de app
+  puede cerrar la pestaña).
 - Recuperar la posición exacta, los monstruos en mitad de su patrulla o la lluvia tras el jefe.
 
 ## Lo que lo estropearía (anti-objetivos)
@@ -38,8 +40,8 @@ de partidas guardadas: hay una sola partida en curso, se guarda sola y no hay me
 - **Se guarda al entrar en cada sala**, ya pasado el fundido: al empezar la zona (sala de inicio)
   y al cruzar una puerta. El portal no guarda por sí mismo: guarda la sala de inicio de la zona
   siguiente al entrar en ella.
-- **Al empezar cada combate** (también el cofre trampa y el jefe final) se guarda con la marca
-  `enCombate`; si se recupera con ella, cuenta como derrota y la partida se borra.
+- **Al empezar cada combate** (también el cofre trampa y el jefe final) se guarda con qué combate
+  es (`combate`: grupo de la sala y su iniciativa, trampa o final); si se recupera así, se vuelve a él.
 - **Al acabar un combate** ganado o huyendo se guarda el estado de ese momento, para que tampoco
   se pueda repetir un combate ya ganado buscando un resultado mejor.
 - **Se borra** al morir (fin de la partida), al ganar al jefe final y con «Salir» en la pausa.

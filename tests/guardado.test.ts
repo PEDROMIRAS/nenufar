@@ -36,7 +36,7 @@ function ejemplo(): PartidaGuardada {
     dragonAntes: true,
     rival: 'Señor de la Cripta',
     segundos: 321.5,
-    enCombate: false,
+    combate: null,
     heroina: heroinaGuardada(l),
     inventario,
     mapa: {
@@ -56,9 +56,14 @@ describe('guardado de la partida', () => {
     expect(leerGuardado(JSON.stringify(g), conocido)).toEqual(g);
   });
 
-  test('conserva la marca de combate', () => {
-    const g = { ...ejemplo(), enCombate: true };
-    expect(leerGuardado(JSON.stringify(g), conocido)?.enCombate).toBe(true);
+  test.each([
+    [{ tipo: 'grupo', indice: 1, quien: 'heroina' }],
+    [{ tipo: 'grupo', indice: 0, quien: null }],
+    [{ tipo: 'trampa' }],
+    [{ tipo: 'final' }],
+  ] as const)('conserva el combate interrumpido %j', (combate) => {
+    const g = { ...ejemplo(), combate };
+    expect(leerGuardado(JSON.stringify(g), conocido)?.combate).toEqual(combate);
   });
 
   test('conserva violetasAntes y dragonAntes', () => {
@@ -114,7 +119,20 @@ describe('guardado de la partida', () => {
   test.each<[string, (g: Record<string, unknown> & PartidaGuardada) => void]>([
     ['otra versión', (g) => ((g as Record<string, unknown>).version = 2)],
     ['sin mapa', (g) => delete (g as Record<string, unknown>).mapa],
-    ['sin marca de combate', (g) => delete (g as Record<string, unknown>).enCombate],
+    ['sin campo de combate', (g) => delete (g as Record<string, unknown>).combate],
+    [
+      'combate de tipo desconocido',
+      (g) => ((g as Record<string, unknown>).combate = { tipo: 'duelo' }),
+    ],
+    [
+      'grupo sin índice',
+      (g) => ((g as Record<string, unknown>).combate = { tipo: 'grupo', quien: null }),
+    ],
+    [
+      'iniciativa rara',
+      (g) =>
+        ((g as Record<string, unknown>).combate = { tipo: 'grupo', indice: 0, quien: 'nadie' }),
+    ],
     ['heroína desconocida', (g) => (g.heroe = 'sapo')],
     ['dificultad desconocida', (g) => (g.dificultad = 'imposible')],
     ['arma desconocida', (g) => (g.inventario.arma = 'espada_inexistente')],

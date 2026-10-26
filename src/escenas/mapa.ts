@@ -26,7 +26,7 @@ import {
   type Tile,
 } from '../core/sala';
 import { abrirCofre } from '../core/equipo';
-import type { EstadoMapa } from '../core/guardado';
+import type { CombateGuardado, EstadoMapa } from '../core/guardado';
 import type { Inventario } from '../core/inventario';
 import type {
   BotinJson,
@@ -124,6 +124,8 @@ export interface OpcionesMapa {
     grupo: MonstruoJson[],
     alTerminar: (r: Resultado) => void,
     iniciativa: 'heroina' | 'monstruos' | null,
+    /** Qué combate es, para poder volver a él si se cierra el navegador a mitad. */
+    combate: CombateGuardado,
   ) => void;
   /** Estadísticas de combate de la heroína y nombre de la zona, para el HUD. */
   luchadora: Luchador;
@@ -471,7 +473,25 @@ export class EscenaMapa implements Escena {
         if (resultado === 'victoria' && this.actual === sala) this.abrir(cofre);
       },
       null,
+      { tipo: 'trampa' },
     );
+  }
+
+  /**
+   * Vuelve a empezar el combate que se interrumpió al cerrar el navegador (la partida se recupera tal
+   * como estaba al empezarlo). Si ya no está en la sala, no hace nada.
+   */
+  reanudarCombate(c: CombateGuardado): void {
+    if (c.tipo === 'grupo') {
+      const m = this.montada.monstruos[c.indice];
+      if (m?.vivo) this.luchar(m, c.quien);
+    } else if (c.tipo === 'trampa' && this.actual.trampa && !this.hechas.has(this.actual)) {
+      const cofre = this.montada.sala.objetos.find((o) => o.inf.name === 'cofre_cerrado');
+      if (cofre) this.morder(cofre);
+    } else if (c.tipo === 'final') {
+      // En la última zona, el portal lleva al jefe final.
+      this.o.alUsarPortal?.();
+    }
   }
 
   private refrescarHud(): void {
@@ -533,18 +553,22 @@ export class EscenaMapa implements Escena {
   readonly fondoSala: FondoSala = (tiempo, temblor, luz) =>
     this.o.mundo.dibujarFondo(this.vistaDe(this.montada).sala, tiempo, temblor, luz);
 
-  private luchar(m: MonstruoMapa): void {
+  /** Empieza el combate contra el grupo `m`; `forzada` es la iniciativa de un combate reanudado. */
+  private luchar(m: MonstruoMapa, forzada?: 'heroina' | 'monstruos' | null): void {
     const sala = this.montada;
     const salaZona = this.actual;
     const h = this.o.heroina;
     const [dirX, dirY] = MIRADA[h.direccion];
     // Solo los monstruos que se mueven pueden pillar o ser pillados por la espalda.
-    const quien = m.grupo[0]?.mapa
-      ? iniciativa(
-          { x: h.cuerpo.x, y: h.cuerpo.y, dirX, dirY },
-          { x: m.p.cuerpo.x, y: m.p.cuerpo.y, dirX: m.p.dirX, dirY: m.p.dirY },
-        )
-      : null;
+    const quien =
+      forzada !== undefined
+        ? forzada
+        : m.grupo[0]?.mapa
+          ? iniciativa(
+              { x: h.cuerpo.x, y: h.cuerpo.y, dirX, dirY },
+              { x: m.p.cuerpo.x, y: m.p.cuerpo.y, dirX: m.p.dirX, dirY: m.p.dirY },
+            )
+          : null;
     this.o.iniciarCombate(
       m.grupo,
       (resultado) => {
@@ -563,6 +587,7 @@ export class EscenaMapa implements Escena {
         this.invulnerable = this.o.invulnerabilidad;
       },
       quien,
+      { tipo: 'grupo', indice: sala.monstruos.indexOf(m), quien },
     );
   }
 

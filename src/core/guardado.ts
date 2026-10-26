@@ -54,14 +54,20 @@ export interface PartidaGuardada {
   rival: string;
   segundos: number;
   /**
-   * Se guardó al empezar un combate que no ha terminado: si se recupera así, cuenta como derrota
-   * (cerrar a mitad de un combate no puede servir para repetirlo).
+   * Combate que empezó y no terminó (se guardó al empezarlo): al recuperar se vuelve a él, con la vida
+   * y los dados del principio. Cerrar no salva de un combate; solo lo aplaza. null fuera de combate.
    */
-  enCombate: boolean;
+  combate: CombateGuardado | null;
   heroina: HeroinaGuardada;
   inventario: Inventario;
   mapa: EstadoMapa;
 }
+
+/** Qué combate se interrumpió: un grupo de la sala (por su posición), el cofre trampa o el jefe final. */
+export type CombateGuardado =
+  | { tipo: 'grupo'; indice: number; quien: 'heroina' | 'monstruos' | null }
+  | { tipo: 'trampa' }
+  | { tipo: 'final' };
 
 /** Lo que el juego conoce, para rechazar claves que ya no existen. */
 export interface Conocido {
@@ -144,6 +150,17 @@ function inventarioValido(i: unknown, c: Conocido): boolean {
   );
 }
 
+function combateValido(c: unknown): boolean {
+  if (c === null) return true;
+  if (!esObjeto(c)) return false;
+  if (c.tipo === 'trampa' || c.tipo === 'final') return true;
+  return (
+    c.tipo === 'grupo' &&
+    esIndice(c.indice) &&
+    (c.quien === null || c.quien === 'heroina' || c.quien === 'monstruos')
+  );
+}
+
 function mapaValido(m: unknown): boolean {
   return (
     esObjeto(m) &&
@@ -182,7 +199,7 @@ export function leerGuardado(texto: string | null, conocido: Conocido): PartidaG
     typeof g.rival === 'string' &&
     esNumero(g.segundos) &&
     g.segundos >= 0 &&
-    typeof g.enCombate === 'boolean' &&
+    combateValido(g.combate) &&
     heroinaValida(g.heroina) &&
     inventarioValido(g.inventario, conocido) &&
     mapaValido(g.mapa);
