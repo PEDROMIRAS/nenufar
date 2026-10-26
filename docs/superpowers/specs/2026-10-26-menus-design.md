@@ -1,6 +1,6 @@
 # Menús nuevos: combate e inventario (diseño)
 
-Fecha: 2026-10-26. Elegido por Pedro con bocetos en `docs/superpowers/mockups/`:
+Fecha: 2026-10-26. Elegido por Pedro con bocetos en `docs/superpowers/mockups/` (las decisiones de Claude, dibujadas y aprobadas, en `2026-10-26-menus-decisiones.html`):
 
 | Boceto | Elegido |
 | --- | --- |
