@@ -8,11 +8,11 @@ Dungeon crawler HD-2D para navegador y móvil (pixel art en escenarios 3D, al es
 
 | Explora el Bosque | Lucha | Enfréntate a los jefes |
 | --- | --- | --- |
-| ![Sala del Bosque en 3D con las puertas cerradas, el aviso de vencer a los monstruos y limos y murciélagos acercándose](docs/capturas/mapa.png) | ![Combate contra un limo y un murciélago con la sala desenfocada de fondo: la ronin elige Corte rápido y el panel explica qué hace](docs/capturas/combate.png) | ![Combate contra el Rey Limo con el Bosque de fondo](docs/capturas/jefe.png) |
+| ![Sala del Bosque en 3D con las puertas cerradas, el aviso de vencer a los monstruos y limos y murciélagos acercándose](docs/capturas/mapa.png) | ![Combate contra dos limos y un murciélago: abajo, el panel en lavanda con las habilidades y su coste a la izquierda y, a la derecha, qué hace la elegida y la ficha de la ronin](docs/capturas/combate.png) | ![Combate contra el golem de piedra: el jefe entero sobre el panel del menú](docs/capturas/jefe.png) |
 | **Las Ruinas** | **La Cripta** | **Elige heroína** |
 | ![Sala del tesoro de las Ruinas: muros de sillares, cofre, vasijas y un charco hundido](docs/capturas/ruinas.png) | ![Sala de descanso de la Cripta: la fuente, candelabros encendidos y fosas](docs/capturas/cripta.png) | ![Elección de heroína](docs/capturas/seleccion.png) |
 | **Mejora a tu rana** | **Completa el bestiario** | |
-| ![Inventario en la pestaña Heroína: estadísticas, equipo y habilidades](docs/capturas/inventario.png) | ![Bestiario con los monstruos vencidos y el resto en silueta](docs/capturas/bestiario.png) | |
+| ![Inventario: la lista a la izquierda y la heroína a la derecha, con sus barras, estadísticas, equipo y habilidades](docs/capturas/inventario.png) | ![Bestiario con los monstruos vencidos y el resto en silueta](docs/capturas/bestiario.png) | ![Inventario en Objetos: pociones, éter y antídoto con su cantidad y qué hace el elegido](docs/capturas/objetos.png) |
 
 ## Cómo se juega
 
