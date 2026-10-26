@@ -1,5 +1,6 @@
 import { barra, COLOR_BARRA, dibujarMenu, type MenuVista } from './combate';
 import { dibujarControles } from './controles';
+import { PALETA } from './marco';
 import { ALTO, ANCHO } from './pantalla';
 import { dibujarFotograma, type Sprite } from './recursos';
 import { escribir, FUENTE_GRANDE } from './texto';
@@ -70,7 +71,6 @@ const COLOR = {
   apartado: '#ffd27a',
   titulo: '#aab8a6',
   texto: '#e8efe4',
-  px: '#c89bff',
 };
 
 /** Inventario (y pausa): pestañas arriba, la página elegida y el menú abajo. */
@@ -131,7 +131,7 @@ function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaInventario): void
   // Apretado para que quepan las cinco habilidades (con la quinta, la de recompensa) en el panel.
   barraConTexto(ctx, x, 166, 'PV', f.pv / f.pvMax, COLOR_BARRA.pv, f.textoPv);
   barraConTexto(ctx, x, 180, 'PM', f.pm / Math.max(1, f.pmMax), COLOR_BARRA.pm, f.textoPm);
-  barraConTexto(ctx, x, 194, 'PX', f.px / Math.max(1, f.pxSiguiente), COLOR.px, f.textoPx);
+  barraConTexto(ctx, x, 194, 'PX', f.px / Math.max(1, f.pxSiguiente), PALETA.px, f.textoPx);
   escribir(ctx, 'Habilidades:', x, 208, COLOR.apartado);
   for (let i = 0; i < f.habilidades.length; i++)
     escribir(ctx, f.habilidades[i]!, x, 222 + i * 12, COLOR.texto);
