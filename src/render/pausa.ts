@@ -128,12 +128,13 @@ function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaInventario): void
   escribir(ctx, f.cabecera, centro, 148, COLOR.texto, 'center');
 
   const x = IZQUIERDA + 10;
-  barraConTexto(ctx, x, 168, 'PV', f.pv / f.pvMax, COLOR_BARRA.pv, f.textoPv);
-  barraConTexto(ctx, x, 184, 'PM', f.pm / Math.max(1, f.pmMax), COLOR_BARRA.pm, f.textoPm);
-  barraConTexto(ctx, x, 200, 'PX', f.px / Math.max(1, f.pxSiguiente), COLOR.px, f.textoPx);
-  escribir(ctx, 'Habilidades:', x, 220, COLOR.apartado);
+  // Apretado para que quepan las cinco habilidades (con la quinta, la de recompensa) en el panel.
+  barraConTexto(ctx, x, 166, 'PV', f.pv / f.pvMax, COLOR_BARRA.pv, f.textoPv);
+  barraConTexto(ctx, x, 180, 'PM', f.pm / Math.max(1, f.pmMax), COLOR_BARRA.pm, f.textoPm);
+  barraConTexto(ctx, x, 194, 'PX', f.px / Math.max(1, f.pxSiguiente), COLOR.px, f.textoPx);
+  escribir(ctx, 'Habilidades:', x, 208, COLOR.apartado);
   for (let i = 0; i < f.habilidades.length; i++)
-    escribir(ctx, f.habilidades[i]!, x, 236 + i * 12, COLOR.texto);
+    escribir(ctx, f.habilidades[i]!, x, 222 + i * 12, COLOR.texto);
 
   let y = PANEL.y + 8;
   for (let i = 0; i < f.derecha.length; i++) {
