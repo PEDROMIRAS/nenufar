@@ -33,7 +33,7 @@ Si el diseño y este archivo discrepan, manda el documento; avisa de la discrepa
 - Movimiento libre por píxeles en 8 direcciones; caja de colisión más pequeña que el sprite.
 - Entrada por acciones abstractas (`MOVER`, `CONFIRMAR`, `CANCELAR`, `MENU`); teclado y táctil (joystick flotante) como fuentes intercambiables.
 - PRNG con semilla (mulberry32) para todo lo aleatorio.
-- `localStorage` solo para ajustes y récords.
+- `localStorage` solo para ajustes, récords y la partida en curso (se guarda al entrar en cada sala para recuperarla si se cierra el navegador; morir, ganar o salir la borra).
 
 ## Reglas de arquitectura
 
