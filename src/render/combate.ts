@@ -432,16 +432,20 @@ function ayudaPartida(ayuda: readonly string[]): readonly string[] {
   return lineas;
 }
 
-/** Avisos del registro partidos al ancho de la columna derecha (cambian poco: se guardan). */
-const AVISOS = new Map<string, readonly string[]>();
+/** Letras por línea del registro en la columna izquierda, sin llegar a la ficha. */
+const LETRAS_IZQUIERDA = Math.floor((DERECHA.x - 8 - (PANEL.x + 14)) / 7.2);
 
-function avisoPartido(texto: string): readonly string[] {
-  let lineas = AVISOS.get(texto);
+/** Avisos del registro partidos al ancho de cada columna (cambian poco: se guardan). */
+const AVISOS = new Map<string, readonly string[]>();
+const REGISTRO = new Map<string, readonly string[]>();
+
+function avisoPartido(texto: string, cache = AVISOS, letras = LETRAS_DERECHA): readonly string[] {
+  let lineas = cache.get(texto);
   if (!lineas) {
     // Los avisos llevan números (daño…): se vacía de vez en cuando para que no crezca sin fin.
-    if (AVISOS.size > 200) AVISOS.clear();
-    lineas = texto ? partirTexto(texto, LETRAS_DERECHA) : [];
-    AVISOS.set(texto, lineas);
+    if (cache.size > 200) cache.clear();
+    lineas = texto ? partirTexto(texto, letras) : [];
+    cache.set(texto, lineas);
   }
   return lineas;
 }
@@ -482,9 +486,14 @@ function dibujarPanel(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
         escribir(ctx, lineas[i]!, DERECHA.x, DERECHA.yTexto + i * 14, PALETA.texto);
     }
   } else {
-    // Mientras se animan los turnos, el panel cuenta lo que pasa.
-    escribir(ctx, v.registro[0], PANEL.x + 14, PANEL.y + 14, '#aab8a6');
-    escribir(ctx, v.registro[1], PANEL.x + 14, PANEL.y + 32, PALETA.texto);
+    // Mientras se animan los turnos, el panel cuenta lo que pasa en la columna izquierda
+    // (la derecha es de la ficha).
+    let y = PANEL.y + 14;
+    for (let r = 0; r < v.registro.length; r++, y += 4) {
+      const lineas = avisoPartido(v.registro[r]!, REGISTRO, LETRAS_IZQUIERDA);
+      for (let i = 0; i < lineas.length; i++, y += 14)
+        escribir(ctx, lineas[i]!, PANEL.x + 14, y, r === 0 ? '#aab8a6' : PALETA.texto);
+    }
   }
   // La ficha de la heroína, siempre a la vista.
   const h = v.combate.heroina;
