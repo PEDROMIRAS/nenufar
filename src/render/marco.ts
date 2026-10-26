@@ -94,7 +94,10 @@ export function dibujarMarco(
   rombo(ctx, x + ancho, y + alto, ROMBO, PALETA.claro);
 }
 
-/** Una fila de lista: el texto a la izquierda y `detalle` a la derecha; elegida = brillo y rombo de cursor. */
+/**
+ * Una fila de lista: el texto a la izquierda y `detalle` a la derecha; elegida = brillo y rombo de
+ * cursor. Una apagada que está elegida lleva el cursor (para saber dónde se está) con el texto gris.
+ */
 export function dibujarFila(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -103,9 +106,10 @@ export function dibujarFila(
   alto: number,
   texto: string,
   detalle: string,
-  estado: 'normal' | 'elegida' | 'apagada',
+  estado: 'normal' | 'elegida' | 'apagada' | 'elegidaApagada',
 ): void {
-  const elegida = estado === 'elegida';
+  const elegida = estado === 'elegida' || estado === 'elegidaApagada';
+  const apagada = estado === 'apagada' || estado === 'elegidaApagada';
   if (elegida) {
     // El brillo va de izquierda a derecha y se apaga antes del final: la clave solo depende de x y ancho.
     ctx.fillStyle = gradiente(
@@ -122,17 +126,10 @@ export function dibujarFila(
     rombo(ctx, x + 8, y + alto / 2, ROMBO, PALETA.cursor);
   }
   const yTexto = y + (alto - 12) / 2;
-  const color = estado === 'apagada' ? PALETA.apagada : elegida ? PALETA.elegida : PALETA.texto;
+  const color = apagada ? PALETA.apagada : elegida ? PALETA.elegida : PALETA.texto;
   escribir(ctx, texto, x + 16, yTexto, color);
   if (detalle) {
-    escribir(
-      ctx,
-      detalle,
-      x + ancho - 8,
-      yTexto,
-      estado === 'apagada' ? PALETA.apagada : PALETA.pm,
-      'right',
-    );
+    escribir(ctx, detalle, x + ancho - 8, yTexto, apagada ? PALETA.apagada : PALETA.pm, 'right');
   }
 }
 

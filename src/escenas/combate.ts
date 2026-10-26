@@ -14,9 +14,8 @@ import {
   anticipoAtaque,
   dibujarCombate,
   duracionEfecto,
-  enRejilla,
-  opcionTocada,
-  tocaInfo,
+  FILA_COMBATE,
+  LISTA_COMBATE,
   type MenuVista,
   type VistaCombate,
 } from '../render/combate';
@@ -28,8 +27,8 @@ import {
   partirEnLineas,
 } from '../core/descripciones';
 import { haceAlgo } from '../core/inventario';
+import { efectoToque, filaTocada } from '../core/menu';
 import { anunciar } from '../render/accesibilidad';
-import { cargarAjustes, guardarAjustes } from '../render/almacen';
 import type { Sprite } from '../render/recursos';
 import { ponerMusica, sonar } from '../render/sonido';
 import ritmo from '../data/ritmo.json';
@@ -57,6 +56,14 @@ const SEGUNDOS_REGISTRO = 3.5;
 
 /** Líneas que caben en el panel del registro. */
 const LARGO_LINEA = 57; // deja sitio al botón «i»
+/** Texto de la pestaña del panel en cada menú. */
+const PESTANA: Record<Modo, string> = {
+  principal: 'Acción',
+  habilidades: 'Habilidad',
+  objetos: 'Objeto',
+  objetivo: 'Objetivo',
+};
+
 const ayuda = (texto: string): string[] => partirEnLineas(texto, LARGO_LINEA);
 
 const textoVida = (pv: number, max: number): string => `${pv}/${max}`;
@@ -132,7 +139,7 @@ export class EscenaCombate implements Escena {
       cargando: new Set(),
       defendiendo: false,
       titulo: '',
-      info: cargarAjustes().info,
+      pestana: '',
     };
   }
 
@@ -151,14 +158,6 @@ export class EscenaCombate implements Escena {
     // El registro se limpia si pasa un rato sin mensajes nuevos.
     this.tiempoRegistro += dt;
     if (this.tiempoRegistro > SEGUNDOS_REGISTRO) v.registro[0] = v.registro[1] = '';
-    if (
-      acciones.info ||
-      (acciones.toqueX >= 0 &&
-        tocaInfo(acciones.toqueX, acciones.toqueY, v.menu !== null && enRejilla(v.menu)))
-    ) {
-      this.alternarInfo();
-      return;
-    }
     v.tiempoAtaque += dt;
     v.tiempoEfecto += dt;
     if (v.tiempoCaida >= 0) v.tiempoCaida += dt;
@@ -267,9 +266,9 @@ export class EscenaCombate implements Escena {
             ? `${e.estado} en ${e.objetivo.nombre}`
             : `Se acaba ${e.estado} en ${e.objetivo.nombre}`,
         );
-        // Con el modo información, la primera vez en el combate, debajo, qué hace (los probadores no lo sabían).
+        // La primera vez en el combate, debajo, qué hace (los probadores no lo sabían).
         const def = Object.values(this.combate.reglas.estados).find((d) => d.nombre === e.estado);
-        if (v.info && e.activo && def && !this.estadosExplicados.has(e.estado)) {
+        if (e.activo && def && !this.estadosExplicados.has(e.estado)) {
           this.estadosExplicados.add(e.estado);
           const texto = describirEstado(def);
           this.registrar(texto.charAt(0).toUpperCase() + texto.slice(1));
@@ -400,14 +399,6 @@ export class EscenaCombate implements Escena {
     v.flotanteCura = cambio > 0;
   }
 
-  /** Enciende o apaga el modo información; se guarda en los ajustes, también para otras partidas. */
-  private alternarInfo(): void {
-    this.v.info = !this.v.info;
-    guardarAjustes({ info: this.v.info });
-    sonar('cursor');
-    anunciar(this.v.info ? 'Información activada' : 'Información desactivada');
-  }
-
   private anunciarOpcion(): void {
     const o = this.v.menu?.opciones[this.v.menu.seleccion];
     if (o) anunciar(o.ayuda ? `${o.texto}. ${o.ayuda.join(' ')}` : o.texto);
@@ -438,6 +429,7 @@ export class EscenaCombate implements Escena {
 
   private abrir(modo: Modo): void {
     this.modo = modo;
+    this.v.pestana = PESTANA[modo];
     const h = this.combate.heroina;
     let menu: MenuVista;
     if (modo === 'principal') {
@@ -512,17 +504,14 @@ export class EscenaCombate implements Escena {
     }
     const menu = this.v.menu!;
     const n = menu.opciones.length;
-    // Tocar una opción la elige y la usa a la vez. En modo información, dentro de Habilidad y Objeto
-    // el primer toque solo la elige (y enseña qué hace) y el segundo la usa: así no se gastan PM ni
-    // objetos sin saber qué hacen. El menú principal y «Volver» van siempre al primer toque.
+    // En Habilidad, Objeto y la elección de enemigo, el primer toque solo elige (y la derecha del panel
+    // dice qué hace) y el segundo la usa: así no se gastan PM ni objetos sin querer. El menú principal
+    // y «Volver» (la última fila) van al primer toque.
     if (a.toqueX >= 0) {
-      const i = opcionTocada(a.toqueX, a.toqueY, n, enRejilla(menu));
+      const i = filaTocada(a.toqueX, a.toqueY, LISTA_COMBATE, FILA_COMBATE, n);
       if (i < 0) return;
-      const soloElegir =
-        this.v.info &&
-        (this.modo === 'habilidades' || this.modo === 'objetos') &&
-        i !== menu.seleccion &&
-        menu.opciones[i]?.ayuda !== undefined;
+      const dobleToque = this.modo !== 'principal' && i !== n - 1;
+      const soloElegir = efectoToque(menu.seleccion, i, dobleToque) === 'elegir';
       menu.seleccion = i;
       if (soloElegir) {
         sonar('cursor');
@@ -538,9 +527,8 @@ export class EscenaCombate implements Escena {
     }
     const dx = Math.sign(a.moverX);
     const dy = Math.sign(a.moverY);
-    // En la rejilla de 3 columnas, arriba y abajo saltan una fila.
-    const salto =
-      (dx !== this.ultimoX ? dx : 0) + (enRejilla(menu) && dy !== this.ultimoY ? dy * 3 : 0);
+    // La lista va de arriba abajo; izquierda y derecha también se mueven por ella.
+    const salto = (dy !== this.ultimoY ? dy : 0) || (dx !== this.ultimoX ? dx : 0);
     if (salto !== 0) {
       menu.seleccion = (((menu.seleccion + salto) % n) + n) % n;
       sonar('cursor');
@@ -577,7 +565,7 @@ export class EscenaCombate implements Escena {
         this.abrir('principal'); // «Volver»
       } else if (hab.pm > h.pm) {
         this.registrar(`No quedan PM para ${hab.nombre}`);
-        if (this.v.info) this.registrar(`Defender recupera ${this.combate.reglas.defender.pm} PM`);
+        this.registrar(`Defender recupera ${this.combate.reglas.defender.pm} PM`);
       } else if (hab.objetivo === 'uno') {
         this.apuntar((o) => ({ tipo: 'habilidad', habilidad: hab, objetivo: o }));
       } else {
