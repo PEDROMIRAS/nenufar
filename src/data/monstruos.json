@@ -182,9 +182,9 @@
     "nombre": "Araña",
     "sprite": "monstruos/arana",
     "estadisticas": {
-      "pv": 36,
+      "pv": 41,
       "pm": 12,
-      "ataque": 11,
+      "ataque": 13,
       "magia": 0,
       "defensa": 6,
       "velocidad": 9
@@ -249,9 +249,9 @@
     "nombre": "Caballero oscuro",
     "sprite": "monstruos/caballero",
     "estadisticas": {
-      "pv": 72,
+      "pv": 83,
       "pm": 0,
-      "ataque": 18,
+      "ataque": 22,
       "magia": 0,
       "defensa": 18,
       "velocidad": 5
@@ -312,10 +312,10 @@
     "nombre": "Espectro",
     "sprite": "monstruos/espectro",
     "estadisticas": {
-      "pv": 43,
+      "pv": 49,
       "pm": 20,
-      "ataque": 11,
-      "magia": 13,
+      "ataque": 13,
+      "magia": 16,
       "defensa": 8,
       "velocidad": 8
     },
@@ -542,9 +542,9 @@
     "nombre": "Reina Araña",
     "sprite": "monstruos/reina_arana",
     "estadisticas": {
-      "pv": 167,
+      "pv": 192,
       "pm": 40,
-      "ataque": 23,
+      "ataque": 28,
       "magia": 0,
       "defensa": 12,
       "velocidad": 10

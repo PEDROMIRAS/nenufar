@@ -110,6 +110,8 @@ export function pelear(
   grupo: string[],
   azar: () => number,
   { bestiario, reglas }: Mundo,
+  /** Si se pasa, suma el daño que recibe la heroína, en fracción de su vida máxima. */
+  recibido?: Media,
 ): boolean {
   const c = crearCombate(
     h,
@@ -120,10 +122,19 @@ export function pelear(
   );
   c.inventario = inv;
   c.objetos = OBJETOS;
-  avanzar(c);
+  let danio = 0;
+  const sumar = (eventos: ReturnType<typeof avanzar>): void => {
+    for (const e of eventos) if (e.tipo === 'danio' && e.objetivo === h) danio += e.cantidad;
+  };
+  sumar(avanzar(c));
   // Las decisiones de la jugadora, con su propio azar: no cambian las tiradas del combate.
   const jugadora = crearAzar(Math.floor(azar() * 2 ** 31));
-  for (let vueltas = 0; !c.resultado && vueltas < 300; vueltas++) actuar(c, decidir(c, jugadora));
+  for (let vueltas = 0; !c.resultado && vueltas < 300; vueltas++)
+    sumar(actuar(c, decidir(c, jugadora)));
+  if (recibido) {
+    recibido.suma += Math.min(1, danio / h.pvMax);
+    recibido.n++;
+  }
   for (const pieza of c.equipoEncontrado) quizaEquipar(h, inv, pieza);
   gastarPuntos(h);
   return c.resultado === 'victoria';
@@ -135,6 +146,13 @@ export interface Cuenta {
 }
 export const pct = (c: Cuenta): number =>
   c.jugados ? Math.round((c.ganados / c.jugados) * 1000) / 10 : 0;
+
+export interface Media {
+  suma: number;
+  n: number;
+}
+/** La media en porcentaje, con un decimal. */
+export const media = (m: Media): number => (m.n ? Math.round((m.suma / m.n) * 1000) / 10 : 0);
 
 export function simular(
   nombre: string,
@@ -162,6 +180,8 @@ export function simular(
   const reales: Record<string, Cuenta> = {};
   const jefes: Record<string, Cuenta> = {};
   const trampas: Record<string, Cuenta> = {};
+  /** Vida que quita de media un combate normal de cada zona empezado con la vida llena. */
+  const recibido: Record<string, Media> = {};
   /** Nivel con que se llega a cada jefe. */
   const niveles: Record<string, number[]> = {};
   const contar = (t: Record<string, Cuenta>, k: string, gana: boolean): void => {
@@ -220,7 +240,14 @@ export function simular(
           contar(
             sueltos,
             clave,
-            pelear(copia, structuredClone(inv), grupo, crearAzar(s * 131 + g), mundo),
+            pelear(
+              copia,
+              structuredClone(inv),
+              grupo,
+              crearAzar(s * 131 + g),
+              mundo,
+              (recibido[clave] ??= { suma: 0, n: 0 }),
+            ),
           );
           viva = pelear(h, inv, grupo, azar, mundo);
           contar(reales, clave, viva);
@@ -250,6 +277,7 @@ export function simular(
     reales,
     jefes,
     trampas,
+    recibido,
     niveles,
     completas: Math.round((completas / partidas) * 1000) / 10,
   };
