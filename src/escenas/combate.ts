@@ -14,6 +14,7 @@ import {
   anticipoAtaque,
   dibujarCombate,
   duracionEfecto,
+  enRejilla,
   opcionTocada,
   tocaInfo,
   type MenuVista,
@@ -150,7 +151,11 @@ export class EscenaCombate implements Escena {
     // El registro se limpia si pasa un rato sin mensajes nuevos.
     this.tiempoRegistro += dt;
     if (this.tiempoRegistro > SEGUNDOS_REGISTRO) v.registro[0] = v.registro[1] = '';
-    if (acciones.info || (acciones.toqueX >= 0 && tocaInfo(acciones.toqueX, acciones.toqueY))) {
+    if (
+      acciones.info ||
+      (acciones.toqueX >= 0 &&
+        tocaInfo(acciones.toqueX, acciones.toqueY, v.menu !== null && enRejilla(v.menu)))
+    ) {
       this.alternarInfo();
       return;
     }
@@ -511,7 +516,7 @@ export class EscenaCombate implements Escena {
     // el primer toque solo la elige (y enseña qué hace) y el segundo la usa: así no se gastan PM ni
     // objetos sin saber qué hacen. El menú principal y «Volver» van siempre al primer toque.
     if (a.toqueX >= 0) {
-      const i = opcionTocada(a.toqueX, a.toqueY, n);
+      const i = opcionTocada(a.toqueX, a.toqueY, n, enRejilla(menu));
       if (i < 0) return;
       const soloElegir =
         this.v.info &&
@@ -534,7 +539,8 @@ export class EscenaCombate implements Escena {
     const dx = Math.sign(a.moverX);
     const dy = Math.sign(a.moverY);
     // En la rejilla de 3 columnas, arriba y abajo saltan una fila.
-    const salto = (dx !== this.ultimoX ? dx : 0) + (n > 6 && dy !== this.ultimoY ? dy * 3 : 0);
+    const salto =
+      (dx !== this.ultimoX ? dx : 0) + (enRejilla(menu) && dy !== this.ultimoY ? dy * 3 : 0);
     if (salto !== 0) {
       menu.seleccion = (((menu.seleccion + salto) % n) + n) % n;
       sonar('cursor');

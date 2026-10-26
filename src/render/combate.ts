@@ -145,13 +145,13 @@ export function xEnemigo(i: number, n: number): number {
 const RECT = { x: 0, y: 0, ancho: 0, alto: 0 };
 
 /**
- * Rectángulo del botón `i` de un menú de `n` opciones. Hasta 6 caben en una fila; más, en una
- * rejilla de 3 columnas que ocupa también el registro. Altos de sobra para un dedo.
+ * Rectángulo del botón `i` de un menú de `n` opciones: en una fila, o en una rejilla de 3 columnas
+ * que ocupa también el sitio del registro (ver `enRejilla`). Altos de sobra para un dedo.
  * Devuelve siempre el mismo objeto (se pide en cada fotograma): vale hasta la siguiente llamada.
  */
-function rectOpcion(i: number, n: number): typeof RECT {
+function rectOpcion(i: number, n: number, rejilla: boolean): typeof RECT {
   const r = RECT;
-  if (n <= 6) {
+  if (!rejilla) {
     r.ancho = (ANCHO - 32 - (n - 1) * 8) / n;
     r.x = 16 + i * (r.ancho + 8);
     r.y = 292;
@@ -159,16 +159,30 @@ function rectOpcion(i: number, n: number): typeof RECT {
   } else {
     r.ancho = (ANCHO - 32 - 2 * 8) / 3;
     r.x = 16 + (i % 3) * (r.ancho + 8);
-    r.y = 252 + Math.floor(i / 3) * 46;
-    r.alto = 40;
+    r.y = 252 + Math.floor(i / 3) * 50;
+    r.alto = 46;
   }
   return r;
 }
 
 /** Opción de un menú de `n` que hay bajo el toque (x, y), o -1 si no hay ninguna. */
-export function opcionTocada(x: number, y: number, n: number): number {
-  for (let i = 0; i < n; i++) if (dentro(x, y, rectOpcion(i, n))) return i;
+export function opcionTocada(x: number, y: number, n: number, rejilla = n > 6): number {
+  for (let i = 0; i < n; i++) if (dentro(x, y, rectOpcion(i, n, rejilla))) return i;
   return -1;
+}
+
+/**
+ * ¿Va el menú en rejilla? Si tiene más de 6 opciones o si el texto de alguna no cabe en su botón de
+ * la fila (con 5 habilidades y «Volver», los botones de la fila son demasiado estrechos).
+ */
+export function enRejilla(menu: MenuVista): boolean {
+  const n = menu.opciones.length;
+  if (n > 6) return true;
+  const { ancho, alto } = rectOpcion(0, n, false);
+  for (const o of menu.opciones)
+    if ((lineasBoton(o.texto, ancho).length + (o.detalle !== '' ? 1 : 0)) * LINEA_BOTON > alto)
+      return true;
+  return false;
 }
 
 export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
@@ -186,24 +200,27 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   dibujarEfecto(ctx, v);
   dibujarFlotante(ctx, v);
 
-  const enRejilla = v.menu !== null && v.menu.opciones.length > 6;
-  if (!enRejilla) {
-    // Registro de las dos últimas acciones; en modo información, la ayuda de la opción elegida ocupa
-    // el panel (si cabe en una línea, debajo sigue el registro). Sin nada que leer, no hay panel.
-    const ayuda = v.info ? v.menu?.opciones[v.menu.seleccion]?.ayuda : undefined;
-    if (ayuda?.[0] || v.registro[0] || v.registro[1]) {
-      ctx.fillStyle = COLOR.panel;
-      ctx.fillRect(8, 256, ANCHO - 16, 32);
-    }
-    if (ayuda?.[0]) {
-      escribir(ctx, ayuda[0], 16, 259, COLOR.aviso);
-      escribir(ctx, ayuda[1] ?? v.registro[1], 16, 273, ayuda[1] ? COLOR.aviso : undefined);
-    } else {
-      escribir(ctx, v.registro[0], 16, 259, '#aab8a6');
-      escribir(ctx, v.registro[1], 16, 273);
-    }
-    dibujarBotonInfo(ctx, v.info);
+  // Registro de las dos últimas acciones; en modo información, la ayuda de la opción elegida ocupa
+  // el panel (si cabe en una línea, debajo sigue el registro). Sin nada que leer, no hay panel.
+  // Con el menú en rejilla no queda sitio abajo: el panel sube bajo la barra de turnos y solo
+  // enseña la ayuda, para no tapar a los enemigos por el registro.
+  const rejilla = v.menu !== null && enRejilla(v.menu);
+  const y = yPanel(rejilla);
+  const registro0 = rejilla ? '' : v.registro[0];
+  const registro1 = rejilla ? '' : v.registro[1];
+  const ayuda = v.info ? v.menu?.opciones[v.menu.seleccion]?.ayuda : undefined;
+  if (ayuda?.[0] || registro0 || registro1) {
+    ctx.fillStyle = COLOR.panel;
+    ctx.fillRect(8, y, ANCHO - 16, 32);
   }
+  if (ayuda?.[0]) {
+    escribir(ctx, ayuda[0], 16, y + 3, COLOR.aviso);
+    escribir(ctx, ayuda[1] ?? registro1, 16, y + 17, ayuda[1] ? COLOR.aviso : undefined);
+  } else {
+    escribir(ctx, registro0, 16, y + 3, '#aab8a6');
+    escribir(ctx, registro1, 16, y + 17);
+  }
+  dibujarBotonInfo(ctx, v.info, y);
   dibujarMenu(ctx, v.menu);
 
   if (v.titulo) {
@@ -221,17 +238,24 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
 }
 
 /** Botón «i» en la esquina del panel del registro. El área que responde al toque es mayor que el dibujo. */
-// Ocupa el alto del panel del registro (256-288); el margen de toque no llega a los botones (292).
-export const BOTON_INFO = { x: ANCHO - 42, y: 256, lado: 32, margenToque: 4 };
+// Ocupa el alto del panel del registro (256-288, o bajo la barra de turnos con la rejilla); el margen
+// de toque no llega a los botones.
+export const BOTON_INFO = { x: ANCHO - 42, lado: 32, margenToque: 4 };
+
+/** Arriba del panel del registro y del botón «i». */
+function yPanel(rejilla: boolean): number {
+  return rejilla ? FIN_BARRA_TURNOS : 256;
+}
 
 /** ¿El toque (x, y) cae en el botón «i»? */
-export function tocaInfo(x: number, y: number): boolean {
-  const { x: bx, y: by, lado, margenToque: m } = BOTON_INFO;
+export function tocaInfo(x: number, y: number, rejilla: boolean): boolean {
+  const { x: bx, lado, margenToque: m } = BOTON_INFO;
+  const by = yPanel(rejilla);
   return dentro(x, y, { x: bx - m, y: by - m, ancho: lado + 2 * m, alto: lado + 2 * m });
 }
 
-function dibujarBotonInfo(ctx: CanvasRenderingContext2D, activo: boolean): void {
-  const { x, y, lado } = BOTON_INFO;
+function dibujarBotonInfo(ctx: CanvasRenderingContext2D, activo: boolean, y: number): void {
+  const { x, lado } = BOTON_INFO;
   ctx.fillStyle = activo ? COLOR.botonActivo : COLOR.boton;
   ctx.fillRect(x, y, lado, lado);
   ctx.fillStyle = activo ? COLOR.aviso : COLOR.borde;
@@ -272,8 +296,9 @@ export function dibujarMenu(ctx: CanvasRenderingContext2D, menu: MenuVista | nul
   // Sin menú (mientras se animan los turnos o al acabar) no se dibujan botones.
   if (!menu) return;
   const n = menu.opciones.length;
+  const rejilla = enRejilla(menu);
   for (let i = 0; i < n; i++) {
-    const r = rectOpcion(i, n);
+    const r = rectOpcion(i, n, rejilla);
     const opcion = menu?.opciones[i];
     const elegida = menu !== null && i === menu.seleccion;
     // Una opción apagada no se aclara al elegirla (su gris no se leería): la marcan solo los bordes.
