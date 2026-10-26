@@ -140,6 +140,7 @@ export class EscenaCombate implements Escena {
       defendiendo: false,
       titulo: '',
       pestana: '',
+      aviso: false,
     };
   }
 
@@ -400,6 +401,7 @@ export class EscenaCombate implements Escena {
   }
 
   private anunciarOpcion(): void {
+    this.v.aviso = false;
     const o = this.v.menu?.opciones[this.v.menu.seleccion];
     if (o) anunciar(o.ayuda ? `${o.texto}. ${o.ayuda.join(' ')}` : o.texto);
   }
@@ -414,6 +416,7 @@ export class EscenaCombate implements Escena {
     this.tiempoRegistro = 0;
     this.v.registro[0] = this.v.registro[1];
     this.v.registro[1] = texto;
+    this.v.aviso = this.v.menu !== null;
     anunciar(texto);
   }
 
@@ -430,6 +433,7 @@ export class EscenaCombate implements Escena {
   private abrir(modo: Modo): void {
     this.modo = modo;
     this.v.pestana = PESTANA[modo];
+    this.v.aviso = false;
     const h = this.combate.heroina;
     let menu: MenuVista;
     if (modo === 'principal') {

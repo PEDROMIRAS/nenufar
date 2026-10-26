@@ -72,6 +72,11 @@ export interface VistaCombate {
   titulo: string;
   /** Nombre del menú abierto, en la pestaña del panel («Acción», «Habilidad»…). */
   pestana: string;
+  /**
+   * Hay un aviso dado con el menú abierto («No quedan PM…»): ocupa el sitio de la descripción hasta que
+   * se mueve el cursor o cambia el menú. Lo que pasó en los turnos de antes no la tapa.
+   */
+  aviso: boolean;
 }
 
 const COLOR = {
@@ -456,7 +461,7 @@ function dibujarPanel(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
     }
     const elegida = menu.opciones[menu.seleccion];
     if (elegida) dibujarTitulo(ctx, DERECHA.x, PANEL.y + 12, DERECHA.ancho, elegida.texto);
-    if (v.registro[1]) {
+    if (v.aviso && v.registro[1]) {
       // Un aviso reciente con el menú abierto («No quedan PM…» y la pista que lo sigue) ocupa el
       // sitio de la descripción hasta que caduca el registro.
       let y = PANEL.y + 36;
