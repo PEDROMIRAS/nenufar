@@ -429,17 +429,11 @@ export class EscenaMapa implements Escena {
     }
     if (this.tiempoAviso > 0) dibujarAviso(ctx, this.aviso);
     // El minimapa va encima del fundido: es interfaz, no parte de la sala.
-    // Debajo de la mochila, a la derecha; crece en enteros con el ancho que sobra a los lados de la sala.
+    // A la izquierda de la mochila, como siempre; crece en enteros con el ancho que sobra a los lados de la sala.
     const { width: mw, height: mh } = this.minimapa;
     const lateral = (ventana.ancho - SALA_ANCHO) / 2 - 2 * MARGEN_HUD;
     const k = Math.max(1, Math.min(3, Math.floor(lateral / mw), Math.floor(ventana.alto / 2 / mh)));
-    ctx.drawImage(
-      this.minimapa,
-      ventana.ancho - MARGEN_HUD - mw * k,
-      BOTON_MENU.y + BOTON_MENU.alto + MARGEN_HUD,
-      mw * k,
-      mh * k,
-    );
+    ctx.drawImage(this.minimapa, BOTON_MENU.x - MARGEN_HUD - mw * k, MARGEN_HUD, mw * k, mh * k);
     dibujarBotonMenu(ctx, this.o.luchadora.puntos > 0);
   }
 
