@@ -2,7 +2,7 @@ import { filaTocada, type Rect } from '../core/menu';
 import { barra, COLOR_BARRA } from './combate';
 import { dibujarControles } from './controles';
 import { dibujarFila, dibujarMarco, dibujarTitulo, PALETA } from './marco';
-import { ALTO, ANCHO } from './pantalla';
+import { rellenarArea } from './pantalla';
 import { dibujarFotograma, type Sprite } from './recursos';
 import { escribir } from './texto';
 
@@ -120,7 +120,7 @@ const COLOR = { etiqueta: PALETA.claro };
 
 export function dibujarInventario(ctx: CanvasRenderingContext2D, v: VistaInventario): void {
   ctx.fillStyle = 'rgba(8, 10, 14, 0.94)';
-  ctx.fillRect(0, 0, ANCHO, ALTO);
+  rellenarArea(ctx);
   dibujarLista(ctx, v);
   dibujarMarco(ctx, PANEL.x, PANEL.y, PANEL.ancho, PANEL.alto);
   if (v.pagina === 'heroina') dibujarHeroina(ctx, v);

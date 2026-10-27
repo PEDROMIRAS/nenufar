@@ -2,7 +2,7 @@ import type { Acciones } from '../core/acciones';
 import { formatearTiempo, textoPorDificultad, type Records } from '../core/records';
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
 import { dibujarCaja, PALETA } from '../render/marco';
-import { ALTO, ANCHO, dentro, esTactil } from '../render/pantalla';
+import { ALTO, ANCHO, area, dentro, esTactil } from '../render/pantalla';
 import type { Portada3d } from '../render/mundo/portada';
 import { ponerMusica, sonar } from '../render/sonido';
 import { escribir, FUENTE, FUENTE_LOGO } from '../render/texto';
@@ -102,11 +102,10 @@ export class EscenaTitulo implements Escena {
     const t = this.tiempo;
     this.arte.dibujar(t);
     // El canvas 2D queda transparente encima de la sala en 3D, solo con el logo y los textos.
-    ctx.clearRect(0, 0, ANCHO, ALTO);
     // Bandas más oscuras arriba y abajo, para que el logo y los textos se lean sobre la sala.
     ctx.fillStyle = 'rgba(10, 12, 16, 0.55)';
-    ctx.fillRect(0, 0, ANCHO, 104);
-    ctx.fillRect(0, ALTO - 72, ANCHO, 72);
+    ctx.fillRect(area.x, 0, area.ancho, 104);
+    ctx.fillRect(area.x, ALTO - 72, area.ancho, 72);
 
     escribir(ctx, 'Nenúfar', ANCHO / 2, 18, '#c89bff', 'center', FUENTE_LOGO);
     escribir(ctx, 'Un dungeon crawler de ranas', ANCHO / 2, 74, PALETA.texto, 'center');

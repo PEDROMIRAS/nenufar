@@ -30,11 +30,11 @@
     "zona": "bosque",
     "plantilla": "bosque_descanso_01",
     "semilla": 3,
-    "encuadre": { "x": 7.7, "z": 5.4, "ancho": 11 },
-    "ronin": [166, 214],
-    "maga": [314, 212],
-    "murcielago": [400, 150],
-    "limo": [404, 246]
+    "encuadre": { "x": 10.7, "z": 6.4, "ancho": 15.4 },
+    "ronin": [262, 246],
+    "maga": [410, 244],
+    "murcielago": [496, 182],
+    "limo": [500, 278]
   },
   "luces": {
     "hoguera": {

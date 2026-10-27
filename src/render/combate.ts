@@ -1,6 +1,6 @@
 import type { Combate, Luchador } from '../core/combate';
 import { partirTexto } from '../core/texto';
-import { ALTO, ANCHO, aPixel, dentro } from './pantalla';
+import { ANCHO, aPixel, dentro, rellenarArea } from './pantalla';
 import { movimientoReducido } from './accesibilidad';
 import { dibujarFotograma, type Sprite } from './recursos';
 import type { FondoSala } from './mundo/mundo';
@@ -183,9 +183,8 @@ export function opcionTocada(x: number, y: number, n: number): number {
 export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   v.fondo(v.tiempo, 0, posicionProyectil(v));
   // El canvas 2D queda transparente encima de la sala en 3D.
-  ctx.clearRect(0, 0, ANCHO, ALTO);
   ctx.fillStyle = COLOR.velo;
-  ctx.fillRect(0, 0, ANCHO, ALTO);
+  rellenarArea(ctx);
 
   dibujarOrden(ctx, v);
   for (let i = 0; i < v.enemigos.length; i++)
@@ -200,7 +199,7 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   if (v.titulo) {
     // Velo y un recuadro propio, para que el título no se monte sobre la ficha de la heroína.
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-    ctx.fillRect(0, 0, ANCHO, ALTO);
+    rellenarArea(ctx);
     dibujarMarco(ctx, ANCHO / 2 - 140, 112, 280, 92);
     escribir(ctx, v.titulo, ANCHO / 2, 128, PALETA.elegida, 'center', FUENTE_GRANDE);
     escribir(ctx, 'Pulsa o toca para continuar', ANCHO / 2, 172, PALETA.texto, 'center');

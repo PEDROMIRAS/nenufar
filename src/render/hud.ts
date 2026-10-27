@@ -1,7 +1,7 @@
 import type { Luchador } from '../core/combate';
 import { barra, COLOR_BARRA } from './combate';
 import { PALETA } from './marco';
-import { ANCHO } from './pantalla';
+import { SALA_ALTO, vista } from './pantalla';
 import { escribir } from './texto';
 
 /** Textos del HUD; la escena los rehace solo cuando cambia algún valor. */
@@ -22,21 +22,28 @@ export function dibujarHud(ctx: CanvasRenderingContext2D, h: Luchador, t: Textos
   escribir(ctx, t.pm, 98, 40);
 }
 
-/** Aviso centrado en la parte baja del mapa («La fuente te restaura…»). */
+/** Aviso centrado en la parte baja de la sala («La fuente te restaura…»). */
 export function dibujarAviso(ctx: CanvasRenderingContext2D, texto: string): void {
+  const y = (vista.alto + SALA_ALTO) / 2 - 46;
   ctx.fillStyle = 'rgba(9, 7, 18, 0.8)';
-  ctx.fillRect(ANCHO / 2 - 170, 306, 340, 26);
-  escribir(ctx, texto, ANCHO / 2, 312, PALETA.cursor, 'center');
+  ctx.fillRect(vista.ancho / 2 - 170, y, 340, 26);
+  escribir(ctx, texto, vista.ancho / 2, y + 6, PALETA.cursor, 'center');
 }
 
 /** Botón de menú en la esquina superior derecha del mapa (para el móvil; con teclado es Escape). */
 const MOCHILA = { oscuro: '#4a2c1a', cuerpo: '#8a5a34', solapa: '#b07a44', hebilla: '#e2b648' };
 
-/** Botón de la mochila (abre el inventario), arriba a la derecha. */
-export const BOTON_MENU = { x: ANCHO - 6 - 44, y: 6, ancho: 44, alto: 44 };
+/** Botón de la mochila (abre el inventario), arriba a la derecha de la ventana; `colocarHud` fija su x. */
+export const BOTON_MENU = { x: 0, y: 6, ancho: 44, alto: 44 };
+
+/** Pone la interfaz del mapa en los lados de la ventana, según su forma. */
+export function colocarHud(): void {
+  BOTON_MENU.x = vista.ancho - 6 - BOTON_MENU.ancho;
+}
 
 /** `aviso`: punto amarillo en la esquina (hay puntos de mejora sin gastar). */
 export function dibujarBotonMenu(ctx: CanvasRenderingContext2D, aviso = false): void {
+  colocarHud();
   const { x, y, ancho, alto } = BOTON_MENU;
   ctx.fillStyle = 'rgba(9, 7, 18, 0.7)';
   ctx.fillRect(x, y, ancho, alto);
