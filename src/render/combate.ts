@@ -194,7 +194,12 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   dibujarEfecto(ctx, v);
   dibujarFlotante(ctx, v);
 
+  ctx.save();
+  ctx.translate(ANCLA_PANEL.x, ANCLA_PANEL.y);
+  ctx.scale(PANEL_ESCALA, PANEL_ESCALA);
+  ctx.translate(-ANCLA_PANEL.x, -ANCLA_PANEL.y);
   dibujarPanel(ctx, v);
+  ctx.restore();
 
   if (v.titulo) {
     // Velo y un recuadro propio, para que el título no se monte sobre la ficha de la heroína.
@@ -400,6 +405,18 @@ function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   // De espaldas, mirando a los enemigos.
   dibujarFotograma(ctx, v.sprite, anim, 'up', t, x, y, escala);
   if (v.defendiendo) escribir(ctx, 'Defendiendo', x, y - 76, COLOR.pm, 'center');
+}
+
+/** El panel de abajo se dibuja a esta fracción de su tamaño, anclado abajo en el centro; sus medidas son de ese espacio. */
+const PANEL_ESCALA = 0.8;
+const ANCLA_PANEL = { x: ANCHO / 2, y: 346 };
+
+/** Punto de la pantalla → el mismo punto en el espacio del panel (para saber qué fila se toca). */
+export function aPanel(x: number, y: number): [number, number] {
+  return [
+    ANCLA_PANEL.x + (x - ANCLA_PANEL.x) / PANEL_ESCALA,
+    ANCLA_PANEL.y + (y - ANCLA_PANEL.y) / PANEL_ESCALA,
+  ];
 }
 
 /** Panel de abajo: dos columnas (lista y qué hace lo elegido) y, debajo a la derecha, la ficha de la heroína. */
