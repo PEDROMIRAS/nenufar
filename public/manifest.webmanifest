@@ -1,0 +1,10 @@
+{
+  "name": "Nenúfar",
+  "short_name": "Nenúfar",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [{ "src": "favicon.png", "sizes": "64x64", "type": "image/png" }]
+}

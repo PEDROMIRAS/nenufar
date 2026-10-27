@@ -1,3 +1,4 @@
+import { area, rellenarArea } from './pantalla';
 import { escribir, FUENTE, FUENTE_GRANDE } from './texto';
 
 /**
@@ -67,8 +68,12 @@ export function rombo(
 
 /** Fondo de las pantallas a pantalla completa (elegir rana, dificultad, puntos…): degradado lavanda oscuro. */
 export function dibujarFondo(ctx: CanvasRenderingContext2D): void {
-  ctx.fillStyle = gradiente(ctx, -1, 0, 0, 0, 352, '#1a1230', '#07050e');
-  ctx.fillRect(0, 0, 480, 352);
+  // Sin guardarlo: la ventana puede cambiar de tamaño.
+  const g = ctx.createLinearGradient(0, area.y, 0, area.y + area.alto);
+  g.addColorStop(0, '#1a1230');
+  g.addColorStop(1, '#07050e');
+  ctx.fillStyle = g;
+  rellenarArea(ctx);
 }
 
 /** Título centrado de una pantalla: texto grande en lavanda claro y, debajo, un filete con un rombo. */

@@ -72,7 +72,7 @@ import { crearTeclado } from './input/teclado';
 import { crearToque } from './input/toque';
 import { iniciarBucle } from './render/bucle';
 import { PALETA } from './render/marco';
-import { esTactil, prepararPantalla } from './render/pantalla';
+import { colocarContexto, esTactil, fijarModo, prepararPantalla } from './render/pantalla';
 import { crearCasilla, crearDeslizador, type Casilla, type Deslizador } from './render/deslizador';
 import { crearCampoNombre } from './render/campoNombre';
 import { LARGO_NOMBRE, RECT_CAMPO } from './render/nombre';
@@ -248,7 +248,7 @@ async function iniciar(): Promise<void> {
     crearToque(canvas),
   ];
   const acciones = crearAcciones();
-  const pila = new PilaEscenas();
+  const pila = new PilaEscenas(fijarModo);
   const opciones = await Promise.all(
     Object.values(HEROES).map(async (heroe) => ({
       heroe,
@@ -436,7 +436,11 @@ async function iniciar(): Promise<void> {
       leerFuentes(fuentes, acciones);
       pila.update(dt, acciones);
     },
-    (alpha) => pila.draw(ctx, alpha),
+    (alpha) => {
+      mundo.verLienzo(pila.conMundo);
+      colocarContexto(ctx);
+      pila.draw(ctx, alpha);
+    },
   );
 }
 

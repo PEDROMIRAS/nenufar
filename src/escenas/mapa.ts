@@ -39,6 +39,8 @@ import type {
 import type { SalaZona, Zona } from '../core/zona';
 import {
   BOTON_MENU,
+  colocarHud,
+  ESCALA_HUD,
   dibujarAviso,
   dibujarBotonMenu,
   dibujarQuedan,
@@ -52,7 +54,7 @@ import type { Actor, FondoSala, Mundo, VistaSala } from '../render/mundo/mundo';
 import type { Sprite } from '../render/recursos';
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
 import { ponerMusica, sonar } from '../render/sonido';
-import { ALTO, ANCHO, dentro } from '../render/pantalla';
+import { dentro, SALA_ANCHO, vista as ventana } from '../render/pantalla';
 import type { Escena } from './escena';
 
 /** Vector hacia el que mira la heroína según su dirección. */
@@ -156,6 +158,9 @@ export interface OpcionesMapa {
 
 /** Exploración de una zona: la sala actual, la heroína y el paso de una sala a otra o a la zona siguiente. */
 export class EscenaMapa implements Escena {
+  readonly conMundo = true;
+  readonly ventana = true;
+
   private readonly montadas = new Map<SalaZona, SalaMontada>();
   private readonly salidas: Salida[];
   private readonly visitadas = new Set<SalaZona>();
@@ -297,7 +302,12 @@ export class EscenaMapa implements Escena {
       return;
     }
     // Escape, la tecla I o la mochila abren el inventario.
-    if (acciones.menu || acciones.info || dentro(acciones.toqueX, acciones.toqueY, BOTON_MENU)) {
+    colocarHud();
+    if (
+      acciones.menu ||
+      acciones.info ||
+      dentro(acciones.toqueX / ESCALA_HUD, acciones.toqueY / ESCALA_HUD, BOTON_MENU)
+    ) {
       this.o.abrirPausa();
       return;
     }
@@ -397,7 +407,7 @@ export class EscenaMapa implements Escena {
       this.tiempo,
     );
     // El canvas 2D queda transparente encima del 3D, solo con la interfaz.
-    ctx.clearRect(0, 0, ANCHO, ALTO);
+    ctx.clearRect(0, 0, ventana.ancho, ventana.alto);
     if (this.lluvia > 0 && this.gotas) {
       // Entra y se va poco a poco: un segundo al principio y otro al final.
       const total = this.o.lluviaTrasJefe;
@@ -408,10 +418,12 @@ export class EscenaMapa implements Escena {
       const t = 1 - Math.abs((2 * this.fundido) / duracionFundido - 1);
       ctx.globalAlpha = t * t * (3 - 2 * t);
       ctx.fillStyle = '#000';
-      ctx.fillRect(0, 0, ANCHO, ALTO);
+      ctx.fillRect(0, 0, ventana.ancho, ventana.alto);
       ctx.globalAlpha = 1;
     }
     this.refrescarHud();
+    ctx.save();
+    ctx.scale(ESCALA_HUD, ESCALA_HUD);
     dibujarHud(ctx, this.o.luchadora, this.hud);
     if (this.cerradas) {
       let vivos = 0;
@@ -424,8 +436,16 @@ export class EscenaMapa implements Escena {
     }
     if (this.tiempoAviso > 0) dibujarAviso(ctx, this.aviso);
     // El minimapa va encima del fundido: es interfaz, no parte de la sala.
-    ctx.drawImage(this.minimapa, BOTON_MENU.x - MARGEN_HUD - this.minimapa.width, MARGEN_HUD);
+    // A la izquierda de la mochila, como siempre; crece en enteros con el ancho que sobra a los lados de la sala.
+    const { width: mw, height: mh } = this.minimapa;
+    const lateral = (ventana.ancho - SALA_ANCHO) / 2 / ESCALA_HUD - 2 * MARGEN_HUD;
+    const k = Math.max(
+      1,
+      Math.min(3, Math.floor(lateral / mw), Math.floor(ventana.alto / 2 / ESCALA_HUD / mh)),
+    );
+    ctx.drawImage(this.minimapa, BOTON_MENU.x - MARGEN_HUD - mw * k, MARGEN_HUD, mw * k, mh * k);
     dibujarBotonMenu(ctx, this.o.luchadora.puntos > 0);
+    ctx.restore();
   }
 
   private avisar(texto: string, segundos = DURACION_AVISO): void {

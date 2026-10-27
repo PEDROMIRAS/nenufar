@@ -10,6 +10,11 @@
     />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/favicon.png" />
+    <!-- Abierto desde el icono de la pantalla de inicio, sin la barra del navegador (en el iPhone, la única forma). -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <!-- Vista previa al compartir el enlace (WhatsApp, LinkedIn, portafolio...) -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Nenúfar" />
@@ -36,7 +41,9 @@
         -webkit-touch-callout: none;
         -webkit-tap-highlight-color: transparent;
       }
+      /* El mismo degradado que dibujarFondo: donde no hay mapa 3D, los lados de los menús no quedan negros. */
       body {
+        background: linear-gradient(#1a1230, #07050e);
         display: grid;
         place-items: center;
       }
@@ -49,7 +56,10 @@
       #juego {
         position: relative;
       }
+      /* Ocupa toda la ventana: fuera del canvas 2D se ve el decorado de alrededor de la sala. */
       #mundo {
+        position: fixed;
+        inset: 0;
         pointer-events: none;
         image-rendering: auto;
       }

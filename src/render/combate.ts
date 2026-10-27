@@ -1,6 +1,6 @@
 import type { Combate, Luchador } from '../core/combate';
 import { partirTexto } from '../core/texto';
-import { ALTO, ANCHO, aPixel, dentro } from './pantalla';
+import { ANCHO, aPixel, dentro, rellenarArea } from './pantalla';
 import { movimientoReducido } from './accesibilidad';
 import { dibujarFotograma, type Sprite } from './recursos';
 import type { FondoSala } from './mundo/mundo';
@@ -183,9 +183,8 @@ export function opcionTocada(x: number, y: number, n: number): number {
 export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   v.fondo(v.tiempo, 0, posicionProyectil(v));
   // El canvas 2D queda transparente encima de la sala en 3D.
-  ctx.clearRect(0, 0, ANCHO, ALTO);
   ctx.fillStyle = COLOR.velo;
-  ctx.fillRect(0, 0, ANCHO, ALTO);
+  rellenarArea(ctx);
 
   dibujarOrden(ctx, v);
   for (let i = 0; i < v.enemigos.length; i++)
@@ -195,12 +194,17 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   dibujarEfecto(ctx, v);
   dibujarFlotante(ctx, v);
 
+  ctx.save();
+  ctx.translate(ANCLA_PANEL.x, ANCLA_PANEL.y);
+  ctx.scale(PANEL_ESCALA, PANEL_ESCALA);
+  ctx.translate(-ANCLA_PANEL.x, -ANCLA_PANEL.y);
   dibujarPanel(ctx, v);
+  ctx.restore();
 
   if (v.titulo) {
     // Velo y un recuadro propio, para que el título no se monte sobre la ficha de la heroína.
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-    ctx.fillRect(0, 0, ANCHO, ALTO);
+    rellenarArea(ctx);
     dibujarMarco(ctx, ANCHO / 2 - 140, 112, 280, 92);
     escribir(ctx, v.titulo, ANCHO / 2, 128, PALETA.elegida, 'center', FUENTE_GRANDE);
     escribir(ctx, 'Pulsa o toca para continuar', ANCHO / 2, 172, PALETA.texto, 'center');
@@ -401,6 +405,18 @@ function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   // De espaldas, mirando a los enemigos.
   dibujarFotograma(ctx, v.sprite, anim, 'up', t, x, y, escala);
   if (v.defendiendo) escribir(ctx, 'Defendiendo', x, y - 76, COLOR.pm, 'center');
+}
+
+/** El panel de abajo se dibuja a esta fracción de su tamaño, anclado abajo en el centro; sus medidas son de ese espacio. */
+const PANEL_ESCALA = 0.8;
+const ANCLA_PANEL = { x: ANCHO / 2, y: 346 };
+
+/** Punto de la pantalla → el mismo punto en el espacio del panel (para saber qué fila se toca). */
+export function aPanel(x: number, y: number): [number, number] {
+  return [
+    ANCLA_PANEL.x + (x - ANCLA_PANEL.x) / PANEL_ESCALA,
+    ANCLA_PANEL.y + (y - ANCLA_PANEL.y) / PANEL_ESCALA,
+  ];
 }
 
 /** Panel de abajo: dos columnas (lista y qué hace lo elegido) y, debajo a la derecha, la ficha de la heroína. */

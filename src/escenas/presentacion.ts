@@ -1,6 +1,6 @@
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
 import { PALETA } from '../render/marco';
-import { ALTO, ANCHO } from '../render/pantalla';
+import { ANCHO, rellenarArea } from '../render/pantalla';
 import { sonar } from '../render/sonido';
 import { escribir, FUENTE_TITULO } from '../render/texto';
 import type { FondoSala } from '../render/mundo/mundo';
@@ -15,6 +15,8 @@ const APARICION = 0.4;
  * `duracion` segundos y se ve entera. «Kero, Señora de la Cripta» → «Kero» en grande y el resto debajo.
  */
 export class EscenaPresentacion implements Escena {
+  readonly conMundo = true;
+
   private t = 0;
   private hecho = false;
   private readonly nombre: string;
@@ -49,9 +51,8 @@ export class EscenaPresentacion implements Escena {
     const queda = Math.max(0, 1 - this.t / TEMBLOR);
     const dx = movimientoReducido() ? 0 : Math.round(Math.sin(this.t * 60) * 4 * queda);
     this.fondo(this.t, dx, null);
-    ctx.clearRect(0, 0, ANCHO, ALTO);
     ctx.fillStyle = 'rgba(8, 4, 12, 0.6)';
-    ctx.fillRect(0, 0, ANCHO, ALTO);
+    rellenarArea(ctx);
     ctx.globalAlpha = Math.min(1, this.t / APARICION);
     escribir(ctx, this.nombre, ANCHO / 2, 140, '#d8584a', 'center', FUENTE_TITULO);
     if (this.subtitulo) escribir(ctx, this.subtitulo, ANCHO / 2, 184, PALETA.texto, 'center');

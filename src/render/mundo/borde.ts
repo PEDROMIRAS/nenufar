@@ -35,6 +35,58 @@ export function crearBorde(
   const casillas = sala.base.flatMap((t, i) =>
     esMuro(t) ? [{ x: i % sala.ancho, z: Math.floor(i / sala.ancho), t }] : [],
   );
+  return bordeEn(casillas, borde, imagenes, catalogo, tam, bosque, azar);
+}
+
+/** Casillas de alrededor de la sala, hasta `margen` (x a los lados, z arriba y abajo). */
+export interface Margen {
+  x: number;
+  arriba: number;
+  abajo: number;
+}
+
+/**
+ * Decorado de fuera de la sala, para llenar la pantalla a los lados: el mismo borde en todas las casillas de
+ * alrededor, salvo delante de las salidas (por donde sigue el camino).
+ */
+export function crearExterior(
+  sala: Sala,
+  margen: Margen,
+  borde: BordeHd2d,
+  imagenes: readonly HTMLImageElement[],
+  catalogo: ReadonlyMap<string, Tile>,
+  tam: number,
+  bosque: MaterialesBosque | null,
+  azar: () => number,
+): { grupo: THREE.Group; sombras: SombraSuelo[] } {
+  const { ancho, alto } = sala;
+  const muro = sala.base.find(esMuro);
+  // Una casilla de fuera sigue una salida si la casilla de la sala más cercana no es muro y está cerca.
+  const camino = (x: number, z: number): boolean => {
+    const cx = Math.min(ancho - 1, Math.max(0, x));
+    const cz = Math.min(alto - 1, Math.max(0, z));
+    const t = sala.base[cz * ancho + cx];
+    return !!t && !esMuro(t) && Math.max(Math.abs(x - cx), Math.abs(z - cz)) <= 3;
+  };
+  const casillas: { x: number; z: number; t: Tile }[] = [];
+  if (muro)
+    for (let z = -margen.arriba; z < alto + margen.abajo; z++)
+      for (let x = -margen.x; x < ancho + margen.x; x++) {
+        const dentro = x >= 0 && x < ancho && z >= 0 && z < alto;
+        if (!dentro && !camino(x, z)) casillas.push({ x, z, t: muro });
+      }
+  return bordeEn(casillas, borde, imagenes, catalogo, tam, bosque, azar);
+}
+
+function bordeEn(
+  casillas: { x: number; z: number; t: Tile }[],
+  borde: BordeHd2d,
+  imagenes: readonly HTMLImageElement[],
+  catalogo: ReadonlyMap<string, Tile>,
+  tam: number,
+  bosque: MaterialesBosque | null,
+  azar: () => number,
+): { grupo: THREE.Group; sombras: SombraSuelo[] } {
   return borde.tipo === 'arboles'
     ? arboles(casillas, borde, bosque, azar)
     : sillares(casillas, borde, imagenes, catalogo, tam, azar);

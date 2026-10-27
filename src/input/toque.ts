@@ -1,4 +1,4 @@
-import { ALTO, ANCHO } from '../render/pantalla';
+import { aLogico } from '../render/pantalla';
 import type { FuenteEntrada } from './fuente';
 
 /** Píxeles lógicos que puede moverse el dedo entre apoyarse y levantarse para que cuente como toque. */
@@ -15,10 +15,7 @@ export function crearToque(canvas: HTMLCanvasElement): FuenteEntrada {
   let dedo: number | null = null;
   let desdeX = 0;
   let desdeY = 0;
-  const logico = (e: PointerEvent): [number, number] => {
-    const r = canvas.getBoundingClientRect();
-    return [((e.clientX - r.left) * ANCHO) / r.width, ((e.clientY - r.top) * ALTO) / r.height];
-  };
+  const logico = (e: PointerEvent): [number, number] => aLogico(e.clientX, e.clientY);
   canvas.addEventListener('pointerdown', (e) => {
     dedo = e.pointerId;
     [desdeX, desdeY] = logico(e);

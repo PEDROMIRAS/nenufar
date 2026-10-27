@@ -11,10 +11,16 @@ import type { ObjetoSala, Sala, Salida, Tile } from '../../core/sala';
 import type { Direccion, Hd2dJson, LuzHd2d, ZonaHd2d } from '../../core/types';
 import { N, S } from '../../core/zona';
 import { cargarAjustes, guardarAjustes } from '../almacen';
-import { ALTO, ANCHO } from '../pantalla';
+import { aVentana, rectSala, SALA_ALTO, SALA_ANCHO } from '../pantalla';
 import type { Sprite } from '../recursos';
 import { dibujarTile } from '../sala';
-import { crearBorde, materialesBosque, type MaterialesBosque } from './borde';
+import {
+  crearBorde,
+  crearExterior,
+  materialesBosque,
+  type MaterialesBosque,
+  type SombraSuelo,
+} from './borde';
 import { crearFuente } from './fuente';
 import { crearHundidos } from './hundidos';
 import { crearBarrera, crearModelo } from './modelos';
@@ -125,6 +131,8 @@ export class Mundo {
   private alta: boolean | null = null;
   /** Luz del proyectil de la maga sobre la sala de fondo del combate; apagada el resto del tiempo. */
   private readonly luzCombate = new THREE.PointLight(0xffffff, 0, 1, 1.5);
+  /** Dónde cae el canvas 2D (la sala) dentro de la ventana, en píxeles CSS. */
+  private sala2d = { x: 0, y: 0, ancho: SALA_ANCHO, alto: SALA_ALTO };
 
   constructor(
     private readonly lienzo: HTMLCanvasElement,
@@ -140,7 +148,7 @@ export class Mundo {
     lienzo.before(el);
 
     const { inclinacion, fov } = a.camara;
-    this.camara = new THREE.PerspectiveCamera(fov, ANCHO / ALTO, 0.1, 200);
+    this.camara = new THREE.PerspectiveCamera(fov, SALA_ANCHO / SALA_ALTO, 0.1, 200);
     const angulo = THREE.MathUtils.degToRad(inclinacion);
     // Los sprites se echan atrás solo en parte (de cara, los pegados a un muro se metían dentro de él) y
     // se estiran para que, vistos desde la cámara, conserven su alto.
@@ -181,7 +189,7 @@ export class Mundo {
     this.composer.addPass(this.tiltV);
     this.composer.addPass(
       new UnrealBloomPass(
-        new THREE.Vector2(ANCHO, ALTO),
+        new THREE.Vector2(SALA_ANCHO, SALA_ALTO),
         a.bloom.fuerza,
         a.bloom.radio,
         a.bloom.umbral,
@@ -198,20 +206,25 @@ export class Mundo {
     this.ajustarTamano();
   }
 
-  /** Mismo sitio y tamaño que el canvas 2D; se dibuja a la resolución de la pantalla, con un tope. */
+  /**
+   * Toda la ventana, a la resolución de la pantalla con un tope. La sala sigue cayendo justo bajo el canvas 2D
+   * (centrado): la cámara se calcula para él y el encuadre se ensancha hasta los bordes con `setViewOffset`.
+   */
   private ajustarTamano(): void {
-    const ancho = parseFloat(this.lienzo.style.width) || ANCHO;
-    const alto = parseFloat(this.lienzo.style.height) || ALTO;
+    const { x, y, ancho, alto } = rectSala();
     const densidad = Math.min(window.devicePixelRatio || 1, this.a.resolucionMaxima);
-    const w = Math.round(ancho * densidad);
-    const h = Math.round(alto * densidad);
+    const w = Math.round(innerWidth * densidad);
+    const h = Math.round(innerHeight * densidad);
     this.renderer.setSize(w, h, false);
-    this.renderer.domElement.style.width = `${ancho}px`;
-    this.renderer.domElement.style.height = `${alto}px`;
+    this.renderer.domElement.style.width = `${innerWidth}px`;
+    this.renderer.domElement.style.height = `${innerHeight}px`;
     this.composer.setSize(w, h);
+    this.camara.setViewOffset(ancho, alto, -x, -y, innerWidth, innerHeight);
+    this.sala2d = { x, y, ancho, alto };
     this.desenfoqueH = this.a.desenfoque / w;
     this.desenfoqueV = this.a.desenfoque / h;
-    uniformesTransparencia.uRadioPx.value = (this.a.transparencia.radio * w) / 15;
+    uniformesTransparencia.uRadioPx.value =
+      (this.a.transparencia.radio * ancho * densidad) / (SALA_ANCHO / 32);
   }
 
   /** Luces y materiales de una zona. Se llama al entrar en su mapa. */
@@ -243,6 +256,11 @@ export class Mundo {
       huecos,
       vistas: [],
     };
+  }
+
+  /** Muestra u oculta el lienzo 3D (los menús no lo usan). */
+  verLienzo(visible: boolean): void {
+    this.renderer.domElement.style.visibility = visible ? 'visible' : 'hidden';
   }
 
   /** Suelta todo lo de la zona anterior (geometrías, materiales y texturas). */
@@ -292,8 +310,42 @@ export class Mundo {
     const borde = crearBorde(sala, aspecto.borde, imagenes, catalogo, tam, z.bosque, azar);
     grupo.add(borde.grupo);
 
+    // Fuera de la sala, para llenar la pantalla: el mismo borde y suelo de la zona, con un hueco donde va la sala.
+    const m = this.a.exterior;
+    const exterior = crearExterior(sala, m, aspecto.borde, imagenes, catalogo, tam, z.bosque, azar);
+    grupo.add(exterior.grupo);
+    const suelos = [...catalogo.values()].filter((t) => t.layer === 'suelo' && t.weight);
+    const peso = suelos.reduce((s, t) => s + (t.weight ?? 0), 0);
+    const anchoFuera = sala.ancho + 2 * m.x;
+    const altoFuera = sala.alto + m.arriba + m.abajo;
+    const lienzoFuera = pintar(anchoFuera, altoFuera, tam, (ctx) => {
+      for (let i = 0; i < anchoFuera * altoFuera; i++) {
+        let r = azar() * peso;
+        const t = suelos.find((s) => (r -= s.weight ?? 0) < 0) ?? suelos[0];
+        if (t)
+          dibujarTile(
+            ctx,
+            imagenes,
+            t,
+            tam,
+            (i % anchoFuera) * tam,
+            Math.floor(i / anchoFuera) * tam,
+          );
+      }
+      pintarSombras(ctx, exterior.sombras, tam, m.x, m.arriba);
+      ctx.clearRect(m.x * tam, m.arriba * tam, sala.ancho * tam, sala.alto * tam);
+    });
+    const planoFuera = new THREE.Mesh(
+      new THREE.PlaneGeometry(anchoFuera, altoFuera),
+      new THREE.MeshLambertMaterial({ map: textura(lienzoFuera), alphaTest: 0.5 }),
+    );
+    planoFuera.rotation.x = -Math.PI / 2;
+    planoFuera.position.set(sala.ancho / 2, 0, altoFuera / 2 - m.arriba);
+    planoFuera.receiveShadow = true;
+    grupo.add(planoFuera);
+
     // Suelo: un plano con los tiles de fondo; bajo el borde, el suelo de la zona con las sombras de los árboles.
-    const suelo = [...catalogo.values()].find((t) => t.layer === 'suelo' && t.weight);
+    const suelo = suelos[0];
     const lienzo = pintar(sala.ancho, sala.alto, tam, (ctx) => {
       sala.base.forEach((t, i) => {
         const fondo = t.layer === 'muro' ? (suelo ?? t) : t;
@@ -306,14 +358,7 @@ export class Mundo {
           Math.floor(i / sala.ancho) * tam,
         );
       });
-      for (const s of borde.sombras) {
-        const r = s.radio * tam;
-        const g = ctx.createRadialGradient(s.x * tam, s.z * tam, 0, s.x * tam, s.z * tam, r);
-        g.addColorStop(0, `rgba(10, 18, 12, ${s.fuerza})`);
-        g.addColorStop(1, 'rgba(10, 18, 12, 0)');
-        ctx.fillStyle = g;
-        ctx.fillRect(s.x * tam - r, s.z * tam - r, r * 2, r * 2);
-      }
+      pintarSombras(ctx, borde.sombras, tam, 0, 0);
     });
     const centro = new THREE.Vector3(sala.ancho / 2, 0, sala.alto / 2);
     const autotile = `${aspecto.hundido.autotile}_`;
@@ -357,7 +402,7 @@ export class Mundo {
     }
     // Lo que tapa a la heroína se vuelve transparente: el borde, los modelos y los sprites de los objetos.
     grupo.traverse((o) => {
-      if (o === plano || (hundidos && o.parent === hundidos.grupo)) return;
+      if (o === plano || o === planoFuera || (hundidos && o.parent === hundidos.grupo)) return;
       if (o instanceof THREE.Mesh)
         [o.material as THREE.Material | THREE.Material[]].flat().forEach(transparentar);
     });
@@ -388,7 +433,9 @@ export class Mundo {
       // La fuente ocupa tres casillas; el modelo va con la del centro y choca con su elipse (ver chocarConElipse).
       if (nombre !== 'fuente_cen_inf') return;
       const f = this.a.fuente;
-      const fuente = crearFuente(f, v.azar, this.renderer.domElement.width / ANCHO);
+      // Píxeles del dibujo por píxel lógico de la sala.
+      const escala = (this.sala2d.ancho * this.renderer.domElement.width) / innerWidth / SALA_ANCHO;
+      const fuente = crearFuente(f, v.azar, escala);
       fuente.grupo.position.set(o.x + 0.5, 0, o.y + f.centroZ);
       v.fuente = fuente;
       obj = fuente.grupo;
@@ -535,13 +582,14 @@ export class Mundo {
     if (this.heroe) this.heroe.malla.visible = false;
     for (const a of v.actores) a.malla.visible = false;
     this.animar(v, tiempo);
-    this.camara.position.x = this.camaraX + (temblor / ANCHO) * v.encuadre.ancho;
+    this.camara.position.x = this.camaraX + (temblor / SALA_ANCHO) * v.encuadre.ancho;
     const datos = luz ? this.a.luces[luz.nombre] : undefined;
     if (luz && datos) {
-      // El punto de la pantalla, llevado al mundo a la altura de la luz.
-      this.pantalla
-        .set((luz.x / ANCHO) * 2 - 1, 1 - (luz.y / ALTO) * 2, 0.5)
-        .unproject(this.camara);
+      // El punto del canvas 2D, llevado a la ventana y de ahí al mundo a la altura de la luz.
+      const [cx, cy] = aVentana(luz.x, luz.y);
+      const px = cx / innerWidth;
+      const py = cy / innerHeight;
+      this.pantalla.set(px * 2 - 1, 1 - py * 2, 0.5).unproject(this.camara);
       this.rayo.copy(this.pantalla).sub(this.camara.position).normalize();
       const t = (datos.alto - this.camara.position.y) / this.rayo.y;
       this.luzCombate.position.copy(this.camara.position).addScaledVector(this.rayo, t);
@@ -642,7 +690,7 @@ export class Mundo {
     const { inclinacion, fov, margen } = this.a.camara;
     const angulo = THREE.MathUtils.degToRad(inclinacion);
     // La distancia, para que quepan las casillas de ancho del encuadre.
-    const verAncho = Math.tan(THREE.MathUtils.degToRad(fov / 2)) * (ANCHO / ALTO);
+    const verAncho = Math.tan(THREE.MathUtils.degToRad(fov / 2)) * (SALA_ANCHO / SALA_ALTO);
     const distancia = encuadre.ancho / 2 / verAncho + margen;
     this.camara.position.set(
       centro.x,
@@ -700,6 +748,26 @@ function carton(
   const plano = new THREE.Mesh(geometria, material);
   plano.castShadow = true;
   return plano;
+}
+
+/** Sombras redondas en el suelo, corridas `dx`, `dz` casillas (el lienzo de fuera empieza antes que la sala). */
+function pintarSombras(
+  ctx: CanvasRenderingContext2D,
+  sombras: readonly SombraSuelo[],
+  tam: number,
+  dx: number,
+  dz: number,
+): void {
+  for (const s of sombras) {
+    const x = (s.x + dx) * tam;
+    const z = (s.z + dz) * tam;
+    const r = s.radio * tam;
+    const g = ctx.createRadialGradient(x, z, 0, x, z, r);
+    g.addColorStop(0, `rgba(10, 18, 12, ${s.fuerza})`);
+    g.addColorStop(1, 'rgba(10, 18, 12, 0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x - r, z - r, r * 2, r * 2);
+  }
 }
 
 /** Vuelve a pintar una pieza si su fotograma ha cambiado (todos sus tiles animados van a la vez). */

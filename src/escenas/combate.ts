@@ -14,6 +14,7 @@ import {
   anticipoAtaque,
   dibujarCombate,
   duracionEfecto,
+  aPanel,
   FILA_COMBATE,
   LISTA_COMBATE,
   type MenuVista,
@@ -70,6 +71,8 @@ const textoVida = (pv: number, max: number): string => `${pv}/${max}`;
 
 /** Pantalla de combate: anima los eventos de `core/combate` uno a uno y recoge la acción de la heroína. */
 export class EscenaCombate implements Escena {
+  readonly conMundo = true;
+
   private readonly cola: Evento[] = [];
   /** Segundos que faltan para pasar al siguiente evento. */
   private espera = 0;
@@ -512,7 +515,8 @@ export class EscenaCombate implements Escena {
     // dice qué hace) y el segundo la usa: así no se gastan PM ni objetos sin querer. El menú principal
     // y «Volver» (la última fila) van al primer toque.
     if (a.toqueX >= 0) {
-      const i = filaTocada(a.toqueX, a.toqueY, LISTA_COMBATE, FILA_COMBATE, n);
+      const [px, py] = aPanel(a.toqueX, a.toqueY);
+      const i = filaTocada(px, py, LISTA_COMBATE, FILA_COMBATE, n);
       if (i < 0) return;
       const dobleToque = this.modo !== 'principal' && i !== n - 1;
       const soloElegir = efectoToque(menu.seleccion, i, dobleToque) === 'elegir';

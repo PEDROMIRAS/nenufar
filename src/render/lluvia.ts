@@ -1,6 +1,6 @@
 import { crearAzar } from '../core/azar';
 import { movimientoReducido } from './accesibilidad';
-import { ALTO, ANCHO } from './pantalla';
+import { vista } from './pantalla';
 
 // Arte de la lluvia: gotas finas y algo inclinadas sobre un velo azulado.
 const GOTAS = 130;
@@ -21,8 +21,8 @@ export function crearLluvia(): Lluvia {
   const azar = crearAzar(7);
   const l = { x: new Float32Array(GOTAS), y: new Float32Array(GOTAS), v: new Float32Array(GOTAS) };
   for (let i = 0; i < GOTAS; i++) {
-    l.x[i] = azar() * (ANCHO + ALTO * INCLINACION);
-    l.y[i] = azar() * ALTO;
+    l.x[i] = azar() * (vista.ancho + vista.alto * INCLINACION);
+    l.y[i] = azar() * vista.alto;
     l.v[i] = VELOCIDAD.min + azar() * (VELOCIDAD.max - VELOCIDAD.min);
   }
   return l;
@@ -33,11 +33,11 @@ export function moverLluvia(l: Lluvia, dt: number): void {
     const caida = l.v[i]! * dt;
     l.y[i]! += caida;
     l.x[i]! -= caida * INCLINACION;
-    if (l.y[i]! > ALTO) {
-      l.y[i]! -= ALTO + LARGO;
-      l.x[i]! += ALTO * INCLINACION;
+    if (l.y[i]! > vista.alto) {
+      l.y[i]! -= vista.alto + LARGO;
+      l.x[i]! += vista.alto * INCLINACION;
     }
-    if (l.x[i]! < 0) l.x[i]! += ANCHO + ALTO * INCLINACION;
+    if (l.x[i]! < 0) l.x[i]! += vista.ancho + vista.alto * INCLINACION;
   }
 }
 
@@ -45,7 +45,7 @@ export function moverLluvia(l: Lluvia, dt: number): void {
 export function dibujarLluvia(ctx: CanvasRenderingContext2D, l: Lluvia, fuerza: number): void {
   ctx.globalAlpha = fuerza;
   ctx.fillStyle = VELO;
-  ctx.fillRect(0, 0, ANCHO, ALTO);
+  ctx.fillRect(0, 0, vista.ancho, vista.alto);
   if (!movimientoReducido()) {
     // Cada gota, dos trazos de píxel desplazados (una línea del canvas saldría borrosa).
     ctx.fillStyle = COLOR_GOTA;
