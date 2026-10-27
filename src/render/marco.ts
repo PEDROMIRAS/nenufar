@@ -1,4 +1,4 @@
-import { escribir, FUENTE } from './texto';
+import { escribir, FUENTE, FUENTE_GRANDE } from './texto';
 
 /**
  * Estilo de los menús de combate e inventario (2026-10-26): el de Octopath (doble filete, rombos en
@@ -11,6 +11,7 @@ export const PALETA = {
   interior: '#4a3a75',
   claro: '#c9b6ff',
   brillo: 'rgba(180,140,255,0.42)',
+  seleccion: 'rgba(180,140,255,0.22)',
   cursor: '#e4d8ff',
   elegida: '#f4eeff',
   pm: '#9ec0ff',
@@ -46,7 +47,7 @@ function gradiente(
 }
 
 /** Rombo de lado `lado` centrado en (cx, cy). */
-function rombo(
+export function rombo(
   ctx: CanvasRenderingContext2D,
   cx: number,
   cy: number,
@@ -62,6 +63,49 @@ function rombo(
   ctx.lineTo(cx - r, cy);
   ctx.closePath();
   ctx.fill();
+}
+
+/** Fondo de las pantallas a pantalla completa (elegir rana, dificultad, puntos…): degradado lavanda oscuro. */
+export function dibujarFondo(ctx: CanvasRenderingContext2D): void {
+  ctx.fillStyle = gradiente(ctx, -1, 0, 0, 0, 352, '#1a1230', '#07050e');
+  ctx.fillRect(0, 0, 480, 352);
+}
+
+/** Título centrado de una pantalla: texto grande en lavanda claro y, debajo, un filete con un rombo. */
+export function dibujarCabecera(
+  ctx: CanvasRenderingContext2D,
+  y: number,
+  texto: string,
+  alto = 22,
+): void {
+  escribir(ctx, texto, 240, y, PALETA.claro, 'center', FUENTE_GRANDE);
+  ctx.fillStyle = PALETA.filete;
+  ctx.fillRect(160, y + alto, 160, 1);
+  rombo(ctx, 240, y + alto, ROMBO, PALETA.cursor);
+}
+
+/**
+ * Caja sencilla (botones, casillas, filas pequeñas): fondo oscuro y un filete. Elegida = brillo y
+ * filete claro; una apagada elegida solo lleva el filete claro (su gris no se aclara).
+ */
+export function dibujarCaja(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  ancho: number,
+  alto: number,
+  estado: 'normal' | 'elegida' | 'apagada' | 'elegidaApagada',
+): void {
+  const elegida = estado === 'elegida' || estado === 'elegidaApagada';
+  ctx.fillStyle = PALETA.fondoAbajo;
+  ctx.fillRect(x, y, ancho, alto);
+  if (estado === 'elegida') {
+    ctx.fillStyle = PALETA.seleccion;
+    ctx.fillRect(x, y, ancho, alto);
+  }
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = elegida ? PALETA.cursor : PALETA.interior;
+  ctx.strokeRect(x + 0.5, y + 0.5, ancho - 1, alto - 1);
 }
 
 /** Panel con degradado, doble filete y un rombo en cada esquina. */

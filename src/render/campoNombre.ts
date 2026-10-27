@@ -1,3 +1,4 @@
+import { PALETA } from './marco';
 import { colocarSobre } from './pantalla';
 
 /** Rectángulo en píxeles lógicos del juego. */
@@ -37,8 +38,8 @@ export function crearCampoNombre(
   campo.spellcheck = false;
   campo.setAttribute('aria-label', 'Nombre de tu rana');
   campo.style.cssText =
-    'position:fixed;display:none;box-sizing:border-box;margin:0;padding:0 8px;border:2px solid #8fa88a;' +
-    'background:#1f2a24;color:#e8efe4;font-family:monospace;font-weight:bold;text-align:center;outline:none';
+    'position:fixed;display:none;box-sizing:border-box;margin:0;padding:0 8px;border:2px solid ' +
+    `${PALETA.filete};background:#0b0814;color:${PALETA.texto};font-family:monospace;font-weight:bold;text-align:center;outline:none`;
   document.body.append(campo);
 
   const colocar = (): void => {
@@ -57,8 +58,8 @@ export function crearCampoNombre(
     }
   });
   // Sin el contorno del navegador, el borde dice dónde está el foco.
-  campo.addEventListener('focus', () => (campo.style.borderColor = '#ffd27a'));
-  campo.addEventListener('blur', () => (campo.style.borderColor = '#8fa88a'));
+  campo.addEventListener('focus', () => (campo.style.borderColor = PALETA.cursor));
+  campo.addEventListener('blur', () => (campo.style.borderColor = PALETA.filete));
 
   return {
     mostrar(sugerencia, alEnviar, alCancelar) {

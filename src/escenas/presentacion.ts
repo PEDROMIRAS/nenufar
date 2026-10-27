@@ -1,4 +1,5 @@
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
+import { PALETA } from '../render/marco';
 import { ALTO, ANCHO } from '../render/pantalla';
 import { sonar } from '../render/sonido';
 import { escribir, FUENTE_TITULO } from '../render/texto';
@@ -53,7 +54,7 @@ export class EscenaPresentacion implements Escena {
     ctx.fillRect(0, 0, ANCHO, ALTO);
     ctx.globalAlpha = Math.min(1, this.t / APARICION);
     escribir(ctx, this.nombre, ANCHO / 2, 140, '#d8584a', 'center', FUENTE_TITULO);
-    if (this.subtitulo) escribir(ctx, this.subtitulo, ANCHO / 2, 184, '#e8efe4', 'center');
+    if (this.subtitulo) escribir(ctx, this.subtitulo, ANCHO / 2, 184, PALETA.texto, 'center');
     ctx.globalAlpha = 1;
   }
 }

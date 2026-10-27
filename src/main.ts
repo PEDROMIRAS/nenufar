@@ -71,6 +71,7 @@ import { crearJoystick } from './input/joystick';
 import { crearTeclado } from './input/teclado';
 import { crearToque } from './input/toque';
 import { iniciarBucle } from './render/bucle';
+import { PALETA } from './render/marco';
 import { esTactil, prepararPantalla } from './render/pantalla';
 import { crearCasilla, crearDeslizador, type Casilla, type Deslizador } from './render/deslizador';
 import { crearCampoNombre } from './render/campoNombre';
@@ -796,7 +797,7 @@ function terminarPartida(partida: Partida, victoria: boolean): void {
   contar(partida.pila, paginas(textos), () =>
     partida.pila.cambiar(
       victoria
-        ? new EscenaMensaje('¡Victoria!', '#ffd27a', lineas, VOLVER_AL_TITULO, empezarOtra)
+        ? new EscenaMensaje('¡Victoria!', PALETA.elegida, lineas, VOLVER_AL_TITULO, empezarOtra)
         : new EscenaMensaje('Fin de la partida', '#d8584a', lineas, VOLVER_AL_TITULO, empezarOtra),
     ),
   );
@@ -848,7 +849,7 @@ function luchar(
           pila.apilar(
             new EscenaMensaje(
               `¡Nivel ${luchadora.nivel}!`,
-              '#ffd27a',
+              PALETA.elegida,
               cambiosDeNivel(antes, luchadora),
               SEGUIR,
               () => {

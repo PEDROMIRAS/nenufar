@@ -5,7 +5,14 @@ import { movimientoReducido } from './accesibilidad';
 import { dibujarFotograma, type Sprite } from './recursos';
 import type { FondoSala } from './mundo/mundo';
 import { escribir, FUENTE_BOTON, FUENTE_GRANDE } from './texto';
-import { dibujarFila, dibujarMarco, dibujarPestana, dibujarTitulo, PALETA } from './marco';
+import {
+  dibujarCaja,
+  dibujarFila,
+  dibujarMarco,
+  dibujarPestana,
+  dibujarTitulo,
+  PALETA,
+} from './marco';
 import type { Rect } from '../core/menu';
 
 export interface OpcionMenu {
@@ -85,17 +92,9 @@ const COLOR = {
   panel: 'rgba(0, 0, 0, 0.45)',
   pv: '#d8584a',
   pm: '#5a8bd8',
-  /** Texto pequeño bajo una opción: el azul de PM, más claro para que se lea sobre el botón. */
-  detalle: '#8fb4f0',
   cura: '#7fd88a',
   barraFondo: '#3a2a2a',
-  boton: '#2b3a33',
-  botonActivo: '#4f6b5a',
-  borde: '#8fa88a',
-  /** Fondo del recuadro del final del combate. */
-  cartel: '#141c18',
-  apagado: '#a8a8a8', // 5:1 sobre el botón: se lee aunque esté apagado
-  aviso: '#ffd27a',
+  aviso: PALETA.elegida,
   estado: '#c89bff',
 };
 const ENEMIGO = { y: 128, escala: 2, separacion: 140, alto: 56, topeMinimo: 44 };
@@ -202,13 +201,9 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
     // Velo y un recuadro propio, para que el título no se monte sobre la ficha de la heroína.
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
     ctx.fillRect(0, 0, ANCHO, ALTO);
-    ctx.fillStyle = COLOR.cartel;
-    ctx.fillRect(ANCHO / 2 - 140, 112, 280, 92);
-    ctx.fillStyle = COLOR.borde;
-    ctx.fillRect(ANCHO / 2 - 140, 112, 280, 2);
-    ctx.fillRect(ANCHO / 2 - 140, 202, 280, 2);
-    escribir(ctx, v.titulo, ANCHO / 2, 128, COLOR.aviso, 'center', FUENTE_GRANDE);
-    escribir(ctx, 'Pulsa o toca para continuar', ANCHO / 2, 172, '#e8efe4', 'center');
+    dibujarMarco(ctx, ANCHO / 2 - 140, 112, 280, 92);
+    escribir(ctx, v.titulo, ANCHO / 2, 128, PALETA.elegida, 'center', FUENTE_GRANDE);
+    escribir(ctx, 'Pulsa o toca para continuar', ANCHO / 2, 172, PALETA.texto, 'center');
   }
 }
 
@@ -240,16 +235,18 @@ export function dibujarMenu(ctx: CanvasRenderingContext2D, menu: MenuVista | nul
     const r = rectOpcion(i, n);
     const opcion = menu?.opciones[i];
     const elegida = menu !== null && i === menu.seleccion;
-    // Una opción apagada no se aclara al elegirla (su gris no se leería): la marcan solo los bordes.
-    ctx.fillStyle = elegida && opcion?.disponible ? COLOR.botonActivo : COLOR.boton;
-    ctx.fillRect(r.x, r.y, r.ancho, r.alto);
-    if (elegida) {
-      ctx.fillStyle = COLOR.borde;
-      ctx.fillRect(r.x, r.y, r.ancho, 2);
-      ctx.fillRect(r.x, r.y + r.alto - 2, r.ancho, 2);
-    }
+    // Una opción apagada no se aclara al elegirla (su gris no se leería): la marca solo el filete.
+    const disponible = opcion?.disponible ?? true;
+    dibujarCaja(
+      ctx,
+      r.x,
+      r.y,
+      r.ancho,
+      r.alto,
+      elegida ? (disponible ? 'elegida' : 'elegidaApagada') : disponible ? 'normal' : 'apagada',
+    );
     if (!opcion) continue;
-    const color = opcion.disponible ? '#e8efe4' : COLOR.apagado;
+    const color = !opcion.disponible ? PALETA.apagada : elegida ? PALETA.elegida : PALETA.texto;
     const conDetalle = opcion.detalle !== '';
     const lineas = lineasBoton(opcion.texto, r.ancho);
     // El bloque de líneas (nombre y detalle) centrado en el botón.
@@ -270,7 +267,7 @@ export function dibujarMenu(ctx: CanvasRenderingContext2D, menu: MenuVista | nul
         opcion.detalle,
         r.x + r.ancho / 2,
         y + lineas.length * LINEA_BOTON,
-        COLOR.detalle,
+        opcion.disponible ? PALETA.pm : PALETA.apagada,
         'center',
         FUENTE_BOTON,
       );
@@ -290,7 +287,7 @@ const nombreCorto = (l: Luchador): string => {
 
 /** Barra con quién actúa en lo que queda de ronda; el primero es el que tiene el turno. */
 function dibujarOrden(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
-  escribir(ctx, 'Turno', 12, 10, '#aab8a6');
+  escribir(ctx, 'Turno', 12, 10, PALETA.claro);
   let x = 64;
   for (let i = v.turno; i < v.orden.length; i++) {
     const l = v.orden[i]!;
@@ -371,7 +368,7 @@ function dibujarEnemigo(
   const sinSitio = tope - 36 < FIN_BARRA_TURNOS;
   const avisoEnNombre = sinSitio && v.cargando.has(e);
   if (avisoEnNombre) escribir(ctx, '¡Golpe fuerte!', x, tope - 18, COLOR.aviso, 'center');
-  else escribir(ctx, nombreCorto(e), x, tope - 18, '#e8efe4', 'center');
+  else escribir(ctx, nombreCorto(e), x, tope - 18, PALETA.texto, 'center');
   if (v.apuntado === e) {
     const sube = Math.round(Math.sin(v.tiempo * 8) * 2);
     if (sinSitio) {
@@ -380,7 +377,7 @@ function dibujarEnemigo(
     } else escribir(ctx, '▼', x, tope - 34 + sube, COLOR.aviso, 'center');
   }
   barra(ctx, x - 40, y + 8, 80, pv / e.pvMax, COLOR.pv);
-  escribir(ctx, v.textoPv.get(e) ?? '', x, y + 18, '#e8efe4', 'center');
+  escribir(ctx, v.textoPv.get(e) ?? '', x, y + 18, PALETA.texto, 'center');
   escribir(ctx, v.estados.get(e) ?? '', x, y + 32, COLOR.estado, 'center');
   if (v.cargando.has(e) && !avisoEnNombre) {
     // Corto: con dos o tres enemigos a la vez, los avisos no deben pisarse (los separa 140 px).
@@ -432,16 +429,20 @@ function ayudaPartida(ayuda: readonly string[]): readonly string[] {
   return lineas;
 }
 
-/** Avisos del registro partidos al ancho de la columna derecha (cambian poco: se guardan). */
-const AVISOS = new Map<string, readonly string[]>();
+/** Letras por línea del registro en la columna izquierda, sin llegar a la ficha. */
+const LETRAS_IZQUIERDA = Math.floor((DERECHA.x - 8 - (PANEL.x + 14)) / 7.2);
 
-function avisoPartido(texto: string): readonly string[] {
-  let lineas = AVISOS.get(texto);
+/** Avisos del registro partidos al ancho de cada columna (cambian poco: se guardan). */
+const AVISOS = new Map<string, readonly string[]>();
+const REGISTRO = new Map<string, readonly string[]>();
+
+function avisoPartido(texto: string, cache = AVISOS, letras = LETRAS_DERECHA): readonly string[] {
+  let lineas = cache.get(texto);
   if (!lineas) {
     // Los avisos llevan números (daño…): se vacía de vez en cuando para que no crezca sin fin.
-    if (AVISOS.size > 200) AVISOS.clear();
-    lineas = texto ? partirTexto(texto, LETRAS_DERECHA) : [];
-    AVISOS.set(texto, lineas);
+    if (cache.size > 200) cache.clear();
+    lineas = texto ? partirTexto(texto, letras) : [];
+    cache.set(texto, lineas);
   }
   return lineas;
 }
@@ -482,9 +483,14 @@ function dibujarPanel(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
         escribir(ctx, lineas[i]!, DERECHA.x, DERECHA.yTexto + i * 14, PALETA.texto);
     }
   } else {
-    // Mientras se animan los turnos, el panel cuenta lo que pasa.
-    escribir(ctx, v.registro[0], PANEL.x + 14, PANEL.y + 14, '#aab8a6');
-    escribir(ctx, v.registro[1], PANEL.x + 14, PANEL.y + 32, PALETA.texto);
+    // Mientras se animan los turnos, el panel cuenta lo que pasa en la columna izquierda
+    // (la derecha es de la ficha).
+    let y = PANEL.y + 14;
+    for (let r = 0; r < v.registro.length; r++, y += 4) {
+      const lineas = avisoPartido(v.registro[r]!, REGISTRO, LETRAS_IZQUIERDA);
+      for (let i = 0; i < lineas.length; i++, y += 14)
+        escribir(ctx, lineas[i]!, PANEL.x + 14, y, r === 0 ? PALETA.claro : PALETA.texto);
+    }
   }
   // La ficha de la heroína, siempre a la vista.
   const h = v.combate.heroina;
