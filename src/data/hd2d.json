@@ -8,6 +8,7 @@
   "resolucionMaxima": 2,
   "desenfoque": 2.4,
   "combate": { "desenfoque": 3, "foco": 0.5 },
+  "bordes": { "muro": 1, "alto": 1, "fuerza": 6 },
   "bloom": { "fuerza": 0.55, "radio": 0.5, "umbral": 0.72 },
   "vineta": { "offset": 1.0, "oscuridad": 1.15 },
   "sombras": { "principal": 1024, "puntual": 512 },
