@@ -4,6 +4,9 @@ import { PALETA } from './marco';
 import { SALA_ALTO, vista } from './pantalla';
 import { escribir } from './texto';
 
+/** El HUD del mapa se dibuja a esta fracción de la escala, para que no tape tanto; sus medidas son de ese espacio. */
+export const ESCALA_HUD = 0.75;
+
 /** Textos del HUD; la escena los rehace solo cuando cambia algún valor. */
 export interface TextosHud {
   cabecera: string;
@@ -24,10 +27,11 @@ export function dibujarHud(ctx: CanvasRenderingContext2D, h: Luchador, t: Textos
 
 /** Aviso centrado en la parte baja de la sala («La fuente te restaura…»). */
 export function dibujarAviso(ctx: CanvasRenderingContext2D, texto: string): void {
-  const y = (vista.alto + SALA_ALTO) / 2 - 46;
+  const y = (vista.alto + SALA_ALTO) / 2 / ESCALA_HUD - 46;
+  const x = vista.ancho / 2 / ESCALA_HUD;
   ctx.fillStyle = 'rgba(9, 7, 18, 0.8)';
-  ctx.fillRect(vista.ancho / 2 - 170, y, 340, 26);
-  escribir(ctx, texto, vista.ancho / 2, y + 6, PALETA.cursor, 'center');
+  ctx.fillRect(x - 170, y, 340, 26);
+  escribir(ctx, texto, x, y + 6, PALETA.cursor, 'center');
 }
 
 /** Botón de menú en la esquina superior derecha del mapa (para el móvil; con teclado es Escape). */
@@ -38,7 +42,7 @@ export const BOTON_MENU = { x: 0, y: 6, ancho: 44, alto: 44 };
 
 /** Pone la interfaz del mapa en los lados de la ventana, según su forma. */
 export function colocarHud(): void {
-  BOTON_MENU.x = vista.ancho - 6 - BOTON_MENU.ancho;
+  BOTON_MENU.x = vista.ancho / ESCALA_HUD - 6 - BOTON_MENU.ancho;
 }
 
 /** `aviso`: punto amarillo en la esquina (hay puntos de mejora sin gastar). */

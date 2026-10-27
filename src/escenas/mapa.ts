@@ -40,6 +40,7 @@ import type { SalaZona, Zona } from '../core/zona';
 import {
   BOTON_MENU,
   colocarHud,
+  ESCALA_HUD,
   dibujarAviso,
   dibujarBotonMenu,
   dibujarQuedan,
@@ -302,7 +303,11 @@ export class EscenaMapa implements Escena {
     }
     // Escape, la tecla I o la mochila abren el inventario.
     colocarHud();
-    if (acciones.menu || acciones.info || dentro(acciones.toqueX, acciones.toqueY, BOTON_MENU)) {
+    if (
+      acciones.menu ||
+      acciones.info ||
+      dentro(acciones.toqueX / ESCALA_HUD, acciones.toqueY / ESCALA_HUD, BOTON_MENU)
+    ) {
       this.o.abrirPausa();
       return;
     }
@@ -417,6 +422,8 @@ export class EscenaMapa implements Escena {
       ctx.globalAlpha = 1;
     }
     this.refrescarHud();
+    ctx.save();
+    ctx.scale(ESCALA_HUD, ESCALA_HUD);
     dibujarHud(ctx, this.o.luchadora, this.hud);
     if (this.cerradas) {
       let vivos = 0;
@@ -431,10 +438,14 @@ export class EscenaMapa implements Escena {
     // El minimapa va encima del fundido: es interfaz, no parte de la sala.
     // A la izquierda de la mochila, como siempre; crece en enteros con el ancho que sobra a los lados de la sala.
     const { width: mw, height: mh } = this.minimapa;
-    const lateral = (ventana.ancho - SALA_ANCHO) / 2 - 2 * MARGEN_HUD;
-    const k = Math.max(1, Math.min(3, Math.floor(lateral / mw), Math.floor(ventana.alto / 2 / mh)));
+    const lateral = (ventana.ancho - SALA_ANCHO) / 2 / ESCALA_HUD - 2 * MARGEN_HUD;
+    const k = Math.max(
+      1,
+      Math.min(3, Math.floor(lateral / mw), Math.floor(ventana.alto / 2 / ESCALA_HUD / mh)),
+    );
     ctx.drawImage(this.minimapa, BOTON_MENU.x - MARGEN_HUD - mw * k, MARGEN_HUD, mw * k, mh * k);
     dibujarBotonMenu(ctx, this.o.luchadora.puntos > 0);
+    ctx.restore();
   }
 
   private avisar(texto: string, segundos = DURACION_AVISO): void {
