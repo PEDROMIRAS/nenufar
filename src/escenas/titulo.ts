@@ -21,6 +21,8 @@ const ANUNCIO = { controles: 'Controles', empezar: AVISO, extras: 'Bestiario y l
 
 /** Portada: la sala de descanso del Bosque con las ranas junto a la fuente, el logo y los récords. */
 export class EscenaTitulo implements Escena {
+  readonly conMundo = true;
+
   private tiempo = 0;
   /** Índice en FOCOS: con las flechas en un botón de arriba (Enter lo abre) o en empezar. */
   private foco = 1;

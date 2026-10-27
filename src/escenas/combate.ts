@@ -70,6 +70,8 @@ const textoVida = (pv: number, max: number): string => `${pv}/${max}`;
 
 /** Pantalla de combate: anima los eventos de `core/combate` uno a uno y recoge la acción de la heroína. */
 export class EscenaCombate implements Escena {
+  readonly conMundo = true;
+
   private readonly cola: Evento[] = [];
   /** Segundos que faltan para pasar al siguiente evento. */
   private espera = 0;

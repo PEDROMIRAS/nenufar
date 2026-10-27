@@ -156,6 +156,8 @@ export interface OpcionesMapa {
 
 /** Exploración de una zona: la sala actual, la heroína y el paso de una sala a otra o a la zona siguiente. */
 export class EscenaMapa implements Escena {
+  readonly conMundo = true;
+
   private readonly montadas = new Map<SalaZona, SalaMontada>();
   private readonly salidas: Salida[];
   private readonly visitadas = new Set<SalaZona>();

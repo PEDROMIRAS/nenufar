@@ -265,6 +265,11 @@ export class Mundo {
     };
   }
 
+  /** Muestra u oculta el lienzo 3D (los menús no lo usan). */
+  verLienzo(visible: boolean): void {
+    this.renderer.domElement.style.visibility = visible ? 'visible' : 'hidden';
+  }
+
   /** Suelta todo lo de la zona anterior (geometrías, materiales y texturas). */
   vaciar(): void {
     if (!this.zona) return;

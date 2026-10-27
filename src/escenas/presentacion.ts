@@ -15,6 +15,8 @@ const APARICION = 0.4;
  * `duracion` segundos y se ve entera. «Kero, Señora de la Cripta» → «Kero» en grande y el resto debajo.
  */
 export class EscenaPresentacion implements Escena {
+  readonly conMundo = true;
+
   private t = 0;
   private hecho = false;
   private readonly nombre: string;

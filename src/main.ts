@@ -436,7 +436,10 @@ async function iniciar(): Promise<void> {
       leerFuentes(fuentes, acciones);
       pila.update(dt, acciones);
     },
-    (alpha) => pila.draw(ctx, alpha),
+    (alpha) => {
+      mundo.verLienzo(pila.conMundo);
+      pila.draw(ctx, alpha);
+    },
   );
 }
 

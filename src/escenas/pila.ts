@@ -24,6 +24,11 @@ export class PilaEscenas {
     this.escenas[this.escenas.length - 1]?.update(dt, acciones);
   }
 
+  /** ¿La escena de arriba usa el mapa 3D? */
+  get conMundo(): boolean {
+    return this.escenas[this.escenas.length - 1]?.conMundo === true;
+  }
+
   draw(ctx: CanvasRenderingContext2D, alpha: number): void {
     this.escenas[this.escenas.length - 1]?.draw(ctx, alpha);
   }
