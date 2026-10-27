@@ -1,6 +1,7 @@
 import type { Acciones } from '../core/acciones';
 import { formatearTiempo, textoPorDificultad, type Records } from '../core/records';
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
+import { dibujarCaja, PALETA } from '../render/marco';
 import { ALTO, ANCHO, dentro, esTactil } from '../render/pantalla';
 import type { Portada3d } from '../render/mundo/portada';
 import { ponerMusica, sonar } from '../render/sonido';
@@ -106,18 +107,18 @@ export class EscenaTitulo implements Escena {
     ctx.fillRect(0, ALTO - 72, ANCHO, 72);
 
     escribir(ctx, 'Nenúfar', ANCHO / 2, 18, '#c89bff', 'center', FUENTE_LOGO);
-    escribir(ctx, 'Un dungeon crawler de ranas', ANCHO / 2, 74, '#e8efe4', 'center');
+    escribir(ctx, 'Un dungeon crawler de ranas', ANCHO / 2, 74, PALETA.texto, 'center');
     this.boton(ctx, BOTON_EXTRAS, 'Bestiario y', this.textoExtras, FOCOS[this.foco] === 'extras');
     this.boton(ctx, BOTON_CONTROLES, 'Controles', '', FOCOS[this.foco] === 'controles');
 
     // El aviso pulsa de opacidad en vez de desaparecer (y se queda fijo con menos movimiento).
     ctx.globalAlpha = movimientoReducido() ? 1 : 0.6 + 0.4 * Math.abs(Math.sin(t * 2.5));
-    escribir(ctx, AVISO, ANCHO / 2, ALTO - 58, '#ffd27a', 'center');
+    escribir(ctx, AVISO, ANCHO / 2, ALTO - 58, PALETA.cursor, 'center');
     ctx.globalAlpha = 1;
     if (this.records)
-      escribir(ctx, this.records, ANCHO / 2, ALTO - 38, '#aab8a6', 'center', FUENTE);
+      escribir(ctx, this.records, ANCHO / 2, ALTO - 38, PALETA.claro, 'center', FUENTE);
     if (this.recordsDificultad)
-      escribir(ctx, this.recordsDificultad, ANCHO / 2, ALTO - 22, '#aab8a6', 'center', FUENTE);
+      escribir(ctx, this.recordsDificultad, ANCHO / 2, ALTO - 22, PALETA.claro, 'center', FUENTE);
   }
 
   /** Botón de arriba con una o dos líneas; elegido con las flechas, marco dorado de 2 px. */
@@ -128,17 +129,12 @@ export class EscenaTitulo implements Escena {
     linea2: string,
     elegido: boolean,
   ): void {
-    ctx.fillStyle = 'rgba(8, 14, 10, 0.7)';
-    ctx.fillRect(b.x, b.y, b.ancho, b.alto);
-    if (elegido) {
-      ctx.strokeStyle = '#ffd27a';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(b.x + 1, b.y + 1, b.ancho - 2, b.alto - 2);
-    }
+    dibujarCaja(ctx, b.x, b.y, b.ancho, b.alto, elegido ? 'elegida' : 'normal');
     const x = b.x + b.ancho / 2;
+    const color = elegido ? PALETA.elegida : PALETA.claro;
     if (linea2) {
-      escribir(ctx, linea1, x, b.y + 6, '#ffd27a', 'center', FUENTE);
-      escribir(ctx, linea2, x, b.y + 21, '#ffd27a', 'center', FUENTE);
-    } else escribir(ctx, linea1, x, b.y + 14, '#ffd27a', 'center', FUENTE);
+      escribir(ctx, linea1, x, b.y + 6, color, 'center', FUENTE);
+      escribir(ctx, linea2, x, b.y + 21, color, 'center', FUENTE);
+    } else escribir(ctx, linea1, x, b.y + 14, color, 'center', FUENTE);
   }
 }

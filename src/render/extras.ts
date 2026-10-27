@@ -1,6 +1,7 @@
 import { CASILLAS_BESTIARIO } from '../core/logros';
 import { dibujarMenu, type MenuVista } from './combate';
-import { ALTO, ANCHO, FONDO } from './pantalla';
+import { dibujarCaja, dibujarFondo, dibujarMarco, PALETA } from './marco';
+import { ANCHO } from './pantalla';
 import { dibujarFotograma, type Sprite } from './recursos';
 import { escribir, FUENTE_GRANDE } from './texto';
 
@@ -35,9 +36,9 @@ export interface VistaExtras {
 /** Casillas del bestiario: 6 por fila (también para saber dónde se toca). */
 export const CELDAS = Array.from({ length: CASILLAS_BESTIARIO }, (_, i) => ({
   x: 60 + (i % 6) * 60,
-  y: 64 + Math.floor(i / 6) * 56,
+  y: 64 + Math.floor(i / 6) * 52,
   ancho: 56,
-  alto: 52,
+  alto: 48,
 }));
 
 /** Pestañas Bestiario y Logros, arriba (también para saber dónde se toca). */
@@ -47,12 +48,10 @@ export const PESTANAS = [
 ];
 
 const COLOR = {
-  celda: '#1f2a24',
-  elegida: '#ffd27a',
-  texto: '#e8efe4',
-  tenue: '#aab8a6',
-  apagado: '#8a9886', // 6:1 sobre el fondo
-  oro: '#ffd27a',
+  texto: PALETA.texto,
+  tenue: PALETA.apagada,
+  apagado: PALETA.apagada,
+  oro: PALETA.elegida,
 };
 
 /** La misma hoja pintada de un solo color oscuro: lo que se ve de un monstruo aún no vencido. */
@@ -71,9 +70,8 @@ export function siluetaDe(s: Sprite): Sprite {
 }
 
 export function dibujarExtras(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
-  ctx.fillStyle = FONDO;
-  ctx.fillRect(0, 0, ANCHO, ALTO);
-  // Pestañas en lugar de título: la de la página que se ve, en dorado y subrayada.
+  dibujarFondo(ctx);
+  // Pestañas en lugar de título: la de la página que se ve, en blanco lavanda y subrayada.
   for (let i = 0; i < PESTANAS.length; i++) {
     const r = PESTANAS[i]!;
     const activa = (i === 0) === (v.pagina === 'bestiario');
@@ -88,10 +86,10 @@ export function dibujarExtras(ctx: CanvasRenderingContext2D, v: VistaExtras): vo
       FUENTE_GRANDE,
     );
     if (!activa) continue;
-    ctx.fillStyle = COLOR.oro;
+    ctx.fillStyle = PALETA.filete;
     ctx.fillRect(r.x + 8, r.y + r.alto - 3, r.ancho - 16, 2);
     if (!v.focoPestanas) continue;
-    ctx.strokeStyle = COLOR.oro;
+    ctx.strokeStyle = PALETA.cursor;
     ctx.lineWidth = 1;
     ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.ancho - 1, r.alto - 1);
   }
@@ -107,12 +105,8 @@ function dibujarBestiario(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
     const f = v.fichas[i]!;
     const c = CELDAS[i]!;
     // La casilla elegida solo se marca con las flechas en la rejilla (no en las pestañas ni en Volver).
-    if (i === v.elegido && !v.focoPestanas && v.menu.seleccion < 0) {
-      ctx.fillStyle = COLOR.elegida;
-      ctx.fillRect(c.x - 2, c.y - 2, c.ancho + 4, c.alto + 4);
-    }
-    ctx.fillStyle = COLOR.celda;
-    ctx.fillRect(c.x, c.y, c.ancho, c.alto);
+    const marcada = i === v.elegido && !v.focoPestanas && v.menu.seleccion < 0;
+    dibujarCaja(ctx, c.x, c.y, c.ancho, c.alto, marcada ? 'elegida' : 'normal');
     // Los jefes tienen fotogramas más grandes: todos caben en la casilla, a escalas de medio en medio
     // para que el pixel art no se deforme (32 px → ×1,5; 48 px → ×1).
     const escala = Math.max(1, Math.floor((48 / f.sprite.datos.frameHeight) * 2) / 2);
@@ -130,17 +124,17 @@ function dibujarBestiario(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
   }
   const f = v.fichas[v.elegido];
   if (!f) return;
-  escribir(ctx, f.nombre, ANCHO / 2, 234, f.visto ? COLOR.oro : COLOR.apagado, 'center');
+  dibujarMarco(ctx, 40, 220, ANCHO - 80, 70);
+  escribir(ctx, f.nombre, ANCHO / 2, 226, f.visto ? COLOR.oro : COLOR.apagado, 'center');
   for (let i = 0; i < f.lineas.length; i++)
-    escribir(ctx, f.lineas[i]!, ANCHO / 2, 250 + i * 14, COLOR.texto, 'center');
+    escribir(ctx, f.lineas[i]!, ANCHO / 2, 240 + i * 12, COLOR.texto, 'center');
 }
 
 function dibujarLogros(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
   for (let i = 0; i < v.logros.length; i++) {
     const l = v.logros[i]!;
     const y = 68 + i * 36;
-    ctx.fillStyle = COLOR.celda;
-    ctx.fillRect(40, y, ANCHO - 80, 32);
+    dibujarCaja(ctx, 40, y, ANCHO - 80, 32, 'normal');
     escribir(
       ctx,
       l.conseguido ? '★' : '·',

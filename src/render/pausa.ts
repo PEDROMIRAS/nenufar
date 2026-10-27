@@ -116,7 +116,7 @@ export interface VistaInventario {
   ficha: FichaInventario;
 }
 
-const COLOR = { etiqueta: '#b9b3a3' };
+const COLOR = { etiqueta: PALETA.claro };
 
 export function dibujarInventario(ctx: CanvasRenderingContext2D, v: VistaInventario): void {
   ctx.fillStyle = 'rgba(8, 10, 14, 0.94)';

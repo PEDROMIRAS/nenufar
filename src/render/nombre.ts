@@ -1,7 +1,8 @@
 import { dibujarMenu, type MenuVista } from './combate';
-import { ALTO, ANCHO, esTactil, FONDO } from './pantalla';
+import { dibujarCabecera, dibujarFondo, PALETA } from './marco';
+import { ANCHO, esTactil } from './pantalla';
 import { dibujarFotograma, type Sprite } from './recursos';
-import { escribir, FUENTE_GRANDE } from './texto';
+import { escribir } from './texto';
 
 /** Caracteres como mucho: lo que cabe sin descuadrar el combate y el inventario. */
 export const LARGO_NOMBRE = 12;
@@ -16,11 +17,10 @@ export function dibujarNombre(
   tiempo: number,
   menu: MenuVista,
 ): void {
-  ctx.fillStyle = FONDO;
-  ctx.fillRect(0, 0, ANCHO, ALTO);
-  escribir(ctx, '¿Cómo se llama tu rana?', ANCHO / 2, 16, '#ffd27a', 'center', FUENTE_GRANDE);
+  dibujarFondo(ctx);
+  dibujarCabecera(ctx, 16, '¿Cómo se llama tu rana?');
   dibujarFotograma(ctx, sprite, 'idle', 'down', tiempo, ANCHO / 2, 160, 3);
-  escribir(ctx, tipo, ANCHO / 2, 172, '#aab8a6', 'center');
+  escribir(ctx, tipo, ANCHO / 2, 172, PALETA.claro, 'center');
   escribir(
     ctx,
     esTactil()
@@ -28,7 +28,7 @@ export function dibujarNombre(
       : 'Escribe un nombre · Enter seguir · ↓ botones · Esc volver',
     ANCHO / 2,
     252,
-    '#aab8a6',
+    PALETA.apagada,
     'center',
   );
   dibujarMenu(ctx, menu);
