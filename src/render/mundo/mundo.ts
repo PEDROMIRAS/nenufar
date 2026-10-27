@@ -1,11 +1,10 @@
 import * as THREE from 'three';
+import { crearDesenfoque } from './desenfoque';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { HorizontalTiltShiftShader } from 'three/addons/shaders/HorizontalTiltShiftShader.js';
-import { VerticalTiltShiftShader } from 'three/addons/shaders/VerticalTiltShiftShader.js';
 import { VignetteShader } from 'three/addons/shaders/VignetteShader.js';
 import { crearAzar } from '../../core/azar';
 import type { ObjetoSala, Sala, Salida, Tile } from '../../core/sala';
@@ -179,8 +178,13 @@ export class Mundo {
 
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.escena, this.camara));
-    this.tiltH = new ShaderPass(HorizontalTiltShiftShader);
-    this.tiltV = new ShaderPass(VerticalTiltShiftShader);
+    this.tiltH = new ShaderPass(crearDesenfoque(true));
+    this.tiltV = new ShaderPass(crearDesenfoque(false));
+    for (const p of [this.tiltH, this.tiltV]) {
+      p.uniforms.centro!.value = new THREE.Vector2();
+      p.uniforms.mitad!.value = new THREE.Vector2();
+      p.uniforms.fuerza!.value = a.bordes.fuerza;
+    }
     this.composer.addPass(this.tiltH);
     this.composer.addPass(this.tiltV);
     this.composer.addPass(
@@ -560,7 +564,7 @@ export class Mundo {
       ((this.pantalla.x + 1) / 2) * lienzo.width,
       ((this.pantalla.y + 1) / 2) * lienzo.height,
     );
-    this.enfocar((this.pantalla.y + 1) / 2, 1);
+    this.enfocarBordes(v);
     this.composer.render();
   }
 
@@ -641,8 +645,41 @@ export class Mundo {
   private enfocar(franja: number, veces: number): void {
     this.tiltH.uniforms.r!.value = franja;
     this.tiltV.uniforms.r!.value = franja;
-    this.tiltH.uniforms.h!.value = this.desenfoqueH * veces;
-    this.tiltV.uniforms.v!.value = this.desenfoqueV * veces;
+    this.tiltH.uniforms.px!.value = this.desenfoqueH * veces;
+    this.tiltV.uniforms.px!.value = this.desenfoqueV * veces;
+    this.tiltH.uniforms.bordes!.value = this.tiltV.uniforms.bordes!.value = 0;
+  }
+
+  /**
+   * Desenfoque del mapa: la zona jugable (el suelo de dentro de los muros, hasta la altura de los monstruos) se
+   * ve nítida y solo se emborronan los árboles o muros de alrededor.
+   */
+  private enfocarBordes(v: VistaSala): void {
+    const { muro, alto } = this.a.bordes;
+    const { ancho, alto: largo } = v.sala;
+    this.camara.updateMatrixWorld();
+    let x0 = Infinity;
+    let x1 = -Infinity;
+    let y0 = Infinity;
+    let y1 = -Infinity;
+    for (const x of [muro, ancho - muro]) {
+      for (const z of [muro, largo - muro]) {
+        for (const y of [0, alto]) {
+          this.pantalla.set(x, y, z).project(this.camara);
+          x0 = Math.min(x0, this.pantalla.x);
+          x1 = Math.max(x1, this.pantalla.x);
+          y0 = Math.min(y0, this.pantalla.y);
+          y1 = Math.max(y1, this.pantalla.y);
+        }
+      }
+    }
+    for (const p of [this.tiltH, this.tiltV]) {
+      p.uniforms.centro!.value.set((x0 + x1) / 4 + 0.5, (y0 + y1) / 4 + 0.5);
+      p.uniforms.mitad!.value.set((x1 - x0) / 4, (y1 - y0) / 4);
+      p.uniforms.bordes!.value = 1;
+    }
+    this.tiltH.uniforms.px!.value = this.desenfoqueH;
+    this.tiltV.uniforms.px!.value = this.desenfoqueV;
   }
 
   /** Cambia la sala que se ve: su grupo, la cámara centrada en ella y sus luces. */

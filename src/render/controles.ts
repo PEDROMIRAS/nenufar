@@ -1,5 +1,6 @@
 import controles from '../data/controles.json';
 import { esTactil } from './pantalla';
+import { PALETA } from './marco';
 import { escribir } from './texto';
 
 /** Qué hace cada control y con qué se hace, según se juegue con teclado o con el dedo. */
@@ -14,8 +15,8 @@ export const ALTO_FILA = 18;
 export function dibujarControles(ctx: CanvasRenderingContext2D, x: number, y: number): void {
   for (let i = 0; i < AYUDA_CONTROLES.length; i++) {
     const fila = AYUDA_CONTROLES[i]!;
-    escribir(ctx, fila[0]!, x, y + i * ALTO_FILA, '#aab8a6');
-    escribir(ctx, fila[1]!, x + COLUMNA, y + i * ALTO_FILA, '#e8efe4');
+    escribir(ctx, fila[0]!, x, y + i * ALTO_FILA, PALETA.claro);
+    escribir(ctx, fila[1]!, x + COLUMNA, y + i * ALTO_FILA, PALETA.texto);
   }
 }
 

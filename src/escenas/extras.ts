@@ -1,6 +1,7 @@
 import type { Acciones } from '../core/acciones';
 import { entradasBestiario, type Logro } from '../core/logros';
 import type { Records } from '../core/records';
+import { partirTexto } from '../core/texto';
 import type { MonstruoJson } from '../core/types';
 import { anunciar } from '../render/accesibilidad';
 import { opcionTocada, type MenuVista } from '../render/combate';
@@ -33,6 +34,9 @@ const PISTA = esTactil()
 type Foco = 'pestanas' | 'rejilla' | 'volver';
 
 /** Bestiario (los monstruos vencidos, el resto en silueta) y logros, desde el título. */
+/** Letras por línea de la ficha del monstruo: lo que cabe en su marco (fuente monoespaciada). */
+const LETRAS_FICHA = 52;
+
 export class EscenaExtras implements Escena {
   private pagina: 'bestiario' | 'logros' = 'bestiario';
   private foco: Foco = 'rejilla';
@@ -74,7 +78,7 @@ export class EscenaExtras implements Escena {
             ? [
                 `PV ${e.pv} · Ataque ${e.ataque} · Magia ${e.magia}`,
                 `Defensa ${e.defensa} · Velocidad ${e.velocidad}`,
-                `Habilidades: ${habilidades}`,
+                ...partirTexto(`Habilidades: ${habilidades}`, LETRAS_FICHA),
               ]
             : ['Aún no lo has vencido'],
         },

@@ -1,9 +1,10 @@
 import type { Acciones } from '../core/acciones';
 import { anunciar } from '../render/accesibilidad';
 import { ALTO_FILA, AYUDA_CONTROLES, dibujarControles, TEXTO_CONTROLES } from '../render/controles';
-import { ALTO, ANCHO, esTactil, FONDO } from '../render/pantalla';
+import { dibujarCabecera, dibujarFondo, dibujarMarco, PALETA } from '../render/marco';
+import { ALTO, ANCHO, esTactil } from '../render/pantalla';
 import { sonar } from '../render/sonido';
-import { escribir, FUENTE_GRANDE } from '../render/texto';
+import { escribir } from '../render/texto';
 import type { Escena } from './escena';
 
 const PIE = esTactil() ? 'Toca para volver' : 'Esc o Enter para volver';
@@ -27,11 +28,17 @@ export class EscenaControles implements Escena {
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
-    ctx.fillStyle = FONDO;
-    ctx.fillRect(0, 0, ANCHO, ALTO);
-    escribir(ctx, 'Controles', ANCHO / 2, 24, '#ffd27a', 'center', FUENTE_GRANDE);
+    dibujarFondo(ctx);
+    dibujarCabecera(ctx, 24, 'Controles');
     const alto = AYUDA_CONTROLES.length * ALTO_FILA;
+    dibujarMarco(
+      ctx,
+      (ANCHO - ANCHO_LISTA) / 2 - 20,
+      (ALTO - alto) / 2 - 16,
+      ANCHO_LISTA + 40,
+      alto + 32,
+    );
     dibujarControles(ctx, (ANCHO - ANCHO_LISTA) / 2, (ALTO - alto) / 2);
-    escribir(ctx, PIE, ANCHO / 2, 312, '#aab8a6', 'center');
+    escribir(ctx, PIE, ANCHO / 2, 312, PALETA.apagada, 'center');
   }
 }

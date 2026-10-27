@@ -378,10 +378,12 @@ export interface Hd2dJson {
   inclinacionSprites: number;
   /** Píxeles de dibujo por píxel CSS, como mucho (en móviles con mucha densidad, el posprocesado sale caro). */
   resolucionMaxima: number;
-  /** Tilt-shift: cuánto se emborrona lejos de la franja enfocada, que sigue a la heroína. */
+  /** Desenfoque base, en píxeles, del mapa (fuera de la zona jugable) y del fondo del combate (tilt-shift). */
   desenfoque: number;
   /** Fondo del combate: cuántas veces el desenfoque normal y dónde queda la franja enfocada (0 abajo, 1 arriba). */
   combate: { desenfoque: number; foco: number };
+  /** Desenfoque del mapa: casillas de muro que rodean la zona nítida, altura hasta la que se ve nítida (monstruos) y cuánto crece fuera. */
+  bordes: { muro: number; alto: number; fuerza: number };
   bloom: { fuerza: number; radio: number; umbral: number };
   vineta: { offset: number; oscuridad: number };
   /** Lado de los mapas de sombras de la luz principal y de las puntuales. */

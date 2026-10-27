@@ -1,6 +1,7 @@
 import type { Acciones } from '../core/acciones';
 import { partirTexto } from '../core/texto';
-import { ALTO, ANCHO, FONDO } from '../render/pantalla';
+import { dibujarFondo, dibujarMarco, PALETA } from '../render/marco';
+import { ANCHO } from '../render/pantalla';
 import { escribir, FUENTE_GRANDE } from '../render/texto';
 import { anunciar } from '../render/accesibilidad';
 import type { Escena } from './escena';
@@ -44,13 +45,13 @@ export class EscenaMensaje implements Escena {
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
-    ctx.fillStyle = FONDO;
-    ctx.fillRect(0, 0, ANCHO, ALTO);
+    dibujarFondo(ctx);
+    dibujarMarco(ctx, 16, 16, ANCHO - 32, 320);
     for (let i = 0; i < this.titulos.length; i++)
       escribir(ctx, this.titulos[i]!, ANCHO / 2, 40 + i * 30, this.color, 'center', FUENTE_GRANDE);
     const y = Math.max(96, 40 + this.titulos.length * 30 + 26);
     for (let i = 0; i < this.lineas.length; i++)
-      escribir(ctx, this.lineas[i]!, ANCHO / 2, y + i * 20, '#e8efe4', 'center');
-    escribir(ctx, this.pie, ANCHO / 2, 312, '#aab8a6', 'center');
+      escribir(ctx, this.lineas[i]!, ANCHO / 2, y + i * 20, PALETA.texto, 'center');
+    escribir(ctx, this.pie, ANCHO / 2, 312, PALETA.apagada, 'center');
   }
 }

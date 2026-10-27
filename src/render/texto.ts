@@ -12,7 +12,7 @@ export function escribir(
   texto: string,
   x: number,
   y: number,
-  color = '#e8efe4',
+  color = '#efe9da',
   alinear: CanvasTextAlign = 'left',
   fuente = FUENTE,
 ): void {

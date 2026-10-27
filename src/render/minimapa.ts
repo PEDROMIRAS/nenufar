@@ -1,5 +1,6 @@
 import { niebla } from '../core/minimapa';
 import { E, S, type SalaZona, type Zona } from '../core/zona';
+import { PALETA } from './marco';
 
 // Medidas en píxeles lógicos: una sala de 15×11 tiles se ve como un rectángulo de 12×8 (antes 8×6:
 // los probadores lo veían demasiado pequeño y no lo miraban). Medidas pares: puertas y puntos centrados.
@@ -10,10 +11,10 @@ const BORDE = 3;
 /** Lado del punto del tesoro, la fuente o el jefe. */
 const LADO_PUNTO = 4;
 const COLOR = {
-  fondo: 'rgba(8, 14, 10, 0.6)',
-  visitada: '#cfe3c8',
-  actual: '#ffd27a',
-  contorno: '#8fa88a',
+  fondo: 'rgba(9, 7, 18, 0.7)',
+  visitada: PALETA.filete,
+  actual: PALETA.elegida,
+  contorno: PALETA.claro,
   /** Punto de lo que tiene la sala: el cofre, la fuente o el jefe; gris cuando ya está hecho. */
   tesoro: '#e2a33a',
   descanso: '#5aa8e8',

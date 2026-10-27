@@ -1,5 +1,6 @@
 import type { Luchador } from '../core/combate';
 import { barra, COLOR_BARRA } from './combate';
+import { PALETA } from './marco';
 import { ANCHO } from './pantalla';
 import { escribir } from './texto';
 
@@ -12,7 +13,7 @@ export interface TextosHud {
 
 /** Zona, nivel, PV y PM de la heroína, arriba a la izquierda del mapa. */
 export function dibujarHud(ctx: CanvasRenderingContext2D, h: Luchador, t: TextosHud): void {
-  ctx.fillStyle = 'rgba(8, 14, 10, 0.6)';
+  ctx.fillStyle = 'rgba(9, 7, 18, 0.7)';
   ctx.fillRect(6, 6, 150, 50);
   escribir(ctx, t.cabecera, 12, 10);
   barra(ctx, 12, 30, 80, h.pv / h.pvMax, COLOR_BARRA.pv);
@@ -23,9 +24,9 @@ export function dibujarHud(ctx: CanvasRenderingContext2D, h: Luchador, t: Textos
 
 /** Aviso centrado en la parte baja del mapa («La fuente te restaura…»). */
 export function dibujarAviso(ctx: CanvasRenderingContext2D, texto: string): void {
-  ctx.fillStyle = 'rgba(8, 14, 10, 0.75)';
+  ctx.fillStyle = 'rgba(9, 7, 18, 0.8)';
   ctx.fillRect(ANCHO / 2 - 170, 306, 340, 26);
-  escribir(ctx, texto, ANCHO / 2, 312, '#ffd27a', 'center');
+  escribir(ctx, texto, ANCHO / 2, 312, PALETA.cursor, 'center');
 }
 
 /** Botón de menú en la esquina superior derecha del mapa (para el móvil; con teclado es Escape). */
@@ -37,7 +38,7 @@ export const BOTON_MENU = { x: ANCHO - 6 - 44, y: 6, ancho: 44, alto: 44 };
 /** `aviso`: punto amarillo en la esquina (hay puntos de mejora sin gastar). */
 export function dibujarBotonMenu(ctx: CanvasRenderingContext2D, aviso = false): void {
   const { x, y, ancho, alto } = BOTON_MENU;
-  ctx.fillStyle = 'rgba(8, 14, 10, 0.6)';
+  ctx.fillStyle = 'rgba(9, 7, 18, 0.7)';
   ctx.fillRect(x, y, ancho, alto);
   // Una mochila en píxeles: abre el inventario.
   const mx = x + (ancho - 20) / 2;
@@ -61,14 +62,14 @@ export function dibujarBotonMenu(ctx: CanvasRenderingContext2D, aviso = false): 
   if (aviso) {
     ctx.fillStyle = MOCHILA.oscuro;
     ctx.fillRect(x + ancho - 13, y + 3, 10, 10);
-    ctx.fillStyle = '#ffd27a';
+    ctx.fillStyle = PALETA.cursor;
     ctx.fillRect(x + ancho - 12, y + 4, 8, 8);
   }
 }
 
 /** Bajo el HUD, mientras las puertas están cerradas: cuántos grupos de monstruos faltan. */
 export function dibujarQuedan(ctx: CanvasRenderingContext2D, texto: string): void {
-  ctx.fillStyle = 'rgba(8, 14, 10, 0.6)';
+  ctx.fillStyle = 'rgba(9, 7, 18, 0.7)';
   ctx.fillRect(6, 60, 150, 20);
-  escribir(ctx, texto, 12, 64, '#ffd27a');
+  escribir(ctx, texto, 12, 64, PALETA.cursor);
 }

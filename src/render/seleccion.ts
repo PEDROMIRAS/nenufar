@@ -1,7 +1,8 @@
 import type { HeroeJson } from '../core/types';
-import { ALTO, ANCHO, esTactil, FONDO } from './pantalla';
+import { dibujarCabecera, dibujarFondo, dibujarMarco, PALETA, rombo } from './marco';
+import { ANCHO, esTactil } from './pantalla';
 import type { Sprite } from './recursos';
-import { escribir, FUENTE_GRANDE } from './texto';
+import { escribir } from './texto';
 
 /** Tarjetas de las heroínas, en píxeles lógicos (una por heroína, de izquierda a derecha). */
 export const TARJETAS = [
@@ -25,23 +26,19 @@ export function dibujarSeleccion(
   seleccion: number,
   tiempo: number,
 ): void {
-  ctx.fillStyle = FONDO;
-  ctx.fillRect(0, 0, ANCHO, ALTO);
-  escribir(ctx, 'Elige heroína', ANCHO / 2, 14, '#ffd27a', 'center', FUENTE_GRANDE);
+  dibujarFondo(ctx);
+  dibujarCabecera(ctx, 12, 'Elige heroína');
 
   for (let i = 0; i < opciones.length; i++) {
     const { heroe, sprite } = opciones[i]!;
     const t = TARJETAS[i];
     if (!t) continue;
     const elegida = i === seleccion;
-    ctx.fillStyle = elegida ? '#2f4438' : '#1f2a24';
-    ctx.fillRect(t.x, t.y, t.ancho, t.alto);
+    dibujarMarco(ctx, t.x, t.y, t.ancho, t.alto);
     if (elegida) {
-      ctx.fillStyle = '#8fa88a';
-      ctx.fillRect(t.x, t.y, t.ancho, 2);
-      ctx.fillRect(t.x, t.y + t.alto - 2, t.ancho, 2);
-      ctx.fillRect(t.x, t.y, 2, t.alto);
-      ctx.fillRect(t.x + t.ancho - 2, t.y, 2, t.alto);
+      ctx.fillStyle = PALETA.seleccion;
+      ctx.fillRect(t.x + 4, t.y + 4, t.ancho - 8, t.alto - 8);
+      rombo(ctx, t.x + t.ancho / 2, t.y - 8, 8, PALETA.cursor);
     }
     // La elegida camina; la otra espera quieta.
     const { imagen, datos } = sprite;
@@ -62,15 +59,22 @@ export function dibujarSeleccion(
         a * ESCALA,
       );
     }
-    escribir(ctx, heroe.nombre, t.x + t.ancho / 2, t.y + 108, '#e8efe4', 'center');
+    escribir(
+      ctx,
+      heroe.nombre,
+      t.x + t.ancho / 2,
+      t.y + 108,
+      elegida ? PALETA.elegida : PALETA.texto,
+      'center',
+    );
     for (let fila = 0; fila < ETIQUETAS.length; fila++) {
       const e = ETIQUETAS[fila]!;
       const y = t.y + 132 + fila * 16;
-      escribir(ctx, e[1], t.x + 24, y, '#aab8a6');
-      escribir(ctx, String(heroe.estadisticas[e[0]]), t.x + t.ancho - 24, y, '#e8efe4', 'right');
+      escribir(ctx, e[1], t.x + 24, y, PALETA.claro);
+      escribir(ctx, String(heroe.estadisticas[e[0]]), t.x + t.ancho - 24, y, PALETA.texto, 'right');
     }
   }
 
   const pista = esTactil() ? 'Toca una rana para elegirla' : '← → elegir · Enter seguir';
-  escribir(ctx, pista, ANCHO / 2, 316, '#aab8a6', 'center');
+  escribir(ctx, pista, ANCHO / 2, 316, PALETA.apagada, 'center');
 }
