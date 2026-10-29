@@ -1,5 +1,3 @@
-import { cargarAjustes, guardarAjustes } from './almacen';
-
 /** Tamaño lógico de la interfaz de los menús (elegir rana, combate, inventario…): 15×11 tiles de 32 px. */
 export const ANCHO = 480;
 export const ALTO = 352;
@@ -21,7 +19,12 @@ export const esTactil = (): boolean => TACTIL.matches;
  * - «menú» (todo lo demás): la interfaz de 480×352 centrada, a la mayor escala que cabe; `area` es la ventana
  *   entera en esas coordenadas, para los fondos que llenan lo que sobra.
  */
-export const vista = { ancho: SALA_ANCHO, alto: SALA_ALTO };
+export const vista = { ancho: SALA_ANCHO, alto: SALA_ALTO, hud: 1 };
+/**
+ * Píxeles CSS por unidad del HUD del mapa: crece con el lado corto de la ventana (lado/300), pero con tope por
+ * debajo y por arriba, para que en un móvil se lea y en un monitor grande no tape el mapa.
+ */
+const HUD_CSS = { divisor: 300, min: 1.25, max: 2.25 };
 export const area = { x: 0, y: 0, ancho: ANCHO, alto: ALTO };
 
 let dpr = 1;
@@ -90,17 +93,16 @@ export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingCont
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('El navegador no soporta Canvas 2D');
 
-  // En vertical se recomienda girar el móvil; quien elige jugar así no vuelve a ver el aviso.
-  document.body.classList.toggle('vertical', cargarAjustes().jugarEnVertical);
+  // En vertical se recomienda girar el móvil; quien elige jugar así no vuelve a ver el aviso hasta recargar.
   document.getElementById('jugar-vertical')?.addEventListener('click', () => {
     document.body.classList.add('vertical');
-    guardarAjustes({ jugarEnVertical: true });
   });
 
   // En táctil, pantalla completa con cada toque mientras no lo esté (el navegador solo la da tras un gesto;
   // en el iPhone no existe y se usa el icono de la pantalla de inicio). En el ordenador no: Escape, que
   // abre la pausa, la quitaría.
-  addEventListener('pointerdown', () => {
+  // pointerup y no pointerdown: con el dedo, Chrome solo lo cuenta como gesto del usuario al levantarlo.
+  addEventListener('pointerup', () => {
     if (TACTIL.matches && !document.fullscreenElement)
       void document.documentElement.requestFullscreen?.().catch(() => {});
   });
@@ -120,6 +122,11 @@ export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingCont
     modos.ventana = { escala: sala, x: 0, y: 0 };
     vista.ancho = real.ancho / sala;
     vista.alto = real.alto / sala;
+    const hudCss = Math.min(
+      HUD_CSS.max,
+      Math.max(HUD_CSS.min, Math.min(innerWidth, innerHeight) / HUD_CSS.divisor),
+    );
+    vista.hud = (hudCss * dpr) / sala;
     modos.menu = {
       escala: menu,
       x: (real.ancho - ANCHO * menu) / 2,
