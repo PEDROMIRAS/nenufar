@@ -72,6 +72,7 @@ import { crearTeclado } from './input/teclado';
 import { crearToque } from './input/toque';
 import { iniciarBucle } from './render/bucle';
 import { PALETA } from './render/marco';
+import { vigilarActualizaciones } from './render/actualizacion';
 import { colocarContexto, esTactil, fijarModo, prepararPantalla } from './render/pantalla';
 import { crearCasilla, crearDeslizador, type Casilla, type Deslizador } from './render/deslizador';
 import { crearCampoNombre } from './render/campoNombre';
@@ -225,6 +226,7 @@ async function iniciar(): Promise<void> {
   const canvas = document.querySelector<HTMLCanvasElement>('#juego');
   if (!canvas) throw new Error('Falta el canvas #juego');
   const ctx = prepararPantalla(canvas);
+  vigilarActualizaciones();
   const mundo = new Mundo(canvas, HD2D);
   prepararSonido();
 

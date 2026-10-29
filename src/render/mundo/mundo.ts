@@ -11,7 +11,7 @@ import type { ObjetoSala, Sala, Salida, Tile } from '../../core/sala';
 import type { Direccion, Hd2dJson, LuzHd2d, ZonaHd2d } from '../../core/types';
 import { N, S } from '../../core/zona';
 import { cargarAjustes, guardarAjustes } from '../almacen';
-import { aVentana, rectSala, SALA_ALTO, SALA_ANCHO } from '../pantalla';
+import { alRedimensionar, aVentana, rectSala, SALA_ALTO, SALA_ANCHO } from '../pantalla';
 import type { Sprite } from '../recursos';
 import { dibujarTile } from '../sala';
 import {
@@ -202,7 +202,7 @@ export class Mundo {
     this.composer.addPass(new OutputPass());
 
     // Va después del listener de prepararPantalla: el canvas 2D ya tiene su tamaño nuevo.
-    addEventListener('resize', () => this.ajustarTamano());
+    alRedimensionar(() => this.ajustarTamano());
     this.ajustarTamano();
   }
 
