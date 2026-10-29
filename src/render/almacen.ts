@@ -26,8 +26,6 @@ export interface Ajustes {
    * queda para una mejora futura (Pedro prefiere pedir el nombre siempre).
    */
   nombres: Record<string, string>;
-  /** En el móvil en vertical, se eligió jugar así (sin girarlo): no se vuelve a pedir. */
-  jugarEnVertical: boolean;
   /** Nombre de la última heroína que venció al jefe final: en la partida siguiente es ella quien espera en la Cripta. */
   senora: string;
   /** Ya se enseñaron las pistas de controles de la primera partida. */
@@ -48,7 +46,6 @@ export function cargarAjustes(): Ajustes {
       musica: typeof a?.musica === 'number' && a.musica >= 0 && a.musica <= 1 ? a.musica : 1,
       efectos: typeof a?.efectos === 'number' && a.efectos >= 0 && a.efectos <= 1 ? a.efectos : 1,
       nombres: Object.fromEntries(nombres),
-      jugarEnVertical: a?.jugarEnVertical === true,
       senora: typeof a?.senora === 'string' ? a.senora : '',
       pistasVistas: a?.pistasVistas === true,
       calidadBaja: a?.calidadBaja === true,
@@ -59,7 +56,6 @@ export function cargarAjustes(): Ajustes {
       musica: 1,
       efectos: 1,
       nombres: {},
-      jugarEnVertical: false,
       senora: '',
       pistasVistas: false,
       calidadBaja: false,

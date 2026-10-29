@@ -40,10 +40,8 @@ import type { SalaZona, Zona } from '../core/zona';
 import {
   BOTON_MENU,
   colocarHud,
-  ESCALA_HUD,
   dibujarAviso,
   dibujarBotonMenu,
-  dibujarQuedan,
   dibujarHud,
   type TextosHud,
 } from '../render/hud';
@@ -180,9 +178,6 @@ export class EscenaMapa implements Escena {
   private invulnerable = 0;
   /** Salidas cerradas mientras queden monstruos (bits), y casillas marcadas sólidas por ello. */
   private cerradas = 0;
-  /** Grupos de monstruos que quedan en la sala y su texto (se rehace solo si cambia la cuenta). */
-  private quedan = -1;
-  private textoQuedan = '';
   private bloqueadas: number[] = [];
   /** Azar de la patrulla de los monstruos. */
   private readonly azarMapa: () => number;
@@ -306,7 +301,7 @@ export class EscenaMapa implements Escena {
     if (
       acciones.menu ||
       acciones.info ||
-      dentro(acciones.toqueX / ESCALA_HUD, acciones.toqueY / ESCALA_HUD, BOTON_MENU)
+      dentro(acciones.toqueX / ventana.hud, acciones.toqueY / ventana.hud, BOTON_MENU)
     ) {
       this.o.abrirPausa();
       return;
@@ -423,25 +418,16 @@ export class EscenaMapa implements Escena {
     }
     this.refrescarHud();
     ctx.save();
-    ctx.scale(ESCALA_HUD, ESCALA_HUD);
+    ctx.scale(ventana.hud, ventana.hud);
     dibujarHud(ctx, this.o.luchadora, this.hud);
-    if (this.cerradas) {
-      let vivos = 0;
-      for (const m of this.montada.monstruos) if (m.vivo) vivos++;
-      if (vivos !== this.quedan) {
-        this.quedan = vivos;
-        this.textoQuedan = vivos === 1 ? 'Queda 1 grupo' : `Quedan ${vivos} grupos`;
-      }
-      if (vivos > 0) dibujarQuedan(ctx, this.textoQuedan);
-    }
     if (this.tiempoAviso > 0) dibujarAviso(ctx, this.aviso);
     // El minimapa va encima del fundido: es interfaz, no parte de la sala.
     // A la izquierda de la mochila, como siempre; crece en enteros con el ancho que sobra a los lados de la sala.
     const { width: mw, height: mh } = this.minimapa;
-    const lateral = (ventana.ancho - SALA_ANCHO) / 2 / ESCALA_HUD - 2 * MARGEN_HUD;
+    const lateral = (ventana.ancho - SALA_ANCHO) / 2 / ventana.hud - 2 * MARGEN_HUD;
     const k = Math.max(
       1,
-      Math.min(3, Math.floor(lateral / mw), Math.floor(ventana.alto / 2 / ESCALA_HUD / mh)),
+      Math.min(3, Math.floor(lateral / mw), Math.floor(ventana.alto / 2 / ventana.hud / mh)),
     );
     ctx.drawImage(this.minimapa, BOTON_MENU.x - MARGEN_HUD - mw * k, MARGEN_HUD, mw * k, mh * k);
     dibujarBotonMenu(ctx, this.o.luchadora.puntos > 0);
