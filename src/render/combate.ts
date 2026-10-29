@@ -408,7 +408,7 @@ function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
 }
 
 /** El panel de abajo se dibuja a esta fracción de su tamaño, anclado abajo en el centro; sus medidas son de ese espacio. */
-const PANEL_ESCALA = 0.8;
+const PANEL_ESCALA = 1;
 const ANCLA_PANEL = { x: ANCHO / 2, y: 346 };
 
 /** Punto de la pantalla → el mismo punto en el espacio del panel (para saber qué fila se toca). */
