@@ -21,10 +21,10 @@ export const esTactil = (): boolean => TACTIL.matches;
  */
 export const vista = { ancho: SALA_ANCHO, alto: SALA_ALTO, hud: 1 };
 /**
- * Píxeles CSS por unidad del HUD del mapa: crece con el lado corto de la ventana (lado/300), pero con tope por
+ * Píxeles CSS por unidad del HUD del mapa: crece con el lado corto de la ventana (lado/400), pero con tope por
  * debajo y por arriba, para que en un móvil se lea y en un monitor grande no tape el mapa.
  */
-const HUD_CSS = { divisor: 300, min: 1.25, max: 2.25 };
+const HUD_CSS = { divisor: 400, min: 0.9, max: 2 };
 export const area = { x: 0, y: 0, ancho: ANCHO, alto: ALTO };
 
 let dpr = 1;
@@ -36,6 +36,11 @@ const modos = {
 };
 /** Ancho y alto reales de la ventana. */
 const real = { ancho: 1, alto: 1 };
+/** Quién más debe rehacerse (el 3D) cuando cambia la ventana; se llama tras recalcular las escalas. */
+const alCambiar: (() => void)[] = [];
+export const alRedimensionar = (f: () => void): void => {
+  alCambiar.push(f);
+};
 let reajustar = (): void => {};
 
 /** Escala activa: lo que mide un píxel lógico en píxeles reales. */
@@ -137,10 +142,17 @@ export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingCont
     area.ancho = real.ancho / menu;
     area.alto = real.alto / menu;
     reajustar();
+    for (const f of alCambiar) f();
   };
   reajustar = () => colocarContexto(ctx);
   ajustar();
-  addEventListener('resize', ajustar);
+  // El iPhone da medidas viejas al girar: se repite cuando el giro ya se asentó.
+  let reintento = 0;
+  addEventListener('resize', () => {
+    ajustar();
+    clearTimeout(reintento);
+    reintento = window.setTimeout(ajustar, 300);
+  });
   return ctx;
 }
 

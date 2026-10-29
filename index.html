@@ -85,6 +85,22 @@
         color: #efe9da;
         font: bold 16px monospace;
       }
+      /* Versión nueva publicada: un toque recarga. */
+      #actualizacion {
+        position: fixed;
+        left: 50%;
+        bottom: 12px;
+        transform: translateX(-50%);
+        z-index: 2;
+        padding: 10px 16px;
+        border: 2px solid #9b7fd6;
+        background: #120e20;
+        color: #efe9da;
+        font: bold 14px monospace;
+      }
+      #actualizacion[hidden] {
+        display: none;
+      }
       #girar small {
         font-size: 13px;
         font-weight: normal;
@@ -128,6 +144,9 @@
       <button id="jugar-vertical" type="button">Jugar así igualmente</button>
       <small id="consejo-inicio">Sin barras: Compartir → Añadir a pantalla de inicio</small>
     </div>
+    <button id="actualizacion" type="button" hidden>
+      Hay una versión nueva · toca para recargar
+    </button>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
