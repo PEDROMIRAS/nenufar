@@ -158,3 +158,20 @@ Los cofres de cada zona dan objetos de un nivel (Bosque 1, Ruinas 2, Cripta 3). 
 1. **Reglas nuevas:** fórmula de defensa por porcentaje, nivel máximo 12, rangos de victoria 10 puntos más bajos y más vida de los monstruos, con las tres zonas actuales reequilibradas. Es publicable por sí sola.
 2. Jabalí, cuervo y lobo con su arte definitivo, movidos a sus zonas (sin el Espectro en la Cripta) y las tres zonas reequilibradas otra vez. Es publicable por sí sola.
 3. El Cauce Seco entero en una rama: tileset y 3D, Acólito, Espectro (ya movido), Salamandra, sacerdote, oni, dragón de la zona, historia, bestiario, logros y sonido. Dentro de la rama se puede ir por partes con arte provisional, pero se publica una sola vez, cuando está todo y equilibrado.
+
+## Cambios del 2026-10-30 (tarde)
+
+- **Cuatro entregas para el Cauce Seco**, que se pueden publicar por separado porque la zona no se activa hasta la última: **3a** arte de los monstruos; **3b** la zona (tileset, autotiles, plantillas, aspecto en 3D y sonido); **3c** equipo de nivel 4, textos y rediseño del bestiario; **3d** activar la zona en `zonas.json`, mostrar a los monstruos ocultos, fichas de datos y equilibrado con cuatro zonas.
+- **Las recompensas de los jefes violetas salen del reservorio de cada heroína** (la habilidad y las dos piezas especiales), no de piezas propias de cada jefe. El Monje oni **no necesita pieza ni arte de recompensa nuevos**.
+- **El Dragón negro se mantiene en las cuatro zonas** (los tests exigen que las cuatro variantes compartan sprite) y se hizo más fiero. El dragón de fuego (imagen 6) queda como arte para más adelante: `dragon_fuego`, 64×48, sin datos.
+- **Las fichas de datos de los monstruos nuevos van en la 3d**, junto al equilibrado: si se añadieran antes, el bestiario y «Naturalista» pedirían monstruos que nadie puede encontrar.
+- **Criterio de arte (Pedro):** sobrio y oscuro; los monstruos no deben verse infantiles (nada de ojos grandes y redondos ni de color liso).
+
+## Cambios del 2026-10-30 (noche)
+
+- **Los cinco jefes se rehacen a partir de imágenes de Pedro** (Guardián del Bosque, Golem, Reina Araña, Señor de la Cripta y Rey sin Charca): sobrios, oscuros y amenazantes, sin coronas. Ver `CLAUDE.md` y `docs/previews/todos_monstruos.png`. El Rey Limo pasa a ser un gusano-dragón cubierto de musgo y se llama **«Guardián del Bosque»** (clave `rey_limo`).
+- **La zona (3b) está hecha pero sin activar:** tileset `cauce`, autotiles `lecho` y `lava`, ocho plantillas, aspecto 3D, luz y modelo del brasero, y una pista de música. Imagen de revisión: `docs/previews/cauce_zona_x2.png`.
+- **El mapa 3D de todas las zonas se ve como el arte:** los muros del borde llevan el tile de remate y el de cara (antes, ruido), y los objetos son sprites de pie con su dibujo (antes, modelos de formas sencillas). Decisión de Pedro.
+- **La fuente de descanso se rehízo** con una imagen de Pedro (tres pisos, nenúfares morados): modelo 3D con volumen y texturas recortadas de la imagen, en todas las zonas.
+- **El Señor de la Cripta y el Rey sin Charca** son el mismo personaje antes y después de beber el poder: la espada del Señor arde en morado y el Rey lleva el forro rojo de su capa.
+- **Sin decidir:** si la fuente del descanso del Cauce Seco lleva agua azul (así está).

@@ -21,7 +21,20 @@ LIMO_POSES = {
 }
 
 
-def limo(c, vista, anim, i, corona=False):
+def cuernos(c, x, top, k, sep, alto, color, luz, rama=False):
+    """Dos cuernos curvos que nacen en (x, top) y se abren hacia fuera; con `rama`, con una horquilla."""
+    for lado in (-1, 1):
+        bx = x + lado * sep * 0.5
+        c.poly([(bx - lado * 1.5 * k, top + 2 * k), (bx + lado * 1.5 * k, top + 2 * k),
+                (x + lado * (sep + 1 * k), top - alto * 0.5), (x + lado * (sep + 3 * k), top - alto),
+                (x + lado * sep, top - alto * 0.55), (bx - lado * 1 * k, top - 1 * k)], color)
+        c.line(bx, top + 1 * k, x + lado * (sep + 3 * k), top - alto, luz)
+        if rama:
+            c.line(x + lado * (sep + 0.5 * k), top - alto * 0.4, x + lado * (sep + 6 * k), top - alto * 0.55, color)
+            c.line(x + lado * (sep + 6 * k), top - alto * 0.55, x + lado * (sep + 7 * k), top - alto * 0.85, color)
+
+
+def limo(c, vista, anim, i, jefe=False):
     k = _escala(c)
     sx, sy, dy = LIMO_POSES[anim][i]
     base = c.t - 2
@@ -31,26 +44,31 @@ def limo(c, vista, anim, i, corona=False):
     # Gotas en la base, que se quedan pegadas al suelo.
     c.ellipse(cx - rx * 0.7, base - 1.5 * k, 2.5 * k, 1.8 * k, "cuerpo_s")
     c.ellipse(cx + rx * 0.75, base - 1.2 * k, 2 * k, 1.5 * k, "cuerpo_s")
-    c.ellipse(cx - rx * 0.35, cy - ry * 0.45, 2.2 * k, 1.6 * k, "brillo")
+    if not jefe:
+        c.ellipse(cx - rx * 0.35, cy - ry * 0.45, 2.2 * k, 1.6 * k, "brillo")
     if vista != "espalda":
         desp = 0 if vista == "frente" else rx * 0.35
         sep = rx * 0.38 if vista == "frente" else rx * 0.3
         for ox in (-sep, sep):
             ex = cx + ox + desp
+            if jefe:
+                # Ojos rasgados con ceño y sin brillo, para que no parezca un muñeco
+                s_ = 1 if ox < 0 else -1
+                c.line(ex - 2 * k, cy - 1 * k * s_, ex + 2 * k, cy + 1 * k * s_, "ojo")
+                c.put(ex + 1 * k * (1 if ox > 0 else -1), cy + 0.5 * k * s_, "gema")
+                continue
             c.ellipse(ex, cy, 1.8 * k, 2.4 * k, "ojo")
             c.put(ex - 0.5 * k, cy - 1 * k, "brillo")
         if anim == "atacar" and i == 1:
             c.ellipse(cx + desp, cy + ry * 0.45, 3 * k, 1.6 * k, "boca")
         else:
             c.line(cx + desp - 2 * k, cy + ry * 0.4, cx + desp + 2 * k, cy + ry * 0.4, "boca")
-    if corona:
-        top = cy - ry
-        pts = [(cx - 7 * k, top + 2 * k), (cx - 7 * k, top - 4 * k), (cx - 3.5 * k, top - 1 * k),
-               (cx, top - 6 * k), (cx + 3.5 * k, top - 1 * k), (cx + 7 * k, top - 4 * k),
-               (cx + 7 * k, top + 2 * k)]
-        c.poly(pts, "oro")
-        c.line(cx - 7 * k, top + 1 * k, cx + 7 * k, top + 1 * k, "oro_s")
-        c.put(cx, top - 3 * k, "gema")
+    if jefe:
+        # Cornamenta de ramas retorcidas y boca de dientes: el guardián del bosque
+        if vista != "espalda":
+            for n in range(-4, 5):
+                c.put(cx + desp + n * 1.2 * k, cy + ry * 0.4 + (1 if n % 2 else 0) * k, "diente")
+        cuernos(c, cx, cy - ry + 2 * k, k, 5 * k, 9 * k, "rama", "rama_l", rama=True)
 
 
 # ---------------------------------------------------------------- murciélago
@@ -107,7 +125,7 @@ def _patas(c, cx, cy, k, fase, ancho):
             c.line(rodilla[0], rodilla[1], pie[0], pie[1], "pata")
 
 
-def arana(c, vista, anim, i, corona=False):
+def arana(c, vista, anim, i, jefe=False):
     k = _escala(c)
     fase = {"idle": [0, 0.6], "walk": [0, 1.6, 3.1, 4.7], "atacar": [0, 0, 0], "golpe": [0]}[anim][i]
     alza = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [2, -3, 0], "golpe": [-2]}[anim][i] * k
@@ -122,8 +140,9 @@ def arana(c, vista, anim, i, corona=False):
             c.put(cx + ox * k, cy + oy * k, "ojo")
         # Quelíceros, que se abren al atacar
         abre = 2 * k if anim == "atacar" and i == 1 else 0
-        c.line(cx - 1.5 * k - abre, cy + 5 * k, cx - 1 * k, cy + 7 * k, "pata")
-        c.line(cx + 1.5 * k + abre, cy + 5 * k, cx + 1 * k, cy + 7 * k, "pata")
+        largo = 11 if jefe else 7
+        c.line(cx - 1.5 * k - abre, cy + 5 * k, cx - 1 * k, cy + largo * k, "marca" if jefe else "pata")
+        c.line(cx + 1.5 * k + abre, cy + 5 * k, cx + 1 * k, cy + largo * k, "marca" if jefe else "pata")
     elif vista == "lado":
         c.ellipse(cx - 4 * k, cy - 1 * k, 7 * k, 5.5 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
         c.ellipse(cx + 4.5 * k, cy + 1 * k, 4 * k, 3.5 * k, "cabeza", sombra="cuerpo_s")
@@ -134,12 +153,9 @@ def arana(c, vista, anim, i, corona=False):
         c.ellipse(cx, cy - 3 * k, 7.5 * k, 6.5 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
         # Marca en el abdomen
         c.poly([(cx, cy - 7 * k), (cx + 2 * k, cy - 3 * k), (cx, cy + 1 * k), (cx - 2 * k, cy - 3 * k)], "marca")
-    if corona:
+    if jefe:
         top = cy - 10 * k if vista != "lado" else cy - 6 * k
-        x = cx if vista != "lado" else cx - 4 * k
-        c.poly([(x - 5 * k, top + 2 * k), (x - 5 * k, top - 3 * k), (x - 2 * k, top),
-                (x, top - 4 * k), (x + 2 * k, top), (x + 5 * k, top - 3 * k), (x + 5 * k, top + 2 * k)], "oro")
-        c.put(x, top - 1 * k, "gema")
+        cuernos(c, cx if vista != "lado" else cx - 4 * k, top, k, 4 * k, 6 * k, "marca", "marca_l")
 
 
 # ---------------------------------------------------------------- cuervo
@@ -225,3 +241,92 @@ def cuervo(c, vista, anim, i):
         c.ellipse(cx + s * 4.5 * k, cy + 1 * k, 3.5 * k, 7 * k, "cuerpo_s")
         c.line(cx + s * 4.5 * k, cy - 4 * k, cx + s * 4.5 * k, cy + 6 * k + alas, "cuerpo")
         c.poly([(cx + s * 3 * k, cy - 8 * k), (cx + s * 5 * k, cy - 12 * k), (cx + s * 6 * k, cy - 7 * k)], "cuerpo_s")
+
+
+# ---------------------------------------------------------------- salamandra de brasas
+
+SAL_FASE = {"idle": [0, 0.9], "walk": [0, 1.6, 3.1, 4.7], "atacar": [0, 0, 0], "golpe": [0]}
+SAL_AVANCE = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [0, 0, 0], "golpe": [0]}
+SAL_BOCA = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [0, 1, 0.5], "golpe": [0]}
+SAL_ALTO = {"idle": [0, 1], "walk": [0, -1, 0, -1], "atacar": [0, -1, 0], "golpe": [1]}
+
+
+def salamandra(c, vista, anim, i):
+    """Salamandra carbonizada: cuerpo negruzco y esbelto con grietas de brasa, lomo de púas, cabeza angulosa
+    con cuernos, ojos rasgados y la cola ardiendo. En combate y en el bestiario (vista «frente») se ve de perfil."""
+    k = _escala(c)
+    fase = SAL_FASE[anim][i]
+    avance = SAL_AVANCE[anim][i] * k
+    boca = SAL_BOCA[anim][i] * k
+    alto = SAL_ALTO[anim][i] * k
+    base = c.t - 2
+    lift = [max(0, math.sin(fase + (0 if n % 2 else math.pi))) * 2 * k for n in range(4)]
+    if vista in ("lado", "frente"):
+        tramos = []
+        for n in range(15):
+            t = n / 14
+            x = (5 + t * 12) * k + avance * t
+            y = base - 6 * k + alto + math.sin(fase + t * 5) * 1.8 * k * (1 - t * 0.5)
+            g = (0.9 + 2.5 * math.sin(min(1.0, t * 1.25) * math.pi / 2)) * k
+            tramos.append((x, y, g))
+        # Patas largas y finas, abiertas hacia fuera, con tres garras
+        for n, idx in enumerate((4, 6, 9, 11)):
+            x, y, g = tramos[idx]
+            col = "cuerpo_s" if n % 2 == 0 else "cuerpo"
+            pie = base - lift[n]
+            rodilla = (x + (1 if n < 2 else -0.5) * 2.5 * k * (-1 if n < 2 else 1), y + g + 1.5 * k)
+            c.line(x, y + g * 0.4, rodilla[0], rodilla[1], col)
+            c.line(rodilla[0], rodilla[1], x + (-1 if n < 2 else 1) * 1 * k, pie, col)
+            for dx in (-1, 0, 1):
+                c.put(x + (-1 if n < 2 else 1) * 1 * k + dx * k, pie, "diente")
+        # Cola ardiendo (se dibuja primero: va detrás)
+        x, y, g = tramos[0]
+        alta = 3 + int(round(1.5 * math.sin(fase * 2 + 1)))
+        c.poly([(x - 1 * k, y), (x - 3 * k, y - 2 * k), (x - 2 * k, y - (alta + 1) * k), (x, y - 2.5 * k)], "brasa")
+        c.poly([(x - 1 * k, y - 0.5 * k), (x - 2 * k, y - 2 * k), (x - 1.5 * k, y - alta * k)], "brasa_l")
+        for x, y, g in tramos:
+            c.ellipse(x, y, 2.3 * k, g, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        # Lomo de púas con la punta al rojo, y las grietas de brasa por el costado
+        for n in range(2, 13):
+            x, y, g = tramos[n]
+            punta = 1.8 + (n % 2) * 0.9
+            c.poly([(x - 1 * k, y - g + 0.5 * k), (x, y - g - punta * k), (x + 1 * k, y - g + 0.5 * k)], "cuerpo_s")
+            c.put(x, y - g - (punta - 0.3) * k, "brasa")
+        for n in range(3, 13, 2):
+            x, y, g = tramos[n]
+            c.put(x - 0.5 * k, y + g * 0.1, "brasa")
+            c.put(x + 0.5 * k, y + g * 0.45, "brasa_l")
+        # Cabeza de cuña con cuernos, ojo rasgado, dientes y la boca que se abre al atacar
+        x, y, g = tramos[-1]
+        hx, hy = x + 2.5 * k, y - 0.3 * k
+        c.poly([(hx - 4 * k, hy - 2.5 * k), (hx + 3 * k, hy - 3 * k), (hx + 9.5 * k, hy - 0.5 * k),
+                (hx + 9.5 * k, hy + 0.8 * k), (hx + 2 * k, hy + 2.5 * k), (hx - 4 * k, hy + 2 * k)], "cuerpo")
+        c.poly([(hx - 3 * k, hy + 0.5 * k), (hx + 9 * k, hy + 0.8 * k), (hx + 2 * k, hy + 2.5 * k), (hx - 4 * k, hy + 2 * k)],
+               "cuerpo_s")
+        c.poly([(hx - 3.5 * k, hy - 2.5 * k), (hx - 7.5 * k, hy - 5.5 * k), (hx - 1 * k, hy - 3 * k)], "cuerpo_s")
+        c.put(hx - 7 * k, hy - 5 * k, "brasa")
+        c.line(hx, hy - 2.2 * k, hx + 4 * k, hy - 1.7 * k, "cuerpo_s")
+        c.put(hx + 2 * k, hy - 1.2 * k, "brasa_l")
+        c.put(hx + 3 * k, hy - 1.2 * k, "brasa")
+        if boca > 0:
+            c.poly([(hx + 1.5 * k, hy + 0.8 * k), (hx + 9 * k, hy + 0.8 * k), (hx + 8 * k, hy + 3.5 * k + boca * 2),
+                    (hx + 0.5 * k, hy + 3 * k + boca)], "cuerpo_s")
+            c.poly([(hx + 2.5 * k, hy + 1 * k), (hx + 8 * k, hy + 1 * k), (hx + 7 * k, hy + 3 * k + boca)], "boca")
+            c.put(hx + 5 * k, hy + 2 * k, "brasa")
+            for dx in (3, 5, 7):
+                c.put(hx + dx * k, hy + 1.2 * k, "diente")
+                c.put(hx + (dx - 0.5) * k, hy + 3 * k + boca, "diente")
+        else:
+            c.line(hx + 1.5 * k, hy + 0.8 * k, hx + 9 * k, hy + 0.5 * k, "boca")
+            for dx in (3, 5, 7):
+                c.put(hx + dx * k, hy + 1.3 * k, "diente")
+        return
+    cx = c.t / 2
+    # Espalda: lomo con púas y grietas de brasa, y la cola ardiendo abajo
+    c.ellipse(cx, base - 11 * k + alto, 5 * k, 10 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+    for n in range(6):
+        y = base - 19 * k + n * 3 * k + alto
+        c.poly([(cx - 2 * k, y + 1.5 * k), (cx, y - 1.5 * k), (cx + 2 * k, y + 1.5 * k)], "cuerpo_s")
+        c.put(cx, y - 1 * k, "brasa")
+    c.ellipse(cx, base - 21 * k + alto, 4 * k, 3 * k, "cuerpo", sombra="cuerpo_s")
+    c.poly([(cx - 1.5 * k, base - 1 * k), (cx, base - 4 * k - fase % 2 * k), (cx + 1.5 * k, base - 1 * k)], "brasa_l")

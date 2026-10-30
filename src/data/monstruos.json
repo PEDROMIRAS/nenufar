@@ -558,7 +558,7 @@
     "color": "#262c44"
   },
   "rey_limo": {
-    "nombre": "Rey Limo",
+    "nombre": "Guardián del Bosque",
     "sprite": "monstruos/rey_limo",
     "estadisticas": {
       "pv": 43,
@@ -585,7 +585,7 @@
     "fases": [
       {
         "pvMenorQue": 0.5,
-        "aviso": "¡El Rey Limo se divide en dos!",
+        "aviso": "¡El Guardián del Bosque se retira y suelta dos limos!",
         "transformarEn": [
           "limo_grande",
           "limo_grande"
@@ -857,7 +857,7 @@
       },
       {
         "pvMenorQue": 0.6,
-        "aviso": "¡Bebe el poder del Rey sin Charca y se transforma!",
+        "aviso": "¡El yelmo del Rey sin Charca lo cubre y su espada arde en fuego morado!",
         "transformarEn": [
           "rey_sin_charca"
         ]

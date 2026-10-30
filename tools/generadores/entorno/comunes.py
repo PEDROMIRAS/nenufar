@@ -35,31 +35,66 @@ def chest(opened=False):
     return t
 
 
+PIEDRA = [(30, 34, 48), (52, 58, 76), (84, 92, 112), (124, 132, 152)]  # la piedra de la fuente: azulada y oscura
+AGUA_F = [(34, 78, 150), (64, 140, 214), (120, 204, 248), (214, 244, 255)]
+PISTILO = (255, 170, 120)
+
+
+def _juntas(t, x0, x1, y0, y1):
+    """Piedras de la pared de un piso: juntas oscuras en filas desfasadas, con un filo claro arriba de cada una."""
+    for k, y in enumerate(range(y0, y1, 4)):
+        line(t, x0, y, x1, y, PIEDRA[0])
+        for x in range(x0 + (k % 2) * 5, x1, 10):
+            line(t, x, y, x, min(y + 3, y1), PIEDRA[0])
+            put(t, x + 1, y + 1, PIEDRA[3])
+
+
+def _piso(t, cx, cy, rx, ry, alto):
+    """Un piso: pared de piedra con juntas, borde claro y la lámina de agua dentro."""
+    ellipse(t, cx, cy + alto, rx, ry, [PIEDRA[0], PIEDRA[1], PIEDRA[1]])
+    rect(t, cx - rx, cy, cx + rx, cy + alto, PIEDRA[1])
+    _juntas(t, cx - rx + 1, cx + rx - 1, cy + 3, cy + alto)
+    ellipse(t, cx, cy, rx, ry, [PIEDRA[1], PIEDRA[2], PIEDRA[3]])
+    ellipse(t, cx, cy + 0.6, rx - 5, ry - 2.6, [AGUA_F[0], AGUA_F[1], AGUA_F[1], AGUA_F[2]])
+
+
+def _nenufar(t, cx, cy):
+    """Flor de loto morada con hojas, de unos 9x4 píxeles."""
+    for dx, dy, c in ((-4, 1, VIO[0]), (-3, 1, VIO[1]), (3, 1, VIO[1]), (4, 1, VIO[0]), (-2, 0, VIO[1]), (-1, 0, VIO[2]),
+                      (0, -1, VIO[2]), (1, 0, VIO[2]), (2, 0, VIO[1]), (-1, 1, VIO[1]), (0, 1, VIO[2]), (1, 1, VIO[1]),
+                      (-2, 1, VIO[0]), (2, 1, VIO[0]), (0, 0, VIO[3])):
+        put(t, cx + dx, cy + dy, c)
+    put(t, cx, cy - 2, PISTILO)
+
+
 def fountain(frame):
-    """Fuente de la sala de descanso: 3 casillas de ancho y 2 de alto (96x64)."""
+    """Fuente de la sala de descanso: 3 casillas de ancho y 2 de alto (96x64). Tres pisos de piedra con agua
+    que cae de uno a otro, nenúfares morados y chispas azules (sale de la imagen 14 de las referencias)."""
     t = tile(2 * S, 3 * S)
-    # Pilón ancho con su agua.
-    ellipse(t, 48, 50, 44, 12, ST)
-    ellipse(t, 48, 48.5, 38, 8.5, [WATER[0], WATER[1], WATER[1], WATER[2]])
-    # Columna central y taza de arriba, también con agua.
-    rect(t, 44, 20, 51, 47, ST[2]); line(t, 44, 20, 44, 47, ST[3]); line(t, 51, 20, 51, 47, ST[1])
-    rect(t, 42, 44, 53, 47, ST[1])
-    ellipse(t, 48, 20, 14, 5, ST)
-    ellipse(t, 48, 19, 10.5, 2.8, [WATER[0], WATER[1], WATER[2]])
+    _piso(t, 48, 41, 44, 10, 10)   # el pilón de abajo
+    _piso(t, 48, 30, 30, 7, 7)     # el piso de en medio
+    # Columna y taza de arriba
+    rect(t, 43, 15, 52, 24, PIEDRA[1]); line(t, 43, 15, 43, 24, PIEDRA[3]); line(t, 52, 15, 52, 24, PIEDRA[0])
+    ellipse(t, 48, 14, 14, 4.5, [PIEDRA[1], PIEDRA[2], PIEDRA[3]])
+    ellipse(t, 48, 14.4, 10, 2.6, [AGUA_F[0], AGUA_F[1], AGUA_F[2]])
     outline(t)
-    # Agua que se mueve (sin contorno): chorro, caída por los bordes de la taza y destellos.
-    for k in range(7):
-        put(t, 47 + (frame + k) % 2, 15 - k, WATER[2 + (k % 2)])
+    # Cascadas de un piso al siguiente (sin contorno) y centelleo del agua
     for lado in (-1, 1):
-        for k in range(18):
-            x = 48 + lado * (12 + k * 0.45)
-            put(t, x, 21 + k + (frame + k) % 2, WATER[2 + (k + frame) % 2])
-    chispas = [(22, 46), (70, 49), (34, 52), (60, 45), (48, 53), (14, 49)]
-    for i, (x, y) in enumerate(chispas):
+        for k in range(10):
+            put(t, 48 + lado * 11, 16 + k, AGUA_F[2 + (k + frame) % 2])
+        for dx in (22, 14):
+            for k in range(9):
+                put(t, 48 + lado * dx, 31 + k, AGUA_F[2 + (k + frame) % 2])
+    for x, y in ((20, 41), (74, 40), (32, 45), (62, 46), (40, 31), (57, 30), (48, 14)):
+        _nenufar(t, x, y)
+    for i, (x, y) in enumerate(((16, 39), (80, 42), (28, 33), (68, 32), (36, 47), (60, 44), (46, 29), (52, 28))):
         if (i + frame) % 2 == 0:
-            put(t, x, y, WATER[3])
-    for x, y in ((40, 18), (56, 20)) if frame == 0 else ((43, 20), (53, 18)):
-        put(t, x, y, WATER[3])
+            put(t, x, y, AGUA_F[3])
+    for i, (x, y) in enumerate(((40, 3), (56, 5), (48, 1), (30, 8), (66, 9))):  # chispas sobre la fuente
+        if (i + frame) % 2 == 0:
+            put(t, x, y, AGUA_F[2])
+    for x, y in ((84, 47), (85, 49), (86, 46), (82, 50), (87, 48)):  # hiedra en la pared
+        put(t, x, y, (60, 120, 56))
     ground_shadow(t, 48, 62, 44, 2)
     return t
 

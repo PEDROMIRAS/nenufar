@@ -8,17 +8,20 @@ import zonas from '../src/data/zonas.json';
 import type { PlantillasJson, TilesetJson } from '../src/core/types';
 import type { TipoSala } from '../src/core/zona';
 import bosque from '../src/data/salas/plantillas_bosque.json';
+import cauce from '../src/data/salas/plantillas_cauce.json';
 import cripta from '../src/data/salas/plantillas_cripta.json';
 import ruinas from '../src/data/salas/plantillas_ruinas.json';
 import bosqueAuto from '../public/assets/tilesets/bosque_autotiles.json';
 import bosqueTiles from '../public/assets/tilesets/bosque.json';
+import cauceAuto from '../public/assets/tilesets/cauce_autotiles.json';
+import cauceTiles from '../public/assets/tilesets/cauce.json';
 import comunes from '../public/assets/tilesets/comunes.json';
 import criptaAuto from '../public/assets/tilesets/cripta_autotiles.json';
 import criptaTiles from '../public/assets/tilesets/cripta.json';
 import ruinasAuto from '../public/assets/tilesets/ruinas_autotiles.json';
 import ruinasTiles from '../public/assets/tilesets/ruinas.json';
 
-const ZONAS: Record<string, PlantillasJson> = { bosque, ruinas, cripta };
+const ZONAS: Record<string, PlantillasJson> = { bosque, ruinas, cripta, cauce };
 /** Lado de un tile en píxeles. */
 const TAM = 32;
 const TIPOS: TipoSala[] = ['inicio', 'combate', 'tesoro', 'descanso', 'jefe', 'violeta'];
@@ -27,6 +30,7 @@ const TILESETS = {
   bosque: [bosqueTiles, bosqueAuto],
   ruinas: [ruinasTiles, ruinasAuto],
   cripta: [criptaTiles, criptaAuto],
+  cauce: [cauceTiles, cauceAuto],
 } as unknown as Record<string, [TilesetJson, TilesetJson]>;
 
 describe.each(Object.entries(ZONAS))('plantillas de %s', (zona, plantillas) => {

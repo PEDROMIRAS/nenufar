@@ -1,0 +1,163 @@
+{
+  "tileSize": 32,
+  "columns": 8,
+  "tiles": [
+    {
+      "name": "suelo_liso_a",
+      "index": 0,
+      "layer": "suelo",
+      "solid": false,
+      "weight": 35
+    },
+    {
+      "name": "suelo_liso_b",
+      "index": 1,
+      "layer": "suelo",
+      "solid": false,
+      "weight": 35
+    },
+    {
+      "name": "suelo_grietas",
+      "index": 2,
+      "layer": "suelo",
+      "solid": false,
+      "weight": 15
+    },
+    {
+      "name": "suelo_guijarros",
+      "index": 3,
+      "layer": "suelo",
+      "solid": false,
+      "weight": 10
+    },
+    {
+      "name": "suelo_brasas",
+      "index": 4,
+      "layer": "suelo",
+      "solid": false,
+      "weight": 5
+    },
+    {
+      "name": "muro_norte_a",
+      "index": 5,
+      "layer": "muro",
+      "solid": true
+    },
+    {
+      "name": "muro_norte_b",
+      "index": 6,
+      "layer": "muro",
+      "solid": true
+    },
+    {
+      "name": "muro_norte_c",
+      "index": 7,
+      "layer": "muro",
+      "solid": true
+    },
+    {
+      "name": "muro_a",
+      "index": 8,
+      "layer": "muro",
+      "solid": true
+    },
+    {
+      "name": "muro_b",
+      "index": 9,
+      "layer": "muro",
+      "solid": true
+    },
+    {
+      "name": "puerta_norte_abierta",
+      "index": 10,
+      "layer": "muro",
+      "solid": false
+    },
+    {
+      "name": "puerta_norte_cerrada",
+      "index": 11,
+      "layer": "muro",
+      "solid": true
+    },
+    {
+      "name": "pilar_sup",
+      "index": 12,
+      "layer": "dosel",
+      "solid": false
+    },
+    {
+      "name": "pilar_inf",
+      "index": 13,
+      "layer": "objeto",
+      "solid": true,
+      "caja": [
+        4,
+        19,
+        28,
+        31
+      ]
+    },
+    {
+      "name": "roca",
+      "index": 14,
+      "layer": "objeto",
+      "solid": true,
+      "caja": [
+        4,
+        19,
+        28,
+        31
+      ]
+    },
+    {
+      "name": "columna_rota",
+      "index": 15,
+      "layer": "objeto",
+      "solid": true,
+      "caja": [
+        2,
+        19,
+        31,
+        31
+      ]
+    },
+    {
+      "name": "escombros",
+      "index": 16,
+      "layer": "objeto",
+      "solid": true,
+      "caja": [
+        3,
+        19,
+        30,
+        31
+      ]
+    },
+    {
+      "name": "brasero",
+      "index": 17,
+      "layer": "objeto",
+      "solid": true,
+      "frames": 2,
+      "fps": 4,
+      "caja": [
+        7,
+        19,
+        25,
+        31
+      ]
+    },
+    {
+      "name": "barrera_h",
+      "index": 19,
+      "layer": "objeto",
+      "solid": true
+    },
+    {
+      "name": "barrera_v",
+      "index": 20,
+      "layer": "objeto",
+      "solid": true
+    }
+  ]
+}

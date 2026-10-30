@@ -130,7 +130,7 @@ export interface OpcionesMapa {
   /** Estadísticas de combate de la heroína y nombre de la zona, para el HUD. */
   luchadora: Luchador;
   nombreZona: string;
-  /** Segundos que llueve al vencer al jefe de la zona (el Rey Limo devuelve la lluvia); 0, nada. */
+  /** Segundos que llueve al vencer al jefe de la zona (el Guardián del Bosque devuelve la lluvia); 0, nada. */
   lluviaTrasJefe: number;
   /** Pistas de controles que se enseñan una tras otra al empezar (solo la primera vez), y cuánto dura cada una. */
   pistas: readonly string[];

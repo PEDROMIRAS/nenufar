@@ -35,7 +35,7 @@ Cada zona tiene un cartel al entrar (nombre y una o dos líneas) y su jefe dice 
 
 > Aquí cayó la última lluvia antes del eclipse. El agua se pudre entre los árboles.
 
-**Rey Limo.** Era el espíritu de la lluvia; el agua podrida del eclipse lo ha convertido en un monstruo.
+**Guardián del Bosque (antes «Rey Limo»; clave `rey_limo`).** Era el espíritu de la lluvia; el agua podrida del eclipse lo ha convertido en un monstruo.
 
 - Al empezar: «El agua... es... mía.»
 - Al caer: «La lluvia... recuerdo... la lluvia...» (la lluvia vuelve un momento y deja ver el camino a las Ruinas)
@@ -120,4 +120,4 @@ Una línea antes del resumen: «Esa noche, la luna no volvió a encenderse.»
 - Cada página es una pantalla de texto sobre fondo oscuro, sin ilustración; se pasa con Enter o un toque. Las frases de los jefes también: una pantalla con su nombre antes del combate y otra al caer (antes de la subida de nivel).
 - El cartel de cada zona sale al entrar en ella; el HUD sigue diciendo «Bosque».
 - **El ciclo:** quien vence al jefe final ocupa su lugar. Su nombre se guarda en el navegador y en la partida siguiente el jefe final es «<nombre>, Señora de la Cripta». Solo cuenta ganar; sin victorias previas es el Señor de la Cripta.
-- Al caer el Rey Limo llueve unos segundos sobre el mapa (`lluvia` en su jefe de `historia.json`; con menos movimiento, solo se oscurece).
+- Al caer el Guardián del Bosque llueve unos segundos sobre el mapa (`lluvia` en su jefe de `historia.json`; con menos movimiento, solo se oscurece).

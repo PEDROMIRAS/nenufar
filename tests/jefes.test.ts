@@ -30,7 +30,7 @@ describe('jefes', () => {
     expect(puedeHuir(contra('rey_limo'))).toBe(false);
   });
 
-  test('el Rey Limo, al bajar del 50 %, se retira y aparecen dos Limos grandes', () => {
+  test('el Guardián del Bosque, al bajar del 50 %, se retira y aparecen dos Limos grandes', () => {
     const c = contra('rey_limo');
     const rey = c.enemigos[0]!;
     rey.pv = 31; // un golpe de (30 − 2,5) = 27 lo deja en 4: por debajo de 30
@@ -38,7 +38,7 @@ describe('jefes', () => {
     expect(eventos).toContainEqual({
       tipo: 'aviso',
       actor: rey,
-      texto: '¡El Rey Limo se divide en dos!',
+      texto: '¡El Guardián del Bosque se retira y suelta dos limos!',
       retira: true,
     });
     expect(rey.pv).toBe(0);
