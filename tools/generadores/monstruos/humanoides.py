@@ -5,7 +5,7 @@ poses (`_bipedo`); cada uno pone su cabeza, torso y arma.
 """
 import math
 
-from criaturas import corona_hierro
+from criaturas import cuernos
 
 # Por animación y fotograma: balanceo vertical, zancada, ángulo del brazo del arma (90 = colgando,
 # 0 = al frente, -90 = arriba) y ángulo del arma (-90 = hacia arriba).
@@ -167,7 +167,7 @@ def _capucha(c, x, y, vista, k, p):
         for s in ((-1, 1) if vista == "frente" else (0,)):
             c.put(fx + s * 1.3 * k, y + 0.5 * k, "ojo")
     top = y - 5 * k
-    corona_hierro(c, x, top, k, 4)
+    cuernos(c, x, top, k, 3 * k, 4 * k, "hueso", "hueso_l")
 
 
 def _manto(c, cx, hombro, cadera, vista, k, p):

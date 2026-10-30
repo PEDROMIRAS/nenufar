@@ -21,22 +21,20 @@ LIMO_POSES = {
 }
 
 
-def corona_hierro(c, x, top, k, ancho=5):
-    """Corona de hierro oscuro con puntas desiguales y una brasa, nada de oro liso."""
-    a = ancho * k
-    alturas = [(-1, 4), (-0.45, 8), (0.1, 5), (0.6, 9), (1, 4)]
-    pts = [(x - a, top + 2 * k)]
-    for n, (f, h) in enumerate(alturas):
-        pts.append((x + f * a, top - h * k * 0.8))
-        if n < len(alturas) - 1:
-            pts.append((x + (f + alturas[n + 1][0]) / 2 * a, top - 0.5 * k))
-    pts.append((x + a, top + 2 * k))
-    c.poly(pts, "oro")
-    c.line(x - a, top + 1 * k, x + a, top + 1 * k, "oro_s")
-    c.put(x + 0.1 * a, top - 1 * k, "gema")
+def cuernos(c, x, top, k, sep, alto, color, luz, rama=False):
+    """Dos cuernos curvos que nacen en (x, top) y se abren hacia fuera; con `rama`, con una horquilla."""
+    for lado in (-1, 1):
+        bx = x + lado * sep * 0.5
+        c.poly([(bx - lado * 1.5 * k, top + 2 * k), (bx + lado * 1.5 * k, top + 2 * k),
+                (x + lado * (sep + 1 * k), top - alto * 0.5), (x + lado * (sep + 3 * k), top - alto),
+                (x + lado * sep, top - alto * 0.55), (bx - lado * 1 * k, top - 1 * k)], color)
+        c.line(bx, top + 1 * k, x + lado * (sep + 3 * k), top - alto, luz)
+        if rama:
+            c.line(x + lado * (sep + 0.5 * k), top - alto * 0.4, x + lado * (sep + 6 * k), top - alto * 0.55, color)
+            c.line(x + lado * (sep + 6 * k), top - alto * 0.55, x + lado * (sep + 7 * k), top - alto * 0.85, color)
 
 
-def limo(c, vista, anim, i, corona=False):
+def limo(c, vista, anim, i, jefe=False):
     k = _escala(c)
     sx, sy, dy = LIMO_POSES[anim][i]
     base = c.t - 2
@@ -46,14 +44,14 @@ def limo(c, vista, anim, i, corona=False):
     # Gotas en la base, que se quedan pegadas al suelo.
     c.ellipse(cx - rx * 0.7, base - 1.5 * k, 2.5 * k, 1.8 * k, "cuerpo_s")
     c.ellipse(cx + rx * 0.75, base - 1.2 * k, 2 * k, 1.5 * k, "cuerpo_s")
-    if not corona:
+    if not jefe:
         c.ellipse(cx - rx * 0.35, cy - ry * 0.45, 2.2 * k, 1.6 * k, "brillo")
     if vista != "espalda":
         desp = 0 if vista == "frente" else rx * 0.35
         sep = rx * 0.38 if vista == "frente" else rx * 0.3
         for ox in (-sep, sep):
             ex = cx + ox + desp
-            if corona:
+            if jefe:
                 # Ojos rasgados con ceño y sin brillo, para que no parezca un muñeco
                 s_ = 1 if ox < 0 else -1
                 c.line(ex - 2 * k, cy - 1 * k * s_, ex + 2 * k, cy + 1 * k * s_, "ojo")
@@ -65,8 +63,12 @@ def limo(c, vista, anim, i, corona=False):
             c.ellipse(cx + desp, cy + ry * 0.45, 3 * k, 1.6 * k, "boca")
         else:
             c.line(cx + desp - 2 * k, cy + ry * 0.4, cx + desp + 2 * k, cy + ry * 0.4, "boca")
-    if corona:
-        corona_hierro(c, cx, cy - ry, k, 7)
+    if jefe:
+        # Cornamenta de ramas retorcidas y boca de dientes: el guardián del bosque
+        if vista != "espalda":
+            for n in range(-4, 5):
+                c.put(cx + desp + n * 1.2 * k, cy + ry * 0.4 + (1 if n % 2 else 0) * k, "diente")
+        cuernos(c, cx, cy - ry + 2 * k, k, 5 * k, 9 * k, "rama", "rama_l", rama=True)
 
 
 # ---------------------------------------------------------------- murciélago
@@ -123,7 +125,7 @@ def _patas(c, cx, cy, k, fase, ancho):
             c.line(rodilla[0], rodilla[1], pie[0], pie[1], "pata")
 
 
-def arana(c, vista, anim, i, corona=False):
+def arana(c, vista, anim, i, jefe=False):
     k = _escala(c)
     fase = {"idle": [0, 0.6], "walk": [0, 1.6, 3.1, 4.7], "atacar": [0, 0, 0], "golpe": [0]}[anim][i]
     alza = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [2, -3, 0], "golpe": [-2]}[anim][i] * k
@@ -138,8 +140,9 @@ def arana(c, vista, anim, i, corona=False):
             c.put(cx + ox * k, cy + oy * k, "ojo")
         # Quelíceros, que se abren al atacar
         abre = 2 * k if anim == "atacar" and i == 1 else 0
-        c.line(cx - 1.5 * k - abre, cy + 5 * k, cx - 1 * k, cy + 7 * k, "pata")
-        c.line(cx + 1.5 * k + abre, cy + 5 * k, cx + 1 * k, cy + 7 * k, "pata")
+        largo = 11 if jefe else 7
+        c.line(cx - 1.5 * k - abre, cy + 5 * k, cx - 1 * k, cy + largo * k, "marca" if jefe else "pata")
+        c.line(cx + 1.5 * k + abre, cy + 5 * k, cx + 1 * k, cy + largo * k, "marca" if jefe else "pata")
     elif vista == "lado":
         c.ellipse(cx - 4 * k, cy - 1 * k, 7 * k, 5.5 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
         c.ellipse(cx + 4.5 * k, cy + 1 * k, 4 * k, 3.5 * k, "cabeza", sombra="cuerpo_s")
@@ -150,9 +153,9 @@ def arana(c, vista, anim, i, corona=False):
         c.ellipse(cx, cy - 3 * k, 7.5 * k, 6.5 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
         # Marca en el abdomen
         c.poly([(cx, cy - 7 * k), (cx + 2 * k, cy - 3 * k), (cx, cy + 1 * k), (cx - 2 * k, cy - 3 * k)], "marca")
-    if corona:
+    if jefe:
         top = cy - 10 * k if vista != "lado" else cy - 6 * k
-        corona_hierro(c, cx if vista != "lado" else cx - 4 * k, top, k, 5)
+        cuernos(c, cx if vista != "lado" else cx - 4 * k, top, k, 4 * k, 6 * k, "marca", "marca_l")
 
 
 # ---------------------------------------------------------------- cuervo
