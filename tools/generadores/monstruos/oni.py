@@ -16,13 +16,12 @@ W, H = 48, 48
 OUT = (8, 4, 10)
 REFERENCIA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "docs", "superpowers",
                           "mockups", "cauce-seco-referencias", "7-oni.jpg")
-ANCHO = 27
+ANCHO = 28
 # La sombra del suelo de la imagen (dos tonos de marrón grisáceo) también cuenta como fondo.
 SOMBRAS = [(160, 133, 122), (175, 148, 137)]
 MASCARA = [(150, 142, 128), (226, 220, 204), (244, 240, 228)]
 HUECO = (10, 6, 10)
-CUERNO = [(96, 22, 20), (156, 44, 32), (236, 190, 150)]  # rojo oscuro, el lado iluminado y la punta clara
-ARRIBA = 4  # filas vacías que se añaden por encima para las puntas de los cuernos
+ARRIBA = 3  # filas vacías que se añaden por encima para las puntas de los cuernos
 CARA = (0.4375, 0.143)  # dónde está la cabeza, como fracción del ancho y del alto de la pose
 LLAMA = [None, (255, 168, 52)]  # el segundo tono de las llamas (el primero es el de la imagen)
 
@@ -39,8 +38,8 @@ def _es_llama(c):
 
 
 def _calavera(grid):
-    """Repinta la máscara de calavera: ancha y angulosa, con la frente plana, dos cuencas oblicuas, la boca abierta con
-    dientes y, en las dos esquinas de arriba de la propia máscara, dos cuernos gruesos de rojo oscuro con la punta clara."""
+    """Repinta la máscara de calavera: angulosa, con la frente plana, dos cuencas oblicuas, la boca abierta con
+    dientes y, en las dos esquinas de arriba de la propia máscara, dos cuernos blancos del mismo hueso."""
     alto, ancho = len(grid), len(grid[0])
     cx, cy = round(CARA[0] * ancho), round(CARA[1] * (alto - ARRIBA)) + ARRIBA
 
@@ -48,27 +47,26 @@ def _calavera(grid):
         if 0 <= y < alto and 0 <= x < ancho:
             grid[y][x] = c
 
-    # Máscara: de la frente (11 de ancho) al mentón (5), con el borde más oscuro
-    for fila, medio in enumerate((5, 5, 5, 4, 4, 4, 3, 3, 2)):
+    # Máscara: de la frente (9 de ancho) al mentón (5), con el borde más oscuro
+    for fila, medio in enumerate((4, 4, 4, 3, 3, 3, 2, 2)):
         y = cy - 3 + fila
         for dx in range(-medio, medio + 1):
             pon(cx + dx, y, MASCARA[0] if abs(dx) == medio else (MASCARA[2] if fila < 3 else MASCARA[1]))
-    pon(cx, cy - 3, MASCARA[0]); pon(cx + 1, cy - 2, MASCARA[0]); pon(cx - 2, cy - 2, MASCARA[0])  # grietas de la frente
+    pon(cx, cy - 3, MASCARA[0]); pon(cx + 1, cy - 2, MASCARA[0])  # grietas de la frente
     # Cuencas oblicuas (más altas por fuera) y nariz
     for s in (-1, 1):
-        pon(cx + s * 4, cy - 1, HUECO); pon(cx + s * 3, cy - 1, HUECO); pon(cx + s * 2, cy - 1, HUECO)
-        pon(cx + s * 3, cy, HUECO); pon(cx + s * 2, cy, HUECO)
-    pon(cx, cy + 1, HUECO); pon(cx, cy + 2, HUECO)
+        pon(cx + s * 3, cy - 1, HUECO); pon(cx + s * 2, cy - 1, HUECO)
+        pon(cx + s * 2, cy, HUECO); pon(cx + s * 1, cy, HUECO)
+    pon(cx, cy + 1, HUECO)
     # Boca abierta con dientes
-    for dx in (-2, -1, 0, 1, 2):
-        pon(cx + dx, cy + 3, HUECO)
-        pon(cx + dx, cy + 4, MASCARA[2] if dx % 2 == 0 else HUECO)
-    # Cuernos: nacen en las esquinas de arriba de la máscara, gruesos, suben abriéndose y acaban en punta clara
-    cuerno = [(4, -4, 0), (5, -4, 0), (6, -4, 1), (5, -5, 0), (6, -5, 0), (7, -5, 1), (6, -6, 0), (7, -6, 1),
-              (6, -7, 0), (7, -7, 1), (7, -8, 0), (7, -9, 2)]
+    for dx in (-1, 0, 1):
+        pon(cx + dx, cy + 2, HUECO)
+        pon(cx + dx, cy + 3, MASCARA[2] if dx % 2 == 0 else HUECO)
+    # Cuernos blancos: nacen en las esquinas de arriba de la máscara y suben abriéndose, con la punta clara
+    cuerno = [(4, -4, 1), (5, -4, 0), (4, -5, 1), (5, -5, 0), (5, -6, 1), (6, -6, 0), (5, -7, 1), (6, -7, 0), (6, -8, 1)]
     for s in (-1, 1):
         for dx, dy, tono in cuerno:
-            pon(cx + s * dx, cy + dy, CUERNO[tono])
+            pon(cx + s * dx, cy + dy, MASCARA[1 + tono] if tono == 1 else MASCARA[0] if dx == 6 else MASCARA[1])
 
 
 def _pose():
