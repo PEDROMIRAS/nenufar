@@ -20,6 +20,7 @@ from lienzo import Lienzo  # noqa: E402
 import criaturas  # noqa: E402
 import humanoides  # noqa: E402
 import espectro  # noqa: E402
+import jabali  # noqa: E402
 import golem  # noqa: E402
 import rey_sin_charca  # noqa: E402
 import arbol_maldito  # noqa: E402
@@ -56,8 +57,6 @@ MONSTRUOS = {
     "murcielago": (32, paleta(cuerpo=(112, 86, 132), cuerpo_s=(74, 54, 92), cuerpo_l=(150, 124, 168),
                               ala=(90, 66, 110), ala_s=(58, 40, 74), ojo=(226, 60, 70), diente=(240, 236, 220)),
                    criaturas.murcielago, {}),
-    "jabali": (32, paleta(cuerpo=(138, 82, 56), cuerpo_s=(105, 53, 35), cuerpo_l=(160, 105, 75), pua=(84, 35, 22),
-                          colmillo=(232, 214, 184), boca=(138, 90, 154), pezuna=(206, 176, 140)), criaturas.jabali, {}),
     "cuervo": (32, paleta(cuerpo=(48, 44, 58), cuerpo_s=(33, 31, 45), cuerpo_l=(92, 83, 108), pico=(116, 98, 92),
                           adorno=(122, 82, 48), ojo=(255, 214, 120), brillo=(255, 248, 214)), criaturas.cuervo, {}),
     "lobo": (32, paleta(pelo=(40, 50, 84), pelo_s=(18, 25, 44), pelo_l=(78, 92, 136), rojo=(204, 40, 48),
@@ -81,6 +80,7 @@ MONSTRUOS = {
 # Monstruos dibujados con su propio módulo (más detalle que el Lienzo): (ancho, alto, módulo).
 # Cada módulo da `fotograma(direccion, anim, i)` como array RGBA con los pies en (ancho/2, alto-2).
 PROPIOS = {
+    "jabali": (32, 32, jabali),
     "espectro": (32, 32, espectro),
     "golem": (48, 48, golem),
     "rey_sin_charca": (64, 48, rey_sin_charca),
