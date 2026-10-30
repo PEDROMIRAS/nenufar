@@ -384,10 +384,13 @@ export interface Hd2dJson {
   /** Lo que queda entre la cámara y la heroína se vuelve transparente: radio en casillas alrededor de ella, casillas por delante desde las que empieza y opacidad que se quita como mucho. */
   transparencia: { radio: number; margen: number; maximo: number };
   fuente: {
-    /** Cuánto baja la fuente dentro de su casilla central y semiejes de la elipse con la que choca, en casillas. */
+    /** Cuánto baja la fuente dentro de su casilla central y semiejes de su base (y de la elipse con la que choca), en casillas. */
     centroZ: number;
     radioX: number;
     radioZ: number;
+    /** Chispas que suben de la taza y su ritmo (cuanto mayor, más despacio). */
+    gotas: number;
+    vidaGota: number;
   };
   /**
    * Portada: una sala de una zona en 3D con las ranas y dos monstruos. `encuadre`, punto al que mira la cámara
