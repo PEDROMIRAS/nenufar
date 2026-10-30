@@ -22,6 +22,7 @@ import humanoides  # noqa: E402
 import espectro  # noqa: E402
 import jabali  # noqa: E402
 import acolito  # noqa: E402
+import sacerdote  # noqa: E402
 import reducir  # noqa: E402
 import golem  # noqa: E402
 import rey_sin_charca  # noqa: E402
@@ -87,6 +88,7 @@ MONSTRUOS = {
 PROPIOS = {
     "jabali": (32, 32, jabali),
     "acolito": (32, 32, acolito),
+    "sacerdote": (48, 48, sacerdote),
     "espectro": (32, 32, espectro),
     "golem": (48, 48, golem),
     "rey_sin_charca": (64, 48, rey_sin_charca),
