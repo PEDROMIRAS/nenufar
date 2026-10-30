@@ -18,8 +18,8 @@ export interface Mundo {
 export const monstruosDelMundo = (monstruos: Readonly<Record<string, MonstruoJson>>): string[] =>
   Object.keys(monstruos).filter((k) => !monstruos[k]!.oculto);
 
-/** Casillas de la rejilla del bestiario (3 filas de 6). */
-export const CASILLAS_BESTIARIO = 18;
+/** Casillas de la rejilla del bestiario (3 filas de 7). */
+export const CASILLAS_BESTIARIO = 21;
 
 /**
  * Fichas del bestiario, en el orden de monstruos.json: los normales siempre (vencidos o no) y los

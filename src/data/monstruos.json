@@ -457,6 +457,7 @@
       }
     ],
     "jefe": false,
+    "oculto": true,
     "experiencia": 26,
     "botin": [
       {

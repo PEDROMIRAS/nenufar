@@ -71,6 +71,32 @@
             "murcielago"
           ],
           "peso": 2
+        },
+        {
+          "monstruos": [
+            "jabali"
+          ],
+          "peso": 2
+        },
+        {
+          "monstruos": [
+            "cuervo"
+          ],
+          "peso": 2
+        },
+        {
+          "monstruos": [
+            "cuervo",
+            "limo"
+          ],
+          "peso": 1
+        },
+        {
+          "monstruos": [
+            "jabali",
+            "murcielago"
+          ],
+          "peso": 1
         }
       ]
     },
@@ -166,15 +192,21 @@
         },
         {
           "monstruos": [
-            "espectro",
+            "lobo",
             "caballero"
           ],
           "peso": 2
         },
         {
           "monstruos": [
-            "espectro",
+            "lobo",
             "arana"
+          ],
+          "peso": 2
+        },
+        {
+          "monstruos": [
+            "lobo"
           ],
           "peso": 2
         },
