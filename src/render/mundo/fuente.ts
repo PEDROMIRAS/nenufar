@@ -16,7 +16,10 @@ function cargar(nombre: string, repetirX: number, repetirY: number): THREE.Textu
   const tex = new THREE.TextureLoader().load(`${BASE}assets/sprites/fuente/${nombre}.png`);
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   tex.repeat.set(repetirX, repetirY);
-  ajustarPixelArt(tex);
+  // Como ajustarPixelArt, pero sin marcarla para actualizar: la imagen todavía no ha cargado
+  tex.magFilter = tex.minFilter = THREE.NearestFilter;
+  tex.generateMipmaps = false;
+  tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
 }
 
