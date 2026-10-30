@@ -5,8 +5,10 @@ Su pose sale de la imagen de referencia (la 11) con `reducir.py`; aquí se anima
 Hoja del repo: idle (2: respira), walk (4: se mece), atacar (3: se echa atrás, se lanza y vuelve) y golpe (1:
 recula). Todas las filas son la misma vista."""
 import os
+import tempfile
 
 import numpy as np
+from PIL import Image
 
 import reducir
 
@@ -14,13 +16,13 @@ W, H = 48, 48
 OUT = (10, 8, 12)
 REFERENCIA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "docs", "superpowers",
                           "mockups", "cauce-seco-referencias", "11-senor-cripta.png")
-ANCHO = 21
+ANCHO = 28
+COMPRESION = 0.75  # la figura es el doble de alta que de ancha: se comprime a lo alto para ganar píxeles de ancho
 # Paleta fija: casi todo es negro, y sin ella los grises y el rojo se hunden en un negro liso
-PALETA = {"negro": (20, 18, 24), "carbon": (44, 42, 52), "acero_s": (72, 70, 84), "acero": (112, 110, 126),
-          "acero_l": (170, 170, 184), "hueso": (214, 208, 196), "rojo_s": (96, 20, 30), "rojo": (170, 34, 44),
-          "cuero": (112, 78, 48)}
-
-CARA = (7, 3)  # esquina de la cara en la pose reducida
+PALETA = {"negro": (34, 30, 42), "carbon": (62, 58, 74), "acero_s": (92, 90, 108), "acero": (138, 136, 156),
+          "acero_l": (196, 196, 210), "hueso": (226, 220, 206), "rojo_s": (110, 24, 34), "rojo": (190, 40, 50),
+          "cuero": (124, 88, 54)}
+CARA = (11, 3)  # esquina de la cara en la pose reducida
 
 DY = {"idle": [0, 1], "walk": [0, 1, 0, 1], "atacar": [-1, 1, 0], "golpe": [0]}
 DX = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [-1, 2, 0], "golpe": [-2]}
@@ -31,12 +33,18 @@ _BASE = None
 def _pose():
     global _BASE
     if _BASE is None:
-        grid = reducir.pose(REFERENCIA, ANCHO, brillo=1.6, saturacion=1.3, contraste=1.1, umbral=40, paleta=PALETA)
+        im = Image.open(REFERENCIA).convert("RGB")
+        im = im.resize((im.width, round(im.height * COMPRESION)), Image.LANCZOS)
+        with tempfile.TemporaryDirectory() as d:
+            ruta = os.path.join(d, "senor.png")
+            im.save(ruta)
+            grid = reducir.pose(ruta, ANCHO, brillo=1.8, saturacion=1.3, contraste=1.15, umbral=40, paleta=PALETA)
         # La cara de calavera, dibujada a mano: al reducir la imagen se pierde en la capucha
-        for y, fila in enumerate(("..hh..", ".hhhh.", ".nhhn.", ".hhhh.", "..hnh.")):
+        colores = {"n": "negro", "h": "hueso", "r": "rojo"}
+        for y, fila in enumerate(("nnnnnn", "nhhhhn", "nhrhrn", "nhhhhn", "nnhhnn", "..nn..")):
             for x, c in enumerate(fila):
                 if c != ".":
-                    grid[CARA[1] + y][CARA[0] + x] = PALETA["hueso" if c == "h" else "negro"]
+                    grid[CARA[1] + y][CARA[0] + x] = PALETA[colores[c]]
         _BASE = reducir.con_contorno(grid, OUT)
     return _BASE
 
