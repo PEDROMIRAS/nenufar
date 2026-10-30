@@ -91,12 +91,19 @@ def _pegar(lienzo, sal, x0, y0):
                 lienzo[py, px] = _rgb(k) + (255,)
 
 
-def _pata(lienzo, x, y_pie, alza):
-    """Pata corta y gruesa con pezuña clara, que se levanta `alza` píxeles."""
+def _pata(lienzo, x, y_pie, alza, clave):
+    """Pata gruesa de 3 píxeles con contorno y pezuña clara, que se levanta `alza` píxeles."""
+    y = y_pie - alza
+    for yy in range(y - 3, y):
+        lienzo[yy, x - 1] = OUT + (255,)
+        lienzo[yy, x + 3] = OUT + (255,)
+        for xx in (x, x + 1, x + 2):
+            lienzo[yy, xx] = PALETA[clave] + (255,)
     for xx in (x, x + 1, x + 2):
-        lienzo[y_pie - 1 - alza, xx] = PALETA["sombra"] + (255,)
-        lienzo[y_pie - alza, xx] = PALETA["colmillo"] + (255,)
-        lienzo[y_pie - 2 - alza, xx] = OUT + (255,)
+        lienzo[y, xx] = PALETA["colmillo"] + (255,)
+        lienzo[y + 1, xx] = OUT + (255,)
+    lienzo[y, x - 1] = OUT + (255,)
+    lienzo[y, x + 3] = OUT + (255,)
 
 
 BOB = {"idle": [0, 1], "walk": [0, -1, 0, -1], "atacar": [0, 1, 0], "golpe": [0]}
@@ -111,24 +118,27 @@ def fotograma(direccion, anim, i):
     alto, ancho = len(sal), len(sal[0])
     bob = BOB[anim][i]
     # Los pies (pezuñas) tocan la fila 30; el cuerpo, bajo y gordo, casi las tapa.
-    y0 = 28 - (alto - 1) + bob
+    y0 = 26 - (alto - 1) + bob
     if direccion == "up":
         # De espaldas: la misma pose estrechada, con el rabo en el centro.
         estrecha = [[sal[y][int(x * ancho / 15)] for x in range(15)] for y in range(alto)]
         x0 = 16 - 8
         _pegar(lienzo, estrecha, x0, y0)
         alza = ALZA[anim][i]
-        _pata(lienzo, 9, 30, alza[0])
-        _pata(lienzo, 19, 30, alza[1])
+        _pata(lienzo, 10, 30, alza[0], "sombra")
+        _pata(lienzo, 19, 30, alza[1], "sombra")
         return lienzo
     x0 = 1 + AVANCE[anim][i]
+    alza = ALZA[anim][i]
+    # (desplazamiento, color, índice de alza): las dos patas lejanas, más oscuras, van detrás del cuerpo.
+    patas = [(3, "oscuro", 0), (14, "oscuro", 2), (8, "sombra", 1), (19, "sombra", 3)]
     if direccion == "left":
         sal = [fila[::-1] for fila in sal]
         x0 = 32 - ancho - 1 - AVANCE[anim][i]
-    alza = ALZA[anim][i]
-    if direccion == "left":
-        alza = alza[::-1]
+        patas = [(ancho - 3 - d, c, n) for d, c, n in patas]
+    for d, clave, n in patas[:2]:
+        _pata(lienzo, x0 + d, 30, alza[n], clave)
     _pegar(lienzo, sal, x0, y0)
-    for n, px in enumerate((x0 + 4, x0 + 9, x0 + 16, x0 + 21)):
-        _pata(lienzo, px, 30, alza[n])
+    for d, clave, n in patas[2:]:
+        _pata(lienzo, x0 + d, 30, alza[n], clave)
     return lienzo
