@@ -116,9 +116,9 @@
     "nombre": "Jabalí",
     "sprite": "monstruos/jabali",
     "estadisticas": {
-      "pv": 30,
+      "pv": 25,
       "pm": 0,
-      "ataque": 9,
+      "ataque": 7,
       "magia": 0,
       "defensa": 5,
       "velocidad": 3
@@ -177,7 +177,7 @@
     "estadisticas": {
       "pv": 11,
       "pm": 0,
-      "ataque": 7,
+      "ataque": 6,
       "magia": 0,
       "defensa": 1,
       "velocidad": 11
@@ -498,12 +498,12 @@
     "nombre": "Lobo",
     "sprite": "monstruos/lobo",
     "estadisticas": {
-      "pv": 70,
+      "pv": 54,
       "pm": 0,
-      "ataque": 20,
+      "ataque": 15,
       "magia": 0,
       "defensa": 8,
-      "velocidad": 10
+      "velocidad": 8
     },
     "acciones": [
       {
