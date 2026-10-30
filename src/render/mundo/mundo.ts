@@ -455,7 +455,7 @@ export class Mundo {
       if (elemento.actualizar) v.animados.set(o, elemento.actualizar);
       obj = elemento.grupo;
     } else {
-      const modelo = crearModelo(o.inf, imagenes, tam, z.bosque, v.azar);
+      const modelo = z.aspecto.modelos ? crearModelo(o.inf, imagenes, tam, z.bosque, v.azar) : null;
       if (modelo) {
         // Plantado en el centro de su caja de choque, así la colisión no cambia.
         const [x0, y0, x1, y1] = o.inf.caja ?? [0, 0, tam, tam];
