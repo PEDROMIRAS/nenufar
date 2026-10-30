@@ -17,7 +17,9 @@ PROPS = {"T": "arbol", "P": "pino", "r": "roca", "b": "arbusto", "o": "tocon",
          # Ruinas
          "I": "columna", "i": "columna_rota", "e": "escombros", "v": "vasija",
          # Cripta
-         "Y": "pilar", "L": "lapida", "S": "sarcofago", "c": "candelabro"}
+         "Y": "pilar", "L": "lapida", "S": "sarcofago", "c": "candelabro",
+         # Cauce Seco (comparte Y pilar, r roca, i columna rota y e escombros)
+         "B": "brasero"}
 BOSQUE_AUTO = {":": "camino", "~": "agua"}
 BOSQUE_FLOOR = [("suelo_liso", 85), ("suelo_hierba", 15)]
 WALLS = set("#NDC")
