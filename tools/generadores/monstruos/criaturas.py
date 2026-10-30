@@ -21,6 +21,21 @@ LIMO_POSES = {
 }
 
 
+def corona_hierro(c, x, top, k, ancho=5):
+    """Corona de hierro oscuro con puntas desiguales y una brasa, nada de oro liso."""
+    a = ancho * k
+    alturas = [(-1, 4), (-0.45, 8), (0.1, 5), (0.6, 9), (1, 4)]
+    pts = [(x - a, top + 2 * k)]
+    for n, (f, h) in enumerate(alturas):
+        pts.append((x + f * a, top - h * k * 0.8))
+        if n < len(alturas) - 1:
+            pts.append((x + (f + alturas[n + 1][0]) / 2 * a, top - 0.5 * k))
+    pts.append((x + a, top + 2 * k))
+    c.poly(pts, "oro")
+    c.line(x - a, top + 1 * k, x + a, top + 1 * k, "oro_s")
+    c.put(x + 0.1 * a, top - 1 * k, "gema")
+
+
 def limo(c, vista, anim, i, corona=False):
     k = _escala(c)
     sx, sy, dy = LIMO_POSES[anim][i]
@@ -31,12 +46,19 @@ def limo(c, vista, anim, i, corona=False):
     # Gotas en la base, que se quedan pegadas al suelo.
     c.ellipse(cx - rx * 0.7, base - 1.5 * k, 2.5 * k, 1.8 * k, "cuerpo_s")
     c.ellipse(cx + rx * 0.75, base - 1.2 * k, 2 * k, 1.5 * k, "cuerpo_s")
-    c.ellipse(cx - rx * 0.35, cy - ry * 0.45, 2.2 * k, 1.6 * k, "brillo")
+    if not corona:
+        c.ellipse(cx - rx * 0.35, cy - ry * 0.45, 2.2 * k, 1.6 * k, "brillo")
     if vista != "espalda":
         desp = 0 if vista == "frente" else rx * 0.35
         sep = rx * 0.38 if vista == "frente" else rx * 0.3
         for ox in (-sep, sep):
             ex = cx + ox + desp
+            if corona:
+                # Ojos rasgados con ceño y sin brillo, para que no parezca un muñeco
+                s_ = 1 if ox < 0 else -1
+                c.line(ex - 2 * k, cy - 1 * k * s_, ex + 2 * k, cy + 1 * k * s_, "ojo")
+                c.put(ex + 1 * k * (1 if ox > 0 else -1), cy + 0.5 * k * s_, "gema")
+                continue
             c.ellipse(ex, cy, 1.8 * k, 2.4 * k, "ojo")
             c.put(ex - 0.5 * k, cy - 1 * k, "brillo")
         if anim == "atacar" and i == 1:
@@ -44,13 +66,7 @@ def limo(c, vista, anim, i, corona=False):
         else:
             c.line(cx + desp - 2 * k, cy + ry * 0.4, cx + desp + 2 * k, cy + ry * 0.4, "boca")
     if corona:
-        top = cy - ry
-        pts = [(cx - 7 * k, top + 2 * k), (cx - 7 * k, top - 4 * k), (cx - 3.5 * k, top - 1 * k),
-               (cx, top - 6 * k), (cx + 3.5 * k, top - 1 * k), (cx + 7 * k, top - 4 * k),
-               (cx + 7 * k, top + 2 * k)]
-        c.poly(pts, "oro")
-        c.line(cx - 7 * k, top + 1 * k, cx + 7 * k, top + 1 * k, "oro_s")
-        c.put(cx, top - 3 * k, "gema")
+        corona_hierro(c, cx, cy - ry, k, 7)
 
 
 # ---------------------------------------------------------------- murciélago
@@ -136,10 +152,7 @@ def arana(c, vista, anim, i, corona=False):
         c.poly([(cx, cy - 7 * k), (cx + 2 * k, cy - 3 * k), (cx, cy + 1 * k), (cx - 2 * k, cy - 3 * k)], "marca")
     if corona:
         top = cy - 10 * k if vista != "lado" else cy - 6 * k
-        x = cx if vista != "lado" else cx - 4 * k
-        c.poly([(x - 5 * k, top + 2 * k), (x - 5 * k, top - 3 * k), (x - 2 * k, top),
-                (x, top - 4 * k), (x + 2 * k, top), (x + 5 * k, top - 3 * k), (x + 5 * k, top + 2 * k)], "oro")
-        c.put(x, top - 1 * k, "gema")
+        corona_hierro(c, cx if vista != "lado" else cx - 4 * k, top, k, 5)
 
 
 # ---------------------------------------------------------------- cuervo

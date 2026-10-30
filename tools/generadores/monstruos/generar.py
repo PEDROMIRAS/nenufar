@@ -58,8 +58,8 @@ MONSTRUOS = {
     "limo": (32, paleta(**VERDE), criaturas.limo, {}),
     "limo_grande": (32, paleta(cuerpo=(104, 186, 120), cuerpo_s=(62, 132, 84), cuerpo_l=(168, 226, 168),
                                boca=(34, 66, 44)), criaturas.limo, {}),
-    "rey_limo": (48, paleta(cuerpo=(86, 168, 80), cuerpo_s=(52, 116, 56), cuerpo_l=(150, 214, 124),
-                            boca=(30, 60, 30)), criaturas.limo, {"corona": True}),
+    "rey_limo": (48, paleta(cuerpo=(62, 120, 64), cuerpo_s=(36, 80, 46), cuerpo_l=(104, 160, 92),
+                            boca=(30, 60, 30), oro=(74, 66, 82), oro_s=(38, 32, 46), gema=(255, 98, 40)), criaturas.limo, {"corona": True}),
     "murcielago": (32, paleta(cuerpo=(112, 86, 132), cuerpo_s=(74, 54, 92), cuerpo_l=(150, 124, 168),
                               ala=(90, 66, 110), ala_s=(58, 40, 74), ojo=(226, 60, 70), diente=(240, 236, 220)),
                    criaturas.murcielago, {}),
@@ -74,7 +74,7 @@ MONSTRUOS = {
     "arana": (32, paleta(cuerpo=(122, 59, 59), cuerpo_s=(78, 34, 40), cuerpo_l=(164, 92, 84), cabeza=(98, 46, 48),
                          pata=(58, 30, 34), ojo=(236, 196, 80), marca=(214, 120, 60)), criaturas.arana, {}),
     "reina_arana": (48, paleta(cuerpo=(86, 52, 110), cuerpo_s=(52, 30, 72), cuerpo_l=(128, 88, 152),
-                               cabeza=(70, 40, 92), pata=(40, 24, 54), ojo=(240, 80, 110), marca=(206, 196, 220)),
+                               cabeza=(70, 40, 92), pata=(40, 24, 54), ojo=(240, 80, 110), marca=(206, 196, 220), oro=(74, 66, 82), oro_s=(38, 32, 46), gema=(255, 98, 40)),
                     criaturas.arana, {"corona": True}),
     # Humanoides de las Ruinas y la Cripta
     "esqueleto": (32, paleta(**HUESO, **METAL, ojo=(232, 70, 70), cuero=(110, 72, 48)), humanoides.esqueleto, {}),
@@ -82,7 +82,7 @@ MONSTRUOS = {
                              visor=(16, 14, 20), ojo=(236, 84, 84), capa=(116, 38, 50), pluma=(176, 50, 62),
                              cuero=(96, 64, 44)), humanoides.caballero, {}),
     "senor_cripta": (48, paleta(**HUESO, **METAL, tunica=(48, 34, 66), tunica_s=(28, 20, 40), tunica_l=(82, 62, 108),
-                                ojo=(170, 255, 130), madera=(70, 52, 40)), humanoides.senor_cripta, {}),
+                                ojo=(170, 255, 130), madera=(70, 52, 40), oro=(74, 66, 82), oro_s=(38, 32, 46), gema=(255, 98, 40)), humanoides.senor_cripta, {}),
 }
 
 
