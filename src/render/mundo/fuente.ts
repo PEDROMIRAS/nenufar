@@ -9,7 +9,7 @@ const CARAS = 28;
 /** Luz propia de la piedra: sin ella, la pared que da a la sombra se ve negra. */
 const LUZ_PIEDRA = 0x2a3048;
 /** Altura de la taza de arriba, y de su agua. */
-const ALTO_TAZA = 1.12;
+const ALTO_TAZA = 1.08;
 
 /** Textura de `public/assets/sprites/fuente/` (recortes de la imagen de referencia), que se repite sin costuras. */
 function cargar(nombre: string, repetirX: number, repetirY: number): THREE.Texture {
@@ -155,11 +155,11 @@ export function crearFuente(
   };
   // Cada piso arranca por debajo del agua del anterior (y la columna, del agua del piso), para que se vean unidos
   const aguaA = piso(1, 0, 0.36, 0.08);
-  const aguaB = piso(0.58, 0.1, 0.64, 0.07);
+  const aguaB = piso(0.63, 0.1, 0.64, 0.07);
 
   // Columna y taza de arriba
   const columna = poner(
-    new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, ALTO_TAZA - 0.43, 10), piedra),
+    new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.12, ALTO_TAZA - 0.43, 10), piedra),
     0,
     0.43 + (ALTO_TAZA - 0.43) / 2,
     0,
@@ -169,11 +169,11 @@ export function crearFuente(
     new THREE.Mesh(
       new THREE.LatheGeometry(
         perfil([
-          [0.08, 0],
-          [0.28, 0.06],
-          [0.33, 0.12],
-          [0.28, 0.12],
-          [0, 0.07],
+          [0.06, 0],
+          [0.2, 0.05],
+          [0.25, 0.1],
+          [0.21, 0.1],
+          [0, 0.06],
         ]),
         CARAS,
       ),
@@ -183,17 +183,17 @@ export function crearFuente(
     ALTO_TAZA,
     0,
   );
-  taza.scale.set(rx * 0.85, 1, rz * 0.85);
-  const aguaC = ALTO_TAZA + 0.09;
+  taza.scale.set(rx, 1, rz);
+  const aguaC = ALTO_TAZA + 0.085;
   const laminaC = poner(
-    new THREE.Mesh(new THREE.CircleGeometry(0.27, 20), agua),
+    new THREE.Mesh(new THREE.CircleGeometry(0.2, 20), agua),
     0,
     aguaC,
     0,
     false,
   );
   laminaC.rotation.x = -Math.PI / 2;
-  laminaC.scale.set(rx * 0.85, 1, rz * 0.85);
+  laminaC.scale.set(rx, 1, rz);
 
   // Cascadas: de la taza al piso de en medio y de este al de abajo; las rayas bajan sin parar.
   const texCascada = texturaCascada();
@@ -204,18 +204,25 @@ export function crearFuente(
     side: THREE.DoubleSide,
     depthWrite: false,
   });
-  const cascada = (radio: number, de: number, abajo: number, n: number, giro: number): void => {
+  const cascada = (
+    radio: number,
+    de: number,
+    abajo: number,
+    n: number,
+    giro: number,
+    ancho: number,
+  ): void => {
     for (let i = 0; i < n; i++) {
       const ang = giro + (i / n) * Math.PI * 2;
       const alto = de - abajo;
-      const m = new THREE.Mesh(new THREE.PlaneGeometry(0.17, alto), materialCascada);
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(ancho, alto), materialCascada);
       m.position.set(Math.cos(ang) * radio * rx, abajo + alto / 2, Math.sin(ang) * radio * rz);
       m.rotation.y = -ang + Math.PI / 2;
       grupo.add(m);
     }
   };
-  cascada(0.3, ALTO_TAZA + 0.1, aguaB, 4, Math.PI / 4);
-  cascada(0.6, 0.64, aguaA, 6, 0.3);
+  cascada(0.25, ALTO_TAZA + 0.1, aguaB, 4, Math.PI / 4, 0.06);
+  cascada(0.64, 0.64, aguaA, 8, 0.2, 0.07);
 
   // Nenúfares con volumen: hojas planas sobre el agua y, encima, dos coronas de pétalos y los pistilos
   const hoja = new THREE.MeshLambertMaterial({
@@ -296,17 +303,16 @@ export function crearFuente(
     grupo.add(flor);
   };
   for (const [radio, ang] of [
-    [0.62, 0.5],
-    [0.6, 2.2],
-    [0.58, 3.9],
-    [0.6, 5.3],
-    [0.2, 1.0],
+    [0.76, 0.5],
+    [0.76, 2.2],
+    [0.76, 3.9],
+    [0.76, 5.3],
   ] as const) {
-    nenufar(radio, ang, aguaA, 1.1);
+    nenufar(radio, ang, aguaA, 0.62);
   }
-  nenufar(0.3, 0.9, aguaB, 0.9);
-  nenufar(0.3, 3.5, aguaB, 0.9);
-  nenufar(0, 0, aguaC, 0.7);
+  nenufar(0.22, 0.9, aguaB, 0.46);
+  nenufar(0.22, 3.5, aguaB, 0.46);
+  nenufar(0, 0, aguaC, 0.34);
 
   // Chispas azules que suben de la taza
   const posiciones = new Float32Array(a.gotas * 3);
