@@ -106,7 +106,7 @@ PROPIOS = {
 
 
 # Monstruos cuyos fotogramas no deben tocar el borde del cuadro (el generador avisa si pasa).
-VIGILADOS = {"jabali", "acolito", "salamandra", "sacerdote", "oni", "dragon_fuego", "rey_limo", "reina_arana"}
+VIGILADOS = {"golem", "jabali", "acolito", "salamandra", "sacerdote", "oni", "dragon_fuego", "rey_limo", "reina_arana"}
 
 
 def destello(img, contorno):
