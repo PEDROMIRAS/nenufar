@@ -1,8 +1,8 @@
 {
-  "frameWidth": 48,
+  "frameWidth": 64,
   "frameHeight": 48,
   "anchor": {
-    "x": 24,
+    "x": 32,
     "y": 46
   },
   "directions": {

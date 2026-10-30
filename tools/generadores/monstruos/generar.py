@@ -26,6 +26,7 @@ import acolito  # noqa: E402
 import sacerdote  # noqa: E402
 import oni  # noqa: E402
 import dragon_fuego  # noqa: E402
+import guardian_bosque  # noqa: E402
 import reducir  # noqa: E402
 import golem  # noqa: E402
 import rey_sin_charca  # noqa: E402
@@ -58,9 +59,6 @@ MONSTRUOS = {
     "limo": (32, paleta(**VERDE), criaturas.limo, {}),
     "limo_grande": (32, paleta(cuerpo=(104, 186, 120), cuerpo_s=(62, 132, 84), cuerpo_l=(168, 226, 168),
                                boca=(34, 66, 44)), criaturas.limo, {}),
-    "rey_limo": (48, paleta(cuerpo=(62, 120, 64), cuerpo_s=(36, 80, 46), cuerpo_l=(104, 160, 92),
-                            boca=(30, 60, 30), rama=(74, 54, 40), rama_l=(124, 92, 64),
-                            diente=(226, 220, 196)), criaturas.limo, {"jefe": True}),
     "murcielago": (32, paleta(cuerpo=(112, 86, 132), cuerpo_s=(74, 54, 92), cuerpo_l=(150, 124, 168),
                               ala=(90, 66, 110), ala_s=(58, 40, 74), ojo=(226, 60, 70), diente=(240, 236, 220)),
                    criaturas.murcielago, {}),
@@ -95,6 +93,7 @@ PROPIOS = {
     "sacerdote": (48, 48, sacerdote),
     "oni": (48, 48, oni),
     "dragon_fuego": (64, 48, dragon_fuego),
+    "rey_limo": (64, 48, guardian_bosque),
     "espectro": (32, 32, espectro),
     "golem": (48, 48, golem),
     "rey_sin_charca": (64, 48, rey_sin_charca),
@@ -108,7 +107,7 @@ PROPIOS = {
 
 
 # Monstruos cuyos fotogramas no deben tocar el borde del cuadro (el generador avisa si pasa).
-VIGILADOS = {"jabali", "acolito", "salamandra", "sacerdote", "oni", "dragon_fuego"}
+VIGILADOS = {"jabali", "acolito", "salamandra", "sacerdote", "oni", "dragon_fuego", "rey_limo"}
 
 
 def destello(img, contorno):
