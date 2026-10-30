@@ -24,7 +24,7 @@ import {
 import { crearFuente } from './fuente';
 import { crearHundidos } from './hundidos';
 import { compararLuces } from '../../core/luces';
-import { crearBarrera } from './modelos';
+import { crearBarrera, crearModelo } from './modelos';
 import { ajustarPixelArt, cuentaColores, pintar, textura } from './texturas';
 import { transparentar, uniformesTransparencia } from './transparencia';
 
@@ -423,7 +423,7 @@ export class Mundo {
     });
   }
 
-  /** El objeto como sprite de pie con su dibujo (sus tiles, con la animación si la tiene) y su luz, si lleva. */
+  /** Los objetos naturales del Bosque, con su modelo con relieve; los demás, sprite de pie con su dibujo y animación. Y su luz, si lleva. */
   private ponerObjeto(v: VistaSala, o: ObjetoSala): void {
     const z = this.zona;
     if (!z) return;
@@ -441,21 +441,29 @@ export class Mundo {
       v.fuente = fuente;
       obj = fuente.grupo;
     } else {
-      const tiles = [o.sup, o.inf].filter((t): t is Tile => t !== null);
-      const lienzo = pintar(1, tiles.length, tam, () => {});
-      const pieza = { tiles, ctx: lienzo.getContext('2d')!, tex: textura(lienzo), frame: -1 };
-      pintarPieza(pieza, imagenes, tam, 0);
-      if (tiles.some((t) => t.frames)) v.piezas.set(o, pieza);
-      const plano = carton(
-        new THREE.MeshLambertMaterial({ map: pieza.tex, alphaTest: 0.5, side: THREE.DoubleSide }),
-        1,
-        tiles.length,
-        0,
-      );
-      plano.position.set(o.x + 0.5, 0, o.y + 0.85);
-      plano.rotation.x = -this.giro;
-      plano.scale.y = this.estirar;
-      obj = plano;
+      const modelo = crearModelo(o.inf, imagenes, tam, z.bosque, v.azar);
+      if (modelo) {
+        // Plantado en el centro de su caja de choque, así la colisión no cambia.
+        const [x0, y0, x1, y1] = o.inf.caja ?? [0, 0, tam, tam];
+        modelo.position.set(o.x + (x0 + x1) / 2 / tam, 0, o.y + (y0 + y1) / 2 / tam);
+        obj = modelo;
+      } else {
+        const tiles = [o.sup, o.inf].filter((t): t is Tile => t !== null);
+        const lienzo = pintar(1, tiles.length, tam, () => {});
+        const pieza = { tiles, ctx: lienzo.getContext('2d')!, tex: textura(lienzo), frame: -1 };
+        pintarPieza(pieza, imagenes, tam, 0);
+        if (tiles.some((t) => t.frames)) v.piezas.set(o, pieza);
+        const plano = carton(
+          new THREE.MeshLambertMaterial({ map: pieza.tex, alphaTest: 0.5, side: THREE.DoubleSide }),
+          1,
+          tiles.length,
+          0,
+        );
+        plano.position.set(o.x + 0.5, 0, o.y + 0.85);
+        plano.rotation.x = -this.giro;
+        plano.scale.y = this.estirar;
+        obj = plano;
+      }
     }
     v.objetos.set(o, obj);
     v.grupo.add(obj);
