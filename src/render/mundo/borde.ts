@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Sala, Tile } from '../../core/sala';
 import type { BordeHd2d } from '../../core/types';
-import { cuentaColores, materialRuido, textura, tileSuelto } from './texturas';
+import { materialRuido, textura, tileSuelto } from './texturas';
 
 /** Una sombra redonda que pintar en el suelo, en casillas. */
 export interface SombraSuelo {
@@ -166,9 +166,9 @@ function arboles(
 }
 
 /**
- * Muro de sillares: cada casilla, `hiladas` filas de `porCasilla` piedras, cada una algo más o menos salida
- * y de un tono distinto, con un hueco entre ellas. La última hilada varía de alto (muro derruido en las Ruinas).
- * Los colores salen de los muros del arte. Una sola InstancedMesh para todas las piedras.
+ * Muro con el dibujo del arte: cada casilla es una caja con el tile de remate (`muro_a`/`muro_b`) arriba y el
+ * tile de cara (`muro_norte_*`) en los lados. Las casillas de la sala llevan la variante que les tocó (con su
+ * hornacina, su veta o su aro); las demás, la cara lisa `muro_norte_a`. Una InstancedMesh por cada combinación.
  */
 function sillares(
   casillas: { x: number; z: number; t: Tile }[],
@@ -179,61 +179,40 @@ function sillares(
   azar: () => number,
 ): { grupo: THREE.Group; sombras: SombraSuelo[] } {
   const grupo = new THREE.Group();
-  const muro = catalogo.get('muro_norte_a') ?? casillas[0]?.t;
-  if (!muro) return { grupo, sombras: [] };
-  // Los tres colores más usados de la cara del muro, en su proporción.
-  const usados = [...cuentaColores(imagenes, muro, tam).entries()]
-    .sort((x, y) => y[1] - x[1])
-    .slice(0, 3);
-  const total = usados.reduce((s, [, n]) => s + n, 0);
-  const material = materialRuido(
-    usados.map(([col]) => col),
-    usados.map(([, n]) => n / total),
-    azar,
-  );
-  const ocupado = new Set(casillas.map(({ x, z }) => z * 1000 + x));
-  const piedras: { x: number; y: number; z: number; w: number; h: number; d: number }[] = [];
-  const alto = c.alto / c.hiladas;
-  for (const { x, z } of casillas) {
-    for (let k = 0; k < c.hiladas; k++) {
-      // Las hiladas alternas, desplazadas media piedra, como un aparejo de verdad.
-      const desfase = k % 2 === 0 ? 0 : 0.5 / c.porCasilla;
-      const ultima = k === c.hiladas - 1;
-      for (let p = 0; p < c.porCasilla; p++) {
-        const ancho = 1 / c.porCasilla;
-        let x0 = x + p * ancho + desfase;
-        let x1 = x0 + ancho;
-        // La piedra que se sale de la casilla tapa el hueco de la vecina; sin vecina, se recorta,
-        // y la primera crece hasta el borde.
-        if (x1 > x + 1 && !ocupado.has(z * 1000 + x + 1)) x1 = x + 1;
-        if (p === 0 && desfase > 0 && !ocupado.has(z * 1000 + x - 1)) x0 = x;
-        const h = ultima ? alto * (1 - azar() * c.irregular) : alto;
-        if (h <= c.hueco) continue;
-        const sale = (azar() - 0.5) * 2 * c.salida;
-        piedras.push({
-          x: (x0 + x1) / 2,
-          y: k * alto + h / 2,
-          z: z + 0.5,
-          w: x1 - x0 - c.hueco,
-          h: h - c.hueco,
-          d: 1 + sale - c.hueco,
-        });
-      }
-    }
+  const lisa = catalogo.get('muro_norte_a');
+  const tapas = ['muro_a', 'muro_b'].flatMap((n) => catalogo.get(n) ?? []);
+  const grupos = new Map<string, { cara: Tile; tapa: Tile; lugares: { x: number; z: number }[] }>();
+  for (const { x, z, t } of casillas) {
+    const cara = t.name.startsWith('muro_norte') ? t : (lisa ?? t);
+    const tapa = tapas[Math.floor(azar() * tapas.length)] ?? t;
+    const clave = `${cara.name}|${tapa.name}`;
+    const g = grupos.get(clave) ?? { cara, tapa, lugares: [] };
+    g.lugares.push({ x, z });
+    grupos.set(clave, g);
   }
-  const malla = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), material, piedras.length);
+  const material = (t: Tile): THREE.Material =>
+    new THREE.MeshLambertMaterial({ map: textura(tileSuelto(imagenes, t, tam)) });
+  const geometria = new THREE.BoxGeometry(1, c.alto, 1);
   const molde = new THREE.Object3D();
   const color = new THREE.Color();
-  piedras.forEach((p, i) => {
-    molde.position.set(p.x, p.y, p.z);
-    molde.scale.set(p.w, p.h, p.d);
-    molde.updateMatrix();
-    malla.setMatrixAt(i, molde.matrix);
-    const v = 1 - c.tono + azar() * c.tono * 2;
-    malla.setColorAt(i, color.setRGB(v, v, v));
-  });
-  malla.castShadow = true;
-  malla.receiveShadow = true;
-  grupo.add(malla);
+  for (const { cara, tapa, lugares } of grupos.values()) {
+    const lado = material(cara);
+    // Orden de las caras de una caja: +x, -x, arriba, abajo, +z (la que ve la cámara) y -z.
+    const malla = new THREE.InstancedMesh(
+      geometria,
+      [lado, lado, material(tapa), lado, lado, lado],
+      lugares.length,
+    );
+    lugares.forEach(({ x, z }, i) => {
+      molde.position.set(x + 0.5, c.alto / 2, z + 0.5);
+      molde.updateMatrix();
+      malla.setMatrixAt(i, molde.matrix);
+      const v = 1 - c.tono + azar() * c.tono * 2;
+      malla.setColorAt(i, color.setRGB(v, v, v));
+    });
+    malla.castShadow = true;
+    malla.receiveShadow = true;
+    grupo.add(malla);
+  }
   return { grupo, sombras: [] };
 }

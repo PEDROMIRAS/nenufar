@@ -113,11 +113,6 @@
       "borde": {
         "tipo": "sillares",
         "alto": 1.0,
-        "hiladas": 3,
-        "porCasilla": 2,
-        "irregular": 0.45,
-        "salida": 0.05,
-        "hueco": 0.03,
         "tono": 0.12
       },
       "hundido": {
@@ -136,11 +131,6 @@
       "borde": {
         "tipo": "sillares",
         "alto": 1.15,
-        "hiladas": 4,
-        "porCasilla": 2,
-        "irregular": 0.1,
-        "salida": 0.02,
-        "hueco": 0.025,
         "tono": 0.08
       },
       "hundido": {
@@ -159,11 +149,6 @@
       "borde": {
         "tipo": "sillares",
         "alto": 1.1,
-        "hiladas": 4,
-        "porCasilla": 2,
-        "irregular": 0.15,
-        "salida": 0.02,
-        "hueco": 0.025,
         "tono": 0.08
       },
       "hundido": {

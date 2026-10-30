@@ -333,15 +333,8 @@ export type BordeHd2d =
     }
   | {
       tipo: 'sillares';
-      /** Alto del muro en casillas, hiladas de piedras y piedras por casilla en cada hilada. */
+      /** Alto del muro en casillas y cuánto varía el brillo de cada casilla (para que no se vean todas iguales). */
       alto: number;
-      hiladas: number;
-      porCasilla: number;
-      /** Cuánto varía el alto de la última hilada (0 = muro recto; más, muro derruido). */
-      irregular: number;
-      /** Cuánto sobresale o se mete cada piedra, hueco entre piedras y variación de color. */
-      salida: number;
-      hueco: number;
       tono: number;
     };
 
