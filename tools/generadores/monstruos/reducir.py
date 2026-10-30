@@ -16,12 +16,14 @@ def _esquina(a):
     return np.concatenate([b.reshape(-1, 3) for b in bloques]).mean(axis=0)
 
 
-def _mascara(a, fondo, umbral):
+def _mascara(a, fondo, umbral, fondos_extra=()):
     """Matriz booleana: `True` donde hay figura."""
     if fondo == "negro":
         return a.sum(axis=2) > NEGRO
     alto, ancho = a.shape[:2]
     cercano = np.sqrt(((a - _esquina(a)) ** 2).sum(axis=2)) < umbral
+    for extra in fondos_extra:  # otros colores que también son fondo (la sombra del suelo, por ejemplo)
+        cercano |= np.sqrt(((a - np.array(extra)) ** 2).sum(axis=2)) < umbral
     fondo_m = np.zeros((alto, ancho), dtype=bool)
     pila = [(x, y) for x in range(ancho) for y in (0, alto - 1)] + [(x, y) for y in range(alto) for x in (0, ancho - 1)]
     while pila:
@@ -53,17 +55,17 @@ def limpiar(grid):
 
 
 def pose(ruta, ancho, colores=14, fondo="auto", umbral=60, contraste=1.35, retoques=(), paleta=None,
-         brillo=1.0, saturacion=1.0):
+         brillo=1.0, saturacion=1.0, fondos_extra=()):
     """La pose reducida a `ancho` píxeles de ancho.
 
     `fondo`: "auto" (el color de las esquinas, quitado desde los bordes) o "negro". Con `paleta` fija
     (dict de nombre a RGB) cada píxel toma el color más cercano de esa paleta; sin ella, la imagen se
     cuantiza a `colores` colores. `brillo` y `saturacion` (1 = sin cambio) levantan las figuras oscuras antes de
-    reducir. `retoques` son `(x, y, rgb)` que se aplican al final.
+    reducir. `fondos_extra` son colores RGB que, además del de las esquinas, cuentan como fondo. `retoques` son `(x, y, rgb)` que se aplican al final.
     """
     im = Image.open(ruta).convert("RGB")
     a = np.array(im).astype(int)
-    mask = _mascara(a, fondo, umbral)
+    mask = _mascara(a, fondo, umbral, fondos_extra)
     ys, xs = np.where(mask)
     assert mask.any(), f"{ruta}: no se encontró ninguna figura (¿umbral demasiado alto o imagen lisa?)"
     caja = (xs.min(), ys.min(), xs.max() + 1, ys.max() + 1)

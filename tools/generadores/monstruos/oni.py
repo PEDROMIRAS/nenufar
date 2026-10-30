@@ -1,95 +1,80 @@
-"""Monje oni (48x48), jefe violeta del Cauce Seco. Un monje demoníaco de piel rojiza: máscara de calavera con
-dos cuernos, melena de llamas, collar de cuentas doradas, mandil claro con una cuerda roja en la cintura,
-pantalón negro holgado y los pies descalzos. Un brazo cuelga con una llama; el otro se extiende y arde.
-(La referencia es la imagen 7 del documento de diseño; a 48 px, reducirla daba solo ruido, así que se dibuja.)
+"""Monje oni (48x48), jefe violeta del Cauce Seco. Su pose sale de la imagen de referencia (la 7 del documento de
+diseño) reducida con `reducir.py`: monje de piel rojiza en guardia, con la melena y los dos brazos en llamas, el
+mandil claro y los pies descalzos. A esa escala la máscara de calavera se pierde, así que se repinta encima
+(cuencas, nariz y dientes). Aquí se anima: respira y las llamas parpadean.
 
 Cabe en 48 de alto con los pies en 46 y no sube más de ~42 px sobre ellos.
-Hoja del repo: idle (2: respira y las llamas pulsan), walk (4: no anda, es un jefe), atacar (3: adelanta los
-brazos y las llamas crecen) y golpe (1, destello). Las cuatro direcciones usan la misma vista, de frente."""
+Hoja del repo: idle (2: respira, las llamas parpadean), walk (4: no anda, es un jefe), atacar (3: se echa hacia
+delante) y golpe (1, destello). Las cuatro direcciones usan la misma vista, de frente."""
+import os
+
 import numpy as np
-from dibujo import tile, put, line, rect, outline, ell_mask, poly_mask, shade, limb, flame, ground_shadow, rng
 
-S = 48
-PIEL = [(52, 18, 16), (92, 30, 22), (136, 48, 30), (180, 76, 42)]
-MASCARA = [(124, 116, 104), (186, 178, 162), (226, 220, 204), (244, 240, 228)]
-CUERNO = [(70, 16, 14), (122, 32, 26), (176, 58, 40)]
-TELA = [(120, 114, 102), (172, 164, 148), (214, 206, 188), (238, 232, 216)]
-PANTALON = [(18, 16, 22), (34, 30, 38), (52, 46, 56), (76, 68, 78)]
-CHALECO = [(34, 22, 24), (58, 36, 34), (86, 54, 46)]
-CUERDA = (176, 36, 36)
-ORO = [(164, 118, 46), (226, 180, 72)]
-FUEGO = [(130, 34, 12), (226, 98, 24), (255, 186, 64), (255, 242, 200)]
-HUECO = (10, 6, 10)
+import reducir
+
+W, H = 48, 48
 OUT = (8, 4, 10)
-CX = 24
+REFERENCIA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "docs", "superpowers",
+                          "mockups", "cauce-seco-referencias", "7-oni.jpg")
+ANCHO = 30
+# La sombra del suelo de la imagen (dos tonos de marrón grisáceo) también cuenta como fondo.
+SOMBRAS = [(160, 133, 122), (175, 148, 137)]
+MASCARA = [(150, 142, 128), (226, 220, 204), (244, 240, 228)]
+HUECO = (10, 6, 10)
+CARA = (0.4375, 0.143)  # dónde está la cabeza, como fracción del ancho y del alto de la pose
+LLAMA = [None, (255, 168, 52)]  # el segundo tono de las llamas (el primero es el de la imagen)
+
+DY = {"idle": [0, -1], "walk": [0, -1, 0, -1], "atacar": [-1, 1, 0], "golpe": [1]}
+DX = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [0, 0, 0], "golpe": [-2]}
+TONO = {"idle": [0, 1], "walk": [0, 1, 0, 1], "atacar": [1, 1, 1], "golpe": [0]}
+
+_BASE = None
 
 
-def dibujar(bob=0, brazo=0, llama=6, fase=0):
-    t = tile(S, S)
-    # Pies descalzos, piernas holgadas y mandil
-    for x in (15, 33):
-        shade(t, ell_mask(t, x, 45, 4.5, 2), PIEL, bias=0.0)
-    izq = poly_mask(t, [(13, 31), (24, 31), (23, 44), (11, 44)])
-    der = poly_mask(t, [(24, 31), (35, 31), (37, 44), (25, 44)])
-    shade(t, izq, PANTALON, bias=-0.1)
-    shade(t, der, PANTALON, bias=-0.1)
-    for x in (12, 36):  # cintas rojas en los tobillos
-        rect(t, x - 1, 41, x + 2, 42, CUERDA)
-    mandil = poly_mask(t, [(18, 31), (30, 31), (31, 43), (17, 43)])
-    shade(t, mandil, TELA, bias=0.0)
-    line(t, 24, 33, 24, 42, TELA[0])
-    line(t, 19, 34, 18, 42, TELA[1]); line(t, 29, 34, 30, 42, TELA[1])
-    # Cintura: cuerda roja con una cuenta dorada y borlas
-    rect(t, 15, 30, 33, 31, CUERDA)
-    rect(t, 23, 30, 24, 32, ORO[1])
-    for x in (21, 27):
-        rect(t, x, 32, x, 36, CUERDA)
-    # Torso: chaleco oscuro abierto, que deja ver el pecho, con el collar de cuentas
-    torso = poly_mask(t, [(15, 19 + bob), (33, 19 + bob), (32, 30), (16, 30)])
-    shade(t, torso, CHALECO, bias=0.0)
-    pecho = poly_mask(t, [(21, 19 + bob), (27, 19 + bob), (24, 28)])
-    shade(t, pecho, PIEL, bias=0.05)
-    for x, y in ((21, 22), (23, 24), (25, 24), (27, 22)):
-        put(t, x, y + bob, ORO[1])
-    put(t, 24, 26 + bob, CUERDA)
-    # Brazos: el de la izquierda cuelga con una llama; el de la derecha se extiende (y se adelanta al atacar)
-    limb(t, (15, 21 + bob), (10, 27), 3.6, 2.9, PIEL, bias=0.0)
-    limb(t, (10, 27), (9, 34 - brazo * 3), 2.9, 2.4, PIEL, bias=0.0)
-    limb(t, (33, 21 + bob), (39, 22 - brazo * 2), 3.6, 2.9, PIEL, bias=0.0)
-    limb(t, (39, 22 - brazo * 2), (42, 20 - brazo * 4), 2.9, 2.3, PIEL, bias=0.0)
-    # Cabeza: máscara de calavera con cuernos
-    for s in (-1, 1):
-        cuerno = poly_mask(t, [(CX + s * 3, 11), (CX + s * 8, 8), (CX + s * 9, 5), (CX + s * 10, 9), (CX + s * 6, 13)])
-        shade(t, cuerno, CUERNO, bias=0.0)
-    shade(t, ell_mask(t, CX, 14, 5.2, 6.0), MASCARA, bias=0.05)
-    for x in (21, 26):
-        rect(t, x, 12, x + 1, 14, HUECO)
-    put(t, 24, 15, HUECO); put(t, 24, 16, HUECO)
-    line(t, 21, 18, 27, 18, HUECO)
-    for x in (22, 24, 26):
-        put(t, x, 18, MASCARA[3]); put(t, x, 19, HUECO)
-    line(t, 20, 15, 20, 17, MASCARA[0]); line(t, 28, 15, 28, 17, MASCARA[0])
-    outline(t, OUT)
-    # Fuego: la melena y las llamas de las manos (sin contorno: brillan)
-    flame(t, CX, 11, 4, 4, fase, FUEGO)
-    flame(t, CX - 5, 12, 3, 2, fase + 1, FUEGO)
-    flame(t, CX + 5, 12, 3, 2, fase + 2, FUEGO)
-    flame(t, 9, 33 - brazo * 3, llama, 3, fase, FUEGO)
-    flame(t, 42, 19 - brazo * 4, llama + 1, 3, fase + 1, FUEGO)
-    g = rng(7 + fase)
-    for _ in range(4):  # chispas sueltas
-        put(t, g.randint(5, 41), g.randint(8, 38), FUEGO[1 + (g.random() > 0.6)])
-    ground_shadow(t, CX, S - 2, 16, 2)
-    return t
+def _es_llama(c):
+    r, g, b = c
+    return r > 200 and g < 175 and b < 100 and r > g + 60
+
+
+def _calavera(grid):
+    """Repinta la máscara de calavera en la cabeza: óvalo claro con dos cuencas, la nariz y la fila de dientes."""
+    alto, ancho = len(grid), len(grid[0])
+    cx, cy = round(CARA[0] * ancho), round(CARA[1] * alto)
+    for y in range(cy - 4, cy + 5):
+        for x in range(cx - 3, cx + 4):
+            d = ((x - cx) / 3.0) ** 2 + ((y - cy) / 4.0) ** 2
+            if d <= 1.0 and 0 <= y < alto and 0 <= x < ancho:
+                grid[y][x] = MASCARA[2] if d < 0.35 else (MASCARA[1] if d < 0.8 else MASCARA[0])
+    for dx in (-1, 1):
+        grid[cy - 1][cx + dx] = HUECO
+        grid[cy][cx + dx] = HUECO
+    grid[cy + 1][cx] = HUECO
+    for dx in (-1, 0, 1):
+        grid[cy + 3][cx + dx] = HUECO if dx == 0 else MASCARA[2]
+
+
+def _pose():
+    global _BASE
+    if _BASE is None:
+        grid = reducir.pose(REFERENCIA, ANCHO, colores=24, umbral=40, brillo=1.0, saturacion=1.3, contraste=1.1,
+                            fondos_extra=SOMBRAS)
+        _calavera(grid)
+        _BASE = reducir.con_contorno(grid, OUT)
+    return _BASE
+
+
+def _con_llama(sal, tono):
+    if tono == 0:
+        return sal
+    return [[LLAMA[1] if (c is not None and c != OUT and _es_llama(c)) else c for c in fila] for fila in sal]
 
 
 def fotograma(direccion, anim, i):
-    """Un fotograma de la hoja del repo. De frente en las cuatro direcciones."""
-    if anim in ("idle", "walk"):
-        n = [0, 1, 0, 1][i % 4]
-        return dibujar(bob=n, llama=5 + n, fase=i)
-    if anim == "atacar":
-        return [lambda: dibujar(bob=0, brazo=0, llama=6, fase=1),
-                lambda: dibujar(bob=1, brazo=1, llama=8, fase=2),
-                lambda: dibujar(bob=0, brazo=1, llama=7, fase=3)][i]()
-    return dibujar(bob=1, llama=4, fase=0)
+    lienzo = np.zeros((H, W, 4), dtype=np.uint8)
+    sal = _con_llama(_pose(), TONO[anim][i])
+    alto, ancho = len(sal), len(sal[0])
+    # Los pies tocan la fila 46; el monje nunca sube por encima de la fila 4.
+    x0 = (W - ancho) // 2 + DX[anim][i]
+    y0 = 47 - alto + DY[anim][i]
+    reducir.pegar(lienzo, sal, x0, y0)
+    return lienzo
