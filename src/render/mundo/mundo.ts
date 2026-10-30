@@ -21,6 +21,7 @@ import {
   type MaterialesBosque,
   type SombraSuelo,
 } from './borde';
+import { crearElemento } from './elementos';
 import { crearFuente } from './fuente';
 import { crearHundidos } from './hundidos';
 import { compararLuces } from '../../core/luces';
@@ -76,6 +77,8 @@ export interface VistaSala {
   objetos: Map<ObjetoSala, THREE.Object3D>;
   piezas: Map<ObjetoSala, Pieza>;
   fuente: { actualizar: (tiempo: number) => void } | null;
+  /** Animación de cada objeto 3D que se mueve (la hoguera, el portal). */
+  animados: Map<ObjetoSala, (tiempo: number) => void>;
   hundidos: { actualizar: (tiempo: number) => void } | null;
   /** Luces puntuales de sus objetos (hoguera, candelabros, portal) y dónde están. */
   luces: { luz: LuzHd2d; x: number; z: number; fase: number }[];
@@ -300,6 +303,7 @@ export class Mundo {
       objetos: new Map(),
       piezas: new Map(),
       fuente: null,
+      animados: new Map(),
       hundidos: null,
       luces: [],
       barreras: [],
@@ -416,11 +420,17 @@ export class Mundo {
     const viejo = v.objetos.get(o);
     if (viejo) v.grupo.remove(viejo);
     v.piezas.delete(o);
+    v.animados.delete(o);
     this.ponerObjeto(v, o);
     v.objetos.get(o)?.traverse((m) => {
       if (m instanceof THREE.Mesh)
         [m.material as THREE.Material | THREE.Material[]].flat().forEach(transparentar);
     });
+  }
+
+  /** Píxeles del dibujo por píxel lógico de la sala: el tamaño de las chispas, para que casen con el resto. */
+  private tamPunto(): number {
+    return (this.sala2d.ancho * this.renderer.domElement.width) / innerWidth / SALA_ANCHO;
   }
 
   /** Los objetos naturales del Bosque, con su modelo con relieve; los demás, sprite de pie con su dibujo y animación. Y su luz, si lleva. */
@@ -430,16 +440,20 @@ export class Mundo {
     const { imagenes, tam } = z;
     const nombre = o.inf.name;
     let obj: THREE.Object3D;
+    let elemento: ReturnType<typeof crearElemento>;
     if (nombre.startsWith('fuente_')) {
       // La fuente ocupa tres casillas; el modelo va con la del centro y choca con su elipse (ver chocarConElipse).
       if (nombre !== 'fuente_cen_inf') return;
       const f = this.a.fuente;
-      // Píxeles del dibujo por píxel lógico de la sala.
-      const escala = (this.sala2d.ancho * this.renderer.domElement.width) / innerWidth / SALA_ANCHO;
-      const fuente = crearFuente(f, v.azar, escala);
+      const fuente = crearFuente(f, v.azar, this.tamPunto());
       fuente.grupo.position.set(o.x + 0.5, 0, o.y + f.centroZ);
       v.fuente = fuente;
       obj = fuente.grupo;
+    } else if ((elemento = crearElemento(nombre, v.azar, this.tamPunto()))) {
+      // Cofre, hoguera y portal: modelos 3D comunes a todas las zonas, en el centro de su casilla.
+      elemento.grupo.position.set(o.x + 0.5, 0, o.y + 0.5);
+      if (elemento.actualizar) v.animados.set(o, elemento.actualizar);
+      obj = elemento.grupo;
     } else {
       const modelo = crearModelo(o.inf, imagenes, tam, z.bosque, v.azar);
       if (modelo) {
@@ -625,6 +639,7 @@ export class Mundo {
     const z = this.zona;
     if (z) for (const p of v.piezas.values()) pintarPieza(p, z.imagenes, z.tam, tiempo);
     v.fuente?.actualizar(tiempo);
+    for (const actualizar of v.animados.values()) actualizar(tiempo);
     v.hundidos?.actualizar(tiempo);
     for (let i = 0; i < this.puntuales.length; i++) {
       const luz = this.puntuales[i]!;
