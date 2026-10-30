@@ -2,8 +2,8 @@ import { describe, expect, test } from 'vitest';
 
 // Hojas de sprites del Cauce Seco (entrega 3a) y el Dragón negro rehecho: [clave, ancho, alto] de cada fotograma.
 const HOJAS_ESPERADAS: [string, number, number][] = [
-  ['acolito', 32, 32],
-  ['salamandra', 32, 32],
+  ['acolito', 40, 40],
+  ['salamandra', 40, 40],
   ['sacerdote', 48, 48],
   ['oni', 48, 48],
   ['dragon_fuego', 64, 48],

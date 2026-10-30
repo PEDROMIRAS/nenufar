@@ -1,9 +1,9 @@
-"""Jabalí: su pose base sale de la imagen de referencia, reducida a unos 28 píxeles y repintada con la paleta
+"""Jabalí: su pose base sale de la imagen de referencia, reducida a unos 36 píxeles y repintada con la paleta
 del juego (la melena de hebras y los colmillos son los de la imagen); se anima moviéndola y con patas dibujadas.
 La reducción la hace `reducir.py`.
 
-Contrato de los monstruos con módulo propio: `fotograma(direccion, anim, i)` da un array RGBA de 32×32 con los
-pies en (16, 30); `OUT` es el color del contorno (el golpe lo deja casi blanco).
+Contrato de los monstruos con módulo propio: `fotograma(direccion, anim, i)` da un array RGBA de 40×40 con los
+pies en (20, 38); `OUT` es el color del contorno (el golpe lo deja casi blanco).
 """
 import os
 
@@ -11,16 +11,20 @@ import numpy as np
 
 import reducir
 
+W = H = 40
+PIE = H - 2  # la fila de los pies (el ancla)
 OUT = (30, 24, 32)
 REFERENCIA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "docs", "superpowers",
                           "mockups", "cauce-seco-referencias", "1-jabali.jpg")
-ANCHO = 28
+ANCHO = 36
+ESCALA = ANCHO / 28  # los retoques y las patas están medidos para una pose de 28 de ancho
+PATA = 4  # ancho de cada pata
 PALETA = {
     "oscuro": (84, 35, 22), "sombra": (105, 53, 35), "cuerpo": (138, 82, 56), "luz": (160, 105, 75),
     "melena": (196, 140, 100), "colmillo": (232, 214, 184), "boca": (138, 90, 154), "ojo": (20, 18, 24),
     "blanco": (246, 250, 236),
 }
-# Retoques a mano sobre la pose reducida: (x, y, color) en píxeles de la pose base (sin contorno).
+# Retoques a mano sobre la pose reducida: (x, y, color) en píxeles de una pose de 28 de ancho (sin contorno).
 RETOQUES = [
     # Ojo con el blanco y la ceja
     (19, 9, "oscuro"), (20, 9, "oscuro"), (19, 10, "blanco"), (20, 10, "ojo"),
@@ -32,64 +36,78 @@ RETOQUES = [
 _BASE = None
 
 
+def _retoques():
+    """Los retoques a la escala de la pose: cada píxel de la medida base pasa a un bloque."""
+    lista = []
+    for x, y, k in RETOQUES:
+        for yy in range(int(y * ESCALA), int((y + 1) * ESCALA + 0.999)):
+            for xx in range(int(x * ESCALA), int((x + 1) * ESCALA + 0.999)):
+                lista.append((xx, yy, PALETA[k]))
+    return lista
+
+
 def _pose():
     """La pose base con su contorno (matriz de colores RGB o None)."""
     global _BASE
     if _BASE is None:
-        grid = reducir.pose(REFERENCIA, ANCHO, fondo="negro", paleta=PALETA,
-                            retoques=[(x, y, PALETA[k]) for x, y, k in RETOQUES])
+        grid = reducir.pose(REFERENCIA, ANCHO, fondo="negro", paleta=PALETA, retoques=_retoques())
         _BASE = reducir.con_contorno(grid, OUT)
     return _BASE
 
 
 def _pata(lienzo, x, y_pie, alza, clave, y_arriba):
-    """Pata gruesa de 3 píxeles con contorno y pezuña clara, desde la barriga (`y_arriba`) hasta el suelo."""
+    """Pata gruesa con contorno y pezuña clara, desde la barriga (`y_arriba`) hasta el suelo."""
     y = y_pie - alza
     for yy in range(y_arriba, y):
         lienzo[yy, x - 1] = OUT + (255,)
-        lienzo[yy, x + 3] = OUT + (255,)
-        for xx in (x, x + 1, x + 2):
+        lienzo[yy, x + PATA] = OUT + (255,)
+        for xx in range(x, x + PATA):
             lienzo[yy, xx] = PALETA[clave] + (255,)
-    for xx in (x, x + 1, x + 2):
+    for xx in range(x, x + PATA):
         lienzo[y, xx] = PALETA["colmillo"] + (255,)
         lienzo[y + 1, xx] = OUT + (255,)
     lienzo[y, x - 1] = OUT + (255,)
-    lienzo[y, x + 3] = OUT + (255,)
+    lienzo[y, x + PATA] = OUT + (255,)
 
 
 BOB = {"idle": [0, 1], "walk": [0, -1, 0, -1], "atacar": [0, 1, 0], "golpe": [0]}
 AVANCE = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [0, 0, 0], "golpe": [0]}  # el motor ya mueve el sprite al atacar
 ALZA = {"idle": [[0] * 4] * 2, "walk": [[0, 1, 0, 1], [1, 0, 1, 0], [0, 1, 0, 1], [1, 0, 1, 0]],
         "atacar": [[0] * 4] * 3, "golpe": [[0] * 4]}
+# (desplazamiento respecto del borde izquierdo de la pose, color, índice de alza): las dos patas lejanas, más
+# oscuras, van detrás del cuerpo
+PATAS = [(round(3 * ESCALA), "oscuro", 0), (round(14 * ESCALA), "oscuro", 2),
+         (round(8 * ESCALA), "sombra", 1), (round(19 * ESCALA), "sombra", 3)]
 
 
 def fotograma(direccion, anim, i):
-    lienzo = np.zeros((32, 32, 4), dtype=np.uint8)
+    lienzo = np.zeros((H, W, 4), dtype=np.uint8)
     sal = _pose()
     alto, ancho = len(sal), len(sal[0])
     bob = BOB[anim][i]
-    # Los pies (pezuñas) tocan la fila 30; el cuerpo, bajo y gordo, casi las tapa.
-    y0 = 28 - (alto - 1) + bob
+    # Los pies (pezuñas) tocan la fila del ancla; el cuerpo, bajo y gordo, casi las tapa.
+    y0 = (PIE - 2) - (alto - 1) + bob
+    arriba = y0 + alto - 3
     if direccion == "up":
         # De espaldas: la misma pose estrechada, con el rabo en el centro.
-        estrecha = [[sal[y][int(x * ancho / 15)] for x in range(15)] for y in range(alto)]
-        x0 = 16 - 8
+        n = round(ancho * 0.55)
+        estrecha = [[sal[y][int(x * ancho / n)] for x in range(n)] for y in range(alto)]
+        x0 = (W - n) // 2
         reducir.pegar(lienzo, estrecha, x0, y0)
         alza = ALZA[anim][i]
-        _pata(lienzo, 10, 30, alza[0], "sombra", y0 + alto - 3)
-        _pata(lienzo, 19, 30, alza[1], "sombra", y0 + alto - 3)
+        _pata(lienzo, W // 2 - 8, PIE, alza[0], "sombra", arriba)
+        _pata(lienzo, W // 2 + 4, PIE, alza[1], "sombra", arriba)
         return lienzo
     x0 = 1 + AVANCE[anim][i]
     alza = ALZA[anim][i]
-    # (desplazamiento, color, índice de alza): las dos patas lejanas, más oscuras, van detrás del cuerpo.
-    patas = [(3, "oscuro", 0), (14, "oscuro", 2), (8, "sombra", 1), (19, "sombra", 3)]
+    patas = PATAS
     if direccion == "left":
         sal = [fila[::-1] for fila in sal]
-        x0 = 32 - ancho - 1 - AVANCE[anim][i]
-        patas = [(ancho - 3 - d, c, n) for d, c, n in patas]
+        x0 = W - ancho - 1 - AVANCE[anim][i]
+        patas = [(ancho - PATA - d, c, n) for d, c, n in PATAS]
     for d, clave, n in patas[:2]:
-        _pata(lienzo, x0 + d, 30, alza[n], clave, y0 + alto - 3)
+        _pata(lienzo, x0 + d, PIE, alza[n], clave, arriba)
     reducir.pegar(lienzo, sal, x0, y0)
     for d, clave, n in patas[2:]:
-        _pata(lienzo, x0 + d, 30, alza[n], clave, y0 + alto - 3)
+        _pata(lienzo, x0 + d, PIE, alza[n], clave, arriba)
     return lienzo

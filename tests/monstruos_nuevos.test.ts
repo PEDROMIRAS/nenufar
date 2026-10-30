@@ -5,6 +5,8 @@ import zonas from '../src/data/zonas.json';
 
 // Monstruos de la entrega 2 (jabalí y cuervo en el Bosque, lobo en la Cripta).
 const NUEVOS = ['jabali', 'cuervo', 'lobo'];
+// Lado del cuadro de cada hoja (el jabalí, más grande, va en 40×40).
+const LADO: Record<string, number> = { jabali: 40 };
 
 const HOJAS = import.meta.glob<{ default: Record<string, unknown> }>(
   '../public/assets/sprites/monstruos/*.json',
@@ -22,7 +24,7 @@ describe.each(NUEVOS)('%s', (clave) => {
     expect(m!.caja).toBeDefined();
   });
 
-  test('su hoja de sprites está completa: 10 columnas × 4 filas de 32 × 32, ancla en los pies', () => {
+  test('su hoja de sprites está completa: 4 filas de fotogramas cuadrados, ancla en los pies', () => {
     const archivo = nombre(MONSTRUOS[clave]!.sprite);
     const meta = HOJAS[`../public/assets/sprites/monstruos/${archivo}.json`]?.default as {
       frameWidth: number;
@@ -32,8 +34,9 @@ describe.each(NUEVOS)('%s', (clave) => {
       animations: Record<string, { frames: number }>;
     };
     expect(meta, archivo).toBeDefined();
-    expect([meta.frameWidth, meta.frameHeight]).toEqual([32, 32]);
-    expect(meta.anchor).toEqual({ x: 16, y: 30 });
+    const lado = LADO[clave] ?? 32;
+    expect([meta.frameWidth, meta.frameHeight]).toEqual([lado, lado]);
+    expect(meta.anchor).toEqual({ x: lado / 2, y: lado - 2 });
     expect(Object.keys(meta.directions)).toEqual(['down', 'left', 'right', 'up']);
     const frames = Object.fromEntries(
       Object.entries(meta.animations).map(([k, v]) => [k, v.frames]),

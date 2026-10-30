@@ -65,7 +65,7 @@ MONSTRUOS = {
                    criaturas.murcielago, {}),
     "cuervo": (32, paleta(cuerpo=(48, 44, 58), cuerpo_s=(33, 31, 45), cuerpo_l=(92, 83, 108), pico=(116, 98, 92),
                           adorno=(122, 82, 48), ojo=(255, 214, 120), brillo=(255, 248, 214)), criaturas.cuervo, {}),
-    "salamandra": (32, paleta(cuerpo=(66, 44, 42), cuerpo_s=(34, 24, 28), cuerpo_l=(108, 72, 60), brasa=(255, 106, 28),
+    "salamandra": (40, paleta(cuerpo=(66, 44, 42), cuerpo_s=(34, 24, 28), cuerpo_l=(108, 72, 60), brasa=(255, 106, 28),
                               brasa_l=(255, 206, 90), diente=(240, 226, 200), boca=(120, 24, 20)),
                    criaturas.salamandra, {}),
     "lobo": (32, paleta(pelo=(40, 50, 84), pelo_s=(18, 25, 44), pelo_l=(78, 92, 136), rojo=(204, 40, 48),
@@ -89,8 +89,8 @@ MONSTRUOS = {
 # Monstruos dibujados con su propio módulo (más detalle que el Lienzo): (ancho, alto, módulo).
 # Cada módulo da `fotograma(direccion, anim, i)` como array RGBA con los pies en (ancho/2, alto-2).
 PROPIOS = {
-    "jabali": (32, 32, jabali),
-    "acolito": (32, 32, acolito),
+    "jabali": (40, 40, jabali),
+    "acolito": (40, 40, acolito),
     "sacerdote": (48, 48, sacerdote),
     "oni": (48, 48, oni),
     "dragon_fuego": (64, 48, dragon_fuego),

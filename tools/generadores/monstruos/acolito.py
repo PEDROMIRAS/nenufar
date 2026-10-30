@@ -1,9 +1,9 @@
-"""Acólito (32x32): encapuchado de túnica oscura con un báculo de calavera y una llama en la mano, uno de los
+"""Acólito (40x40): encapuchado de túnica oscura con un báculo de calavera y una llama en la mano, uno de los
 sacerdotes de la Orden que encendieron la luna falsa del Cauce Seco. Su pose sale de la imagen de referencia
 (`reducir.py`); aquí se anima: respira, se balancea al andar, se echa encima al atacar, y la llama parpadea.
 
-Contrato de los monstruos con módulo propio: `fotograma(direccion, anim, i)` da un array RGBA de 32×32 con los
-pies en (16, 30); `OUT` es el color del contorno (el golpe lo deja casi blanco).
+Contrato de los monstruos con módulo propio: `fotograma(direccion, anim, i)` da un array RGBA de 40×40 con los
+pies en (20, 38); `OUT` es el color del contorno (el golpe lo deja casi blanco).
 """
 import os
 
@@ -14,7 +14,8 @@ import reducir
 OUT = (30, 24, 32)
 REFERENCIA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "docs", "superpowers",
                           "mockups", "cauce-seco-referencias", "4-acolito-calavera.jpg")
-ANCHO = 23
+ANCHO = 29
+W = H = 40
 LLAMA = [(214, 52, 30), (255, 150, 40)]  # los dos tonos que alterna la llama
 TUNICA = (62, 58, 66)
 
@@ -55,15 +56,15 @@ def _de_espaldas(sal):
 
 
 def fotograma(direccion, anim, i):
-    lienzo = np.zeros((32, 32, 4), dtype=np.uint8)
+    lienzo = np.zeros((H, W, 4), dtype=np.uint8)
     sal = _con_llama(_pose(), TONO[anim][i])
     if direccion == "up":
         sal = _de_espaldas(sal)
     if direccion == "left":
         sal = [fila[::-1] for fila in sal]
     alto, ancho = len(sal), len(sal[0])
-    # Los pies (la última fila de la túnica) tocan la fila 30.
-    x0 = (32 - ancho) // 2 + DX[anim][i]
-    y0 = 31 - alto + DY[anim][i]
+    # Los pies (la última fila de la túnica) tocan la fila del ancla (H - 2).
+    x0 = (W - ancho) // 2 + DX[anim][i]
+    y0 = (H - 1) - alto + DY[anim][i]
     reducir.pegar(lienzo, sal, x0, y0)
     return lienzo
