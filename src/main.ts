@@ -696,9 +696,12 @@ async function portada(
   mundo: Mundo,
   sprites: Parameters<typeof crearPortada>[7],
 ): Promise<Portada3d> {
-  const datos = HD2D.portada;
-  // En desarrollo, `?portada=cauce_combate_01` enseña esa sala (la zona es lo que va antes del primer `_`).
-  const pedida = import.meta.env.DEV ? new URLSearchParams(location.search).get('portada') : null;
+  // En desarrollo, `?portada=cauce_combate_01` enseña esa sala (la zona es lo que va antes del primer `_`) y
+  // `&vista=x,z,ancho` acerca la cámara a esa casilla, con ese ancho en casillas.
+  const params = import.meta.env.DEV ? new URLSearchParams(location.search) : null;
+  const pedida = params?.get('portada') ?? null;
+  const [vx, vz, va] = (params?.get('vista') ?? '').split(',').map(Number);
+  const datos = va ? { ...HD2D.portada, encuadre: { x: vx!, z: vz!, ancho: va } } : HD2D.portada;
   const zona = pedida ? pedida.split('_')[0]! : datos.zona;
   const idPlantilla = pedida ?? datos.plantilla;
   const conjunto = PLANTILLAS_DEV[zona];
