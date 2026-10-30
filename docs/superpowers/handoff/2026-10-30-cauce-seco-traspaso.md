@@ -10,8 +10,8 @@ Lee primero `CLAUDE.md` (estado del proyecto) y este documento; el diseño detal
 |---|---|---|
 | 1 | Reglas nuevas: fórmula de daño por cociente, nivel máximo 12, rangos de victoria 10 puntos más bajos, reequilibrado | **Hecha y publicada** (PR #12) |
 | 2 | Jabalí y cuervo (Bosque), lobo (Cripta); el Espectro sale de la Cripta y queda oculto; bestiario de 7 casillas por fila | **Hecha y publicada** (PR #13) |
-| 3a | **Arte** de los monstruos del Cauce Seco (acólito, salamandra, sacerdote, oni, dragón de fuego) y Dragón negro más fiero | **Hecha en la rama `arte-cauce-seco`**, subida a GitHub, **sin PR ni fusionar**: falta el visto bueno de Pedro al arte |
-| 3b | La zona: tileset, autotiles, 8 plantillas, aspecto 3D, música | **Plan escrito, sin empezar** |
+| 3a | **Arte** de los monstruos del Cauce Seco (acólito, salamandra, sacerdote, oni, dragón de fuego) y Dragón negro más fiero | **Hecha en la rama `arte-cauce-seco`**, subida, **PR #14 abierto sin fusionar**: falta el visto bueno de Pedro al arte. Después se rehicieron los cinco jefes desde sus imágenes (ver `CLAUDE.md`) |
+| 3b | La zona: tileset, autotiles, 8 plantillas, aspecto 3D, música | **Hecha y subida en la rama `cauce-seco-zona`** (sale de `arte-cauce-seco`), sin fusionar ni activar; ver `CLAUDE.md` |
 | 3c | Equipo de nivel 4, textos de la zona, rediseño del bestiario | Sin plan |
 | 3d | Activar la zona (`zonas.json`), fichas de datos de los monstruos y equilibrado con cuatro zonas | Sin plan |
 

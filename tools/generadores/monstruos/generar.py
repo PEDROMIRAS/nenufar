@@ -26,6 +26,9 @@ import acolito  # noqa: E402
 import sacerdote  # noqa: E402
 import oni  # noqa: E402
 import dragon_fuego  # noqa: E402
+import guardian_bosque  # noqa: E402
+import reina_arana  # noqa: E402
+import senor_cripta  # noqa: E402
 import reducir  # noqa: E402
 import golem  # noqa: E402
 import rey_sin_charca  # noqa: E402
@@ -58,8 +61,6 @@ MONSTRUOS = {
     "limo": (32, paleta(**VERDE), criaturas.limo, {}),
     "limo_grande": (32, paleta(cuerpo=(104, 186, 120), cuerpo_s=(62, 132, 84), cuerpo_l=(168, 226, 168),
                                boca=(34, 66, 44)), criaturas.limo, {}),
-    "rey_limo": (48, paleta(cuerpo=(86, 168, 80), cuerpo_s=(52, 116, 56), cuerpo_l=(150, 214, 124),
-                            boca=(30, 60, 30)), criaturas.limo, {"corona": True}),
     "murcielago": (32, paleta(cuerpo=(112, 86, 132), cuerpo_s=(74, 54, 92), cuerpo_l=(150, 124, 168),
                               ala=(90, 66, 110), ala_s=(58, 40, 74), ojo=(226, 60, 70), diente=(240, 236, 220)),
                    criaturas.murcielago, {}),
@@ -73,16 +74,11 @@ MONSTRUOS = {
     # Ruinas y Cripta: la araña común; la reina, en morados fríos
     "arana": (32, paleta(cuerpo=(122, 59, 59), cuerpo_s=(78, 34, 40), cuerpo_l=(164, 92, 84), cabeza=(98, 46, 48),
                          pata=(58, 30, 34), ojo=(236, 196, 80), marca=(214, 120, 60)), criaturas.arana, {}),
-    "reina_arana": (48, paleta(cuerpo=(86, 52, 110), cuerpo_s=(52, 30, 72), cuerpo_l=(128, 88, 152),
-                               cabeza=(70, 40, 92), pata=(40, 24, 54), ojo=(240, 80, 110), marca=(206, 196, 220)),
-                    criaturas.arana, {"corona": True}),
     # Humanoides de las Ruinas y la Cripta
     "esqueleto": (32, paleta(**HUESO, **METAL, ojo=(232, 70, 70), cuero=(110, 72, 48)), humanoides.esqueleto, {}),
     "caballero": (32, paleta(**METAL, armadura=(59, 69, 96), armadura_s=(36, 42, 62), armadura_l=(100, 114, 150),
                              visor=(16, 14, 20), ojo=(236, 84, 84), capa=(116, 38, 50), pluma=(176, 50, 62),
                              cuero=(96, 64, 44)), humanoides.caballero, {}),
-    "senor_cripta": (48, paleta(**HUESO, **METAL, tunica=(48, 34, 66), tunica_s=(28, 20, 40), tunica_l=(82, 62, 108),
-                                ojo=(170, 255, 130), madera=(70, 52, 40)), humanoides.senor_cripta, {}),
 }
 
 
@@ -94,6 +90,9 @@ PROPIOS = {
     "sacerdote": (48, 48, sacerdote),
     "oni": (48, 48, oni),
     "dragon_fuego": (64, 48, dragon_fuego),
+    "rey_limo": (64, 48, guardian_bosque),
+    "reina_arana": (64, 48, reina_arana),
+    "senor_cripta": (48, 48, senor_cripta),
     "espectro": (32, 32, espectro),
     "golem": (48, 48, golem),
     "rey_sin_charca": (64, 48, rey_sin_charca),
@@ -107,7 +106,7 @@ PROPIOS = {
 
 
 # Monstruos cuyos fotogramas no deben tocar el borde del cuadro (el generador avisa si pasa).
-VIGILADOS = {"jabali", "acolito", "salamandra", "sacerdote", "oni", "dragon_fuego"}
+VIGILADOS = {"rey_sin_charca", "senor_cripta", "golem", "jabali", "acolito", "salamandra", "sacerdote", "oni", "dragon_fuego", "rey_limo", "reina_arana"}
 
 
 def destello(img, contorno):

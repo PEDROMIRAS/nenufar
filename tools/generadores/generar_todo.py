@@ -50,11 +50,11 @@ def main():
     for script in ("demo_final.py", "demo_plantilla.py", "demo_zonas.py"):
         run(script, ENTORNO)
 
-    for zona in ("bosque", "ruinas", "cripta", "comunes"):
+    for zona in ("bosque", "ruinas", "cripta", "cauce", "comunes"):
         copy(f"{zona}.png", TILESETS)
         copy(f"{zona}.json", TILESETS)
         copy(f"{zona}_x3.png", PREVIEWS)
-    for zona in ("bosque", "ruinas", "cripta"):
+    for zona in ("bosque", "ruinas", "cripta", "cauce"):
         copy(f"{zona}_autotiles.png", TILESETS)
         copy(f"{zona}_autotiles.json", TILESETS)
         copy(f"plantillas_{zona}.json", SALAS)

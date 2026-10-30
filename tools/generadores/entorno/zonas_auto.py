@@ -4,6 +4,7 @@ from base import *
 from autotile import mask_for, edge, wobble, wobble_water
 import ruinas
 import cripta
+import cauce
 
 GRASS = [(58, 92, 52), (82, 122, 62), (110, 150, 76), (146, 178, 96)]
 POOL = [(46, 66, 82), (66, 96, 116), (112, 146, 164), (176, 204, 214)]
@@ -114,7 +115,7 @@ def cripta_auto():
             c = (12, 8, 20)
             if r.random() < 0.04:
                 c = acc[0]
-            if depth >= 6 and r.random() < 0.05:
+            if depth >= 6 and r.random() < 0.03:
                 c = acc[1]
         if e and depth > 3:
             c = (12, 8, 20)
@@ -124,6 +125,43 @@ def cripta_auto():
     for b in range(16):
         out[f"alfombra_{b}"] = generic(base, b, 9, 9, lambda v: 0, False, alfombra, 4)
         out[f"fosa_{b}"] = generic(base, b, 10, 10, wobble_water, True, fosa, 5, rim=st[4])
+    return out
+
+
+# ---------- Cauce Seco ----------
+def cauce_auto():
+    st, acc = cauce.PAL["st"], cauce.PAL["acc"]
+    base = cauce.floor(301)
+
+    def lecho(t, x, y, e, depth, r):
+        """Camino de río seco: losas claras y blanqueadas con guijarros, más claras que el suelo de alrededor."""
+        c = (122, 110, 98) if (x // 8 + y // 8) % 2 else (106, 96, 86)
+        if e:
+            c = (160, 148, 134)
+        elif r.random() < 0.04:
+            c = cauce.GUIJARRO[1]
+        put(t, x, y, c)
+
+    def lava(t, x, y, e, depth, r):
+        """Pozo de brasas: roca negra en el borde y rojo oscuro que se aviva hacia el centro, con pocas chispas."""
+        if depth <= 2:
+            c = [st[3], st[2]][depth - 1]
+        elif depth == 3:
+            c = (70, 18, 10)
+        elif depth == 4:
+            c = (112, 30, 12)
+        else:
+            c = (120, 34, 12) if depth == 5 else (150, 46, 14)
+            if r.random() < 0.10:
+                c = acc[1]
+            if depth >= 6 and r.random() < 0.03:
+                c = acc[2]
+        put(t, x, y, c)
+
+    out = {}
+    for b in range(16):
+        out[f"lecho_{b}"] = generic(base, b, 9, 9, lambda v: 0, False, lecho, 6)
+        out[f"lava_{b}"] = generic(base, b, 10, 10, wobble_water, True, lava, 7, rim=st[4])
     return out
 
 
