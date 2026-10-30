@@ -27,3 +27,27 @@ describe('musica', () => {
     }
   });
 });
+
+describe('musica del Cauce Seco', () => {
+  const pista = (sonido.musica as Record<string, { tempo: number; voces: { notas: string }[] }>)[
+    'cauce'
+  ];
+
+  it('tiene una pista con tres voces', () => {
+    expect(pista?.voces).toHaveLength(3);
+  });
+
+  it('es lenta como la Cripta y tiene las notas dentro de la escala frigia de re', () => {
+    expect(pista?.tempo).toBeGreaterThanOrEqual(84);
+    expect(pista?.tempo).toBeLessThanOrEqual(96);
+    const fuera = pista?.voces
+      .flatMap((v) => leerVoz(v.notas).notas)
+      .filter(
+        (n) =>
+          ![2, 3, 5, 7, 9, 10, 0].includes(
+            Math.round(12 * Math.log2(n.frecuencia / 440) + 9 + 120) % 12,
+          ),
+      );
+    expect(fuera).toEqual([]);
+  });
+});

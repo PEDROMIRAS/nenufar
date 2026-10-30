@@ -528,6 +528,26 @@
         }
       ]
     },
+    "cauce": {
+      "tempo": 90,
+      "voces": [
+        {
+          "onda": "sine",
+          "volumen": 0.9,
+          "notas": "D2 ~ ~ ~ ~ ~ ~ ~ D#2 ~ ~ ~ ~ ~ ~ ~ D2 ~ ~ ~ ~ ~ ~ ~ C2 ~ ~ ~ ~ ~ ~ ~"
+        },
+        {
+          "onda": "triangle",
+          "volumen": 0.5,
+          "notas": "D4 ~ ~ - D#4 ~ D4 ~ - - F4 ~ ~ ~ - - D#4 ~ D4 ~ - - C4 ~ ~ ~ D4 ~ ~ ~ - -"
+        },
+        {
+          "onda": "square",
+          "volumen": 0.18,
+          "notas": "- - A5 - - - - - - A#5 - - - - - A5 - - - D6 - - - - A5 - - - - A#5 - -"
+        }
+      ]
+    },
     "combate": {
       "tempo": 150,
       "voces": [
