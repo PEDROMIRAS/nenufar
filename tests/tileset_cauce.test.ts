@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import cauceJson from '../public/assets/tilesets/cauce.json';
 
 interface TileJson {
   name: string;
@@ -13,20 +14,23 @@ interface TilesetJson {
   tiles: TileJson[];
 }
 
-const JSON_CAUCE = import.meta.glob<{ default: TilesetJson }>('../public/assets/tilesets/cauce.json', {
-  eager: true,
-});
-const cauce = Object.values(JSON_CAUCE)[0]?.default;
-const tile = (nombre: string) => cauce?.tiles.find((t) => t.name === nombre);
+const cauce = cauceJson as unknown as TilesetJson;
+const tile = (nombre: string) => cauce.tiles.find((t) => t.name === nombre);
 
 /** Los suelos, muros y puertas que `construirSala` y el mapa necesitan (los objetos van aparte). */
 const SUELOS = ['suelo_liso_a', 'suelo_liso_b', 'suelo_grietas', 'suelo_guijarros', 'suelo_brasas'];
-const MUROS_SOLIDOS = ['muro_norte_a', 'muro_norte_b', 'muro_norte_c', 'muro_a', 'muro_b', 'puerta_norte_cerrada'];
+const MUROS_SOLIDOS = [
+  'muro_norte_a',
+  'muro_norte_b',
+  'muro_norte_c',
+  'muro_a',
+  'muro_b',
+  'puerta_norte_cerrada',
+];
 
 describe('tileset del Cauce Seco: base', () => {
   test('existe y es de 32 px', () => {
-    expect(cauce).toBeDefined();
-    expect(cauce?.tileSize).toBe(32);
+    expect(cauce.tileSize).toBe(32);
   });
 
   test.each(SUELOS)('%s es un suelo con peso', (nombre) => {
