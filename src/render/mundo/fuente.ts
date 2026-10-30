@@ -52,8 +52,10 @@ export function crearFuente(
     map: cargar('piedra', 4, 1),
     side: THREE.DoubleSide,
   });
-  const borde = new THREE.MeshLambertMaterial({
-    map: cargar('piedra', 3, 3),
+  const borde = new THREE.MeshLambertMaterial({ map: cargar('piedra', 0.5, 0.5) });
+  const juntas = new THREE.MeshLambertMaterial({ color: 0x1c1e2c });
+  const piedraTaza = new THREE.MeshLambertMaterial({
+    map: cargar('piedra', 10, 0.3),
     side: THREE.DoubleSide,
   });
   const texAgua = cargar('agua', 3, 2);
@@ -68,6 +70,34 @@ export function crearFuente(
     malla.receiveShadow = true;
     grupo.add(malla);
     return malla;
+  };
+  /** El borde de un piso: piedras sueltas alrededor, cada una de su alto y su tono, como en la imagen de referencia. */
+  const bordeDePiedras = (radio: number, techo: number): void => {
+    const n = Math.round(14 + radio * 16);
+    const piedras = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), borde, n);
+    const molde = new THREE.Object3D();
+    const color = new THREE.Color();
+    for (let i = 0; i < n; i++) {
+      const ang = ((i + 0.5) / n) * Math.PI * 2;
+      const tx = -rx * Math.sin(ang);
+      const tz = rz * Math.cos(ang);
+      const largo = (Math.hypot(tx, tz) * Math.PI * 2 * radio * 0.93) / n;
+      const grueso = 0.15 * radio * Math.hypot(rx * Math.cos(ang), rz * Math.sin(ang));
+      const alto = 0.05 + azar() * 0.035;
+      molde.position.set(
+        Math.cos(ang) * radio * 0.93 * rx,
+        techo + alto / 2,
+        Math.sin(ang) * radio * 0.93 * rz,
+      );
+      molde.rotation.set(0, -Math.atan2(tz, tx), 0);
+      molde.scale.set(largo * 0.92, alto, grueso);
+      molde.updateMatrix();
+      piedras.setMatrixAt(i, molde.matrix);
+      const tono = 0.78 + azar() * 0.4;
+      piedras.setColorAt(i, color.setRGB(tono, tono, tono));
+    }
+    piedras.receiveShadow = true;
+    grupo.add(piedras);
   };
   /** Un piso: pared por fuera y por dentro, borde plano arriba y agua. Devuelve la altura del agua. */
   const piso = (radio: number, suelo: number, techo: number, hondo: number): number => {
@@ -96,11 +126,12 @@ export function crearFuente(
       ),
     );
     const anillo = poner(
-      new THREE.Mesh(new THREE.RingGeometry(radio * 0.86, radio, CARAS, 1), borde),
+      new THREE.Mesh(new THREE.RingGeometry(radio * 0.86, radio, CARAS, 1), juntas),
       0,
       techo,
     );
     anillo.rotation.x = -Math.PI / 2;
+    bordeDePiedras(radio, techo);
     const alturaAgua = techo - hondo * 0.8;
     const lamina = poner(
       new THREE.Mesh(new THREE.CircleGeometry(radio * 0.86, CARAS), agua),
@@ -137,7 +168,7 @@ export function crearFuente(
         ]),
         CARAS,
       ),
-      piedra,
+      piedraTaza,
     ),
     0,
     0.9,
@@ -176,23 +207,6 @@ export function crearFuente(
   };
   cascada(0.3, 1.0, aguaB, 4, Math.PI / 4);
   cascada(0.6, 0.64, aguaA, 6, 0.3);
-  // Espuma donde un piso y la columna tocan el agua, y donde cae cada cascada: los pisos se ven unidos
-  const materialEspuma = new THREE.MeshBasicMaterial({
-    color: 0xcfefff,
-    transparent: true,
-    opacity: 0.55,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-  });
-  const espuma = (dentro: number, fuera: number, y: number): void => {
-    const m = new THREE.Mesh(new THREE.RingGeometry(dentro, fuera, CARAS, 1), materialEspuma);
-    m.rotation.x = -Math.PI / 2;
-    m.position.y = y + 0.006;
-    m.scale.set(rx, 1, rz);
-    grupo.add(m);
-  };
-  espuma(0.57, 0.66, aguaA);
-  espuma(0.12, 0.2, aguaB);
 
   // Nenúfares tumbados sobre el agua de cada piso
   const materialNenufar = new THREE.MeshBasicMaterial({
