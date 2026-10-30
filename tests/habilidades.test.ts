@@ -190,7 +190,7 @@ describe('estados', () => {
 
 describe('quinta habilidad (recompensa de los jefes violetas)', () => {
   test.each(Object.keys(heroes) as (keyof typeof heroes)[])(
-    '%s: no está disponible sin ganarla, ni a nivel 10; sí tras ganarla',
+    '%s: no está disponible sin ganarla, ni al nivel máximo; sí tras ganarla',
     (clave) => {
       const heroe = heroes[clave];
       const quinta = heroe.especiales.habilidad;
@@ -204,7 +204,7 @@ describe('quinta habilidad (recompensa de los jefes violetas)', () => {
   );
 
   test('sin ganarla no se puede usar aunque haya PM', () => {
-    const c = combate(heroes.maga, 10);
+    const c = combate(heroes.maga, REGLAS.experiencia.nivelMaximo);
     c.heroina.pm = 999;
     expect(() => usar(c, 'Cometa arcano', heroes.maga)).toThrow('no está disponible');
   });
@@ -219,7 +219,7 @@ describe('quinta habilidad (recompensa de los jefes violetas)', () => {
 
 describe('Cometa arcano rompe el golpe cargado', () => {
   function cometa(pvEnemigos: number): { c: Combate; eventos: Evento[] } {
-    const c = combate(heroes.maga, 10, 2);
+    const c = combate(heroes.maga, REGLAS.experiencia.nivelMaximo, 2);
     c.heroina.habilidadesGanadas.push('Cometa arcano');
     c.heroina.pm = 999;
     for (const e of c.enemigos) {

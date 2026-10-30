@@ -58,12 +58,16 @@ describe('ganarExperiencia', () => {
     expect([h.pv, h.pm]).toEqual([h.pvMax, h.pmMax]);
   });
 
+  test('el nivel máximo es 12', () => {
+    expect(r.nivelMaximo).toBe(12);
+  });
+
   test('en el nivel máximo no sube más ni acumula experiencia', () => {
     const h = ronin();
     ganarExperiencia(h, 100000, r);
-    expect([h.nivel, h.experiencia]).toEqual([10, 0]);
+    expect([h.nivel, h.experiencia]).toEqual([12, 0]);
     expect(ganarExperiencia(h, 500, r)).toEqual([]);
-    expect(h.experiencia).toBe(0);
+    expect([h.nivel, h.experiencia]).toEqual([12, 0]);
   });
 });
 
