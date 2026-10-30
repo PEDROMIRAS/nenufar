@@ -166,3 +166,10 @@ Los cofres de cada zona dan objetos de un nivel (Bosque 1, Ruinas 2, Cripta 3). 
 - **El Dragón negro se mantiene en las cuatro zonas** (los tests exigen que las cuatro variantes compartan sprite) y se hizo más fiero. El dragón de fuego (imagen 6) queda como arte para más adelante: `dragon_fuego`, 64×48, sin datos.
 - **Las fichas de datos de los monstruos nuevos van en la 3d**, junto al equilibrado: si se añadieran antes, el bestiario y «Naturalista» pedirían monstruos que nadie puede encontrar.
 - **Criterio de arte (Pedro):** sobrio y oscuro; los monstruos no deben verse infantiles (nada de ojos grandes y redondos ni de color liso).
+
+## Cambios del 2026-10-30 (noche)
+
+- **Los cinco jefes se rehacen a partir de imágenes de Pedro** (Guardián del Bosque, Golem, Reina Araña, Señor de la Cripta y Rey sin Charca): sobrios, oscuros y amenazantes, sin coronas. Ver `CLAUDE.md` y `docs/previews/todos_monstruos.png`. El Rey Limo pasa a ser un gusano-dragón cubierto de musgo (se propone llamarlo «Guardián del Bosque»).
+- **La zona (3b) está hecha pero sin activar:** tileset `cauce`, autotiles `lecho` y `lava`, ocho plantillas, aspecto 3D, luz y modelo del brasero, y una pista de música. Imagen de revisión: `docs/previews/cauce_zona_x2.png`.
+- **El mapa 3D de todas las zonas se ve como el arte:** los muros del borde llevan el tile de remate y el de cara (antes, ruido), y los objetos son sprites de pie con su dibujo (antes, modelos de formas sencillas). Decisión de Pedro.
+- **Sin decidir:** si la fuente del descanso del Cauce Seco lleva agua azul (así está), el nombre nuevo del Rey Limo, y cómo se relacionan el arte del Señor de la Cripta y el del Rey sin Charca, que se transforman uno en otro.
