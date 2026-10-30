@@ -225,3 +225,92 @@ def cuervo(c, vista, anim, i):
         c.ellipse(cx + s * 4.5 * k, cy + 1 * k, 3.5 * k, 7 * k, "cuerpo_s")
         c.line(cx + s * 4.5 * k, cy - 4 * k, cx + s * 4.5 * k, cy + 6 * k + alas, "cuerpo")
         c.poly([(cx + s * 3 * k, cy - 8 * k), (cx + s * 5 * k, cy - 12 * k), (cx + s * 6 * k, cy - 7 * k)], "cuerpo_s")
+
+
+# ---------------------------------------------------------------- salamandra de brasas
+
+SAL_FASE = {"idle": [0, 0.9], "walk": [0, 1.6, 3.1, 4.7], "atacar": [0, 0, 0], "golpe": [0]}
+SAL_AVANCE = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [-1, 2, 1], "golpe": [-1]}
+SAL_BOCA = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [0, 1, 0.5], "golpe": [0]}
+SAL_ALTO = {"idle": [0, 1], "walk": [0, -1, 0, -1], "atacar": [0, 0, 0], "golpe": [1]}
+
+
+def _ojo_salamandra(c, x, y, k):
+    """Ojo grande y claro con la pupila oscura: lo que más se ve de la salamandra."""
+    c.rect(x - 1 * k, y - 1 * k, x + 1 * k, y + 1 * k, "ojo_c")
+    c.put(x + 0.5 * k, y, "ojo")
+
+
+def salamandra(c, vista, anim, i):
+    k = _escala(c)
+    fase = SAL_FASE[anim][i]
+    avance = SAL_AVANCE[anim][i] * k
+    boca = SAL_BOCA[anim][i] * k
+    alto = SAL_ALTO[anim][i] * k
+    base = c.t - 2
+    lift = [max(0, math.sin(fase + (0 if n % 2 else math.pi))) * 2 * k for n in range(4)]
+    # En combate y en el bestiario se ve la vista «frente»: la salamandra se enseña de perfil, como el jabalí.
+    if vista in ("lado", "frente"):
+        # Cuerpo: cadena de elipses de la cola a la cabeza, que serpentea y se ensancha hacia los hombros.
+        tramos = []
+        for n in range(13):
+            t = n / 12
+            x = (3 + t * 17) * k + avance * t
+            y = base - 6.5 * k + alto + math.sin(fase + t * 4.5) * 1.7 * k * (1 - t * 0.6)
+            g = (1.3 + 3.4 * math.sin(min(1.0, t * 1.2) * math.pi / 2)) * k
+            tramos.append((x, y, g))
+        # Patas cortas, las de atrás y las de delante
+        for n, idx in enumerate((3, 5, 8, 10)):
+            x, y, g = tramos[idx]
+            lejos = "cuerpo_s" if n % 2 == 0 else "cuerpo"
+            pie = base - lift[n]
+            c.rect(x - 1 * k, y + g * 0.5, x + 0.5 * k, pie, lejos)
+            c.rect(x - 1.5 * k, pie, x + 1.5 * k, pie, "brasa")
+        for x, y, g in tramos:
+            c.ellipse(x, y, 2.4 * k, g, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        # Punta de la cola encendida, con una chispa
+        x, y, g = tramos[0]
+        c.ellipse(x, y, 1.8 * k, 1.8 * k, "brasa")
+        c.put(x - 1.5 * k, y - 3 * k, "brasa")
+        for n in range(1, 12, 2):
+            x, y, g = tramos[n]
+            c.put(x, y + g * 0.55, "vientre")
+            c.put(x - 0.5 * k, y - g * 0.55, "brasa")
+        # Cabeza ancha y chata, con los ojos arriba, y la boca que se abre al atacar
+        x, y, g = tramos[-1]
+        hx, hy = x + 3.5 * k, y - 0.5 * k
+        c.ellipse(hx, hy, 5.5 * k, 4.2 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        _ojo_salamandra(c, hx + 1.5 * k, hy - 2.2 * k, k)
+        c.put(hx + 5 * k, hy - 0.5 * k, "ojo")
+        if boca > 0:
+            c.poly([(hx + 1 * k, hy + 1.5 * k), (hx + 8 * k, hy + 1 * k), (hx + 7 * k, hy + 3.5 * k + boca * 2),
+                    (hx + 1 * k, hy + 3 * k + boca)], "boca")
+            c.put(hx + 6 * k, hy + 2 * k, "brasa")
+        else:
+            c.line(hx + 1 * k, hy + 2 * k, hx + 7 * k, hy + 1.5 * k, "boca")
+        return
+    cx = c.t / 2
+    if vista == "frente":
+        for s in (-1, 1):
+            c.rect(cx + s * 7.5 * k, base - 6 * k - lift[0 if s < 0 else 1], cx + s * 6 * k, base - lift[0 if s < 0 else 1], "cuerpo_s")
+            c.rect(cx + s * 8.5 * k, base - lift[0 if s < 0 else 1], cx + s * 5.5 * k, base - lift[0 if s < 0 else 1], "brasa")
+        c.ellipse(cx, base - 8 * k + alto, 8 * k, 6.5 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        c.ellipse(cx, base - 13 * k + alto, 8.5 * k, 7 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        for ox, oy in ((-4, -3), (3, -2), (-1, 1), (5, 1.5)):
+            c.put(cx + ox * k, base - 17 * k + alto + oy * k, "brasa")
+        _ojo_salamandra(c, cx - 4.5 * k, base - 17 * k + alto, k)
+        _ojo_salamandra(c, cx + 4.5 * k, base - 17 * k + alto, k)
+        c.put(cx - 1 * k, base - 13 * k + alto, "ojo")
+        c.put(cx + 1 * k, base - 13 * k + alto, "ojo")
+        if boca > 0:
+            c.ellipse(cx, base - 9 * k + alto, 4 * k, 1.5 * k + boca, "boca")
+        else:
+            c.line(cx - 4 * k, base - 9.5 * k + alto, cx + 4 * k, base - 9.5 * k + alto, "boca")
+        return
+    # Espalda: la cola ancha detrás y el lomo manchado
+    c.line(cx, base - 2 * k, cx + 4 * k * math.sin(fase), base - 6 * k, "cuerpo_s", 2)
+    c.ellipse(cx, base - 12 * k + alto, 6 * k, 10 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+    c.ellipse(cx, base - 2 * k, 1.8 * k, 1.8 * k, "brasa")
+    for n in range(5):
+        c.put(cx - 1 * k + (n % 2) * 2 * k, base - 19 * k + n * 3 * k + alto, "brasa")
+    c.ellipse(cx, base - 20.5 * k + alto, 4.5 * k, 3.5 * k, "cuerpo", sombra="cuerpo_s")

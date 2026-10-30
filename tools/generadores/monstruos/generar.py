@@ -61,6 +61,9 @@ MONSTRUOS = {
                    criaturas.murcielago, {}),
     "cuervo": (32, paleta(cuerpo=(48, 44, 58), cuerpo_s=(33, 31, 45), cuerpo_l=(92, 83, 108), pico=(116, 98, 92),
                           adorno=(122, 82, 48), ojo=(255, 214, 120), brillo=(255, 248, 214)), criaturas.cuervo, {}),
+    "salamandra": (32, paleta(cuerpo=(222, 96, 40), cuerpo_s=(150, 52, 28), cuerpo_l=(250, 148, 60), brasa=(255, 214, 90),
+                              vientre=(246, 196, 120), boca=(120, 30, 24), ojo_c=(255, 240, 150), ojo=(40, 14, 10)),
+                   criaturas.salamandra, {}),
     "lobo": (32, paleta(pelo=(40, 50, 84), pelo_s=(18, 25, 44), pelo_l=(78, 92, 136), rojo=(204, 40, 48),
                         colmillo=(240, 236, 228), ojo=(255, 84, 84), ojo_nariz=(12, 14, 24)), humanoides.lobo, {}),
     # Ruinas y Cripta: la araña común; la reina, en morados fríos
