@@ -187,29 +187,39 @@ def jabali(c, vista, anim, i):
     lift = [max(0, math.sin(fase + (0 if n % 2 else math.pi))) * 2 * k for n in range(4)]
     if vista == "lado":
         cx = 11 * k + av
+        cy -= 1 * k
         # Patas de atrás y de delante (las del otro lado, más oscuras)
         for n, (px, clave) in enumerate(((cx - 6 * k, "cuerpo_s"), (cx + 5 * k, "cuerpo_s"),
                                          (cx - 3 * k, "cuerpo"), (cx + 8 * k, "cuerpo"))):
-            _pata_jabali(c, px, cy + 3 * k, base, lift[n], k, clave)
-        # Rabo
-        c.line(cx - 9 * k, cy - 1 * k, cx - 11 * k, cy - 4 * k, "cuerpo_s")
-        c.put(cx - 11 * k, cy - 5 * k, "pua")
-        # Cuerpo redondo con la joroba de los hombros
-        c.ellipse(cx, cy, 10 * k, 7 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
-        c.ellipse(cx + 3 * k, cy - 2.5 * k, 7 * k, 6.5 * k, "cuerpo", luz="cuerpo_l")
-        _melena(c, cx - 8 * k, cx + 7 * k, cy - 6 * k, 8 * k, k, 8, 0.7)
-        # Cabeza baja con hocico largo, oreja, ojo, boca y colmillos
+            _pata_jabali(c, px, cy + 4 * k, base, lift[n], k, clave)
+        # Rabo fino con borla
+        c.line(cx - 10 * k, cy - 1 * k, cx - 12 * k, cy - 5 * k, "cuerpo_s")
+        c.put(cx - 12 * k, cy - 6 * k, "pua")
+        # Cuerpo muy redondo
+        c.ellipse(cx, cy, 10.5 * k, 8.5 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        # Melena: hebras largas y claras que caen hacia atrás por todo el lomo
+        for n in range(13):
+            t = n / 12
+            x = cx - 8.5 * k + t * 16 * k
+            borde = cy - 8.5 * k * math.sqrt(max(0.05, 1 - ((x - cx) / (10.5 * k)) ** 2))
+            largo = (5 + 4 * math.sin(t * math.pi)) * k
+            clave = "cuerpo_l" if n % 3 == 0 else ("cuerpo" if n % 3 == 1 else "pua")
+            c.line(x + 1 * k, borde + 3 * k, x - 3.5 * k, borde - largo + 3 * k, "pua", 2)
+            c.line(x + 1 * k, borde + 2 * k, x - 3 * k, borde - largo + 2 * k, clave)
+        # Cabeza baja y redonda con el hocico corto, la boca morada y el colmillo grande
         hx, hy = cx + 10 * k, cy + 2.5 * k + agacha
         c.ellipse(hx, hy, 5.5 * k, 5 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
-        c.ellipse(hx + 4.5 * k, hy + 1.5 * k, 3.5 * k, 3 * k, "cuerpo_l", sombra="cuerpo")
-        c.poly([(hx - 3 * k, hy - 3 * k), (hx - 2 * k, hy - 8 * k), (hx + 0.5 * k, hy - 3.5 * k)], "cuerpo_s")
-        c.put(hx + 1 * k, hy - 1 * k, "ojo")
-        c.put(hx + 1 * k, hy - 2 * k, "brillo")
-        c.rect(hx + 7 * k, hy + 0 * k, hx + 8 * k, hy + 1 * k, "pezuna")
-        boca = 1 * k if anim == "atacar" and i == 1 else 0
-        c.rect(hx + 2 * k, hy + 4 * k, hx + 6 * k, hy + 4.5 * k + boca, "boca")
-        _colmillo(c, [(hx + 3.5 * k, hy + 4.5 * k), (hx + 6.5 * k, hy + 4 * k), (hx + 8.5 * k, hy + 1 * k),
-                      (hx + 8 * k, hy - 3.5 * k), (hx + 6.5 * k, hy - 5 * k)], k)
+        c.ellipse(hx + 4 * k, hy + 1.5 * k, 3 * k, 2.8 * k, "cuerpo_l", sombra="cuerpo")
+        c.poly([(hx - 3 * k, hy - 3 * k), (hx - 2.5 * k, hy - 8 * k), (hx, hy - 3.5 * k)], "cuerpo_s")
+        c.rect(hx + 0 * k, hy - 2.5 * k, hx + 3 * k, hy - 1.5 * k, "pua")
+        c.rect(hx + 1 * k, hy - 1.5 * k, hx + 2 * k, hy - 0.5 * k, "brillo")
+        c.put(hx + 2 * k, hy - 1 * k, "ojo")
+        c.rect(hx + 6.5 * k, hy + 0.5 * k, hx + 7.5 * k, hy + 1.5 * k, "pezuna")
+        boca = 1.5 * k if anim == "atacar" and i == 1 else 0
+        c.ellipse(hx + 4 * k, hy + 4.2 * k + boca * 0.5, 3.2 * k, 1.6 * k + boca * 0.5, "boca")
+        c.line(hx + 2 * k, hy + 4.2 * k, hx + 6 * k, hy + 4.2 * k, "pua")
+        _colmillo(c, [(hx + 2.5 * k, hy + 5 * k), (hx + 6 * k, hy + 4.5 * k), (hx + 8.5 * k, hy + 1.5 * k),
+                      (hx + 8.5 * k, hy - 2 * k), (hx + 7 * k, hy - 4.5 * k)], k)
         return
     cx = c.t / 2
     if vista == "frente":

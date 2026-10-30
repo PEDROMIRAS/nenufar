@@ -493,6 +493,69 @@
     },
     "color": "#7a2a36"
   },
+  "lobo": {
+    "nombre": "Lobo",
+    "sprite": "monstruos/lobo",
+    "estadisticas": {
+      "pv": 70,
+      "pm": 0,
+      "ataque": 20,
+      "magia": 0,
+      "defensa": 8,
+      "velocidad": 10
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 60
+      },
+      {
+        "accion": "cargar",
+        "peso": 40
+      }
+    ],
+    "cargado": {
+      "poder": 2.5,
+      "aviso": "muestra los colmillos..."
+    },
+    "jefe": false,
+    "experiencia": 28,
+    "botin": [
+      {
+        "objeto": "pocion",
+        "peso": 30
+      },
+      {
+        "objeto": "eter",
+        "peso": 15
+      },
+      {
+        "objeto": "nada",
+        "peso": 55
+      },
+      {
+        "objeto": "arma",
+        "nivel": 2,
+        "peso": 6
+      },
+      {
+        "objeto": "armadura",
+        "nivel": 2,
+        "peso": 6
+      }
+    ],
+    "caja": {
+      "ancho": 20,
+      "alto": 12
+    },
+    "mapa": {
+      "velocidad": 40,
+      "persecucion": 80,
+      "vision": 96,
+      "patrulla": 48
+    },
+    "color": "#262c44"
+  },
   "rey_limo": {
     "nombre": "Rey Limo",
     "sprite": "monstruos/rey_limo",

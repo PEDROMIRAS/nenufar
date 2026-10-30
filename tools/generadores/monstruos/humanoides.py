@@ -198,3 +198,108 @@ def senor_cripta(c, vista, anim, i):
     p = _pose(c, anim, i)
     p["bob"] -= 2  # flota un poco sobre el suelo
     _bipedo(c, vista, p, None, "hueso", _manto, _capucha, _guadana, grosor=(2, 1.5))
+
+
+# ---------------------------------------------------------------- lobo
+
+LOBO_BOB = {"idle": [0, 1], "walk": [0, -1, 0, -1], "atacar": [0, 0, 1], "golpe": [0]}
+LOBO_PASO = {"idle": [0, 0], "walk": [3, 0, -3, 0], "atacar": [0, 1, 2], "golpe": [0]}
+# Zarpa que se lanza al atacar, lunge de la cabeza y mandíbula abierta.
+LOBO_ZARPA = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [-2, 5, 3], "golpe": [-2]}
+LOBO_CABEZA = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [-1, 3, 2], "golpe": [-2]}
+LOBO_BOCA = {"idle": [0, 0], "walk": [0, 1, 0, 1], "atacar": [1, 3, 2], "golpe": [0]}
+
+
+def _garras(c, x, y, k, dx=1):
+    """Tres garras rojas en la punta de una zarpa."""
+    for n in (-1, 0, 1):
+        c.put(x + dx * k, y + n * 1.5 * k, "rojo")
+        c.put(x + 2 * dx * k, y + n * 1.5 * k, "rojo")
+
+
+def lobo(c, vista, anim, i):
+    k = c.t / 32
+    bob = LOBO_BOB[anim][i] * k
+    paso = LOBO_PASO[anim][i] * k
+    zarpa = LOBO_ZARPA[anim][i] * k
+    lunge = LOBO_CABEZA[anim][i] * k
+    boca = LOBO_BOCA[anim][i] * k
+    base = c.t - 2
+    cy = base - 12 * k + bob
+    if vista == "lado":
+        cx = 13 * k + (lunge if anim == "atacar" else 0)
+        # Cola grande y erizada
+        c.poly([(cx - 6 * k, cy + 3 * k), (cx - 12 * k, cy + 4 * k), (cx - 15 * k, cy - 2 * k), (cx - 13 * k, cy - 8 * k),
+                (cx - 11 * k, cy - 3 * k), (cx - 8 * k, cy - 1 * k)], "pelo_s")
+        c.line(cx - 13 * k, cy - 6 * k, cx - 12 * k, cy, "pelo_l")
+        # Patas de atrás (digitígradas) y brazo del otro lado
+        _grueso(c, cx - 3 * k, cy + 3 * k, cx - 6 * k, cy + 8 * k, "pelo_s", 3 * k)
+        _grueso(c, cx - 6 * k, cy + 8 * k, cx - 5 * k - paso, base - 1 * k, "pelo_s", 3 * k)
+        _grueso(c, cx - 1 * k, cy + 3 * k, cx - 2 * k + paso * 0.5, cy + 8 * k, "pelo", 3 * k)
+        _grueso(c, cx - 2 * k + paso * 0.5, cy + 8 * k, cx + 0 * k + paso, base - 1 * k, "pelo", 3 * k)
+        c.rect(cx - 6 * k - paso, base - 1 * k, cx - 3 * k - paso, base, "rojo")
+        c.rect(cx - 1 * k + paso, base - 1 * k, cx + 2 * k + paso, base, "rojo")
+        # Torso encorvado con la joroba de los hombros
+        c.ellipse(cx + 1 * k, cy - 1 * k, 7 * k, 7.5 * k, "pelo", sombra="pelo_s", luz="pelo_l")
+        c.ellipse(cx - 3 * k, cy - 5 * k, 6 * k, 5 * k, "pelo", sombra="pelo_s", luz="pelo_l")
+        # Cresta de pelo del lomo
+        for n in range(5):
+            x = cx - 8 * k + n * 2.2 * k
+            y = cy - 9 * k - abs(n - 2) * -0.5 * k + n * 0.3 * k
+            c.poly([(x - 1.5 * k, y + 3 * k), (x - 3.5 * k, y - 2 * k), (x + 1 * k, y + 1 * k)], "pelo_s")
+        # Brazo cercano con garras
+        mx, my = cx + 8 * k + zarpa, cy + 3 * k - (zarpa * 0.5)
+        _grueso(c, cx + 4 * k, cy - 4 * k, cx + 8 * k, cy, "pelo", 3 * k)
+        _grueso(c, cx + 8 * k, cy, mx, my, "pelo", 3 * k)
+        _garras(c, mx + 1 * k, my, k)
+        # Cabeza de lobo: cráneo, hocico, mandíbula abierta, orejas, ojo rojo
+        hx, hy = cx + 6 * k + lunge, cy - 10 * k
+        c.ellipse(hx, hy, 5 * k, 4.5 * k, "pelo", sombra="pelo_s", luz="pelo_l")
+        c.poly([(hx + 2 * k, hy - 3 * k), (hx + 10 * k, hy - 1 * k), (hx + 10 * k, hy + 1 * k), (hx + 1 * k, hy + 1 * k)], "pelo")
+        c.poly([(hx + 1 * k, hy + 1 * k), (hx + 9 * k, hy + 2 * k + boca), (hx + 8 * k, hy + 4 * k + boca),
+                (hx + 0 * k, hy + 4 * k)], "pelo_s")
+        c.poly([(hx + 1 * k, hy + 1 * k), (hx + 10 * k, hy + 1 * k), (hx + 9 * k, hy + 2 * k + boca)], "rojo")
+        for n in range(3):
+            c.put(hx + 4 * k + n * 2 * k, hy + 2 * k, "colmillo")
+        c.put(hx + 10 * k, hy - 1 * k, "ojo_nariz")
+        c.poly([(hx - 3 * k, hy - 3 * k), (hx - 2 * k, hy - 9 * k), (hx + 1 * k, hy - 4 * k)], "pelo_s")
+        c.put(hx + 2 * k, hy - 2 * k, "ojo")
+        c.put(hx + 3 * k, hy - 2 * k, "ojo")
+        return
+    cx = c.t / 2
+    if vista == "frente":
+        for s in (-1, 1):
+            _grueso(c, cx + s * 3 * k, cy + 3 * k, cx + s * 4 * k, base - 1 * k, "pelo_s", 3 * k)
+            c.rect(cx + s * 4 * k - 1.5 * k, base - 1 * k, cx + s * 4 * k + 1.5 * k, base, "rojo")
+            # Brazos colgando con zarpas, que se abren al atacar
+            _grueso(c, cx + s * 7 * k, cy - 5 * k, cx + s * (9 + zarpa * 0.4) * k, cy + 5 * k, "pelo", 3 * k)
+            _garras(c, cx + s * (9 + zarpa * 0.4) * k, cy + 6 * k, k, 0)
+        c.ellipse(cx, cy - 2 * k, 8.5 * k, 8 * k, "pelo", sombra="pelo_s", luz="pelo_l")
+        c.ellipse(cx, cy - 7 * k, 9 * k, 4.5 * k, "pelo", luz="pelo_l")
+        for n in range(5):
+            x = cx - 8 * k + n * 4 * k
+            c.poly([(x - 1.5 * k, cy - 8 * k), (x, cy - 12 * k), (x + 1.5 * k, cy - 8 * k)], "pelo_s")
+        hy = cy - 10 * k
+        c.rect(cx - 3 * k, hy + 3 * k, cx + 3 * k, hy + 6 * k, "pelo_s")
+        c.ellipse(cx, hy, 5.5 * k, 5 * k, "pelo", sombra="pelo_s", luz="pelo_l")
+        for s in (-1, 1):
+            c.poly([(cx + s * 3 * k, hy - 3 * k), (cx + s * 5 * k, hy - 10 * k), (cx + s * 6 * k, hy - 3 * k)], "pelo_s")
+            c.put(cx + s * 3 * k, hy - 1 * k, "ojo")
+            c.put(cx + s * 2 * k, hy - 1 * k, "ojo")
+        c.ellipse(cx, hy + 2 * k, 2.5 * k, 2 * k, "pelo_l")
+        c.put(cx, hy + 1 * k, "ojo_nariz")
+        c.ellipse(cx, hy + 4 * k, 2 * k, 1.2 * k + boca * 0.3, "rojo")
+        c.put(cx - 1.5 * k, hy + 3 * k, "colmillo")
+        c.put(cx + 1.5 * k, hy + 3 * k, "colmillo")
+        return
+    for s in (-1, 1):
+        _grueso(c, cx + s * 3 * k, cy + 3 * k, cx + s * 4 * k, base - 1 * k, "pelo_s", 3 * k)
+        _grueso(c, cx + s * 7 * k, cy - 5 * k, cx + s * 9 * k, cy + 5 * k, "pelo", 3 * k)
+    c.poly([(cx - 3 * k, cy + 4 * k), (cx + 3 * k, cy + 4 * k), (cx + 4 * k, cy + 11 * k), (cx, cy + 12 * k)], "pelo_s")
+    c.ellipse(cx, cy - 2 * k, 8.5 * k, 8 * k, "pelo", sombra="pelo_s", luz="pelo_l")
+    for n in range(6):
+        y = cy - 8 * k + n * 2.4 * k
+        c.poly([(cx - 3 * k, y + 2 * k), (cx, y - 1 * k), (cx + 3 * k, y + 2 * k)], "pelo_s")
+    c.ellipse(cx, cy - 9 * k, 5 * k, 4.5 * k, "pelo", sombra="pelo_s")
+    for s in (-1, 1):
+        c.poly([(cx + s * 3 * k, cy - 11 * k), (cx + s * 5 * k, cy - 18 * k), (cx + s * 6 * k, cy - 11 * k)], "pelo_s")
