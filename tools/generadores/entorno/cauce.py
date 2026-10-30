@@ -70,7 +70,68 @@ def door(seed, closed=False):
     return t
 
 
+def pilar():
+    """Columna de obsidiana con una grieta de brasa que la recorre; devuelve (parte de arriba, parte de abajo)."""
+    t = P.column(PAL, 309)
+    acc = PAL["acc"]
+    x = 15
+    for y in range(14, 48):
+        put(t, x, y, acc[1] if y % 4 == 0 else acc[0])
+        if y % 7 == 3:
+            x += 1
+        elif y % 7 == 0:
+            x -= 1
+    put(t, 15, 30, acc[2]); put(t, 16, 40, acc[2])
+    return split_tall(t)
+
+
+def roca():
+    """Bloque de obsidiana facetado, con una veta de brasa."""
+    t, st = tile(), PAL["st"]
+    ellipse(t, 16, 20, 11, 8, [st[1], st[2], st[3]])
+    for x0, y0, x1, y1 in ((8, 20, 14, 13), (14, 13, 20, 14), (20, 14, 24, 21), (14, 13, 15, 26)):
+        line(t, x0, y0, x1, y1, st[1])
+    line(t, 10, 17, 15, 12, st[4]); line(t, 15, 12, 20, 13, st[4])
+    for k, y in enumerate(range(18, 25)):
+        put(t, 17 + (k % 2), y, PAL["acc"][0] if y % 3 else PAL["acc"][1])
+    outline(t)
+    ground_shadow(t, 16, 29, 12, 2)
+    return t
+
+
+def escombros():
+    t = P.rubble(PAL, 308)
+    for x, y in ((9, 27), (20, 28), (25, 22)):
+        put(t, x, y, PAL["acc"][0])
+    return t
+
+
+HIERRO = [(14, 12, 18), (30, 26, 36), (52, 46, 62), (84, 76, 98)]
+
+
+def brasero(frame):
+    """Cuenco de hierro negro sobre tres patas, con brasas y una llama que cambia entre los dos fotogramas."""
+    t = tile()
+    acc = PAL["acc"]
+    for x0, y0, x1, y1 in ((10, 21, 8, 29), (16, 22, 16, 29), (21, 21, 23, 29)):
+        line(t, x0, y0, x1, y1, HIERRO[2])
+    rect(t, 9, 16, 22, 21, HIERRO[1]); rect(t, 9, 16, 22, 16, HIERRO[3]); rect(t, 10, 21, 21, 21, HIERRO[0])
+    rect(t, 11, 18, 20, 19, HIERRO[2])
+    outline(t)
+    for x in range(10, 22):
+        put(t, x, 15, acc[0] if x % 2 else acc[1])  # el montón de brasas
+    alto = (4, 6)[frame]
+    for k in range(alto):
+        ancho = max(1, 3 - k // 2)
+        for dx in range(-ancho, ancho + 1):
+            x = 15 + dx + (1 if k >= alto - 2 and frame else 0)
+            put(t, x, 14 - k, acc[2] if k < 2 and abs(dx) < 2 else (acc[1] if abs(dx) < ancho else acc[0]))
+    ground_shadow(t, 16, 29, 8, 1.5)
+    return t
+
+
 def tiles():
+    psup, pinf = pilar()
     return [
         ("suelo_liso_a", "suelo", False, [floor(301)], 35),
         ("suelo_liso_b", "suelo", False, [floor(302)], 35),
@@ -84,6 +145,12 @@ def tiles():
         ("muro_b", "muro", True, [P.cap_blocks(PAL, 322)], None),
         ("puerta_norte_abierta", "muro", False, [door(331)], None),
         ("puerta_norte_cerrada", "muro", True, [door(331, closed=True)], None),
+        ("pilar_sup", "dosel", False, [psup], None),
+        ("pilar_inf", "objeto", True, [pinf], None),
+        ("roca", "objeto", True, [roca()], None),
+        ("columna_rota", "objeto", True, [P.broken_column(PAL, 307)], None),
+        ("escombros", "objeto", True, [escombros()], None),
+        ("brasero", "objeto", True, [brasero(0), brasero(1)], None),
         ("barrera_h", "objeto", True, [P.bars_prop()], None),
         ("barrera_v", "objeto", True, [P.bars_prop(True)], None),
     ]

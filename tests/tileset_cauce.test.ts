@@ -7,6 +7,7 @@ interface TileJson {
   solid: boolean;
   weight?: number;
   frames?: number;
+  fps?: number;
   caja?: number[];
 }
 interface TilesetJson {
@@ -51,5 +52,26 @@ describe('tileset del Cauce Seco: base', () => {
   test.each(['barrera_h', 'barrera_v'])('%s es un objeto sólido', (nombre) => {
     expect(tile(nombre)?.layer).toBe('objeto');
     expect(tile(nombre)?.solid).toBe(true);
+  });
+});
+
+describe('tileset del Cauce Seco: objetos', () => {
+  test('la parte de arriba del pilar es un dosel que no choca', () => {
+    expect(tile('pilar_sup')?.layer).toBe('dosel');
+    expect(tile('pilar_sup')?.solid).toBe(false);
+  });
+
+  test.each(['pilar_inf', 'roca', 'columna_rota', 'escombros', 'brasero'])(
+    '%s es un objeto sólido con su caja de colisión',
+    (nombre) => {
+      expect(tile(nombre)?.layer).toBe('objeto');
+      expect(tile(nombre)?.solid).toBe(true);
+      expect(tile(nombre)?.caja).toHaveLength(4);
+    },
+  );
+
+  test('el brasero tiene dos fotogramas', () => {
+    expect(tile('brasero')?.frames).toBe(2);
+    expect(tile('brasero')?.fps).toBeGreaterThan(0);
   });
 });

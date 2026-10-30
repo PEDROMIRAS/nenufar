@@ -80,14 +80,82 @@
       "solid": true
     },
     {
-      "name": "barrera_h",
+      "name": "pilar_sup",
       "index": 12,
+      "layer": "dosel",
+      "solid": false
+    },
+    {
+      "name": "pilar_inf",
+      "index": 13,
+      "layer": "objeto",
+      "solid": true,
+      "caja": [
+        4,
+        19,
+        28,
+        31
+      ]
+    },
+    {
+      "name": "roca",
+      "index": 14,
+      "layer": "objeto",
+      "solid": true,
+      "caja": [
+        4,
+        19,
+        28,
+        31
+      ]
+    },
+    {
+      "name": "columna_rota",
+      "index": 15,
+      "layer": "objeto",
+      "solid": true,
+      "caja": [
+        2,
+        19,
+        31,
+        31
+      ]
+    },
+    {
+      "name": "escombros",
+      "index": 16,
+      "layer": "objeto",
+      "solid": true,
+      "caja": [
+        3,
+        19,
+        30,
+        31
+      ]
+    },
+    {
+      "name": "brasero",
+      "index": 17,
+      "layer": "objeto",
+      "solid": true,
+      "frames": 2,
+      "fps": 4,
+      "caja": [
+        7,
+        19,
+        25,
+        31
+      ]
+    },
+    {
+      "name": "barrera_h",
+      "index": 19,
       "layer": "objeto",
       "solid": true
     },
     {
       "name": "barrera_v",
-      "index": 13,
+      "index": 20,
       "layer": "objeto",
       "solid": true
     }
