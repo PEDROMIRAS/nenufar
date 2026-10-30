@@ -19,7 +19,13 @@ PALETA = {
     "blanco": (246, 250, 236),
 }
 # Retoques a mano sobre la pose reducida: (x, y, color) en píxeles de la pose base (sin contorno).
-RETOQUES = [(19, 9, "oscuro"), (20, 9, "oscuro"), (19, 10, "blanco"), (20, 10, "ojo")]
+RETOQUES = [
+    # Ojo con el blanco y la ceja
+    (19, 9, "oscuro"), (20, 9, "oscuro"), (19, 10, "blanco"), (20, 10, "ojo"),
+    # Rabo corto que sube, a la izquierda (la limpieza de la silueta lo quita si viene de la reducción)
+    (2, 12, "sombra"), (1, 11, "sombra"), (1, 10, "cuerpo"), (0, 9, "cuerpo"), (0, 8, "cuerpo"),
+    (0, 7, "sombra"), (0, 6, "oscuro"), (1, 6, "oscuro"),
+]
 
 
 def _base():
