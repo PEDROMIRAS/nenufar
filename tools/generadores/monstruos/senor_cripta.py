@@ -32,7 +32,7 @@ FONDO = (255, 0, 255)
 PALETA = {"negro": (22, 18, 28), "negro_l": (38, 34, 48), "carbon": (56, 52, 68), "gris_s": (76, 74, 90),
           "gris": (104, 104, 118), "acero": (148, 154, 158), "acero_l": (208, 216, 208), "hueso": (230, 234, 220),
           "cuero": (130, 88, 54), "cuero_l": (196, 130, 72)}
-CARA = (22, 1)  # esquina de la cara en la pose reducida
+CARA = (22, 2)  # esquina de la cara en la pose reducida; la capucha está centrada en la columna 24
 COLORES_CARA = {"c": "carbon", "n": "negro", "h": "hueso"}
 
 DY = {"idle": [0, 1], "walk": [0, 1, 0, 1], "atacar": [0, 1, 0], "golpe": [0]}
@@ -87,7 +87,7 @@ def _pose():
             _figura().save(ruta)
             grid = reducir.pose(ruta, ANCHO, brillo=2.0, saturacion=1.2, contraste=1.35, umbral=40, paleta=PALETA)
         # La cara de calavera, dibujada a mano: al reducir la imagen se queda en una mancha gris
-        for y, fila in enumerate((".ccc..", "cnnnc.", "nhhhhn", "hnhhnh", "nhhhhn", ".nhhn.")):
+        for y, fila in enumerate(("cnnnc", "nhhhn", "hnhnh", "nhhhn", ".nhn.")):
             for x, c in enumerate(fila):
                 if c != ".":
                     grid[CARA[1] + y][CARA[0] + x] = PALETA[COLORES_CARA[c]]
