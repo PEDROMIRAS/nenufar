@@ -4,8 +4,9 @@ import { DIFICULTADES, HEROES } from '../src/data/datos';
 import zonas from '../src/data/zonas.json';
 import { pct, pelear, simular, type Cuenta } from './simulador';
 
-// Dureza de los jefes violetas (decisión de Pedro): una heroína que entra al terminar de explorar la
-// zona gana cerca del 75 % en Fácil, del 60 % en Normal y del 45 % en Difícil. El dragón, algo por
+// Dureza de los jefes violetas (decisión de Pedro, bajada 10 puntos el 2026-10-30 junto a los rangos de
+// la partida completa): una heroína que entra al terminar de explorar la
+// zona gana cerca del 65 % en Fácil, del 50 % en Normal y del 35 % en Difícil. El dragón, algo por
 // debajo del jefe violeta de su zona. Si falla, se ajustan los JSON, nunca las fórmulas.
 // Cada heroína, de media entre los tres jefes violetas, a ±10: así las salas violetas cuestan lo mismo
 // con las dos. Un jefe suelto puede ser el difícil para una de ellas, pero ningún combate violeta
@@ -14,7 +15,7 @@ import { pct, pelear, simular, type Cuenta } from './simulador';
 // mucho 10 puntos por encima y como mucho 20 por debajo. Con 300 partidas cada porcentaje baila
 // unos ±3 puntos, y en Fácil la maga ya gana casi siempre al dragón de las Ruinas: con 5 de margen
 // la regla quedaba por debajo del ruido y se rompía con cualquier cambio.
-const OBJETIVO: Record<keyof typeof DIFICULTADES, number> = { facil: 75, normal: 60, dificil: 45 };
+const OBJETIVO: Record<keyof typeof DIFICULTADES, number> = { facil: 65, normal: 50, dificil: 35 };
 const MARGEN = 10;
 const SUELO = 25;
 
