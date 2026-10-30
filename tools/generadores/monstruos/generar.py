@@ -28,6 +28,7 @@ import oni  # noqa: E402
 import dragon_fuego  # noqa: E402
 import guardian_bosque  # noqa: E402
 import reina_arana  # noqa: E402
+import senor_cripta  # noqa: E402
 import reducir  # noqa: E402
 import golem  # noqa: E402
 import rey_sin_charca  # noqa: E402
@@ -78,8 +79,6 @@ MONSTRUOS = {
     "caballero": (32, paleta(**METAL, armadura=(59, 69, 96), armadura_s=(36, 42, 62), armadura_l=(100, 114, 150),
                              visor=(16, 14, 20), ojo=(236, 84, 84), capa=(116, 38, 50), pluma=(176, 50, 62),
                              cuero=(96, 64, 44)), humanoides.caballero, {}),
-    "senor_cripta": (48, paleta(**HUESO, **METAL, tunica=(48, 34, 66), tunica_s=(28, 20, 40), tunica_l=(82, 62, 108),
-                                ojo=(170, 255, 130), madera=(70, 52, 40)), humanoides.senor_cripta, {}),
 }
 
 
@@ -93,6 +92,7 @@ PROPIOS = {
     "dragon_fuego": (64, 48, dragon_fuego),
     "rey_limo": (64, 48, guardian_bosque),
     "reina_arana": (64, 48, reina_arana),
+    "senor_cripta": (48, 48, senor_cripta),
     "espectro": (32, 32, espectro),
     "golem": (48, 48, golem),
     "rey_sin_charca": (64, 48, rey_sin_charca),
@@ -106,7 +106,7 @@ PROPIOS = {
 
 
 # Monstruos cuyos fotogramas no deben tocar el borde del cuadro (el generador avisa si pasa).
-VIGILADOS = {"golem", "jabali", "acolito", "salamandra", "sacerdote", "oni", "dragon_fuego", "rey_limo", "reina_arana"}
+VIGILADOS = {"senor_cripta", "golem", "jabali", "acolito", "salamandra", "sacerdote", "oni", "dragon_fuego", "rey_limo", "reina_arana"}
 
 
 def destello(img, contorno):
