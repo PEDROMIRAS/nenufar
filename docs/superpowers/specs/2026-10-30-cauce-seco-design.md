@@ -169,7 +169,8 @@ Los cofres de cada zona dan objetos de un nivel (Bosque 1, Ruinas 2, Cripta 3). 
 
 ## Cambios del 2026-10-30 (noche)
 
-- **Los cinco jefes se rehacen a partir de imágenes de Pedro** (Guardián del Bosque, Golem, Reina Araña, Señor de la Cripta y Rey sin Charca): sobrios, oscuros y amenazantes, sin coronas. Ver `CLAUDE.md` y `docs/previews/todos_monstruos.png`. El Rey Limo pasa a ser un gusano-dragón cubierto de musgo (se propone llamarlo «Guardián del Bosque»).
+- **Los cinco jefes se rehacen a partir de imágenes de Pedro** (Guardián del Bosque, Golem, Reina Araña, Señor de la Cripta y Rey sin Charca): sobrios, oscuros y amenazantes, sin coronas. Ver `CLAUDE.md` y `docs/previews/todos_monstruos.png`. El Rey Limo pasa a ser un gusano-dragón cubierto de musgo y se llama **«Guardián del Bosque»** (clave `rey_limo`).
 - **La zona (3b) está hecha pero sin activar:** tileset `cauce`, autotiles `lecho` y `lava`, ocho plantillas, aspecto 3D, luz y modelo del brasero, y una pista de música. Imagen de revisión: `docs/previews/cauce_zona_x2.png`.
 - **El mapa 3D de todas las zonas se ve como el arte:** los muros del borde llevan el tile de remate y el de cara (antes, ruido), y los objetos son sprites de pie con su dibujo (antes, modelos de formas sencillas). Decisión de Pedro.
-- **Sin decidir:** si la fuente del descanso del Cauce Seco lleva agua azul (así está), el nombre nuevo del Rey Limo, y cómo se relacionan el arte del Señor de la Cripta y el del Rey sin Charca, que se transforman uno en otro.
+- **La fuente de descanso se rehízo** con una imagen de Pedro (tres pisos, nenúfares morados) y se ve como sprite en 3D en todas las zonas.
+- **Sin decidir:** si la fuente del descanso del Cauce Seco lleva agua azul (así está), y cómo se relacionan el arte del Señor de la Cripta y el del Rey sin Charca, que se transforman uno en otro.

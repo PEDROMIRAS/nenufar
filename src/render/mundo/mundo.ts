@@ -21,7 +21,6 @@ import {
   type MaterialesBosque,
   type SombraSuelo,
 } from './borde';
-import { crearFuente } from './fuente';
 import { crearHundidos } from './hundidos';
 import { crearBarrera } from './modelos';
 import { ajustarPixelArt, cuentaColores, pintar, textura } from './texturas';
@@ -74,7 +73,6 @@ export interface VistaSala {
   /** Lo que se ve de cada objeto (modelo o sprite), para rehacerlo si cambia (el cofre al abrirse, el portal). */
   objetos: Map<ObjetoSala, THREE.Object3D>;
   piezas: Map<ObjetoSala, Pieza>;
-  fuente: { actualizar: (tiempo: number) => void } | null;
   hundidos: { actualizar: (tiempo: number) => void } | null;
   /** Luces puntuales de sus objetos (hoguera, candelabros, portal) y dónde están. */
   luces: { luz: LuzHd2d; x: number; z: number; fase: number }[];
@@ -298,7 +296,6 @@ export class Mundo {
       sala,
       objetos: new Map(),
       piezas: new Map(),
-      fuente: null,
       hundidos: null,
       luces: [],
       barreras: [],
@@ -428,36 +425,22 @@ export class Mundo {
     if (!z) return;
     const { imagenes, tam } = z;
     const nombre = o.inf.name;
-    let obj: THREE.Object3D;
-    if (nombre.startsWith('fuente_')) {
-      // La fuente ocupa tres casillas; el modelo va con la del centro y choca con su elipse (ver chocarConElipse).
-      if (nombre !== 'fuente_cen_inf') return;
-      const f = this.a.fuente;
-      // Píxeles del dibujo por píxel lógico de la sala.
-      const escala = (this.sala2d.ancho * this.renderer.domElement.width) / innerWidth / SALA_ANCHO;
-      const fuente = crearFuente(f, v.azar, escala);
-      fuente.grupo.position.set(o.x + 0.5, 0, o.y + f.centroZ);
-      v.fuente = fuente;
-      obj = fuente.grupo;
-    } else {
-      const tiles = [o.sup, o.inf].filter((t): t is Tile => t !== null);
-      const lienzo = pintar(1, tiles.length, tam, () => {});
-      const pieza = { tiles, ctx: lienzo.getContext('2d')!, tex: textura(lienzo), frame: -1 };
-      pintarPieza(pieza, imagenes, tam, 0);
-      if (tiles.some((t) => t.frames)) v.piezas.set(o, pieza);
-      const plano = carton(
-        new THREE.MeshLambertMaterial({ map: pieza.tex, alphaTest: 0.5, side: THREE.DoubleSide }),
-        1,
-        tiles.length,
-        0,
-      );
-      plano.position.set(o.x + 0.5, 0, o.y + 0.85);
-      plano.rotation.x = -this.giro;
-      plano.scale.y = this.estirar;
-      obj = plano;
-    }
-    v.objetos.set(o, obj);
-    v.grupo.add(obj);
+    const tiles = [o.sup, o.inf].filter((t): t is Tile => t !== null);
+    const lienzo = pintar(1, tiles.length, tam, () => {});
+    const pieza = { tiles, ctx: lienzo.getContext('2d')!, tex: textura(lienzo), frame: -1 };
+    pintarPieza(pieza, imagenes, tam, 0);
+    if (tiles.some((t) => t.frames)) v.piezas.set(o, pieza);
+    const plano = carton(
+      new THREE.MeshLambertMaterial({ map: pieza.tex, alphaTest: 0.5, side: THREE.DoubleSide }),
+      1,
+      tiles.length,
+      0,
+    );
+    plano.position.set(o.x + 0.5, 0, o.y + 0.85);
+    plano.rotation.x = -this.giro;
+    plano.scale.y = this.estirar;
+    v.objetos.set(o, plano);
+    v.grupo.add(plano);
     const luz = this.a.luces[nombre];
     v.luces = v.luces.filter((l) => l.x !== o.x + 0.5 || l.z !== o.y + 0.6);
     if (luz) {
@@ -615,7 +598,6 @@ export class Mundo {
   private animar(v: VistaSala, tiempo: number): void {
     const z = this.zona;
     if (z) for (const p of v.piezas.values()) pintarPieza(p, z.imagenes, z.tam, tiempo);
-    v.fuente?.actualizar(tiempo);
     v.hundidos?.actualizar(tiempo);
     for (let i = 0; i < this.puntuales.length; i++) {
       const luz = this.puntuales[i]!;
