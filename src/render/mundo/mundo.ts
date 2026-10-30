@@ -23,6 +23,7 @@ import {
 } from './borde';
 import { crearFuente } from './fuente';
 import { crearHundidos } from './hundidos';
+import { compararLuces } from '../../core/luces';
 import { crearBarrera } from './modelos';
 import { ajustarPixelArt, cuentaColores, pintar, textura } from './texturas';
 import { transparentar, uniformesTransparencia } from './transparencia';
@@ -462,8 +463,8 @@ export class Mundo {
     v.luces = v.luces.filter((l) => l.x !== o.x + 0.5 || l.z !== o.y + 0.6);
     if (luz) {
       v.luces.push({ luz, x: o.x + 0.5, z: o.y + 0.6, fase: v.azar() * 10 });
-      // Las que hacen sombra, primero: solo la primera luz puntual puede proyectarlas.
-      v.luces.sort((p, q) => Number(q.luz.sombra) - Number(p.luz.sombra));
+      // Las que hacen sombra, primero (solo la primera luz puntual puede proyectarlas), y después las más fuertes.
+      v.luces.sort((p, q) => compararLuces(p.luz, q.luz));
     }
   }
 
