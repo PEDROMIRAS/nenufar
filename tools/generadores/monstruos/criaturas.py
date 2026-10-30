@@ -146,15 +146,34 @@ def arana(c, vista, anim, i, corona=False):
 
 JABALI_FASE = {"idle": [0, 0], "walk": [0, 1.6, 3.1, 4.7], "atacar": [0, 0, 0], "golpe": [0]}
 # Por fotograma: avance del cuerpo, cabeza agachada y altura del cuerpo (en píxeles de 32).
-JABALI_AVANCE = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [-2, 1, 2], "golpe": [-2]}
-JABALI_CABEZA = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [0, 3, 2], "golpe": [-1]}
+JABALI_AVANCE = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [-2, 1, 3], "golpe": [-2]}
+JABALI_CABEZA = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [0, 2, 1], "golpe": [-1]}
 JABALI_ALTO = {"idle": [0, 1], "walk": [0, -1, 0, -1], "atacar": [0, 1, 0], "golpe": [0]}
 
 
 def _pata_jabali(c, x, y0, base, lift, k, clave):
     """Pata corta y gruesa con pezuña; `lift` la levanta al andar."""
-    c.rect(x, y0, x + 2 * k, base - lift - 1 * k, clave)
-    c.rect(x, base - lift - 1 * k, x + 2 * k, base - lift, "colmillo")
+    c.rect(x, y0, x + 2.5 * k, base - lift - 1 * k, clave)
+    c.rect(x, base - lift - 1 * k, x + 2.5 * k, base - lift, "pezuna")
+
+
+def _melena(c, x0, x1, y_base, altura, k, cuantas, pico_en):
+    """Hilera de púas del lomo, inclinadas hacia atrás; las más altas están en los hombros."""
+    for n in range(cuantas):
+        t = n / (cuantas - 1)
+        x = x0 + (x1 - x0) * t
+        h = altura * (1 - 0.55 * abs(t - pico_en))
+        punta = (x - 3.5 * k, y_base - h)
+        c.poly([(x - 2.5 * k, y_base + 2 * k), punta, (x + 2 * k, y_base + 2 * k)], "cuerpo_s")
+        c.line(x - 2 * k, y_base + 1 * k, x + 1.5 * k, y_base + 1 * k, "pua")
+        c.put(punta[0] + 0.5 * k, punta[1] + 1 * k, "cuerpo_l")
+        c.put(punta[0] + 1 * k, punta[1] + 2 * k, "cuerpo")
+
+
+def _colmillo(c, pts, k):
+    """Colmillo curvo de marfil: segmentos gruesos entre los puntos dados."""
+    for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+        c.line(x0, y0, x1, y1, "colmillo", 2)
 
 
 def jabali(c, vista, anim, i):
@@ -164,65 +183,146 @@ def jabali(c, vista, anim, i):
     agacha = JABALI_CABEZA[anim][i] * k
     alto = JABALI_ALTO[anim][i] * k
     base = c.t - 2
-    cy = base - 8 * k + alto
+    cy = base - 9 * k + alto
     lift = [max(0, math.sin(fase + (0 if n % 2 else math.pi))) * 2 * k for n in range(4)]
     if vista == "lado":
-        cx = 13 * k + av
+        cx = 11 * k + av
         # Patas de atrás y de delante (las del otro lado, más oscuras)
-        for n, (px, clave) in enumerate(((cx - 7 * k, "cuerpo_s"), (cx + 6 * k, "cuerpo_s"),
-                                         (cx - 4 * k, "cuerpo"), (cx + 9 * k, "cuerpo"))):
+        for n, (px, clave) in enumerate(((cx - 6 * k, "cuerpo_s"), (cx + 5 * k, "cuerpo_s"),
+                                         (cx - 3 * k, "cuerpo"), (cx + 8 * k, "cuerpo"))):
             _pata_jabali(c, px, cy + 3 * k, base, lift[n], k, clave)
         # Rabo
-        c.line(cx - 10 * k, cy - 2 * k, cx - 13 * k, cy - 5 * k, "cuerpo_s")
-        c.put(cx - 13 * k, cy - 6 * k, "pua")
-        # Cuerpo y púas del lomo
-        c.ellipse(cx, cy, 11 * k, 6.5 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
-        for n in range(7):
-            x = cx - 9 * k + n * 3 * k
-            top = cy - 6 * k + abs(n - 3) * 0.7 * k
-            c.poly([(x - 2 * k, top + 3 * k), (x - 0.5 * k, top - 3 * k), (x + 2 * k, top + 3 * k)], "pua")
-            c.put(x - 0.5 * k, top - 2 * k, "cuerpo")
-        # Cabeza con hocico, colmillos y oreja
-        hx, hy = cx + 11 * k, cy + 2 * k + agacha
-        c.ellipse(hx, hy, 5.5 * k, 4.5 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
-        c.ellipse(hx + 4 * k, hy + 1.5 * k, 3 * k, 2.5 * k, "cuerpo_l", sombra="cuerpo")
-        c.poly([(hx - 3 * k, hy - 3 * k), (hx - 1 * k, hy - 8 * k), (hx + 1 * k, hy - 3 * k)], "cuerpo_s")
-        c.put(hx + 2 * k, hy - 1 * k, "ojo")
-        c.put(hx + 2 * k, hy - 2 * k, "brillo")
-        c.put(hx + 6 * k, hy + 0.5 * k, "pua")
-        boca = 2 * k if anim == "atacar" and i == 1 else 0
-        c.rect(hx + 2 * k, hy + 3 * k, hx + 5 * k, hy + 3 * k + boca, "boca")
-        c.poly([(hx + 2.5 * k, hy + 3 * k), (hx + 5.5 * k, hy - 3.5 * k), (hx + 7 * k, hy - 2.5 * k),
-                (hx + 5 * k, hy + 4 * k)], "colmillo")
+        c.line(cx - 9 * k, cy - 1 * k, cx - 11 * k, cy - 4 * k, "cuerpo_s")
+        c.put(cx - 11 * k, cy - 5 * k, "pua")
+        # Cuerpo redondo con la joroba de los hombros
+        c.ellipse(cx, cy, 10 * k, 7 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        c.ellipse(cx + 3 * k, cy - 2.5 * k, 7 * k, 6.5 * k, "cuerpo", luz="cuerpo_l")
+        _melena(c, cx - 8 * k, cx + 7 * k, cy - 6 * k, 8 * k, k, 8, 0.7)
+        # Cabeza baja con hocico largo, oreja, ojo, boca y colmillos
+        hx, hy = cx + 10 * k, cy + 2.5 * k + agacha
+        c.ellipse(hx, hy, 5.5 * k, 5 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        c.ellipse(hx + 4.5 * k, hy + 1.5 * k, 3.5 * k, 3 * k, "cuerpo_l", sombra="cuerpo")
+        c.poly([(hx - 3 * k, hy - 3 * k), (hx - 2 * k, hy - 8 * k), (hx + 0.5 * k, hy - 3.5 * k)], "cuerpo_s")
+        c.put(hx + 1 * k, hy - 1 * k, "ojo")
+        c.put(hx + 1 * k, hy - 2 * k, "brillo")
+        c.rect(hx + 7 * k, hy + 0 * k, hx + 8 * k, hy + 1 * k, "pezuna")
+        boca = 1 * k if anim == "atacar" and i == 1 else 0
+        c.rect(hx + 2 * k, hy + 4 * k, hx + 6 * k, hy + 4.5 * k + boca, "boca")
+        _colmillo(c, [(hx + 3.5 * k, hy + 4.5 * k), (hx + 6.5 * k, hy + 4 * k), (hx + 8.5 * k, hy + 1 * k),
+                      (hx + 8 * k, hy - 3.5 * k), (hx + 6.5 * k, hy - 5 * k)], k)
         return
     cx = c.t / 2
     if vista == "frente":
-        for n, px in enumerate((cx - 6 * k, cx + 4 * k)):
+        for n, px in enumerate((cx - 6 * k, cx + 3.5 * k)):
             _pata_jabali(c, px, cy + 3 * k, base, lift[n], k, "cuerpo_s")
-        c.ellipse(cx, cy - 1 * k, 9 * k, 6.5 * k, "cuerpo_s")
-        for n in range(5):
-            x = cx - 6 * k + n * 3 * k
-            c.poly([(x - 2 * k, cy - 4 * k), (x, cy - 10 * k), (x + 2 * k, cy - 4 * k)], "pua")
-        c.poly([(cx - 8 * k, cy - 2 * k), (cx - 6 * k, cy - 9 * k), (cx - 3 * k, cy - 3 * k)], "cuerpo_s")
-        c.poly([(cx + 8 * k, cy - 2 * k), (cx + 6 * k, cy - 9 * k), (cx + 3 * k, cy - 3 * k)], "cuerpo_s")
-        c.ellipse(cx, cy + 1 * k + agacha, 7 * k, 6 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
-        c.ellipse(cx, cy + 4 * k + agacha, 3.5 * k, 2.5 * k, "cuerpo_l", sombra="cuerpo")
+        c.ellipse(cx, cy - 1 * k, 10 * k, 7.5 * k, "cuerpo_s")
+        _melena(c, cx - 7 * k, cx + 7 * k, cy - 5 * k, 8 * k, k, 6, 0.5)
+        c.ellipse(cx, cy + 1 * k + agacha, 7.5 * k, 6.5 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        for s in (-1, 1):
+            c.poly([(cx + s * 6 * k, cy - 3 * k), (cx + s * 8 * k, cy - 8 * k), (cx + s * 3 * k, cy - 5 * k)], "cuerpo_s")
+        c.ellipse(cx, cy + 4 * k + agacha, 4 * k, 3 * k, "cuerpo_l", sombra="cuerpo")
         for ox in (-4, 4):
             c.put(cx + ox * k, cy - 1 * k + agacha, "ojo")
             c.put(cx + ox * k - 0.5 * k, cy - 2 * k + agacha, "brillo")
-        c.put(cx - 1 * k, cy + 4 * k + agacha, "pua")
-        c.put(cx + 1 * k, cy + 4 * k + agacha, "pua")
+        c.put(cx - 1.5 * k, cy + 4 * k + agacha, "pezuna")
+        c.put(cx + 1.5 * k, cy + 4 * k + agacha, "pezuna")
+        c.rect(cx - 2 * k, cy + 6.5 * k + agacha, cx + 2 * k, cy + 7 * k + agacha, "boca")
         for s in (-1, 1):
-            c.poly([(cx + s * 3 * k, cy + 5 * k + agacha), (cx + s * 7 * k, cy + 1 * k + agacha),
-                    (cx + s * 5 * k, cy + 6 * k + agacha)], "colmillo")
-        c.rect(cx - 2 * k, cy + 6 * k + agacha, cx + 2 * k, cy + 6 * k + agacha, "boca")
+            _colmillo(c, [(cx + s * 3 * k, cy + 6.5 * k + agacha), (cx + s * 6.5 * k, cy + 5.5 * k + agacha),
+                          (cx + s * 8 * k, cy + 1.5 * k + agacha), (cx + s * 7.5 * k, cy - 1.5 * k + agacha)], k)
         return
-    for n, px in enumerate((cx - 6 * k, cx + 4 * k)):
+    for n, px in enumerate((cx - 6 * k, cx + 3.5 * k)):
         _pata_jabali(c, px, cy + 3 * k, base, lift[n], k, "cuerpo_s")
-    c.ellipse(cx, cy, 9.5 * k, 7 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+    c.ellipse(cx, cy, 10 * k, 7.5 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
     for n in range(5):
-        y = cy - 6 * k + n * 2.6 * k
-        c.poly([(cx - 2 * k, y + 2 * k), (cx, y - 1 * k), (cx + 2 * k, y + 2 * k)], "pua")
-    c.poly([(cx - 8 * k, cy - 3 * k), (cx - 6 * k, cy - 8 * k), (cx - 3 * k, cy - 4 * k)], "cuerpo_s")
-    c.poly([(cx + 8 * k, cy - 3 * k), (cx + 6 * k, cy - 8 * k), (cx + 3 * k, cy - 4 * k)], "cuerpo_s")
+        y = cy - 6 * k + n * 3 * k
+        c.poly([(cx - 3 * k, y + 2 * k), (cx, y - 1 * k), (cx + 3 * k, y + 2 * k)], "pua")
+        c.put(cx, y, "cuerpo_l")
+    for s in (-1, 1):
+        c.poly([(cx + s * 7 * k, cy - 3 * k), (cx + s * 8 * k, cy - 8 * k), (cx + s * 4 * k, cy - 5 * k)], "cuerpo_s")
     c.line(cx, cy + 5 * k, cx + 1 * k, cy + 8 * k, "pua")
+
+
+# ---------------------------------------------------------------- cuervo
+
+CUERVO_ALTO = {"idle": [0, 1], "walk": [0, -2, 0, -2], "atacar": [0, -2, 1], "golpe": [0]}
+CUERVO_AVANCE = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [-1, 2, 4], "golpe": [-2]}
+CUERVO_ALAS = {"idle": [0, 0], "walk": [0, 1, 0, 1], "atacar": [0, 1, 2], "golpe": [0]}
+
+
+def _ojo_cuervo(c, x, y, cerrado):
+    """Ojo grande y brillante: el único brillo del cuervo."""
+    if cerrado:
+        c.line(x - 1, y + 1, x + 1, y + 1, "cuerpo_s")
+        return
+    c.rect(x - 1, y - 1, x + 1, y + 1, "ojo")
+    c.put(x - 1, y - 1, "brillo")
+    c.put(x, y, "brillo")
+
+
+def cuervo(c, vista, anim, i):
+    k = _escala(c)
+    alto = CUERVO_ALTO[anim][i] * k
+    av = CUERVO_AVANCE[anim][i] * k
+    alas = CUERVO_ALAS[anim][i]
+    parpadeo = anim == "idle" and i == 1
+    base = c.t - 2
+    cy = base - 10 * k + alto
+    if vista == "lado":
+        cx = 14 * k + av
+        # Patas finas con garras, que se levantan al saltar
+        for px in (cx - 3 * k, cx + 2 * k):
+            c.rect(px, base - 4 * k + min(0, alto), px + 1 * k, base - 1 * k + min(0, alto), "pico")
+            c.line(px - 1 * k, base - 1 * k + min(0, alto), px + 2 * k, base - 1 * k + min(0, alto), "pico")
+        # Cola
+        c.poly([(cx - 7 * k, cy), (cx - 13 * k, cy + 7 * k + alas), (cx - 9 * k, cy + 8 * k), (cx - 4 * k, cy + 5 * k)],
+               "cuerpo_s")
+        c.ellipse(cx, cy, 8.5 * k, 8 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        # Ala plegada con plumas, y el babero marrón del pecho
+        c.poly([(cx - 6 * k, cy - 3 * k - alas), (cx + 3 * k, cy - 1 * k), (cx + 1 * k, cy + 6 * k), (cx - 8 * k, cy + 4 * k)],
+               "cuerpo_s")
+        for n in range(3):
+            c.line(cx - 6 * k + n * 2 * k, cy + 1 * k, cx - 4 * k + n * 2 * k, cy + 5 * k, "cuerpo")
+        for n in range(3):
+            c.put(cx + 4 * k + n * 1.5 * k, cy + 3 * k + (n % 2) * k, "adorno")
+        # Cabeza redonda con plumas de punta, ojo y pico
+        hx, hy = cx + 5 * k, cy - 8 * k
+        c.ellipse(hx, hy, 6 * k, 5.5 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        for n in range(3):
+            c.poly([(hx - 4 * k + n * 2 * k, hy - 4 * k), (hx - 3 * k + n * 2 * k, hy - 8 * k), (hx - 2 * k + n * 2 * k, hy - 4 * k)],
+                   "cuerpo_s")
+        c.rect(hx - 4 * k, hy - 3 * k, hx - 2 * k, hy - 2 * k, "adorno")
+        _ojo_cuervo(c, hx + 2 * k, hy - 1 * k, parpadeo)
+        abre = 1 * k if anim == "atacar" and i == 1 else 0
+        c.poly([(hx + 5 * k, hy - 1 * k), (hx + 12 * k, hy + 1 * k), (hx + 5 * k, hy + 3 * k)], "pico")
+        c.line(hx + 5 * k, hy + 1 * k, hx + 11 * k, hy + 1 * k + abre, "cuerpo_s")
+        return
+    cx = c.t / 2
+    if vista == "frente":
+        for px in (cx - 4 * k, cx + 2 * k):
+            c.rect(px, base - 4 * k + min(0, alto), px + 1 * k, base - 1 * k + min(0, alto), "pico")
+            c.line(px - 1 * k, base - 1 * k + min(0, alto), px + 2 * k, base - 1 * k + min(0, alto), "pico")
+        for s in (-1, 1):
+            c.ellipse(cx + s * 8 * k, cy + 2 * k, 3.5 * k, 6.5 * k, "cuerpo_s", luz="cuerpo")
+            c.poly([(cx + s * 8 * k, cy + 6 * k), (cx + s * 9 * k, cy + 9 * k + alas), (cx + s * 6 * k, cy + 8 * k)], "cuerpo_s")
+        c.ellipse(cx, cy + 1 * k, 8.5 * k, 9 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        # Babero marrón en festón
+        for n in range(5):
+            x = cx - 5 * k + n * 2.5 * k
+            c.line(x, cy + 6 * k, x + 1.5 * k, cy + 8 * k, "adorno")
+        for s in (-1, 1):
+            c.poly([(cx + s * 3 * k, cy - 6 * k), (cx + s * 5 * k, cy - 10 * k), (cx + s * 6 * k, cy - 5 * k)], "cuerpo_s")
+        _ojo_cuervo(c, cx - 4 * k, cy - 2 * k, parpadeo)
+        _ojo_cuervo(c, cx + 4 * k, cy - 2 * k, parpadeo)
+        c.poly([(cx - 2 * k, cy + 1 * k), (cx + 2 * k, cy + 1 * k), (cx, cy + 6 * k)], "pico")
+        c.line(cx - 1 * k, cy + 2 * k, cx + 1 * k, cy + 2 * k, "cuerpo_l")
+        return
+    for px in (cx - 4 * k, cx + 2 * k):
+        c.rect(px, base - 4 * k + min(0, alto), px + 1 * k, base - 1 * k + min(0, alto), "pico")
+    c.poly([(cx - 3 * k, cy + 6 * k), (cx + 3 * k, cy + 6 * k), (cx + 4 * k, cy + 12 * k), (cx, cy + 13 * k), (cx - 4 * k, cy + 12 * k)],
+           "cuerpo_s")
+    c.ellipse(cx, cy, 8.5 * k, 9 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+    for s in (-1, 1):
+        c.ellipse(cx + s * 4.5 * k, cy + 1 * k, 3.5 * k, 7 * k, "cuerpo_s")
+        c.line(cx + s * 4.5 * k, cy - 4 * k, cx + s * 4.5 * k, cy + 6 * k + alas, "cuerpo")
+        c.poly([(cx + s * 3 * k, cy - 8 * k), (cx + s * 5 * k, cy - 12 * k), (cx + s * 6 * k, cy - 7 * k)], "cuerpo_s")

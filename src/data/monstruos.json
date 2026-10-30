@@ -171,6 +171,51 @@
     },
     "color": "#7a5232"
   },
+  "cuervo": {
+    "nombre": "Cuervo",
+    "sprite": "monstruos/cuervo",
+    "estadisticas": {
+      "pv": 11,
+      "pm": 0,
+      "ataque": 7,
+      "magia": 0,
+      "defensa": 1,
+      "velocidad": 11
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 100
+      }
+    ],
+    "jefe": false,
+    "experiencia": 6,
+    "botin": [
+      {
+        "objeto": "eter",
+        "peso": 10
+      },
+      {
+        "objeto": "pocion",
+        "peso": 10
+      },
+      {
+        "objeto": "nada",
+        "peso": 80
+      }
+    ],
+    "caja": {
+      "ancho": 16,
+      "alto": 10
+    },
+    "mapa": {
+      "velocidad": 48,
+      "persecucion": 85,
+      "vision": 112,
+      "patrulla": 64
+    },
+    "color": "#2c2838"
+  },
   "esqueleto": {
     "nombre": "Esqueleto",
     "sprite": "monstruos/esqueleto",

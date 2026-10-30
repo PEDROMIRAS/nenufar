@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest';
 import { MONSTRUOS } from '../src/data/datos';
 
 // Monstruos de la entrega 2 (jabalí y cuervo en el Bosque, lobo en la Cripta).
-const NUEVOS = ['jabali'];
+const NUEVOS = ['jabali', 'cuervo'];
 
 const ruta = (sprite: string, ext: string): string => `public/assets/sprites/${sprite}.${ext}`;
 
