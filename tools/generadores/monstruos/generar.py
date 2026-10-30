@@ -21,6 +21,8 @@ import criaturas  # noqa: E402
 import humanoides  # noqa: E402
 import espectro  # noqa: E402
 import jabali  # noqa: E402
+import acolito  # noqa: E402
+import reducir  # noqa: E402
 import golem  # noqa: E402
 import rey_sin_charca  # noqa: E402
 import arbol_maldito  # noqa: E402
@@ -81,6 +83,7 @@ MONSTRUOS = {
 # Cada módulo da `fotograma(direccion, anim, i)` como array RGBA con los pies en (ancho/2, alto-2).
 PROPIOS = {
     "jabali": (32, 32, jabali),
+    "acolito": (32, 32, acolito),
     "espectro": (32, 32, espectro),
     "golem": (48, 48, golem),
     "rey_sin_charca": (64, 48, rey_sin_charca),
@@ -91,6 +94,10 @@ PROPIOS = {
     "dragon_negro": (64, 48, dragon_negro),
     "cofre_trampa": (32, 32, cofre_trampa),
 }
+
+
+# Monstruos cuyos fotogramas no deben tocar el borde del cuadro (el generador avisa si pasa).
+VIGILADOS = {"jabali", "acolito", "sacerdote", "oni", "dragon_fuego"}
 
 
 def destello(img, contorno):
@@ -116,7 +123,10 @@ def hoja_propia(clave, ancho, alto, modulo):
         for nombre, n, fps, bucle in ANIMS:
             meta["animations"][nombre] = {"startColumn": col, "frames": n, "fps": fps, "loop": bucle}
             for i in range(n):
-                img = Image.fromarray(modulo.fotograma(d, nombre, i), "RGBA")
+                arr = modulo.fotograma(d, nombre, i)
+                if clave in VIGILADOS and not reducir.sin_tocar_bordes(arr):
+                    print(f"AVISO: {clave} {d} {nombre} {i} toca el borde del cuadro")
+                img = Image.fromarray(arr, "RGBA")
                 if nombre == "golpe":
                     img = destello(img, modulo.OUT)
                 sheet.paste(img, (col * ancho, fila * alto))

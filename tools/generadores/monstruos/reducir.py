@@ -52,12 +52,14 @@ def limpiar(grid):
                     grid[y][x] = max(sorted(set(ocupados)), key=ocupados.count)
 
 
-def pose(ruta, ancho, colores=14, fondo="auto", umbral=60, contraste=1.35, retoques=(), paleta=None):
+def pose(ruta, ancho, colores=14, fondo="auto", umbral=60, contraste=1.35, retoques=(), paleta=None,
+         brillo=1.0, saturacion=1.0):
     """La pose reducida a `ancho` píxeles de ancho.
 
     `fondo`: "auto" (el color de las esquinas, quitado desde los bordes) o "negro". Con `paleta` fija
     (dict de nombre a RGB) cada píxel toma el color más cercano de esa paleta; sin ella, la imagen se
-    cuantiza a `colores` colores. `retoques` son `(x, y, rgb)` que se aplican al final.
+    cuantiza a `colores` colores. `brillo` y `saturacion` (1 = sin cambio) levantan las figuras oscuras antes de
+    reducir. `retoques` son `(x, y, rgb)` que se aplican al final.
     """
     im = Image.open(ruta).convert("RGB")
     a = np.array(im).astype(int)
@@ -68,6 +70,7 @@ def pose(ruta, ancho, colores=14, fondo="auto", umbral=60, contraste=1.35, retoq
     m = Image.fromarray((mask[caja[1]:caja[3], caja[0]:caja[2]] * 255).astype("uint8"))
     alto = round(recorte.height * ancho / recorte.width)
     reducida = recorte.resize((ancho, alto), Image.BOX)
+    reducida = ImageEnhance.Color(ImageEnhance.Brightness(reducida).enhance(brillo)).enhance(saturacion)
     c = np.array(ImageEnhance.Contrast(reducida).enhance(contraste)).astype(int)
     mm = np.array(m.resize((ancho, alto), Image.BOX)) >= 110
     grid = [[None] * ancho for _ in range(alto)]

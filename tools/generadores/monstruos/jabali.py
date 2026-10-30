@@ -58,7 +58,7 @@ def _pata(lienzo, x, y_pie, alza, clave, y_arriba):
 
 
 BOB = {"idle": [0, 1], "walk": [0, -1, 0, -1], "atacar": [0, 1, 0], "golpe": [0]}
-AVANCE = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [-1, 2, 1], "golpe": [-2]}
+AVANCE = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [0, 0, 0], "golpe": [0]}  # el motor ya mueve el sprite al atacar
 ALZA = {"idle": [[0] * 4] * 2, "walk": [[0, 1, 0, 1], [1, 0, 1, 0], [0, 1, 0, 1], [1, 0, 1, 0]],
         "atacar": [[0] * 4] * 3, "golpe": [[0] * 4]}
 

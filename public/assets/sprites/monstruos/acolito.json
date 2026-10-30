@@ -1,0 +1,40 @@
+{
+  "frameWidth": 32,
+  "frameHeight": 32,
+  "anchor": {
+    "x": 16,
+    "y": 30
+  },
+  "directions": {
+    "down": 0,
+    "left": 1,
+    "right": 2,
+    "up": 3
+  },
+  "animations": {
+    "idle": {
+      "startColumn": 0,
+      "frames": 2,
+      "fps": 3,
+      "loop": true
+    },
+    "walk": {
+      "startColumn": 2,
+      "frames": 4,
+      "fps": 8,
+      "loop": true
+    },
+    "atacar": {
+      "startColumn": 6,
+      "frames": 3,
+      "fps": 10,
+      "loop": false
+    },
+    "golpe": {
+      "startColumn": 9,
+      "frames": 1,
+      "fps": 1,
+      "loop": false
+    }
+  }
+}
