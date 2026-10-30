@@ -53,8 +53,9 @@ describe('habilidades', () => {
     const c = combate(heroes.ronin);
     const corte = habilidad(heroes.ronin, 'Corte rápido');
     usar(c, 'Corte rápido', heroes.ronin);
-    // (ATQ × poder − DEF × 0,5), sin varianza ni crítico.
-    const danio = Math.floor(heroes.ronin.estadisticas.ataque * corte.danio!.poder - 3 * 0.5);
+    // (ATQ × poder)² / (ATQ × poder + DEF × 0,5), sin varianza ni crítico.
+    const fuerza = heroes.ronin.estadisticas.ataque * corte.danio!.poder;
+    const danio = Math.floor((fuerza * fuerza) / (fuerza + 3 * 0.5));
     expect(c.enemigos[0]!.pv).toBe(100 - danio);
     expect(c.heroina.pm).toBe(heroes.ronin.estadisticas.pm - corte.pm);
   });
@@ -73,14 +74,14 @@ describe('habilidades', () => {
   test('Fuego morado: daño mágico con Magia; el objetivo solo resta DEF × 0,25', () => {
     const c = combate(heroes.maga);
     usar(c, 'Fuego morado', heroes.maga);
-    // (10 × 1,5 − 3 × 0,25) = 14,25 → 14
+    // (10 × 1,5)² / (10 × 1,5 + 3 × 0,25) = 14,29 → 14
     expect(c.enemigos[0]!.pv).toBe(100 - 14);
   });
 
   test('Iaido es siempre crítico', () => {
     const c = combate(heroes.ronin, 7);
     const eventos = usar(c, 'Iaido', heroes.ronin);
-    // (9 × 2,1 − 1,5) × 1,5 = 26,1 → 26
+    // (9 × 2,1)² / (9 × 2,1 + 1,5) × 1,5 = 26,27 → 26
     expect(eventos).toContainEqual(
       expect.objectContaining({ tipo: 'danio', cantidad: 26, critico: true }),
     );
@@ -89,7 +90,7 @@ describe('habilidades', () => {
   test('Tajo del viento golpea a todos los enemigos', () => {
     const c = combate(heroes.ronin, 5, 3);
     usar(c, 'Tajo del viento', heroes.ronin);
-    // (9 × 0,9 − 1,5) = 6,6 → 6 a cada uno
+    // (9 × 0,9)² / (9 × 0,9 + 1,5) = 6,84 → 6 a cada uno
     expect(c.enemigos.map((e) => e.pv)).toEqual([94, 94, 94]);
   });
 
@@ -116,8 +117,8 @@ describe('estados', () => {
     const c = combate(heroes.ronin, 3);
     usar(c, 'Postura de hierro', heroes.ronin);
     expect(efectiva(c.heroina, 'defensa')).toBe(9);
-    // Golpe del Limo con la postura: (6 − 9 × 0,5) = 1,5 → 1.
-    expect(c.heroina.pv).toBe(PV_RONIN - 1);
+    // Golpe del Limo con la postura: 6² / (6 + 9 × 0,5) = 3,43 → 3.
+    expect(c.heroina.pv).toBe(PV_RONIN - 3);
     const ataque = () => actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
     // El turno en que se lanza no cuenta: protege de los 3 ataques siguientes y se acaba al
     // final del tercer turno de la heroína después de lanzarla.
@@ -167,7 +168,7 @@ describe('estados', () => {
 
   test('la quemadura puede rematar y dar la victoria', () => {
     const c = combate(heroes.maga, 5);
-    c.enemigos[0]!.pv = 9; // Fuego fatuo quita (10 × 0,8 − 0,75) = 7,25 → 7; la quemadura, 8.
+    c.enemigos[0]!.pv = 9; // Fuego fatuo quita (10 × 0,8)² / (10 × 0,8 + 0,75) = 7,31 → 7; la quemadura, 8.
     const eventos = usar(c, 'Fuego fatuo', heroes.maga);
     expect(eventos.slice(-5).map((e) => e.tipo)).toEqual([
       'danioEstado',
@@ -189,7 +190,7 @@ describe('estados', () => {
 
 describe('quinta habilidad (recompensa de los jefes violetas)', () => {
   test.each(Object.keys(heroes) as (keyof typeof heroes)[])(
-    '%s: no está disponible sin ganarla, ni a nivel 10; sí tras ganarla',
+    '%s: no está disponible sin ganarla, ni al nivel máximo; sí tras ganarla',
     (clave) => {
       const heroe = heroes[clave];
       const quinta = heroe.especiales.habilidad;
@@ -203,7 +204,7 @@ describe('quinta habilidad (recompensa de los jefes violetas)', () => {
   );
 
   test('sin ganarla no se puede usar aunque haya PM', () => {
-    const c = combate(heroes.maga, 10);
+    const c = combate(heroes.maga, REGLAS.experiencia.nivelMaximo);
     c.heroina.pm = 999;
     expect(() => usar(c, 'Cometa arcano', heroes.maga)).toThrow('no está disponible');
   });
@@ -218,7 +219,7 @@ describe('quinta habilidad (recompensa de los jefes violetas)', () => {
 
 describe('Cometa arcano rompe el golpe cargado', () => {
   function cometa(pvEnemigos: number): { c: Combate; eventos: Evento[] } {
-    const c = combate(heroes.maga, 10, 2);
+    const c = combate(heroes.maga, REGLAS.experiencia.nivelMaximo, 2);
     c.heroina.habilidadesGanadas.push('Cometa arcano');
     c.heroina.pm = 999;
     for (const e of c.enemigos) {

@@ -266,7 +266,7 @@ export interface DificultadJson {
 export interface ReglasCombate {
   varianza: { min: number; max: number };
   critico: { probabilidad: number; multiplicador: number };
-  /** Fracción de la Defensa del objetivo que se resta al daño físico y al mágico. */
+  /** Parte de la Defensa del objetivo que cuenta en el denominador del daño físico y del mágico. */
   defensaFisica: number;
   defensaMagica: number;
   defender: { factorDanio: number; pm: number };

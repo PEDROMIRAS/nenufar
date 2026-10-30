@@ -51,7 +51,7 @@
     "porNivel": {
       "pv": 6,
       "pm": 2,
-      "ataque": 1,
+      "ataque": 2,
       "magia": 0,
       "defensa": 2,
       "velocidad": 1
@@ -170,7 +170,7 @@
     },
     "margenEsquina": 8,
     "estadisticas": {
-      "pv": 36,
+      "pv": 41,
       "pm": 20,
       "ataque": 5,
       "magia": 10,

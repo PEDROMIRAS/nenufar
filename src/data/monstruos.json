@@ -626,7 +626,7 @@
     "nombre": "Señor de la Cripta",
     "sprite": "monstruos/senor_cripta",
     "estadisticas": {
-      "pv": 285,
+      "pv": 314,
       "pm": 60,
       "ataque": 25,
       "magia": 16,
@@ -707,7 +707,7 @@
     "nombre": "Rey sin Charca",
     "sprite": "monstruos/rey_sin_charca",
     "estadisticas": {
-      "pv": 213,
+      "pv": 234,
       "pm": 60,
       "ataque": 25,
       "magia": 30,
@@ -756,7 +756,7 @@
   "arbol_maldito": {
     "nombre": "Árbol maldito",
     "sprite": "monstruos/arbol_maldito",
-    "estadisticas": { "pv": 106, "pm": 20, "ataque": 11, "magia": 0, "defensa": 7, "velocidad": 2 },
+    "estadisticas": { "pv": 100, "pm": 20, "ataque": 11, "magia": 0, "defensa": 7, "velocidad": 2 },
     "acciones": [
       { "accion": "atacar", "peso": 50 },
       { "accion": "Raíces", "peso": 25 },
@@ -782,7 +782,7 @@
   "caballero_maldito": {
     "nombre": "Caballero maldito",
     "sprite": "monstruos/caballero_maldito",
-    "estadisticas": { "pv": 240, "pm": 0, "ataque": 13, "magia": 0, "defensa": 11, "velocidad": 3 },
+    "estadisticas": { "pv": 250, "pm": 0, "ataque": 13, "magia": 0, "defensa": 11, "velocidad": 3 },
     "acciones": [
       { "accion": "atacar", "peso": 55 },
       { "accion": "cargar", "peso": 30 },
@@ -865,7 +865,7 @@
   "dragon_negro_ruinas": {
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
-    "estadisticas": { "pv": 148, "pm": 0, "ataque": 20, "magia": 0, "defensa": 10, "velocidad": 6 },
+    "estadisticas": { "pv": 148, "pm": 0, "ataque": 19, "magia": 0, "defensa": 10, "velocidad": 6 },
     "acciones": [
       { "accion": "atacar", "peso": 55 },
       { "accion": "cargar", "peso": 45 }

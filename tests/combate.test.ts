@@ -35,9 +35,42 @@ function combate(azar: () => number, cambios: Partial<MonstruoJson['estadisticas
 
 describe('calcularDanio', () => {
   test('aplica la fórmula del documento', () => {
-    // (9 × 1 − 3 × 0,5) × 1 = 7,5 → 7
+    // 9² / (9 + 3 × 0,5) = 7,71 → 7
     expect(calcularDanio(9, 1, 3, 0.5, reglas, cola())).toEqual({ cantidad: 7, critico: false });
   });
+
+  test('contra defensa baja casi no cambia', () => {
+    // 13² / (13 + 3 × 0,5) = 11,66 → 11
+    expect(calcularDanio(13, 1, 3, 0.5, reglas, cola()).cantidad).toBe(11);
+  });
+
+  test('contra defensa alta deja más que la resta', () => {
+    // 13² / (13 + 18 × 0,5) = 7,68 → 7 (con la resta eran 4)
+    expect(calcularDanio(13, 1, 18, 0.5, reglas, cola()).cantidad).toBe(7);
+  });
+
+  test('el poder multiplica el ataque antes de la defensa', () => {
+    // (10 × 3)² / (10 × 3 + 20 × 0,5) = 22,5 → 22
+    expect(calcularDanio(10, 3, 20, 0.5, reglas, cola()).cantidad).toBe(22);
+  });
+
+  test('con ataque 0 el daño es 1, nunca NaN', () => {
+    expect(calcularDanio(0, 1, 0, 0.5, reglas, cola()).cantidad).toBe(1);
+    expect(calcularDanio(0, 1, 5, 0.5, reglas, cola()).cantidad).toBe(1);
+  });
+
+  test.each([0, 4.5])(
+    'más defensa nunca da más daño y nunca baja de 1 (empezando en %s)',
+    (inicio) => {
+      let anterior = Infinity;
+      for (let defensa = inicio; defensa <= 60; defensa++) {
+        const { cantidad } = calcularDanio(13, 1, defensa, 0.5, reglas, cola());
+        expect(cantidad).toBeGreaterThanOrEqual(1);
+        expect(cantidad).toBeLessThanOrEqual(anterior);
+        anterior = cantidad;
+      }
+    },
+  );
 
   test('un crítico multiplica por 1,5', () => {
     expect(calcularDanio(9, 1, 3, 0.5, reglas, cola(0.5, 0))).toEqual({
@@ -47,7 +80,7 @@ describe('calcularDanio', () => {
   });
 
   test('las mejoras de crítico se suman al multiplicador', () => {
-    // (9 − 1,5) × (1,5 + 0,5) = 15
+    // 9² / (9 + 1,5) × (1,5 + 0,5) = 15,43 → 15
     expect(calcularDanio(9, 1, 3, 0.5, reglas, cola(0.5, 0), false, 0.5).cantidad).toBe(15);
   });
 
@@ -89,8 +122,8 @@ describe('acciones', () => {
     avanzar(c);
     actuar(c, { tipo: 'defender' });
     expect(c.heroina.pm).toBe(5);
-    // Golpe del Limo: (6 − 6 × 0,5) = 3 → a la mitad = 1.
-    expect(c.heroina.pv).toBe(PV_RONIN - 1);
+    // Golpe del Limo: 6² / (6 + 6 × 0,5) = 4 → a la mitad = 2.
+    expect(c.heroina.pv).toBe(PV_RONIN - 2);
   });
 
   test('los PM recuperados no pasan del máximo', () => {

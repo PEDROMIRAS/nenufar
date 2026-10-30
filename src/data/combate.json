@@ -58,7 +58,7 @@
   },
   "experiencia": {
     "porNivel": 20,
-    "nivelMaximo": 10,
+    "nivelMaximo": 12,
     "restaurarAlSubir": 0.3,
     "puntosPorNivel": 2,
     "mejoras": {
