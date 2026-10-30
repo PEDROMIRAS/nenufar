@@ -6,6 +6,10 @@ type AjustesFuente = Hd2dJson['fuente'];
 
 const BASE = import.meta.env.BASE_URL;
 const CARAS = 28;
+/** Luz propia de la piedra: sin ella, la pared que da a la sombra se ve negra. */
+const LUZ_PIEDRA = 0x2a3048;
+/** Altura de la taza de arriba, y de su agua. */
+const ALTO_TAZA = 1.12;
 
 /** Textura de `public/assets/sprites/fuente/` (recortes de la imagen de referencia), que se repite sin costuras. */
 function cargar(nombre: string, repetirX: number, repetirY: number): THREE.Texture {
@@ -49,13 +53,18 @@ export function crearFuente(
   // Los pisos se estiran a lo alto: vista desde arriba, la fuente se leía como una piscina baja.
   grupo.scale.y = 1.4;
   const piedra = new THREE.MeshLambertMaterial({
-    map: cargar('piedra', 4, 1),
+    map: cargar('piedra', 8, 1),
+    emissive: LUZ_PIEDRA,
     side: THREE.DoubleSide,
   });
-  const borde = new THREE.MeshLambertMaterial({ map: cargar('piedra', 0.5, 0.5) });
+  const borde = new THREE.MeshLambertMaterial({
+    map: cargar('piedra', 0.5, 0.5),
+    emissive: LUZ_PIEDRA,
+  });
   const juntas = new THREE.MeshLambertMaterial({ color: 0x1c1e2c });
   const piedraTaza = new THREE.MeshLambertMaterial({
     map: cargar('piedra', 10, 0.3),
+    emissive: LUZ_PIEDRA,
     side: THREE.DoubleSide,
   });
   const texAgua = cargar('agua', 3, 2);
@@ -150,9 +159,9 @@ export function crearFuente(
 
   // Columna y taza de arriba
   const columna = poner(
-    new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 0.52, 10), piedra),
+    new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, ALTO_TAZA - 0.43, 10), piedra),
     0,
-    0.69,
+    0.43 + (ALTO_TAZA - 0.43) / 2,
     0,
   );
   columna.scale.set(rx * 0.9, 1, rz * 0.9);
@@ -171,11 +180,11 @@ export function crearFuente(
       piedraTaza,
     ),
     0,
-    0.9,
+    ALTO_TAZA,
     0,
   );
   taza.scale.set(rx * 0.85, 1, rz * 0.85);
-  const aguaC = 0.99;
+  const aguaC = ALTO_TAZA + 0.09;
   const laminaC = poner(
     new THREE.Mesh(new THREE.CircleGeometry(0.27, 20), agua),
     0,
@@ -205,20 +214,86 @@ export function crearFuente(
       grupo.add(m);
     }
   };
-  cascada(0.3, 1.0, aguaB, 4, Math.PI / 4);
+  cascada(0.3, ALTO_TAZA + 0.1, aguaB, 4, Math.PI / 4);
   cascada(0.6, 0.64, aguaA, 6, 0.3);
 
-  // Nenúfares tumbados sobre el agua de cada piso
-  const materialNenufar = new THREE.MeshBasicMaterial({
-    map: cargar('nenufar', 1, 1),
-    transparent: true,
-    alphaTest: 0.35,
+  // Nenúfares con volumen: hojas planas sobre el agua y, encima, dos coronas de pétalos y los pistilos
+  const hoja = new THREE.MeshLambertMaterial({
+    color: 0x3b44b8,
+    emissive: 0x161c60,
+    side: THREE.DoubleSide,
   });
+  const petalo = new THREE.MeshLambertMaterial({
+    color: 0x9a52e0,
+    emissive: 0x3a1478,
+    side: THREE.DoubleSide,
+  });
+  const petaloInterior = new THREE.MeshLambertMaterial({
+    color: 0xc47af0,
+    emissive: 0x581c98,
+    side: THREE.DoubleSide,
+  });
+  const pistilo = new THREE.MeshBasicMaterial({ color: 0xffa878 });
+  const forma = new THREE.SphereGeometry(1, 10, 6);
+  const pieza = (
+    padre: THREE.Group,
+    material: THREE.Material,
+    ang: number,
+    [largo, ancho, alto]: [number, number, number],
+    dist: number,
+    subida: number,
+    inclina: number,
+  ): void => {
+    const pivote = new THREE.Group();
+    pivote.rotation.y = ang;
+    pivote.position.y = subida;
+    const m = new THREE.Mesh(forma, material);
+    m.scale.set(largo, alto, ancho);
+    m.position.x = dist;
+    m.rotation.z = inclina;
+    pivote.add(m);
+    padre.add(pivote);
+  };
   const nenufar = (radio: number, ang: number, y: number, tam: number): void => {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(tam, tam * 0.56), materialNenufar);
-    m.rotation.set(-Math.PI / 2, 0, azar() * 6);
-    m.position.set(Math.cos(ang) * radio * rx, y + 0.012, Math.sin(ang) * radio * rz);
-    grupo.add(m);
+    const flor = new THREE.Group();
+    flor.position.set(Math.cos(ang) * radio * rx, y + 0.01, Math.sin(ang) * radio * rz);
+    flor.scale.setScalar(tam);
+    const giro = azar() * 6;
+    for (let i = 0; i < 6; i++) {
+      pieza(flor, hoja, giro + (i * Math.PI) / 3, [0.2, 0.075, 0.012], 0.19, 0.005, 0.06);
+    }
+    for (let i = 0; i < 7; i++) {
+      pieza(
+        flor,
+        petalo,
+        giro + 0.4 + (i * Math.PI * 2) / 7,
+        [0.1, 0.042, 0.03],
+        0.07,
+        0.035,
+        0.75,
+      );
+    }
+    for (let i = 0; i < 5; i++) {
+      pieza(
+        flor,
+        petaloInterior,
+        giro + (i * Math.PI * 2) / 5,
+        [0.08, 0.034, 0.026],
+        0.035,
+        0.07,
+        1.2,
+      );
+    }
+    for (const [x, z] of [
+      [0, 0],
+      [0.022, 0.01],
+      [-0.018, -0.014],
+    ] as const) {
+      const m = new THREE.Mesh(new THREE.SphereGeometry(0.014, 6, 4), pistilo);
+      m.position.set(x, 0.16, z);
+      flor.add(m);
+    }
+    grupo.add(flor);
   };
   for (const [radio, ang] of [
     [0.62, 0.5],
@@ -227,11 +302,11 @@ export function crearFuente(
     [0.6, 5.3],
     [0.2, 1.0],
   ] as const) {
-    nenufar(radio, ang, aguaA, 0.46);
+    nenufar(radio, ang, aguaA, 1.1);
   }
-  nenufar(0.3, 0.9, aguaB, 0.36);
-  nenufar(0.3, 3.5, aguaB, 0.36);
-  nenufar(0, 0, aguaC, 0.3);
+  nenufar(0.3, 0.9, aguaB, 0.9);
+  nenufar(0.3, 3.5, aguaB, 0.9);
+  nenufar(0, 0, aguaC, 0.7);
 
   // Chispas azules que suben de la taza
   const posiciones = new Float32Array(a.gotas * 3);
@@ -253,7 +328,7 @@ export function crearFuente(
         const t = (tiempo / (a.vidaGota * 4) + (fases[i] ?? 0)) % 1;
         const ang = angulos[i] ?? 0;
         posiciones[i * 3] = Math.cos(ang) * (0.1 + 0.35 * t) * rx;
-        posiciones[i * 3 + 1] = 1.05 + 0.8 * t;
+        posiciones[i * 3 + 1] = ALTO_TAZA + 0.2 + 0.8 * t;
         posiciones[i * 3 + 2] = Math.sin(ang) * (0.1 + 0.35 * t) * rz;
       }
       geoGotas.attributes.position!.needsUpdate = true;
