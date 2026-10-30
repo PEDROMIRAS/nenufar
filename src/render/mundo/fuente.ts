@@ -113,14 +113,15 @@ export function crearFuente(
     for (const m of [pared, dentro, anillo, lamina]) m.scale.set(rx, 1, rz);
     return alturaAgua;
   };
-  const aguaA = piso(1, 0, 0.36, 0.14);
-  const aguaB = piso(0.58, 0.3, 0.64, 0.12);
+  // Cada piso arranca por debajo del agua del anterior (y la columna, del agua del piso), para que se vean unidos
+  const aguaA = piso(1, 0, 0.36, 0.08);
+  const aguaB = piso(0.58, 0.1, 0.64, 0.07);
 
   // Columna y taza de arriba
   const columna = poner(
-    new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 0.34, 10), piedra),
+    new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 0.52, 10), piedra),
     0,
-    0.73,
+    0.69,
     0,
   );
   columna.scale.set(rx * 0.9, 1, rz * 0.9);
@@ -167,14 +168,31 @@ export function crearFuente(
     for (let i = 0; i < n; i++) {
       const ang = giro + (i / n) * Math.PI * 2;
       const alto = de - abajo;
-      const m = new THREE.Mesh(new THREE.PlaneGeometry(0.09, alto), materialCascada);
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(0.17, alto), materialCascada);
       m.position.set(Math.cos(ang) * radio * rx, abajo + alto / 2, Math.sin(ang) * radio * rz);
       m.rotation.y = -ang + Math.PI / 2;
       grupo.add(m);
     }
   };
   cascada(0.3, 1.0, aguaB, 4, Math.PI / 4);
-  cascada(0.58, 0.64, aguaA, 6, 0.3);
+  cascada(0.6, 0.64, aguaA, 6, 0.3);
+  // Espuma donde un piso y la columna tocan el agua, y donde cae cada cascada: los pisos se ven unidos
+  const materialEspuma = new THREE.MeshBasicMaterial({
+    color: 0xcfefff,
+    transparent: true,
+    opacity: 0.55,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+  const espuma = (dentro: number, fuera: number, y: number): void => {
+    const m = new THREE.Mesh(new THREE.RingGeometry(dentro, fuera, CARAS, 1), materialEspuma);
+    m.rotation.x = -Math.PI / 2;
+    m.position.y = y + 0.006;
+    m.scale.set(rx, 1, rz);
+    grupo.add(m);
+  };
+  espuma(0.57, 0.66, aguaA);
+  espuma(0.12, 0.2, aguaB);
 
   // Nenúfares tumbados sobre el agua de cada piso
   const materialNenufar = new THREE.MeshBasicMaterial({
