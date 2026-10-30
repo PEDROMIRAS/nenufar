@@ -3,7 +3,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); os.chdir(HERE); sys.path.inse
 os.makedirs('out', exist_ok=True)
 SPRITES = os.path.join(HERE, '..', '..', '..', 'public', 'assets', 'sprites')
 from PIL import Image
-import bosque, ruinas, cripta, comunes
+import bosque, ruinas, cripta, cauce, comunes
 from build import build_sheet, room, hero
 
 ronin_d = hero(os.path.join(SPRITES, 'rana_ronin.png'), 0, 0)
@@ -12,7 +12,7 @@ maga_d = hero(os.path.join(SPRITES, 'rana_maga.png'), 0, 0)
 maga_r = hero(os.path.join(SPRITES, 'rana_maga.png'), 2, 0)
 com, _ = build_sheet('comunes', comunes.tiles(), 'out')
 sets = {}
-for name, mod in (('bosque', bosque), ('ruinas', ruinas), ('cripta', cripta)):
+for name, mod in (('bosque', bosque), ('ruinas', ruinas), ('cripta', cripta), ('cauce', cauce)):
     lk, meta = build_sheet(name, mod.tiles(), 'out')
     sets[name] = (lk, [(t['name'], t['weight']) for t in meta['tiles'] if t['layer'] == 'suelo'])
 
