@@ -56,6 +56,8 @@ MONSTRUOS = {
     "murcielago": (32, paleta(cuerpo=(112, 86, 132), cuerpo_s=(74, 54, 92), cuerpo_l=(150, 124, 168),
                               ala=(90, 66, 110), ala_s=(58, 40, 74), ojo=(226, 60, 70), diente=(240, 236, 220)),
                    criaturas.murcielago, {}),
+    "jabali": (32, paleta(cuerpo=(138, 82, 56), cuerpo_s=(105, 53, 35), cuerpo_l=(160, 105, 75), pua=(84, 35, 22),
+                          colmillo=(232, 214, 184), boca=(138, 90, 154)), criaturas.jabali, {}),
     # Ruinas y Cripta: la araña común; la reina, en morados fríos
     "arana": (32, paleta(cuerpo=(122, 59, 59), cuerpo_s=(78, 34, 40), cuerpo_l=(164, 92, 84), cabeza=(98, 46, 48),
                          pata=(58, 30, 34), ojo=(236, 196, 80), marca=(214, 120, 60)), criaturas.arana, {}),

@@ -112,6 +112,65 @@
     },
     "color": "#8a6fa8"
   },
+  "jabali": {
+    "nombre": "Jabalí",
+    "sprite": "monstruos/jabali",
+    "estadisticas": {
+      "pv": 30,
+      "pm": 0,
+      "ataque": 9,
+      "magia": 0,
+      "defensa": 5,
+      "velocidad": 3
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 60
+      },
+      {
+        "accion": "cargar",
+        "peso": 40
+      }
+    ],
+    "cargado": {
+      "poder": 2.5,
+      "aviso": "escarba el suelo..."
+    },
+    "jefe": false,
+    "experiencia": 9,
+    "botin": [
+      {
+        "objeto": "pocion",
+        "peso": 20
+      },
+      {
+        "objeto": "nada",
+        "peso": 70
+      },
+      {
+        "objeto": "armadura",
+        "nivel": 1,
+        "peso": 5
+      },
+      {
+        "objeto": "arma",
+        "nivel": 1,
+        "peso": 5
+      }
+    ],
+    "caja": {
+      "ancho": 22,
+      "alto": 12
+    },
+    "mapa": {
+      "velocidad": 28,
+      "persecucion": 60,
+      "vision": 80,
+      "patrulla": 40
+    },
+    "color": "#7a5232"
+  },
   "esqueleto": {
     "nombre": "Esqueleto",
     "sprite": "monstruos/esqueleto",

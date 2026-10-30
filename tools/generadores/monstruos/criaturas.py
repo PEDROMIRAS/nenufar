@@ -140,3 +140,89 @@ def arana(c, vista, anim, i, corona=False):
         c.poly([(x - 5 * k, top + 2 * k), (x - 5 * k, top - 3 * k), (x - 2 * k, top),
                 (x, top - 4 * k), (x + 2 * k, top), (x + 5 * k, top - 3 * k), (x + 5 * k, top + 2 * k)], "oro")
         c.put(x, top - 1 * k, "gema")
+
+
+# ---------------------------------------------------------------- jabalí
+
+JABALI_FASE = {"idle": [0, 0], "walk": [0, 1.6, 3.1, 4.7], "atacar": [0, 0, 0], "golpe": [0]}
+# Por fotograma: avance del cuerpo, cabeza agachada y altura del cuerpo (en píxeles de 32).
+JABALI_AVANCE = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [-2, 1, 2], "golpe": [-2]}
+JABALI_CABEZA = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [0, 3, 2], "golpe": [-1]}
+JABALI_ALTO = {"idle": [0, 1], "walk": [0, -1, 0, -1], "atacar": [0, 1, 0], "golpe": [0]}
+
+
+def _pata_jabali(c, x, y0, base, lift, k, clave):
+    """Pata corta y gruesa con pezuña; `lift` la levanta al andar."""
+    c.rect(x, y0, x + 2 * k, base - lift - 1 * k, clave)
+    c.rect(x, base - lift - 1 * k, x + 2 * k, base - lift, "colmillo")
+
+
+def jabali(c, vista, anim, i):
+    k = _escala(c)
+    fase = JABALI_FASE[anim][i]
+    av = JABALI_AVANCE[anim][i] * k
+    agacha = JABALI_CABEZA[anim][i] * k
+    alto = JABALI_ALTO[anim][i] * k
+    base = c.t - 2
+    cy = base - 8 * k + alto
+    lift = [max(0, math.sin(fase + (0 if n % 2 else math.pi))) * 2 * k for n in range(4)]
+    if vista == "lado":
+        cx = 13 * k + av
+        # Patas de atrás y de delante (las del otro lado, más oscuras)
+        for n, (px, clave) in enumerate(((cx - 7 * k, "cuerpo_s"), (cx + 6 * k, "cuerpo_s"),
+                                         (cx - 4 * k, "cuerpo"), (cx + 9 * k, "cuerpo"))):
+            _pata_jabali(c, px, cy + 3 * k, base, lift[n], k, clave)
+        # Rabo
+        c.line(cx - 10 * k, cy - 2 * k, cx - 13 * k, cy - 5 * k, "cuerpo_s")
+        c.put(cx - 13 * k, cy - 6 * k, "pua")
+        # Cuerpo y púas del lomo
+        c.ellipse(cx, cy, 11 * k, 6.5 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        for n in range(7):
+            x = cx - 9 * k + n * 3 * k
+            top = cy - 6 * k + abs(n - 3) * 0.7 * k
+            c.poly([(x - 2 * k, top + 3 * k), (x - 0.5 * k, top - 3 * k), (x + 2 * k, top + 3 * k)], "pua")
+            c.put(x - 0.5 * k, top - 2 * k, "cuerpo")
+        # Cabeza con hocico, colmillos y oreja
+        hx, hy = cx + 11 * k, cy + 2 * k + agacha
+        c.ellipse(hx, hy, 5.5 * k, 4.5 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        c.ellipse(hx + 4 * k, hy + 1.5 * k, 3 * k, 2.5 * k, "cuerpo_l", sombra="cuerpo")
+        c.poly([(hx - 3 * k, hy - 3 * k), (hx - 1 * k, hy - 8 * k), (hx + 1 * k, hy - 3 * k)], "cuerpo_s")
+        c.put(hx + 2 * k, hy - 1 * k, "ojo")
+        c.put(hx + 2 * k, hy - 2 * k, "brillo")
+        c.put(hx + 6 * k, hy + 0.5 * k, "pua")
+        boca = 2 * k if anim == "atacar" and i == 1 else 0
+        c.rect(hx + 2 * k, hy + 3 * k, hx + 5 * k, hy + 3 * k + boca, "boca")
+        c.poly([(hx + 2.5 * k, hy + 3 * k), (hx + 5.5 * k, hy - 3.5 * k), (hx + 7 * k, hy - 2.5 * k),
+                (hx + 5 * k, hy + 4 * k)], "colmillo")
+        return
+    cx = c.t / 2
+    if vista == "frente":
+        for n, px in enumerate((cx - 6 * k, cx + 4 * k)):
+            _pata_jabali(c, px, cy + 3 * k, base, lift[n], k, "cuerpo_s")
+        c.ellipse(cx, cy - 1 * k, 9 * k, 6.5 * k, "cuerpo_s")
+        for n in range(5):
+            x = cx - 6 * k + n * 3 * k
+            c.poly([(x - 2 * k, cy - 4 * k), (x, cy - 10 * k), (x + 2 * k, cy - 4 * k)], "pua")
+        c.poly([(cx - 8 * k, cy - 2 * k), (cx - 6 * k, cy - 9 * k), (cx - 3 * k, cy - 3 * k)], "cuerpo_s")
+        c.poly([(cx + 8 * k, cy - 2 * k), (cx + 6 * k, cy - 9 * k), (cx + 3 * k, cy - 3 * k)], "cuerpo_s")
+        c.ellipse(cx, cy + 1 * k + agacha, 7 * k, 6 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        c.ellipse(cx, cy + 4 * k + agacha, 3.5 * k, 2.5 * k, "cuerpo_l", sombra="cuerpo")
+        for ox in (-4, 4):
+            c.put(cx + ox * k, cy - 1 * k + agacha, "ojo")
+            c.put(cx + ox * k - 0.5 * k, cy - 2 * k + agacha, "brillo")
+        c.put(cx - 1 * k, cy + 4 * k + agacha, "pua")
+        c.put(cx + 1 * k, cy + 4 * k + agacha, "pua")
+        for s in (-1, 1):
+            c.poly([(cx + s * 3 * k, cy + 5 * k + agacha), (cx + s * 7 * k, cy + 1 * k + agacha),
+                    (cx + s * 5 * k, cy + 6 * k + agacha)], "colmillo")
+        c.rect(cx - 2 * k, cy + 6 * k + agacha, cx + 2 * k, cy + 6 * k + agacha, "boca")
+        return
+    for n, px in enumerate((cx - 6 * k, cx + 4 * k)):
+        _pata_jabali(c, px, cy + 3 * k, base, lift[n], k, "cuerpo_s")
+    c.ellipse(cx, cy, 9.5 * k, 7 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+    for n in range(5):
+        y = cy - 6 * k + n * 2.6 * k
+        c.poly([(cx - 2 * k, y + 2 * k), (cx, y - 1 * k), (cx + 2 * k, y + 2 * k)], "pua")
+    c.poly([(cx - 8 * k, cy - 3 * k), (cx - 6 * k, cy - 8 * k), (cx - 3 * k, cy - 4 * k)], "cuerpo_s")
+    c.poly([(cx + 8 * k, cy - 3 * k), (cx + 6 * k, cy - 8 * k), (cx + 3 * k, cy - 4 * k)], "cuerpo_s")
+    c.line(cx, cy + 5 * k, cx + 1 * k, cy + 8 * k, "pua")
