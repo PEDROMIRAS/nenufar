@@ -234,7 +234,10 @@ export function efectiva(l: Luchador, clave: 'ataque' | 'magia' | 'defensa'): nu
   return valor;
 }
 
-/** daño = max(1, ⌊(ATQ × poder − DEF × factor) × varianza × crítico⌋), como en el documento de diseño. */
+/**
+ * daño = max(1, ⌊(ATQ × poder)² / (ATQ × poder + DEF × factor) × varianza × crítico⌋).
+ * Cociente en vez de resta: la defensa frena una parte del golpe pero nunca lo anula.
+ */
 export function calcularDanio(
   ataque: number,
   poder: number,
@@ -249,10 +252,10 @@ export function calcularDanio(
   const { varianza, critico } = reglas;
   const v = varianza.min + azar() * (varianza.max - varianza.min);
   const esCritico = criticoSeguro || azar() < critico.probabilidad;
-  const bruto =
-    (ataque * poder - defensa * factorDefensa) *
-    v *
-    (esCritico ? critico.multiplicador + extraCritico : 1);
+  const fuerza = ataque * poder;
+  // Sin fuerza no hay cociente (0/0): el golpe se queda en el daño mínimo.
+  const base = fuerza > 0 ? (fuerza * fuerza) / (fuerza + defensa * factorDefensa) : 0;
+  const bruto = base * v * (esCritico ? critico.multiplicador + extraCritico : 1);
   return { cantidad: Math.max(1, Math.floor(bruto)), critico: esCritico };
 }
 
