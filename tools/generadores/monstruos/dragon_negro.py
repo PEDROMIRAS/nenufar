@@ -129,19 +129,16 @@ def dibujar(respira=0, ojos=1.0, carga=0.0, aliento=False, alza=0, cabeza=(0, 0)
         for y, x in zip(ys, xs):
             if y % 3 != (23 + b) % 3 and ((x + y) % 2 == 0 or carga >= 1) and 24 < y < 36:
                 t[y, x] = (*FUEGO[1 if carga < 1 else 2], 255)
-    if aliento:  # chorro de fuego hacia delante y abajo, donde está la heroína
+    if aliento:  # chorro de fuego: sale del hueco de la boca, por la punta del hocico, recto hacia delante
         g = rng(3)
-        x0, y0 = cx - 10, cy + 2
-        for k in range(30):
-            ancho = 1.5 + k * 0.32
-            yc = y0 + k * 1.05
-            for dy in range(-int(ancho), int(ancho) + 1):
-                x, y = x0 + 2 + dy + g.choice((-1, 0, 0, 1)), int(yc - abs(dy) * 0.3)
-                if 0 <= x < W and 0 <= y < H - 1 and t[y, int(x), 3] == 0:
-                    d = abs(dy) / max(ancho, 1)
-                    put(t, int(x), y, FUEGO[3] if d < 0.25 else FUEGO[2] if d < 0.6 else FUEGO[1])
-    if aliento:  # y se extiende por el suelo
-        fire_band(t, 0, 24, H - 1, 6, 1, FUEGO, profile=lambda u: 1 - abs(u - 0.4) * 1.4, bright=0.45)
+        xt, yt = cx - 11, cy + 2 + abre // 2  # la punta del hocico, a la altura del hueco entre las mandíbulas
+        for k in range(1, xt - 1):
+            mitad = 1 + k * 0.75
+            for dy in range(-int(mitad), int(mitad) + 1):
+                x, y = xt - k, yt + dy + g.choice((-1, 0, 0, 0, 1))
+                if 1 <= x < W and 0 <= y < H - 1 and t[y, x, 3] == 0:
+                    d = abs(dy) / max(mitad, 1)
+                    put(t, x, y, FUEGO[3] if d < 0.25 else FUEGO[2] if d < 0.6 else FUEGO[1])
     ground_shadow(t, 36, H - 2, 18, 2)
     return t
 
@@ -154,6 +151,6 @@ def fotograma(direccion, anim, i):
         return dibujar(respira=[0, 1, 1, 0][i], alza=[0, 1, 2, 1][i])
     if anim == "atacar":
         return [lambda: dibujar(carga=1.0, alza=2, cabeza=(3, -2)),
-                lambda: dibujar(aliento=True, alza=0, cabeza=(-2, 1)),
+                lambda: dibujar(aliento=True, alza=0, cabeza=(3, 1)),
                 lambda: dibujar(carga=0.4, ojos=0.9)][i]()
     return dibujar(ojos=0.2, alza=-1, cabeza=(2, 2))

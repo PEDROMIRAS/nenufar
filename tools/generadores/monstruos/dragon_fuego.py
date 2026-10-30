@@ -55,13 +55,16 @@ def fotograma(direccion, anim, i):
     y0 = 47 - alto + DY[anim][i]
     reducir.pegar(lienzo, sal, x0, y0)
     if anim == "atacar" and i == 1:
-        # Resplandor de fuego que sale de la boca, delante de la cabeza
-        boca_x = x0 + min((x for fila in sal[4:10] for x, c in enumerate(fila) if c is not None), default=0)
-        boca_y = y0 + 7
+        # La punta del hocico: el píxel más a la izquierda de la cabeza (filas 5 a 27); si varias filas empatan, la del medio
+        izquierda = {fila: min((x for x, c in enumerate(f) if c is not None), default=ancho) for fila, f in enumerate(sal[5:28], 5)}
+        minimo = min(izquierda.values())
+        filas = [fila for fila, x in izquierda.items() if x <= minimo + 1]
+        boca_x, boca_y = x0 + minimo, y0 + filas[len(filas) // 2]
+        # Resplandor de fuego que sale de la boca: un cono recto que arranca en la punta del hocico y se abre hacia delante
         for k in range(1, 15):
             mitad = 1 + k // 3
             for dy in range(-mitad, mitad + 1):
-                x, y = boca_x - k + 4, boca_y + dy + k // 2
+                x, y = boca_x - k, boca_y + dy
                 if 1 <= x < W - 1 and 0 <= y < H and lienzo[y, x, 3] == 0:
                     d = abs(dy) / (mitad + 0.5)
                     lienzo[y, x] = FUEGO[3 if d < 0.25 else 2 if d < 0.6 else 1] + (255,)
