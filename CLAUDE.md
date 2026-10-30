@@ -9,6 +9,7 @@ Si el diseño y este archivo discrepan, manda el documento; avisa de la discrepa
 
 ## Estado
 
+- **Traspaso (2026-10-30): para retomar el Cauce Seco y las reglas nuevas, lee `docs/superpowers/handoff/2026-10-30-cauce-seco-traspaso.md`** (qué está hecho, qué falta, las decisiones de Pedro, el criterio de arte y las trampas del entorno). Entregas 1 y 2 publicadas; 3a (arte) en la rama `arte-cauce-seco`, subida y sin fusionar; 3b con plan escrito; 3c y 3d sin plan.
 - Diseño y arte cerrados.
 - Hitos 1 a 6 hechos y publicados en https://pedromiras.github.io/nenufar/ (Pedro los probó en el móvil). Del 6: sprites de monstruos y efectos generados por script, animaciones de combate, la sala como fondo del combate y sonido sintetizado con Web Audio desde `src/data/sonido.json` (silencio en la pausa, guardado como ajuste).
 - **Hito 7 hecho y comprobado por Pedro (2026-10-24).** Incluye lo que pidieron los probadores (tope al golpe cargado, transformaciones de jefe que no se saltan, pantalla de controles, inventario en pestañas, fuente y jefe en el minimapa, ayuda en el combate). El enlace desde el portafolio queda fuera del hito, para la versión final. La variedad entre partidas va a la versión 2.
