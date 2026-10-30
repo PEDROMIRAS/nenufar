@@ -153,7 +153,10 @@ function malla(
  */
 function cofre(abierto: boolean, azar: Azar): Elemento {
   const grupo = new THREE.Group();
-  const madera = new THREE.MeshLambertMaterial({ map: texturaMadera(azar) });
+  const madera = new THREE.MeshLambertMaterial({
+    map: texturaMadera(azar),
+    side: THREE.DoubleSide,
+  });
   const hierro = new THREE.MeshLambertMaterial({ color: METAL[1], emissive: 0x10131c });
   const oro = new THREE.MeshLambertMaterial({ color: ORO[1], emissive: 0x4a3410 });
   const caja = new THREE.BoxGeometry(1, 1, 1);
