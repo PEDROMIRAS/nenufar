@@ -10,12 +10,14 @@ import numpy as np
 from dibujo import tile, put, line, outline, poly_mask, ell_mask, shade, limb, ground_shadow, rng, fire_band
 
 W, H = 64, 48
-NEGRO = [(12, 10, 18), (26, 24, 36), (42, 40, 56), (64, 60, 82), (92, 88, 114)]
+NEGRO = [(6, 5, 10), (16, 14, 24), (30, 28, 42), (52, 48, 70), (84, 80, 106)]
 MEMBRANA = [(20, 18, 28), (34, 30, 44), (52, 46, 64)]
 PLACA = [(96, 74, 50), (140, 112, 76), (184, 154, 108), (214, 190, 140)]
 GARRA = [(150, 148, 156), (210, 208, 214)]
 OJO = [(150, 20, 20), (236, 50, 40), (255, 170, 120)]
 FUEGO = [(130, 34, 12), (226, 98, 24), (255, 186, 64), (255, 242, 200)]
+HUESO = [(96, 88, 76), (150, 140, 120), (206, 196, 172)]
+BRASA = (196, 70, 22)
 OUT = (6, 4, 10)
 
 
@@ -53,18 +55,22 @@ def dibujar(respira=0, ojos=1.0, carga=0.0, aliento=False, alza=0, cabeza=(0, 0)
     p = [(40, 40), (51, 44), (59, 41), (62, 34), (60, 29)]
     for i in range(4):
         limb(t, p[i], p[i + 1], 3.6 - i * 0.8, 2.8 - i * 0.8, NEGRO, bias=0.0)
-    for x, y in ((50, 41), (56, 39), (60, 34)):  # púas de la cola
-        put(t, x, y - 2, NEGRO[3]); put(t, x, y - 3, NEGRO[2])
+    for x, y in ((50, 41), (56, 39), (60, 34)):  # púas de la cola, altas y afiladas
+        put(t, x, y - 2, NEGRO[3]); put(t, x, y - 3, NEGRO[2]); put(t, x, y - 4, NEGRO[3]); put(t, x - 1, y - 3, NEGRO[1])
     # patas traseras: muslo grande y pie con garras
     for cx, w in ((40, 6.5), (27, 5.5)):
         shade(t, ell_mask(t, cx, 37 + b * 0.5, w, w), NEGRO, bias=0.05)
         limb(t, (cx, 40), (cx - 1, 45), 2.6, 2.4, NEGRO, bias=0.0)
         for dx in (-3, -1, 1):
-            put(t, cx - 1 + dx, 46, GARRA[1]); put(t, cx - 1 + dx, 45, GARRA[0])
+            put(t, cx - 1 + dx, 46, GARRA[1]); put(t, cx - 1 + dx, 45, GARRA[0]); put(t, cx - 1 + dx, 44, GARRA[0])
     # tronco erguido
     tronco = poly_mask(t, [(25, 19 + b), (36, 17 + b), (41, 28), (39, 41), (26, 42), (22, 31)])
     shade(t, tronco, NEGRO, bias=0.1)
     escamas(t, tronco)
+    ys, xs = tronco.nonzero()
+    for y, x in zip(ys, xs):  # brasas entre las escamas del lomo y el costado
+        if 24 < y < 40 and x > 27 and (x * 3 + y * 5) % 13 == 0:
+            t[y, x] = (*BRASA, 255)
     # vientre de placas, de frente a la izquierda
     vientre = poly_mask(t, [(24, 22 + b), (29, 21 + b), (32, 41), (25, 41), (22, 32)])
     shade(t, vientre, PLACA, bias=0.05)
@@ -86,6 +92,13 @@ def dibujar(respira=0, ojos=1.0, carga=0.0, aliento=False, alza=0, cabeza=(0, 0)
     shade(t, poly_mask(t, [(cx, cy + 1 + abre), (cx - 9, cy + 2 + abre), (cx - 9, cy + 4 + abre), (cx + 1, cy + 4)]), NEGRO, bias=-0.1)
     for x, y, l in ((cx + 3, cy - 3, 6), (cx, cy - 4, 5), (cx + 4, cy, 4)):  # púas hacia atrás
         limb(t, (x, y), (x + l, y - l // 2 - 1), 1.3, 0.3, NEGRO, bias=0.2)
+    # cuernos largos de hueso, afilados y curvos hacia atrás: líneas finas con la punta clara
+    for puntos, w in ((((cx + 2, cy - 4), (cx + 5, cy - 6), (cx + 10, cy - 5), (cx + 12, cy - 3)), 2),
+                      (((cx + 4, cy - 2), (cx + 8, cy - 3), (cx + 12, cy - 1)), 1)):
+        for (xa, ya), (xb, yb) in zip(puntos, puntos[1:]):
+            line(t, xa, ya + 1, xb, yb + 1, HUESO[0], w)
+            line(t, xa, ya, xb, yb, HUESO[1], w)
+        put(t, puntos[-1][0], puntos[-1][1], HUESO[2])
     # brazo corto delante del vientre
     limb(t, (30, 26 + b), (25, 32 + b), 2.2, 1.6, NEGRO, bias=0.05)
     for dx in (-1, 1):
@@ -101,7 +114,14 @@ def dibujar(respira=0, ojos=1.0, carga=0.0, aliento=False, alza=0, cabeza=(0, 0)
         line(t, cx - 9, cy + 2, cx - 1, cy + 2, OJO[0])
     c = OJO[2] if ojos > 0.8 else (OJO[1] if ojos > 0.4 else OJO[0])
     put(t, cx - 1, cy - 2, c); put(t, cx, cy - 2, OJO[1] if ojos > 0.4 else OJO[0])
+    if ojos > 0.4:  # halo rojo alrededor del ojo
+        put(t, cx - 2, cy - 2, OJO[0]); put(t, cx - 1, cy - 1, OJO[0]); put(t, cx + 1, cy - 2, OJO[0])
     line(t, cx - 2, cy - 3, cx + 1, cy - 4, NEGRO[0])  # ceja
+    line(t, cx - 4, cy - 3, cx - 2, cy - 4, NEGRO[0])  # ceño más duro
+    for x in range(cx - 9, cx - 1, 2):  # colmillos de arriba y, con la boca abierta, de abajo
+        put(t, x, cy + 1, GARRA[1])
+        if abre:
+            put(t, x + 1, cy + 2 + abre, GARRA[1])
     put(t, cx - 9, cy - 1, OUT)
     # el pecho se enciende al tomar aire
     if carga > 0:
