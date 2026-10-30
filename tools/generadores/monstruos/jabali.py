@@ -43,9 +43,30 @@ def _base():
             if mm[y, x]:
                 d = ((colores - c[y, x]) ** 2).sum(axis=1)
                 grid[y][x] = claves[int(d.argmin())]
+    _limpiar(grid)
     for x, y, k in RETOQUES:
         grid[y][x] = k
     return grid
+
+
+def _vecinos(grid, x, y):
+    alto, ancho = len(grid), len(grid[0])
+    return [grid[ny][nx] for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))
+            if 0 <= nx < ancho and 0 <= ny < alto]
+
+
+def _limpiar(grid):
+    """Silueta limpia: quita píxeles sueltos y tapa los agujeros que deja la reducción."""
+    alto, ancho = len(grid), len(grid[0])
+    for _ in range(2):
+        for y in range(alto):
+            for x in range(ancho):
+                v = _vecinos(grid, x, y)
+                ocupados = [k for k in v if k is not None]
+                if grid[y][x] is not None and len(ocupados) <= 1:
+                    grid[y][x] = None
+                elif grid[y][x] is None and len(ocupados) >= 3:
+                    grid[y][x] = max(set(ocupados), key=ocupados.count)
 
 
 def _con_contorno(grid):
@@ -91,10 +112,10 @@ def _pegar(lienzo, sal, x0, y0):
                 lienzo[py, px] = _rgb(k) + (255,)
 
 
-def _pata(lienzo, x, y_pie, alza, clave):
-    """Pata gruesa de 3 píxeles con contorno y pezuña clara, que se levanta `alza` píxeles."""
+def _pata(lienzo, x, y_pie, alza, clave, y_arriba):
+    """Pata gruesa de 3 píxeles con contorno y pezuña clara, desde la barriga (`y_arriba`) hasta el suelo."""
     y = y_pie - alza
-    for yy in range(y - 3, y):
+    for yy in range(y_arriba, y):
         lienzo[yy, x - 1] = OUT + (255,)
         lienzo[yy, x + 3] = OUT + (255,)
         for xx in (x, x + 1, x + 2):
@@ -118,15 +139,15 @@ def fotograma(direccion, anim, i):
     alto, ancho = len(sal), len(sal[0])
     bob = BOB[anim][i]
     # Los pies (pezuñas) tocan la fila 30; el cuerpo, bajo y gordo, casi las tapa.
-    y0 = 26 - (alto - 1) + bob
+    y0 = 28 - (alto - 1) + bob
     if direccion == "up":
         # De espaldas: la misma pose estrechada, con el rabo en el centro.
         estrecha = [[sal[y][int(x * ancho / 15)] for x in range(15)] for y in range(alto)]
         x0 = 16 - 8
         _pegar(lienzo, estrecha, x0, y0)
         alza = ALZA[anim][i]
-        _pata(lienzo, 10, 30, alza[0], "sombra")
-        _pata(lienzo, 19, 30, alza[1], "sombra")
+        _pata(lienzo, 10, 30, alza[0], "sombra", y0 + alto - 3)
+        _pata(lienzo, 19, 30, alza[1], "sombra", y0 + alto - 3)
         return lienzo
     x0 = 1 + AVANCE[anim][i]
     alza = ALZA[anim][i]
@@ -137,8 +158,8 @@ def fotograma(direccion, anim, i):
         x0 = 32 - ancho - 1 - AVANCE[anim][i]
         patas = [(ancho - 3 - d, c, n) for d, c, n in patas]
     for d, clave, n in patas[:2]:
-        _pata(lienzo, x0 + d, 30, alza[n], clave)
+        _pata(lienzo, x0 + d, 30, alza[n], clave, y0 + alto - 3)
     _pegar(lienzo, sal, x0, y0)
     for d, clave, n in patas[2:]:
-        _pata(lienzo, x0 + d, 30, alza[n], clave)
+        _pata(lienzo, x0 + d, 30, alza[n], clave, y0 + alto - 3)
     return lienzo
