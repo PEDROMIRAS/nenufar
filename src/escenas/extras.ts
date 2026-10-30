@@ -19,7 +19,7 @@ import type { Sprite } from '../render/recursos';
 import { sonar } from '../render/sonido';
 import type { Escena } from './escena';
 
-const POR_FILA = 6;
+const POR_FILA = 7;
 const PISTA = esTactil()
   ? {
       bestiario: 'Toca un monstruo para ver su ficha',

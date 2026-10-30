@@ -41,7 +41,7 @@
     "margenEsquina": 8,
     "pmAlAtacar": 1,
     "estadisticas": {
-      "pv": 42,
+      "pv": 46,
       "pm": 8,
       "ataque": 9,
       "magia": 3,
@@ -170,7 +170,7 @@
     },
     "margenEsquina": 8,
     "estadisticas": {
-      "pv": 41,
+      "pv": 40,
       "pm": 20,
       "ataque": 5,
       "magia": 10,

@@ -112,6 +112,110 @@
     },
     "color": "#8a6fa8"
   },
+  "jabali": {
+    "nombre": "Jabalí",
+    "sprite": "monstruos/jabali",
+    "estadisticas": {
+      "pv": 25,
+      "pm": 0,
+      "ataque": 7,
+      "magia": 0,
+      "defensa": 5,
+      "velocidad": 3
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 60
+      },
+      {
+        "accion": "cargar",
+        "peso": 40
+      }
+    ],
+    "cargado": {
+      "poder": 2.5,
+      "aviso": "escarba el suelo..."
+    },
+    "jefe": false,
+    "experiencia": 9,
+    "botin": [
+      {
+        "objeto": "pocion",
+        "peso": 20
+      },
+      {
+        "objeto": "nada",
+        "peso": 70
+      },
+      {
+        "objeto": "armadura",
+        "nivel": 1,
+        "peso": 5
+      },
+      {
+        "objeto": "arma",
+        "nivel": 1,
+        "peso": 5
+      }
+    ],
+    "caja": {
+      "ancho": 22,
+      "alto": 12
+    },
+    "mapa": {
+      "velocidad": 28,
+      "persecucion": 60,
+      "vision": 80,
+      "patrulla": 40
+    },
+    "color": "#7a5232"
+  },
+  "cuervo": {
+    "nombre": "Cuervo",
+    "sprite": "monstruos/cuervo",
+    "estadisticas": {
+      "pv": 11,
+      "pm": 0,
+      "ataque": 6,
+      "magia": 0,
+      "defensa": 1,
+      "velocidad": 11
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 100
+      }
+    ],
+    "jefe": false,
+    "experiencia": 6,
+    "botin": [
+      {
+        "objeto": "eter",
+        "peso": 10
+      },
+      {
+        "objeto": "pocion",
+        "peso": 10
+      },
+      {
+        "objeto": "nada",
+        "peso": 80
+      }
+    ],
+    "caja": {
+      "ancho": 16,
+      "alto": 10
+    },
+    "mapa": {
+      "velocidad": 48,
+      "persecucion": 85,
+      "vision": 112,
+      "patrulla": 64
+    },
+    "color": "#2c2838"
+  },
   "esqueleto": {
     "nombre": "Esqueleto",
     "sprite": "monstruos/esqueleto",
@@ -353,6 +457,7 @@
       }
     ],
     "jefe": false,
+    "oculto": true,
     "experiencia": 26,
     "botin": [
       {
@@ -388,6 +493,69 @@
       "patrulla": 40
     },
     "color": "#7a2a36"
+  },
+  "lobo": {
+    "nombre": "Lobo",
+    "sprite": "monstruos/lobo",
+    "estadisticas": {
+      "pv": 54,
+      "pm": 0,
+      "ataque": 15,
+      "magia": 0,
+      "defensa": 8,
+      "velocidad": 8
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 60
+      },
+      {
+        "accion": "cargar",
+        "peso": 40
+      }
+    ],
+    "cargado": {
+      "poder": 2.5,
+      "aviso": "muestra los colmillos..."
+    },
+    "jefe": false,
+    "experiencia": 28,
+    "botin": [
+      {
+        "objeto": "pocion",
+        "peso": 30
+      },
+      {
+        "objeto": "eter",
+        "peso": 15
+      },
+      {
+        "objeto": "nada",
+        "peso": 55
+      },
+      {
+        "objeto": "arma",
+        "nivel": 2,
+        "peso": 6
+      },
+      {
+        "objeto": "armadura",
+        "nivel": 2,
+        "peso": 6
+      }
+    ],
+    "caja": {
+      "ancho": 20,
+      "alto": 12
+    },
+    "mapa": {
+      "velocidad": 40,
+      "persecucion": 80,
+      "vision": 96,
+      "patrulla": 48
+    },
+    "color": "#262c44"
   },
   "rey_limo": {
     "nombre": "Rey Limo",

@@ -140,3 +140,88 @@ def arana(c, vista, anim, i, corona=False):
         c.poly([(x - 5 * k, top + 2 * k), (x - 5 * k, top - 3 * k), (x - 2 * k, top),
                 (x, top - 4 * k), (x + 2 * k, top), (x + 5 * k, top - 3 * k), (x + 5 * k, top + 2 * k)], "oro")
         c.put(x, top - 1 * k, "gema")
+
+
+# ---------------------------------------------------------------- cuervo
+
+CUERVO_ALTO = {"idle": [0, 1], "walk": [0, -2, 0, -2], "atacar": [0, -2, 1], "golpe": [0]}
+CUERVO_AVANCE = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [-1, 2, 4], "golpe": [-2]}
+CUERVO_ALAS = {"idle": [0, 0], "walk": [0, 1, 0, 1], "atacar": [0, 1, 2], "golpe": [0]}
+
+
+def _ojo_cuervo(c, x, y, cerrado):
+    """Ojo grande y brillante: el único brillo del cuervo."""
+    if cerrado:
+        c.line(x - 1, y + 1, x + 1, y + 1, "cuerpo_s")
+        return
+    c.rect(x - 1, y - 1, x + 1, y + 1, "ojo")
+    c.put(x - 1, y - 1, "brillo")
+    c.put(x, y, "brillo")
+
+
+def cuervo(c, vista, anim, i):
+    k = _escala(c)
+    alto = CUERVO_ALTO[anim][i] * k
+    av = CUERVO_AVANCE[anim][i] * k
+    alas = CUERVO_ALAS[anim][i]
+    parpadeo = anim == "idle" and i == 1
+    base = c.t - 2
+    cy = base - 10 * k + alto
+    if vista == "lado":
+        cx = 14 * k + av
+        # Patas finas con garras, que se levantan al saltar
+        for px in (cx - 3 * k, cx + 2 * k):
+            c.rect(px, base - 4 * k + min(0, alto), px + 1 * k, base - 1 * k + min(0, alto), "pico")
+            c.line(px - 1 * k, base - 1 * k + min(0, alto), px + 2 * k, base - 1 * k + min(0, alto), "pico")
+        # Cola
+        c.poly([(cx - 7 * k, cy), (cx - 13 * k, cy + 7 * k + alas), (cx - 9 * k, cy + 8 * k), (cx - 4 * k, cy + 5 * k)],
+               "cuerpo_s")
+        c.ellipse(cx, cy, 8.5 * k, 8 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        # Ala plegada con plumas, y el babero marrón del pecho
+        c.poly([(cx - 6 * k, cy - 3 * k - alas), (cx + 3 * k, cy - 1 * k), (cx + 1 * k, cy + 6 * k), (cx - 8 * k, cy + 4 * k)],
+               "cuerpo_s")
+        for n in range(3):
+            c.line(cx - 6 * k + n * 2 * k, cy + 1 * k, cx - 4 * k + n * 2 * k, cy + 5 * k, "cuerpo")
+        for n in range(3):
+            c.put(cx + 4 * k + n * 1.5 * k, cy + 3 * k + (n % 2) * k, "adorno")
+        # Cabeza redonda con plumas de punta, ojo y pico
+        hx, hy = cx + 5 * k, cy - 8 * k
+        c.ellipse(hx, hy, 6 * k, 5.5 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        for n in range(3):
+            c.poly([(hx - 4 * k + n * 2 * k, hy - 4 * k), (hx - 3 * k + n * 2 * k, hy - 8 * k), (hx - 2 * k + n * 2 * k, hy - 4 * k)],
+                   "cuerpo_s")
+        c.rect(hx - 4 * k, hy - 3 * k, hx - 2 * k, hy - 2 * k, "adorno")
+        _ojo_cuervo(c, hx + 2 * k, hy - 1 * k, parpadeo)
+        abre = 1 * k if anim == "atacar" and i == 1 else 0
+        c.poly([(hx + 5 * k, hy - 1 * k), (hx + 12 * k, hy + 1 * k), (hx + 5 * k, hy + 3 * k)], "pico")
+        c.line(hx + 5 * k, hy + 1 * k, hx + 11 * k, hy + 1 * k + abre, "cuerpo_s")
+        return
+    cx = c.t / 2
+    if vista == "frente":
+        for px in (cx - 4 * k, cx + 2 * k):
+            c.rect(px, base - 4 * k + min(0, alto), px + 1 * k, base - 1 * k + min(0, alto), "pico")
+            c.line(px - 1 * k, base - 1 * k + min(0, alto), px + 2 * k, base - 1 * k + min(0, alto), "pico")
+        for s in (-1, 1):
+            c.ellipse(cx + s * 8 * k, cy + 2 * k, 3.5 * k, 6.5 * k, "cuerpo_s", luz="cuerpo")
+            c.poly([(cx + s * 8 * k, cy + 6 * k), (cx + s * 9 * k, cy + 9 * k + alas), (cx + s * 6 * k, cy + 8 * k)], "cuerpo_s")
+        c.ellipse(cx, cy + 1 * k, 8.5 * k, 9 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+        # Babero marrón en festón
+        for n in range(5):
+            x = cx - 5 * k + n * 2.5 * k
+            c.line(x, cy + 6 * k, x + 1.5 * k, cy + 8 * k, "adorno")
+        for s in (-1, 1):
+            c.poly([(cx + s * 3 * k, cy - 6 * k), (cx + s * 5 * k, cy - 10 * k), (cx + s * 6 * k, cy - 5 * k)], "cuerpo_s")
+        _ojo_cuervo(c, cx - 4 * k, cy - 2 * k, parpadeo)
+        _ojo_cuervo(c, cx + 4 * k, cy - 2 * k, parpadeo)
+        c.poly([(cx - 2 * k, cy + 1 * k), (cx + 2 * k, cy + 1 * k), (cx, cy + 6 * k)], "pico")
+        c.line(cx - 1 * k, cy + 2 * k, cx + 1 * k, cy + 2 * k, "cuerpo_l")
+        return
+    for px in (cx - 4 * k, cx + 2 * k):
+        c.rect(px, base - 4 * k + min(0, alto), px + 1 * k, base - 1 * k + min(0, alto), "pico")
+    c.poly([(cx - 3 * k, cy + 6 * k), (cx + 3 * k, cy + 6 * k), (cx + 4 * k, cy + 12 * k), (cx, cy + 13 * k), (cx - 4 * k, cy + 12 * k)],
+           "cuerpo_s")
+    c.ellipse(cx, cy, 8.5 * k, 9 * k, "cuerpo", sombra="cuerpo_s", luz="cuerpo_l")
+    for s in (-1, 1):
+        c.ellipse(cx + s * 4.5 * k, cy + 1 * k, 3.5 * k, 7 * k, "cuerpo_s")
+        c.line(cx + s * 4.5 * k, cy - 4 * k, cx + s * 4.5 * k, cy + 6 * k + alas, "cuerpo")
+        c.poly([(cx + s * 3 * k, cy - 8 * k), (cx + s * 5 * k, cy - 12 * k), (cx + s * 6 * k, cy - 7 * k)], "cuerpo_s")
