@@ -27,6 +27,7 @@ import sacerdote  # noqa: E402
 import oni  # noqa: E402
 import dragon_fuego  # noqa: E402
 import guardian_bosque  # noqa: E402
+import reina_arana  # noqa: E402
 import reducir  # noqa: E402
 import golem  # noqa: E402
 import rey_sin_charca  # noqa: E402
@@ -72,9 +73,6 @@ MONSTRUOS = {
     # Ruinas y Cripta: la araña común; la reina, en morados fríos
     "arana": (32, paleta(cuerpo=(122, 59, 59), cuerpo_s=(78, 34, 40), cuerpo_l=(164, 92, 84), cabeza=(98, 46, 48),
                          pata=(58, 30, 34), ojo=(236, 196, 80), marca=(214, 120, 60)), criaturas.arana, {}),
-    "reina_arana": (48, paleta(cuerpo=(86, 52, 110), cuerpo_s=(52, 30, 72), cuerpo_l=(128, 88, 152),
-                               cabeza=(70, 40, 92), pata=(40, 24, 54), ojo=(240, 80, 110), marca=(214, 208, 190), marca_l=(244, 240, 226)),
-                    criaturas.arana, {"jefe": True}),
     # Humanoides de las Ruinas y la Cripta
     "esqueleto": (32, paleta(**HUESO, **METAL, ojo=(232, 70, 70), cuero=(110, 72, 48)), humanoides.esqueleto, {}),
     "caballero": (32, paleta(**METAL, armadura=(59, 69, 96), armadura_s=(36, 42, 62), armadura_l=(100, 114, 150),
@@ -94,6 +92,7 @@ PROPIOS = {
     "oni": (48, 48, oni),
     "dragon_fuego": (64, 48, dragon_fuego),
     "rey_limo": (64, 48, guardian_bosque),
+    "reina_arana": (64, 48, reina_arana),
     "espectro": (32, 32, espectro),
     "golem": (48, 48, golem),
     "rey_sin_charca": (64, 48, rey_sin_charca),
@@ -107,7 +106,7 @@ PROPIOS = {
 
 
 # Monstruos cuyos fotogramas no deben tocar el borde del cuadro (el generador avisa si pasa).
-VIGILADOS = {"jabali", "acolito", "salamandra", "sacerdote", "oni", "dragon_fuego", "rey_limo"}
+VIGILADOS = {"jabali", "acolito", "salamandra", "sacerdote", "oni", "dragon_fuego", "rey_limo", "reina_arana"}
 
 
 def destello(img, contorno):
