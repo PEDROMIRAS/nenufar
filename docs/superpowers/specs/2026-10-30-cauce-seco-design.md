@@ -173,4 +173,5 @@ Los cofres de cada zona dan objetos de un nivel (Bosque 1, Ruinas 2, Cripta 3). 
 - **La zona (3b) está hecha pero sin activar:** tileset `cauce`, autotiles `lecho` y `lava`, ocho plantillas, aspecto 3D, luz y modelo del brasero, y una pista de música. Imagen de revisión: `docs/previews/cauce_zona_x2.png`.
 - **El mapa 3D de todas las zonas se ve como el arte:** los muros del borde llevan el tile de remate y el de cara (antes, ruido), y los objetos son sprites de pie con su dibujo (antes, modelos de formas sencillas). Decisión de Pedro.
 - **La fuente de descanso se rehízo** con una imagen de Pedro (tres pisos, nenúfares morados): modelo 3D con volumen y texturas recortadas de la imagen, en todas las zonas.
-- **Sin decidir:** si la fuente del descanso del Cauce Seco lleva agua azul (así está), y cómo se relacionan el arte del Señor de la Cripta y el del Rey sin Charca, que se transforman uno en otro.
+- **El Señor de la Cripta y el Rey sin Charca** son el mismo personaje antes y después de beber el poder: la espada del Señor arde en morado y el Rey lleva el forro rojo de su capa.
+- **Sin decidir:** si la fuente del descanso del Cauce Seco lleva agua azul (así está).

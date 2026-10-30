@@ -857,7 +857,7 @@
       },
       {
         "pvMenorQue": 0.6,
-        "aviso": "¡Bebe el poder del Rey sin Charca y se transforma!",
+        "aviso": "¡El yelmo del Rey sin Charca lo cubre y su espada arde en fuego morado!",
         "transformarEn": [
           "rey_sin_charca"
         ]

@@ -32,6 +32,8 @@ FONDO = (255, 0, 255)
 PALETA = {"negro": (22, 18, 28), "negro_l": (38, 34, 48), "carbon": (56, 52, 68), "gris_s": (76, 74, 90),
           "gris": (104, 104, 118), "acero": (148, 154, 158), "acero_l": (208, 216, 208), "hueso": (230, 234, 220),
           "cuero": (130, 88, 54), "cuero_l": (196, 130, 72)}
+# Los morados del fuego no van en PALETA: con ella se reduce la imagen y el borde de la figura caería en ellos
+MORADO = {"morado_s": (62, 30, 100), "morado": (122, 64, 176), "morado_l": (190, 130, 240)}
 CARA = (22, 2)  # esquina de la cara en la pose reducida; la capucha está centrada en la columna 24
 COLORES_CARA = {"c": "carbon", "n": "negro", "h": "hueso"}
 
@@ -79,6 +81,22 @@ def _figura():
     return img.filter(ImageFilter.UnsharpMask(radius=3, percent=140, threshold=2))
 
 
+def _fuego_morado(grid):
+    """La hoja de la espada arde en morado y una llama sube de su mano: el poder que luego lo transforma en el Rey."""
+    arde = {PALETA["hueso"]: MORADO["morado_l"], PALETA["acero_l"]: MORADO["morado_l"], PALETA["acero"]: MORADO["morado"],
+            PALETA["gris"]: MORADO["morado_s"]}
+    for y in range(26, 38):
+        for x in range(6, 28):
+            if abs(x - (y * 1.25 - 19.5)) <= 3 and grid[y][x] in arde:
+                grid[y][x] = arde[grid[y][x]]
+    llama = {(7, 21): "morado", (8, 21): "morado_l", (7, 20): "morado_l", (8, 20): "morado", (8, 19): "morado",
+             (8, 18): "morado_l", (9, 17): "morado"}
+    for (x, y), color in llama.items():
+        if grid[y][x] is None:
+            grid[y][x] = MORADO[color]
+    return grid
+
+
 def _pose():
     global _BASE
     if _BASE is None:
@@ -91,7 +109,7 @@ def _pose():
             for x, c in enumerate(fila):
                 if c != ".":
                     grid[CARA[1] + y][CARA[0] + x] = PALETA[COLORES_CARA[c]]
-        _BASE = reducir.con_contorno(grid, OUT)
+        _BASE = _fuego_morado(reducir.con_contorno(grid, OUT))
     return _BASE
 
 

@@ -27,6 +27,8 @@ PALETA = {"negro": (18, 16, 22), "negro_l": (34, 32, 42), "carbon": (54, 52, 64)
 
 OJOS_Y = 10  # fila de los ojos en la pose reducida; la cabeza está centrada entre las columnas 19 y 22
 
+FORRO = (110, 24, 36)  # rojo oscuro del forro de la capa; no va en PALETA para que no lo elija la reducción
+
 DY = {"idle": [0, 1], "walk": [0, 1, 0, 1], "atacar": [0, 1, 0], "golpe": [0]}
 DX = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [-2, 2, 0], "golpe": [-2]}
 
@@ -65,6 +67,14 @@ def _pose():
         # Los ojos, dibujados a mano: al reducir la imagen se juntan en una sola mancha roja
         for x, color in ((19, "rojo"), (20, "negro"), (21, "negro"), (22, "rojo")):
             grid[OJOS_Y][x] = PALETA[color]
+        # El forro rojo de la capa, como el del Señor de la Cripta: una cuña que se abre hacia el bajo
+        oscuros = {PALETA["negro"], PALETA["negro_l"], PALETA["carbon"]}
+        alto, ancho = len(grid), len(grid[0])
+        for y in range(round(alto * 0.62), alto - 1):
+            medio = 1 + (y - round(alto * 0.62)) // 4
+            for x in range(int(ancho / 2 - medio), int(ancho / 2 + medio) + 1):
+                if grid[y][x] in oscuros:
+                    grid[y][x] = PALETA["rojo"] if x % 2 == 0 and y % 3 else FORRO
         _BASE = reducir.con_contorno(grid, OUT)
     return _BASE
 
