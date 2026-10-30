@@ -47,12 +47,10 @@ def test_pose_con_fondo_negro_y_paleta_fija():
 def test_limpia_pixeles_sueltos_y_agujeros():
     cuadro = [[(1, 2, 3)] * 6 for _ in range(6)]
     cuadro[2][2] = None  # agujero
-    sal = [[None] * 6 for _ in range(6)]
-    sal[0][0] = (9, 9, 9)  # píxel suelto
     reducir.limpiar(cuadro)
-    assert cuadro[2][2] == (1, 2, 3)
+    assert cuadro[2][2] == (1, 2, 3)  # el agujero se tapa
     unico = [[None] * 3 for _ in range(3)]
-    unico[0][0] = (9, 9, 9)
+    unico[0][0] = (9, 9, 9)  # píxel suelto
     reducir.limpiar(unico)
     assert unico[0][0] is None
 
@@ -83,6 +81,17 @@ def test_sin_tocar_bordes():
     img[7, 3] = (1, 1, 1, 255)
     assert reducir.sin_tocar_bordes(img, permitir_abajo=True)
     assert not reducir.sin_tocar_bordes(img, permitir_abajo=False)
+
+
+def test_imagen_lisa_da_un_error_claro():
+    ruta = os.path.join(tempfile.mkdtemp(), "lisa.png")
+    Image.new("RGB", (10, 10), AZUL).save(ruta)
+    try:
+        reducir.pose(ruta, 5)
+    except AssertionError as e:
+        assert "ninguna figura" in str(e)
+    else:
+        raise AssertionError("debía fallar con una imagen lisa")
 
 
 if __name__ == "__main__":

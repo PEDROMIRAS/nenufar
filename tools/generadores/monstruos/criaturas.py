@@ -249,7 +249,7 @@ def salamandra(c, vista, anim, i):
         tramos = []
         for n in range(15):
             t = n / 14
-            x = (3 + t * 18) * k + avance * t
+            x = (5 + t * 12) * k + avance * t
             y = base - 6 * k + alto + math.sin(fase + t * 5) * 1.8 * k * (1 - t * 0.5)
             g = (0.9 + 2.5 * math.sin(min(1.0, t * 1.25) * math.pi / 2)) * k
             tramos.append((x, y, g))

@@ -8,6 +8,7 @@ import json
 import os
 import sys
 
+import numpy as np
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -106,7 +107,7 @@ PROPIOS = {
 
 
 # Monstruos cuyos fotogramas no deben tocar el borde del cuadro (el generador avisa si pasa).
-VIGILADOS = {"jabali", "acolito", "sacerdote", "oni", "dragon_fuego"}
+VIGILADOS = {"jabali", "acolito", "salamandra", "sacerdote", "oni", "dragon_fuego"}
 
 
 def destello(img, contorno):
@@ -146,12 +147,15 @@ def hoja_propia(clave, ancho, alto, modulo):
     return sheet
 
 
-def fotograma(tam, pal, dibujar, extra, direccion, anim, i):
+def fotograma(tam, pal, dibujar, extra, direccion, anim, i, clave=None):
     c = Lienzo(tam, pal)
     dibujar(c, VISTA[direccion], anim, i, **extra)
     c.contorno()
     img = c.imagen(golpe=anim == "golpe")
-    return img.transpose(Image.FLIP_LEFT_RIGHT) if direccion == "left" else img
+    img = img.transpose(Image.FLIP_LEFT_RIGHT) if direccion == "left" else img
+    if clave in VIGILADOS and not reducir.sin_tocar_bordes(np.array(img)):
+        print(f"AVISO: {clave} {direccion} {anim} {i} toca el borde del cuadro")
+    return img
 
 
 def hoja(clave, tam, pal, dibujar, extra):
@@ -165,7 +169,7 @@ def hoja(clave, tam, pal, dibujar, extra):
         for nombre, n, fps, bucle in ANIMS:
             meta["animations"][nombre] = {"startColumn": col, "frames": n, "fps": fps, "loop": bucle}
             for i in range(n):
-                sheet.paste(fotograma(tam, pal, dibujar, extra, d, nombre, i), (col * tam, fila * tam))
+                sheet.paste(fotograma(tam, pal, dibujar, extra, d, nombre, i, clave), (col * tam, fila * tam))
                 col += 1
     sheet.save(os.path.join(SALIDA, f"{clave}.png"))
     with open(os.path.join(SALIDA, f"{clave}.json"), "w", encoding="utf-8") as f:

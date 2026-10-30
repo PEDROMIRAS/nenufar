@@ -65,10 +65,11 @@ def pose(ruta, ancho, colores=14, fondo="auto", umbral=60, contraste=1.35, retoq
     a = np.array(im).astype(int)
     mask = _mascara(a, fondo, umbral)
     ys, xs = np.where(mask)
+    assert mask.any(), f"{ruta}: no se encontró ninguna figura (¿umbral demasiado alto o imagen lisa?)"
     caja = (xs.min(), ys.min(), xs.max() + 1, ys.max() + 1)
     recorte = im.crop(caja)
     m = Image.fromarray((mask[caja[1]:caja[3], caja[0]:caja[2]] * 255).astype("uint8"))
-    alto = round(recorte.height * ancho / recorte.width)
+    alto = max(1, round(recorte.height * ancho / recorte.width))
     reducida = recorte.resize((ancho, alto), Image.BOX)
     reducida = ImageEnhance.Color(ImageEnhance.Brightness(reducida).enhance(brillo)).enhance(saturacion)
     c = np.array(ImageEnhance.Contrast(reducida).enhance(contraste)).astype(int)
