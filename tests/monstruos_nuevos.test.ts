@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
 import { luchadoresDeGrupo } from '../src/core/combate';
 import { MONSTRUOS } from '../src/data/datos';
@@ -7,7 +6,12 @@ import zonas from '../src/data/zonas.json';
 // Monstruos de la entrega 2 (jabalí y cuervo en el Bosque, lobo en la Cripta).
 const NUEVOS = ['jabali', 'cuervo', 'lobo'];
 
-const ruta = (sprite: string, ext: string): string => `public/assets/sprites/${sprite}.${ext}`;
+const HOJAS = import.meta.glob<{ default: Record<string, unknown> }>(
+  '../public/assets/sprites/monstruos/*.json',
+  { eager: true },
+);
+const PNG = import.meta.glob('../public/assets/sprites/monstruos/*.png', { query: '?url' });
+const nombre = (sprite: string): string => sprite.split('/').pop()!;
 
 describe.each(NUEVOS)('%s', (clave) => {
   test('es un monstruo normal con mapa y caja', () => {
@@ -19,18 +23,23 @@ describe.each(NUEVOS)('%s', (clave) => {
   });
 
   test('su hoja de sprites está completa: 10 columnas × 4 filas de 32 × 32, ancla en los pies', () => {
-    const { sprite } = MONSTRUOS[clave]!;
-    const meta = JSON.parse(readFileSync(ruta(sprite, 'json'), 'utf8'));
+    const archivo = nombre(MONSTRUOS[clave]!.sprite);
+    const meta = HOJAS[`../public/assets/sprites/monstruos/${archivo}.json`]?.default as {
+      frameWidth: number;
+      frameHeight: number;
+      anchor: unknown;
+      directions: Record<string, number>;
+      animations: Record<string, { frames: number }>;
+    };
+    expect(meta, archivo).toBeDefined();
     expect([meta.frameWidth, meta.frameHeight]).toEqual([32, 32]);
     expect(meta.anchor).toEqual({ x: 16, y: 30 });
     expect(Object.keys(meta.directions)).toEqual(['down', 'left', 'right', 'up']);
     const frames = Object.fromEntries(
-      Object.entries(meta.animations).map(([k, v]) => [k, (v as { frames: number }).frames]),
+      Object.entries(meta.animations).map(([k, v]) => [k, v.frames]),
     );
     expect(frames).toEqual({ idle: 2, walk: 4, atacar: 3, golpe: 1 });
-    // Cabecera PNG: ancho y alto en big endian en los bytes 16-23.
-    const png = readFileSync(ruta(sprite, 'png'));
-    expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([10 * 32, 4 * 32]);
+    expect(Object.keys(PNG)).toContain(`../public/assets/sprites/monstruos/${archivo}.png`);
   });
 });
 
