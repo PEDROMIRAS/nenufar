@@ -38,8 +38,9 @@ def _es_llama(c):
 
 
 def _calavera(grid):
-    """Repinta la máscara de calavera: angulosa, con la frente plana, dos cuencas oblicuas, la boca abierta con
-    dientes y, en las dos esquinas de arriba de la propia máscara, dos cuernos blancos del mismo hueso."""
+    """Repinta la máscara de calavera: frente redondeada como una cúpula que se ensancha hacia las sienes, dos cuencas
+    oblicuas, la boca abierta con dientes y, naciendo de las sienes con una curva continua, dos cuernos blancos del
+    mismo hueso."""
     alto, ancho = len(grid), len(grid[0])
     cx, cy = round(CARA[0] * ancho), round(CARA[1] * (alto - ARRIBA)) + ARRIBA
 
@@ -47,12 +48,12 @@ def _calavera(grid):
         if 0 <= y < alto and 0 <= x < ancho:
             grid[y][x] = c
 
-    # Máscara: de la frente (9 de ancho) al mentón (5), con el borde más oscuro
-    for fila, medio in enumerate((4, 4, 4, 3, 3, 3, 2, 2)):
-        y = cy - 3 + fila
+    # Máscara: cúpula de 3 de ancho en lo alto que llega a 9 en las sienes y baja hasta el mentón (5)
+    for fila, medio in enumerate((1, 2, 3, 4, 4, 3, 3, 2, 2)):
+        y = cy - 4 + fila
         for dx in range(-medio, medio + 1):
-            pon(cx + dx, y, MASCARA[0] if abs(dx) == medio else (MASCARA[2] if fila < 3 else MASCARA[1]))
-    pon(cx, cy - 3, MASCARA[0]); pon(cx + 1, cy - 2, MASCARA[0])  # grietas de la frente
+            pon(cx + dx, y, MASCARA[0] if abs(dx) == medio and fila > 1 else (MASCARA[2] if fila < 4 else MASCARA[1]))
+    pon(cx + 1, cy - 3, MASCARA[0]); pon(cx - 1, cy - 2, MASCARA[0])  # grietas de la frente
     # Cuencas oblicuas (más altas por fuera) y nariz
     for s in (-1, 1):
         pon(cx + s * 3, cy - 1, HUECO); pon(cx + s * 2, cy - 1, HUECO)
@@ -62,11 +63,12 @@ def _calavera(grid):
     for dx in (-1, 0, 1):
         pon(cx + dx, cy + 2, HUECO)
         pon(cx + dx, cy + 3, MASCARA[2] if dx % 2 == 0 else HUECO)
-    # Cuernos blancos: nacen en las esquinas de arriba de la máscara y suben abriéndose, con la punta clara
-    cuerno = [(4, -4, 1), (5, -4, 0), (4, -5, 1), (5, -5, 0), (5, -6, 1), (6, -6, 0), (5, -7, 1), (6, -7, 0), (6, -8, 1)]
+    # Cuernos: nacen en las sienes, pegados a la máscara, y suben en curva hacia fuera hasta la punta
+    cuerno = [(4, -2, 2), (3, -3, 1), (4, -3, 0), (4, -4, 1), (5, -4, 0), (5, -5, 1), (6, -5, 0), (6, -6, 1),
+              (7, -6, 2), (7, -7, 0), (7, -8, 1)]
     for s in (-1, 1):
         for dx, dy, tono in cuerno:
-            pon(cx + s * dx, cy + dy, MASCARA[1 + tono] if tono == 1 else MASCARA[0] if dx == 6 else MASCARA[1])
+            pon(cx + s * dx, cy + dy, (MASCARA[1], MASCARA[2], MASCARA[0])[tono])
 
 
 def _pose():
