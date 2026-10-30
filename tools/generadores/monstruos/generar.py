@@ -24,6 +24,7 @@ import jabali  # noqa: E402
 import acolito  # noqa: E402
 import sacerdote  # noqa: E402
 import oni  # noqa: E402
+import dragon_fuego  # noqa: E402
 import reducir  # noqa: E402
 import golem  # noqa: E402
 import rey_sin_charca  # noqa: E402
@@ -91,6 +92,7 @@ PROPIOS = {
     "acolito": (32, 32, acolito),
     "sacerdote": (48, 48, sacerdote),
     "oni": (48, 48, oni),
+    "dragon_fuego": (64, 48, dragon_fuego),
     "espectro": (32, 32, espectro),
     "golem": (48, 48, golem),
     "rey_sin_charca": (64, 48, rey_sin_charca),
