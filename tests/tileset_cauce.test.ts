@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import cauceJson from '../public/assets/tilesets/cauce.json';
+import cauceAuto from '../public/assets/tilesets/cauce_autotiles.json';
 
 interface TileJson {
   name: string;
@@ -73,5 +74,19 @@ describe('tileset del Cauce Seco: objetos', () => {
   test('el brasero tiene dos fotogramas', () => {
     expect(tile('brasero')?.frames).toBe(2);
     expect(tile('brasero')?.fps).toBeGreaterThan(0);
+  });
+});
+
+describe('tileset del Cauce Seco: autotiles', () => {
+  const nombres = (autotile: string) => Array.from({ length: 16 }, (_, b) => `${autotile}_${b}`);
+  const hoja = cauceAuto as unknown as TilesetJson;
+
+  test.each(['lecho', 'lava'])('%s tiene las 16 variantes de la máscara', (autotile) => {
+    for (const n of nombres(autotile)) expect(hoja.tiles.find((t) => t.name === n)).toBeDefined();
+  });
+
+  test('la lava es sólida y el lecho se pisa', () => {
+    expect(hoja.tiles.find((t) => t.name === 'lava_0')?.solid).toBe(true);
+    expect(hoja.tiles.find((t) => t.name === 'lecho_0')?.solid).toBe(false);
   });
 });

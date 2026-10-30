@@ -1,0 +1,262 @@
+{
+  "tileSize": 32,
+  "bitmask": "N=1, E=2, S=4, O=8",
+  "tiles": [
+    {
+      "name": "lecho_0",
+      "index": 0,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "lecho",
+      "mask": 0
+    },
+    {
+      "name": "lecho_1",
+      "index": 1,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "lecho",
+      "mask": 1
+    },
+    {
+      "name": "lecho_2",
+      "index": 2,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "lecho",
+      "mask": 2
+    },
+    {
+      "name": "lecho_3",
+      "index": 3,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "lecho",
+      "mask": 3
+    },
+    {
+      "name": "lecho_4",
+      "index": 4,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "lecho",
+      "mask": 4
+    },
+    {
+      "name": "lecho_5",
+      "index": 5,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "lecho",
+      "mask": 5
+    },
+    {
+      "name": "lecho_6",
+      "index": 6,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "lecho",
+      "mask": 6
+    },
+    {
+      "name": "lecho_7",
+      "index": 7,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "lecho",
+      "mask": 7
+    },
+    {
+      "name": "lecho_8",
+      "index": 8,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "lecho",
+      "mask": 8
+    },
+    {
+      "name": "lecho_9",
+      "index": 9,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "lecho",
+      "mask": 9
+    },
+    {
+      "name": "lecho_10",
+      "index": 10,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "lecho",
+      "mask": 10
+    },
+    {
+      "name": "lecho_11",
+      "index": 11,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "lecho",
+      "mask": 11
+    },
+    {
+      "name": "lecho_12",
+      "index": 12,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "lecho",
+      "mask": 12
+    },
+    {
+      "name": "lecho_13",
+      "index": 13,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "lecho",
+      "mask": 13
+    },
+    {
+      "name": "lecho_14",
+      "index": 14,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "lecho",
+      "mask": 14
+    },
+    {
+      "name": "lecho_15",
+      "index": 15,
+      "layer": "suelo",
+      "solid": false,
+      "autotile": "lecho",
+      "mask": 15
+    },
+    {
+      "name": "lava_0",
+      "index": 16,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "lava",
+      "mask": 0
+    },
+    {
+      "name": "lava_1",
+      "index": 17,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "lava",
+      "mask": 1
+    },
+    {
+      "name": "lava_2",
+      "index": 18,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "lava",
+      "mask": 2
+    },
+    {
+      "name": "lava_3",
+      "index": 19,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "lava",
+      "mask": 3
+    },
+    {
+      "name": "lava_4",
+      "index": 20,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "lava",
+      "mask": 4
+    },
+    {
+      "name": "lava_5",
+      "index": 21,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "lava",
+      "mask": 5
+    },
+    {
+      "name": "lava_6",
+      "index": 22,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "lava",
+      "mask": 6
+    },
+    {
+      "name": "lava_7",
+      "index": 23,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "lava",
+      "mask": 7
+    },
+    {
+      "name": "lava_8",
+      "index": 24,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "lava",
+      "mask": 8
+    },
+    {
+      "name": "lava_9",
+      "index": 25,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "lava",
+      "mask": 9
+    },
+    {
+      "name": "lava_10",
+      "index": 26,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "lava",
+      "mask": 10
+    },
+    {
+      "name": "lava_11",
+      "index": 27,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "lava",
+      "mask": 11
+    },
+    {
+      "name": "lava_12",
+      "index": 28,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "lava",
+      "mask": 12
+    },
+    {
+      "name": "lava_13",
+      "index": 29,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "lava",
+      "mask": 13
+    },
+    {
+      "name": "lava_14",
+      "index": 30,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "lava",
+      "mask": 14
+    },
+    {
+      "name": "lava_15",
+      "index": 31,
+      "layer": "suelo",
+      "solid": true,
+      "autotile": "lava",
+      "mask": 15
+    }
+  ]
+}
