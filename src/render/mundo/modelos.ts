@@ -225,6 +225,22 @@ export function crearModelo(
       }
       break;
     }
+    case 'brasero': {
+      // Cuenco de hierro sobre tres patas, con un lecho de brasas y una llama que brilla (el bloom la recoge).
+      const hierro = new THREE.MeshLambertMaterial({ color: 0x2a2634, flatShading: true });
+      const brasa = new THREE.MeshBasicMaterial({ color: 0xff7a2a });
+      const llama = new THREE.MeshBasicMaterial({ color: 0xffc860 });
+      poner(new THREE.CylinderGeometry(0.2, 0.12, 0.16, 8), hierro, 0, 0.36, 0);
+      for (const ang of [0, 2.1, 4.2]) {
+        const x = Math.cos(ang) * 0.1;
+        const z = Math.sin(ang) * 0.1;
+        poner(new THREE.CylinderGeometry(0.02, 0.03, 0.3, 5), hierro, x, 0.15, z);
+      }
+      poner(new THREE.CylinderGeometry(0.17, 0.17, 0.02, 8), brasa, 0, 0.44, 0).castShadow = false;
+      poner(new THREE.SphereGeometry(0.07, 6, 4), llama, 0, 0.53, 0, [1, 1.8, 1]).castShadow =
+        false;
+      break;
+    }
     case 'cofre_cerrado':
     case 'cofre_abierto': {
       // Caja de madera con tapa y herrajes; abierto, la tapa echada hacia atrás.

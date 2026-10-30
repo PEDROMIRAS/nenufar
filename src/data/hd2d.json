@@ -68,6 +68,14 @@
       "alto": 0.6,
       "parpadeo": 0.08,
       "sombra": false
+    },
+    "brasero": {
+      "color": "#ff8a3a",
+      "intensidad": 8.4,
+      "alcance": 5,
+      "alto": 0.7,
+      "parpadeo": 0.14,
+      "sombra": false
     }
   },
   "zonas": {
@@ -142,6 +150,29 @@
         "orilla": 1,
         "colorFondo": "#050308",
         "brillo": 0
+      }
+    },
+    "cauce": {
+      "fondo": "#0a0508",
+      "cielo": { "arriba": "#8a7498", "abajo": "#2a1c22", "intensidad": 2.7 },
+      "principal": { "color": "#ffb888", "intensidad": 1.2 },
+      "borde": {
+        "tipo": "sillares",
+        "alto": 1.1,
+        "hiladas": 4,
+        "porCasilla": 2,
+        "irregular": 0.15,
+        "salida": 0.02,
+        "hueco": 0.025,
+        "tono": 0.08
+      },
+      "hundido": {
+        "autotile": "lava",
+        "nivel": 0.3,
+        "fondo": 0.8,
+        "orilla": 1,
+        "colorFondo": "#7a1c06",
+        "brillo": 0.9
       }
     }
   }

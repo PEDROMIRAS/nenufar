@@ -47,6 +47,7 @@ import { generarZona } from './core/zona';
 import controles from './data/controles.json';
 import { DIFICULTADES, HD2D, HEROES, MONSTRUOS, OBJETOS, REGLAS } from './data/datos';
 import plantillasBosque from './data/salas/plantillas_bosque.json';
+import plantillasCauce from './data/salas/plantillas_cauce.json';
 import plantillasCripta from './data/salas/plantillas_cripta.json';
 import plantillasRuinas from './data/salas/plantillas_ruinas.json';
 import historia from './data/historia.json';
@@ -111,6 +112,8 @@ const PLANTILLAS: Record<NombreZona, PlantillasJson> = {
   ruinas: plantillasRuinas,
   cripta: plantillasCripta,
 };
+/** Solo para desarrollo (`?portada=<id de plantilla>`): también las zonas que aún no están en zonas.json. */
+const PLANTILLAS_DEV: Record<string, PlantillasJson> = { ...PLANTILLAS, cauce: plantillasCauce };
 
 /** Lo que comparten todas las zonas de una partida. */
 interface Partida {
@@ -694,12 +697,17 @@ async function portada(
   sprites: Parameters<typeof crearPortada>[7],
 ): Promise<Portada3d> {
   const datos = HD2D.portada;
-  const zona = datos.zona as NombreZona;
+  // En desarrollo, `?portada=cauce_combate_01` enseña esa sala (la zona es lo que va antes del primer `_`).
+  const pedida = import.meta.env.DEV ? new URLSearchParams(location.search).get('portada') : null;
+  const zona = pedida ? pedida.split('_')[0]! : datos.zona;
+  const idPlantilla = pedida ?? datos.plantilla;
+  const conjunto = PLANTILLAS_DEV[zona];
+  if (!conjunto) throw new Error(`No hay plantillas de la zona ${zona}`);
   const { tilesets, imagenes } = await cargarTilesets(zona);
   const catalogo = crearCatalogo(tilesets);
-  const plantilla = PLANTILLAS[zona].plantillas.find((p) => p.id === datos.plantilla);
-  if (!plantilla) throw new Error(`No existe la plantilla ${datos.plantilla} de la portada`);
-  const sala = construirSala(plantilla.mapa, PLANTILLAS[zona], catalogo, crearAzar(datos.semilla));
+  const plantilla = conjunto.plantillas.find((p) => p.id === idPlantilla);
+  if (!plantilla) throw new Error(`No existe la plantilla ${idPlantilla} de la portada`);
+  const sala = construirSala(plantilla.mapa, conjunto, catalogo, crearAzar(datos.semilla));
   const tam = tilesets[0]?.tileSize ?? 32;
   return crearPortada(mundo, datos, aspecto(zona), sala, catalogo, imagenes, tam, sprites);
 }
