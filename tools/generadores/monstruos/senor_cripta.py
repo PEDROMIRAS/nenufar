@@ -16,15 +16,17 @@ W, H = 48, 48
 OUT = (10, 8, 12)
 REFERENCIA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "docs", "superpowers",
                           "mockups", "cauce-seco-referencias", "11-senor-cripta.png")
-ANCHO = 28
-COMPRESION = 0.75  # la figura es el doble de alta que de ancha: se comprime a lo alto para ganar píxeles de ancho
+ANCHO = 38
+COMPRESION = 0.9
+# Solo de la cabeza a las caderas: la figura entera es el doble de alta que de ancha y a 48 px se queda sin detalle
+RECORTE = (120, 60, 900, 1000)
 # Paleta fija: casi todo es negro, y sin ella los grises y el rojo se hunden en un negro liso
 PALETA = {"negro": (34, 30, 42), "carbon": (62, 58, 74), "acero_s": (92, 90, 108), "acero": (138, 136, 156),
           "acero_l": (196, 196, 210), "hueso": (226, 220, 206), "rojo_s": (110, 24, 34), "rojo": (190, 40, 50),
           "cuero": (124, 88, 54)}
-CARA = (11, 3)  # esquina de la cara en la pose reducida
+CARA = (18, 5)  # esquina de la cara en la pose reducida
 
-DY = {"idle": [0, 1], "walk": [0, 1, 0, 1], "atacar": [-1, 1, 0], "golpe": [0]}
+DY = {"idle": [0, 1], "walk": [0, 1, 0, 1], "atacar": [0, 1, 0], "golpe": [0]}
 DX = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [-1, 2, 0], "golpe": [-2]}
 
 _BASE = None
@@ -33,7 +35,7 @@ _BASE = None
 def _pose():
     global _BASE
     if _BASE is None:
-        im = Image.open(REFERENCIA).convert("RGB")
+        im = Image.open(REFERENCIA).convert("RGB").crop(RECORTE)
         im = im.resize((im.width, round(im.height * COMPRESION)), Image.LANCZOS)
         with tempfile.TemporaryDirectory() as d:
             ruta = os.path.join(d, "senor.png")
