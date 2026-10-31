@@ -22,6 +22,10 @@ PALETA = {"negro": (30, 28, 38), "gris": (62, 60, 74), "gris_l": (104, 98, 110),
 DY = {"idle": [0, -1], "walk": [0, -1, 0, -1], "atacar": [1, -1, 0], "golpe": [0]}
 DX = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [4, -4, -1], "golpe": [2]}
 
+# Partes que se mueven por separado (cajas en fracciones de la figura; ver reducir.partes)
+PARTES = [(0, 0.35, 0.28, 1, "pierna_a"), (0.28, 0.5, 0.45, 1, "pierna_b"), (0.55, 0.5, 0.72, 1, "pierna_a"),
+          (0.72, 0.35, 1, 1, "pierna_b")]
+
 _BASE = None
 
 
@@ -35,7 +39,7 @@ def _pose():
 
 def fotograma(direccion, anim, i):
     lienzo = np.zeros((H, W, 4), dtype=np.uint8)
-    sal = _pose()
+    sal = reducir.vida(reducir.partes(_pose(), PARTES, anim, i), anim, i)
     alto, ancho = len(sal), len(sal[0])
     reducir.pegar(lienzo, sal, (W - ancho) // 2 + DX[anim][i], 47 - alto + DY[anim][i])
     return lienzo

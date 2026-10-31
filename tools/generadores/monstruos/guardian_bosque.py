@@ -25,6 +25,9 @@ PALETA = {"negro": (24, 20, 30), "tierra": (70, 50, 40), "piedra": (112, 90, 108
 DY = {"idle": [0, -1], "walk": [0, -1, 0, -1], "atacar": [1, -1, 0], "golpe": [0]}
 DX = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [4, -4, -1], "golpe": [2]}
 
+# Partes que se mueven por separado (cajas en fracciones de la figura; ver reducir.partes)
+PARTES = [(0, 0, 0.5, 0.55, "cabeza"), (0.7, 0.2, 1, 0.75, "cola")]
+
 _BASE = None
 
 
@@ -55,7 +58,7 @@ def _pose():
 
 def fotograma(direccion, anim, i):
     lienzo = np.zeros((H, W, 4), dtype=np.uint8)
-    sal = _pose()
+    sal = reducir.vida(reducir.partes(_pose(), PARTES, anim, i), anim, i)
     alto, ancho = len(sal), len(sal[0])
     reducir.pegar(lienzo, sal, (W - ancho) // 2 + DX[anim][i], 47 - alto + DY[anim][i])
     return lienzo

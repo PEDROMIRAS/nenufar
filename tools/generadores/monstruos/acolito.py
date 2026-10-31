@@ -24,6 +24,10 @@ DX = {"idle": [0, 0], "walk": [0, 1, 0, -1], "atacar": [0, 0, 0], "golpe": [-2]}
 # Qué tono de llama toca en cada fotograma (el último del ataque es el más vivo).
 TONO = {"idle": [0, 1], "walk": [0, 1, 0, 1], "atacar": [1, 1, 1], "golpe": [0]}
 
+# Partes que se mueven por separado (cajas en fracciones de la figura; ver reducir.partes)
+PARTES = [(0.2, 0.85, 0.55, 1, "pierna_a"), (0.55, 0.85, 0.9, 1, "pierna_b"), (0, 0, 0.22, 1, "brazo_i"),
+          (0.72, 0.3, 1, 0.7, "brazo_d")]
+
 _BASE = None
 
 
@@ -57,7 +61,7 @@ def _de_espaldas(sal):
 
 def fotograma(direccion, anim, i):
     lienzo = np.zeros((H, W, 4), dtype=np.uint8)
-    sal = _con_llama(_pose(), TONO[anim][i])
+    sal = _con_llama(reducir.vida(reducir.partes(_pose(), PARTES, anim, i), anim, i, fuerza=0.5), TONO[anim][i])
     if direccion == "up":
         sal = _de_espaldas(sal)
     if direccion == "left":

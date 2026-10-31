@@ -39,7 +39,7 @@ export function crearModelo(
   const colores = (n: number, filtro?: (r: number, g: number, b: number) => boolean): number[] =>
     paleta(imagenes, t, tam, n, filtro);
   const piedra = (): THREE.Material => materialRuido(colores(3), [0.3, 0.45, 0.25], azar);
-  const bola = new THREE.IcosahedronGeometry(1, 1);
+  const bola = new THREE.IcosahedronGeometry(1, 2);
   const caja = new THREE.BoxGeometry(1, 1, 1);
 
   switch (t.name) {
@@ -112,7 +112,7 @@ export function crearModelo(
       // Basa, fuste de ocho caras y capitel.
       const m = piedra();
       poner(caja, m, 0, 0.06, 0, [0.62, 0.12, 0.5], 0);
-      poner(new THREE.CylinderGeometry(0.17, 0.2, 1, 8), m, 0, 0.12 + 0.62, 0, [1, 1.24, 1]);
+      poner(new THREE.CylinderGeometry(0.17, 0.2, 1, 14), m, 0, 0.12 + 0.62, 0, [1, 1.24, 1]);
       poner(caja, m, 0, 1.42, 0, [0.6, 0.12, 0.48], 0);
       break;
     }
@@ -120,10 +120,10 @@ export function crearModelo(
       // Basa con un trozo de fuste roto y otro tirado al lado.
       const m = piedra();
       poner(caja, m, 0, 0.06, 0, [0.62, 0.12, 0.5], 0);
-      const fuste = poner(new THREE.CylinderGeometry(0.17, 0.2, 0.42, 8), m, -0.06, 0.33, 0);
+      const fuste = poner(new THREE.CylinderGeometry(0.17, 0.2, 0.42, 14), m, -0.06, 0.33, 0);
       fuste.rotation.z = 0.08;
       const tirado = poner(
-        new THREE.CylinderGeometry(0.15, 0.15, 0.4, 8),
+        new THREE.CylinderGeometry(0.15, 0.15, 0.4, 14),
         m,
         0.3,
         0.15,
@@ -161,8 +161,12 @@ export function crearModelo(
         [0.15, 0.38],
         [0.1, 0.44],
         [0.13, 0.5],
+        [0.1, 0.5],
+        [0.09, 0.38],
+        [0, 0.36],
       ].map(([r = 0, y = 0]) => new THREE.Vector2(r, y));
-      poner(new THREE.LatheGeometry(perfil, 10), barro, 0, 0, 0);
+      barro.side = THREE.DoubleSide; // si no, el torno se ve del revés y la vasija sale abierta por un lado
+      poner(new THREE.LatheGeometry(perfil, 16), barro, 0, 0, 0);
       break;
     }
     case 'pilar_inf': {

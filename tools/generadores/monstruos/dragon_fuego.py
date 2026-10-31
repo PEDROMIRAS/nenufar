@@ -24,6 +24,10 @@ DY = {"idle": [0, -1], "walk": [0, -1, 0, -1], "atacar": [1, -1, 0], "golpe": [0
 DX = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [3, -3, -1], "golpe": [2]}
 TONO = {"idle": [0, 1], "walk": [0, 1, 0, 1], "atacar": [1, 1, 1], "golpe": [0]}
 
+# Partes que se mueven por separado (cajas en fracciones de la figura; ver reducir.partes)
+PARTES = [(0, 0.8, 0.5, 1, "pierna_a"), (0.5, 0.8, 1, 1, "pierna_b"),
+          (0.62, 0, 1, 0.9, "cola")]
+
 _BASE = None
 
 
@@ -49,7 +53,7 @@ def _con_llama(sal, tono):
 
 def fotograma(direccion, anim, i):
     lienzo = np.zeros((H, W, 4), dtype=np.uint8)
-    sal = _con_llama(_pose(), TONO[anim][i])
+    sal = _con_llama(reducir.vida(reducir.partes(_pose(), PARTES, anim, i), anim, i), TONO[anim][i])
     alto, ancho = len(sal), len(sal[0])
     x0 = (W - ancho) // 2 + 4 + DX[anim][i]
     y0 = 47 - alto + DY[anim][i]

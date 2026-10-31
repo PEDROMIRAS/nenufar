@@ -109,15 +109,79 @@ export function paleta(
     .sort((x, y) => brillo(y) - brillo(x));
 }
 
-/** Material con grano de pixel art y caras planas, como todos los modelos. */
+/**
+ * Textura de 64×64 sin costuras: manchas de ruido de valores en varias escalas repartidas entre los colores según
+ * sus pesos, con un poco de grano por encima. Los píxeles son ocho veces más finos que los de `ruido`.
+ */
+function manchas(
+  colores: readonly (number | string)[],
+  pesos: readonly number[],
+  azar: () => number,
+): THREE.CanvasTexture {
+  const lado = 64;
+  const octavas = [4, 8, 16].map((celdas, o) => {
+    const rejilla = Array.from({ length: celdas * celdas }, azar);
+    return { celdas, peso: [0.55, 0.3, 0.15][o] ?? 0, rejilla };
+  });
+  const suave = (t: number): number => t * t * (3 - 2 * t);
+  const valor = (x: number, y: number): number =>
+    octavas.reduce((suma, { celdas, peso, rejilla }) => {
+      const fx = (x / lado) * celdas;
+      const fy = (y / lado) * celdas;
+      const x0 = Math.floor(fx);
+      const y0 = Math.floor(fy);
+      const tx = suave(fx - x0);
+      const ty = suave(fy - y0);
+      const v = (i: number, j: number): number =>
+        rejilla[(j % celdas) * celdas + (i % celdas)] ?? 0;
+      const arriba = v(x0, y0) * (1 - tx) + v(x0 + 1, y0) * tx;
+      const abajo = v(x0, y0 + 1) * (1 - tx) + v(x0 + 1, y0 + 1) * tx;
+      return suma + peso * (arriba * (1 - ty) + abajo * ty);
+    }, 0);
+
+  const valores = Array.from({ length: lado * lado }, (_, i) =>
+    valor(i % lado, Math.floor(i / lado)),
+  );
+  // Reparto por rango, no por valor, para que cada color ocupe lo que dice su peso.
+  const orden = valores.map((v, i) => [v, i] as const).sort((a, b) => a[0] - b[0]);
+  const total = pesos.reduce((a, b) => a + b, 0);
+  const color = new Array<number | string>(valores.length);
+  let acumulado = 0;
+  let k = 0;
+  orden.forEach(([, i], rango) => {
+    while (k < pesos.length - 1 && rango >= ((acumulado + (pesos[k] ?? 0)) / total) * orden.length)
+      acumulado += pesos[k++] ?? 0;
+    color[i] = colores[k] ?? 0;
+  });
+
+  const lienzo = document.createElement('canvas');
+  lienzo.width = lienzo.height = lado;
+  const ctx = lienzo.getContext('2d')!;
+  color.forEach((c, i) => {
+    ctx.fillStyle = css(c);
+    ctx.fillRect(i % lado, Math.floor(i / lado), 1, 1);
+  });
+  // Grano fino: claro u oscuro al azar, sin cambiar de color.
+  for (let i = 0; i < lado * lado * 0.25; i++) {
+    ctx.fillStyle = azar() < 0.5 ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.1)';
+    ctx.fillRect(Math.floor(azar() * lado), Math.floor(azar() * lado), 1, 1);
+  }
+
+  const tex = new THREE.CanvasTexture(lienzo);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  return tex;
+}
+
+/** Material de los modelos: manchas de los colores del sprite, con filtro lineal y mipmaps, y caras facetadas. */
 export function materialRuido(
   colores: readonly (number | string)[],
   pesos: readonly number[],
   azar: () => number,
   repetir = 1,
 ): THREE.MeshLambertMaterial {
-  return new THREE.MeshLambertMaterial({
-    map: ruido(colores, pesos, azar, repetir, repetir),
-    flatShading: true,
-  });
+  const map = manchas(colores, pesos, azar);
+  map.repeat.set(repetir, repetir);
+  return new THREE.MeshLambertMaterial({ map, flatShading: true });
 }

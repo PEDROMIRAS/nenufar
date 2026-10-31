@@ -32,6 +32,10 @@ FORRO = (110, 24, 36)  # rojo oscuro del forro de la capa; no va en PALETA para 
 DY = {"idle": [0, 1], "walk": [0, 1, 0, 1], "atacar": [0, 1, 0], "golpe": [0]}
 DX = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [-2, 2, 0], "golpe": [-2]}
 
+# Partes que se mueven por separado (cajas en fracciones de la figura; ver reducir.partes)
+PARTES = [(0, 0.85, 0.5, 1, "pierna_a"), (0.5, 0.85, 1, 1, "pierna_b"), (0, 0.1, 0.3, 0.4, "brazo_i"),
+          (0.8, 0.4, 1, 0.85, "brazo_d")]
+
 _BASE = None
 
 
@@ -81,7 +85,7 @@ def _pose():
 
 def fotograma(direccion, anim, i):
     lienzo = np.zeros((H, W, 4), dtype=np.uint8)
-    sal = _pose()
+    sal = reducir.vida(reducir.partes(_pose(), PARTES, anim, i), anim, i)
     alto, ancho = len(sal), len(sal[0])
     reducir.pegar(lienzo, sal, (W - ancho) // 2 + DX[anim][i], 47 - alto + DY[anim][i])
     return lienzo

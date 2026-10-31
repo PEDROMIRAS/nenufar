@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { ajustarPixelArt } from './texturas';
 
 /** Un objeto común a todas las zonas hecho en 3D: su grupo (origen en el centro de su casilla, en el suelo) y su animación. */
 export interface Elemento {
@@ -9,22 +8,40 @@ export interface Elemento {
 
 type Azar = () => number;
 
-/** Textura de píxeles dibujada por `pintor` en un lienzo de `ancho`×`alto`, sin suavizado y repetible. */
+/** Píxeles de lienzo por píxel de diseño: el dibujo se hace en la rejilla pequeña y el grano, en la fina. */
+const ESCALA = 4;
+
+/**
+ * Textura dibujada por `pintor` en una rejilla de `ancho`×`alto` (ampliada `escala` veces), con un grano fino por
+ * encima solo donde hay color, repetible y con filtro lineal y mipmaps: de cerca no se ven píxeles grandes.
+ */
 function dibujar(
   ancho: number,
   alto: number,
   pintor: (ctx: CanvasRenderingContext2D) => void,
   repetirX = 1,
   repetirY = 1,
+  escala = ESCALA,
 ): THREE.CanvasTexture {
   const lienzo = document.createElement('canvas');
-  lienzo.width = ancho;
-  lienzo.height = alto;
-  pintor(lienzo.getContext('2d')!);
+  lienzo.width = ancho * escala;
+  lienzo.height = alto * escala;
+  const ctx = lienzo.getContext('2d')!;
+  ctx.scale(escala, escala);
+  pintor(ctx);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalCompositeOperation = 'source-atop';
+  let semilla = 7;
+  const azar = (): number => (semilla = (semilla * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < lienzo.width * lienzo.height * 0.06; i++) {
+    ctx.fillStyle = azar() < 0.5 ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.08)';
+    ctx.fillRect(Math.floor(azar() * lienzo.width), Math.floor(azar() * lienzo.height), 1, 1);
+  }
   const tex = new THREE.CanvasTexture(lienzo);
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   tex.repeat.set(repetirX, repetirY);
-  ajustarPixelArt(tex);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
   return tex;
 }
 
@@ -88,35 +105,42 @@ function texturaPiedra(azar: Azar): THREE.CanvasTexture {
 
 /** Remolino morado de píxeles (como el del sprite del portal): espiral de tres brazos con el centro claro. */
 function texturaRemolino(): THREE.CanvasTexture {
-  const lado = 64;
-  return dibujar(lado, lado, (ctx) => {
-    const datos = ctx.createImageData(lado, lado);
-    for (let y = 0; y < lado; y++) {
-      for (let x = 0; x < lado; x++) {
-        const dx = (x + 0.5 - lado / 2) / (lado / 2);
-        const dy = (y + 0.5 - lado / 2) / (lado / 2);
-        const r = Math.hypot(dx, dy);
-        const brazo = (Math.sin(Math.atan2(dy, dx) * 3 + r * 9) + 1) / 2;
-        const color =
-          r < 0.07
-            ? MORADO[3]!
-            : r > 0.8
-              ? MORADO[0]!
-              : brazo < 0.45
-                ? MORADO[1]!
-                : brazo < 0.8
-                  ? MORADO[2]!
-                  : MORADO[3]!;
-        const c = new THREE.Color(color);
-        const i = (y * lado + x) * 4;
-        datos.data[i] = Math.round(c.r * 255);
-        datos.data[i + 1] = Math.round(c.g * 255);
-        datos.data[i + 2] = Math.round(c.b * 255);
-        datos.data[i + 3] = r <= 1 ? 255 : 0;
+  const lado = 256; // putImageData ignora la escala: se calcula ya a resolución fina
+  return dibujar(
+    lado,
+    lado,
+    (ctx) => {
+      const datos = ctx.createImageData(lado, lado);
+      for (let y = 0; y < lado; y++) {
+        for (let x = 0; x < lado; x++) {
+          const dx = (x + 0.5 - lado / 2) / (lado / 2);
+          const dy = (y + 0.5 - lado / 2) / (lado / 2);
+          const r = Math.hypot(dx, dy);
+          const brazo = (Math.sin(Math.atan2(dy, dx) * 3 + r * 9) + 1) / 2;
+          const color =
+            r < 0.07
+              ? MORADO[3]!
+              : r > 0.8
+                ? MORADO[0]!
+                : brazo < 0.45
+                  ? MORADO[1]!
+                  : brazo < 0.8
+                    ? MORADO[2]!
+                    : MORADO[3]!;
+          const c = new THREE.Color(color);
+          const i = (y * lado + x) * 4;
+          datos.data[i] = Math.round(c.r * 255);
+          datos.data[i + 1] = Math.round(c.g * 255);
+          datos.data[i + 2] = Math.round(c.b * 255);
+          datos.data[i + 3] = r <= 1 ? 255 : 0;
+        }
       }
-    }
-    ctx.putImageData(datos, 0, 0);
-  });
+      ctx.putImageData(datos, 0, 0);
+    },
+    1,
+    1,
+    1,
+  );
 }
 
 /** Resplandor redondo que se apaga hacia fuera. */
