@@ -33,6 +33,7 @@ const HUELLAS: Record<ClaveZona, number> = {
   bosque: 960764497,
   ruinas: 335081783,
   cripta: 3337945880,
+  cauce: 3532596771,
 };
 
 describe.each(CLAVES)('zona %s', (clave) => {

@@ -33,10 +33,10 @@ export interface VistaExtras {
   tiempo: number;
 }
 
-/** Casillas del bestiario: 7 por fila (también para saber dónde se toca). */
+/** Casillas del bestiario: 8 por fila (también para saber dónde se toca). */
 export const CELDAS = Array.from({ length: CASILLAS_BESTIARIO }, (_, i) => ({
-  x: 32 + (i % 7) * 60,
-  y: 64 + Math.floor(i / 7) * 52,
+  x: 8 + (i % 8) * 58,
+  y: 64 + Math.floor(i / 8) * 52,
   ancho: 56,
   alto: 48,
 }));

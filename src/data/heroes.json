@@ -60,7 +60,8 @@
     "armas": [
       "katana_madera",
       "katana_acero",
-      "hoja_runica"
+      "hoja_runica",
+      "katana_brasas"
     ],
     "especiales": {
       "arma": "katana_sagrada",
@@ -189,7 +190,8 @@
     "armas": [
       "baston_aprendiz",
       "baston_amatista",
-      "cetro_luna"
+      "cetro_luna",
+      "baston_ceniza"
     ],
     "especiales": {
       "arma": "baston_arcano",
