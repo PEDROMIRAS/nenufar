@@ -70,6 +70,7 @@
   "zonas": {
     "bosque": {
       "fondo": "#0b120e",
+      "modelos": true,
       "cielo": { "arriba": "#9fb4ff", "abajo": "#2a3a24", "intensidad": 1.6 },
       "principal": { "color": "#c8d6ff", "intensidad": 0.9 },
       "borde": {
@@ -97,6 +98,7 @@
     },
     "ruinas": {
       "fondo": "#121410",
+      "modelos": true,
       "cielo": { "arriba": "#ffe9c8", "abajo": "#4a4636", "intensidad": 1.5 },
       "principal": { "color": "#fff1d6", "intensidad": 1.4 },
       "borde": {
@@ -115,6 +117,7 @@
     },
     "cripta": {
       "fondo": "#07060b",
+      "modelos": true,
       "cielo": { "arriba": "#8f7ad0", "abajo": "#2a2238", "intensidad": 2.6 },
       "principal": { "color": "#c9b8ff", "intensidad": 1.2 },
       "borde": {
@@ -133,6 +136,7 @@
     },
     "cauce": {
       "fondo": "#0a0508",
+      "modelos": false,
       "cielo": { "arriba": "#8a7498", "abajo": "#2a1c22", "intensidad": 2.7 },
       "principal": { "color": "#ffb888", "intensidad": 1.2 },
       "borde": {

@@ -354,6 +354,8 @@ export interface HundidoHd2d {
 /** Aspecto 3D de una zona: color de fondo, luces y borde. */
 export interface ZonaHd2d {
   fondo: string;
+  /** Si los objetos que tienen modelo 3D (columnas, pilares, candelabros…) lo usan; si no, son sprites de pie con su dibujo. */
+  modelos: boolean;
   cielo: { arriba: string; abajo: string; intensidad: number };
   /** Luz principal (direccional, con sombras), desde arriba a la izquierda y del lado de la cámara. */
   principal: { color: string; intensidad: number };

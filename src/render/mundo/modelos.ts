@@ -3,14 +3,12 @@ import type { Tile } from '../../core/sala';
 import type { MaterialesBosque } from './borde';
 import { materialRuido, paleta } from './texturas';
 
-/** Objetos del Bosque que llevan modelo con relieve; los demás objetos de todas las zonas son sprites de pie. */
-const NATURALES = new Set(['arbol_inf', 'pino_inf', 'roca', 'arbusto', 'tocon']);
-
 /**
- * Modelo con relieve para el objeto natural del Bosque cuyo tile de abajo es `t`, con los colores sacados de su
- * propio sprite, o null si no lo lleva (se queda como sprite de pie). El origen es el centro de su base.
- * Son formas sencillas (bolas facetadas, conos, cilindros) con grano de pixel art: lo que el arte del Bosque
- * dibuja visto desde arriba no funciona como sprite en 3D.
+ * Modelo con relieve para el objeto cuyo tile de abajo es `t`, con los colores sacados de su propio sprite,
+ * o null si no hay modelo para él (se queda como sprite de pie). El origen es el centro de su base. El cofre, la
+ * hoguera y el portal tienen los suyos en `elementos.ts`.
+ * Son formas sencillas (bolas facetadas, conos, cilindros, cajas, tornos) con grano de pixel art: lo que el
+ * arte dibuja visto desde arriba no funciona como sprite en 3D.
  */
 export function crearModelo(
   t: Tile,
@@ -19,7 +17,6 @@ export function crearModelo(
   bosque: MaterialesBosque | null,
   azar: () => number,
 ): THREE.Object3D | null {
-  if (!bosque || !NATURALES.has(t.name)) return null;
   const grupo = new THREE.Group();
   const poner = (
     geometria: THREE.BufferGeometry,
@@ -42,7 +39,8 @@ export function crearModelo(
   const colores = (n: number, filtro?: (r: number, g: number, b: number) => boolean): number[] =>
     paleta(imagenes, t, tam, n, filtro);
   const piedra = (): THREE.Material => materialRuido(colores(3), [0.3, 0.45, 0.25], azar);
-  const bola = new THREE.IcosahedronGeometry(1, 1);
+  const bola = new THREE.IcosahedronGeometry(1, 2);
+  const caja = new THREE.BoxGeometry(1, 1, 1);
 
   switch (t.name) {
     case 'arbol_inf': {
@@ -108,6 +106,128 @@ export function crearModelo(
         0.13,
         0,
       );
+      break;
+    }
+    case 'columna_inf': {
+      // Basa, fuste de ocho caras y capitel.
+      const m = piedra();
+      poner(caja, m, 0, 0.06, 0, [0.62, 0.12, 0.5], 0);
+      poner(new THREE.CylinderGeometry(0.17, 0.2, 1, 14), m, 0, 0.12 + 0.62, 0, [1, 1.24, 1]);
+      poner(caja, m, 0, 1.42, 0, [0.6, 0.12, 0.48], 0);
+      break;
+    }
+    case 'columna_rota': {
+      // Basa con un trozo de fuste roto y otro tirado al lado.
+      const m = piedra();
+      poner(caja, m, 0, 0.06, 0, [0.62, 0.12, 0.5], 0);
+      const fuste = poner(new THREE.CylinderGeometry(0.17, 0.2, 0.42, 14), m, -0.06, 0.33, 0);
+      fuste.rotation.z = 0.08;
+      const tirado = poner(
+        new THREE.CylinderGeometry(0.15, 0.15, 0.4, 14),
+        m,
+        0.3,
+        0.15,
+        0.12,
+        [1, 1, 1],
+        0,
+      );
+      tirado.rotation.set(0.3, 0.5, Math.PI / 2);
+      break;
+    }
+    case 'escombros': {
+      // Unos cuantos cascotes de piedra.
+      const m = piedra();
+      for (let k = 0; k < 5; k++) {
+        const r = 0.08 + azar() * 0.1;
+        poner(
+          new THREE.IcosahedronGeometry(1, 0),
+          m,
+          (azar() - 0.5) * 0.6,
+          r * 0.6,
+          (azar() - 0.5) * 0.4,
+          [r * 1.3, r, r],
+        );
+      }
+      break;
+    }
+    case 'vasija': {
+      // Torno de barro: base estrecha, panza y boca.
+      const barro = materialRuido(colores(3, calido), [0.35, 0.45, 0.2], azar);
+      const perfil = [
+        [0, 0],
+        [0.12, 0],
+        [0.22, 0.12],
+        [0.24, 0.24],
+        [0.15, 0.38],
+        [0.1, 0.44],
+        [0.13, 0.5],
+        [0.1, 0.5],
+        [0.09, 0.38],
+        [0, 0.36],
+      ].map(([r = 0, y = 0]) => new THREE.Vector2(r, y));
+      barro.side = THREE.DoubleSide; // si no, el torno se ve del revés y la vasija sale abierta por un lado
+      poner(new THREE.LatheGeometry(perfil, 16), barro, 0, 0, 0);
+      break;
+    }
+    case 'pilar_inf': {
+      // Pilar cuadrado con basa y capitel más anchos.
+      const m = piedra();
+      poner(caja, m, 0, 0.08, 0, [0.62, 0.16, 0.5], 0);
+      poner(caja, m, 0, 0.8, 0, [0.42, 1.3, 0.34], 0);
+      poner(caja, m, 0, 1.52, 0, [0.6, 0.14, 0.48], 0);
+      break;
+    }
+    case 'lapida': {
+      // Losa con la parte de arriba redonda, algo torcida, y un poco de tierra delante.
+      const m = piedra();
+      const giro = (azar() - 0.5) * 0.3;
+      const losa = new THREE.Group();
+      const cuerpo = new THREE.Mesh(caja, m);
+      cuerpo.scale.set(0.46, 0.42, 0.12);
+      cuerpo.position.y = 0.21;
+      const arco = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.23, 0.23, 0.12, 10, 1, false, 0, Math.PI),
+        m,
+      );
+      arco.rotation.set(Math.PI / 2, Math.PI / 2, 0);
+      arco.position.y = 0.42;
+      for (const p of [cuerpo, arco]) {
+        p.castShadow = p.receiveShadow = true;
+        losa.add(p);
+      }
+      losa.rotation.set(-0.08 + azar() * 0.16, giro, (azar() - 0.5) * 0.12);
+      grupo.add(losa);
+      break;
+    }
+    case 'sarcofago': {
+      // Caja con la tapa algo más grande.
+      const m = piedra();
+      poner(caja, m, 0, 0.16, 0, [0.72, 0.32, 0.46], 0);
+      poner(caja, m, 0, 0.36, 0, [0.78, 0.08, 0.52], 0);
+      poner(caja, m, 0, 0.42, 0, [0.6, 0.04, 0.36], 0);
+      break;
+    }
+    case 'candelabro': {
+      // Pie, brazo y tres velas con su llama, que brilla (el bloom la recoge).
+      const [metal = 0xe2b448] = colores(1, calido);
+      const oro = materialRuido([metal, 0xa0782c], [0.7, 0.3], azar);
+      poner(new THREE.CylinderGeometry(0.03, 0.12, 0.7, 6), oro, 0, 0.35, 0, [1, 1, 1], 0);
+      poner(caja, oro, 0, 0.7, 0, [0.46, 0.04, 0.05], 0);
+      const cera = new THREE.MeshLambertMaterial({ color: 0xf1e6cf });
+      const llama = new THREE.MeshBasicMaterial({ color: 0xffd27a });
+      for (const x of [-0.21, 0, 0.21]) {
+        const alto = x === 0 ? 0.16 : 0.12;
+        poner(new THREE.CylinderGeometry(0.035, 0.035, alto, 6), cera, x, 0.72 + alto / 2, 0);
+        const fuego = poner(
+          new THREE.SphereGeometry(0.04, 6, 4),
+          llama,
+          x,
+          0.76 + alto,
+          0,
+          [1, 1.6, 1],
+        );
+        fuego.castShadow = false;
+      }
       break;
     }
     default:

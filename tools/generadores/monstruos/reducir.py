@@ -138,3 +138,67 @@ def sin_tocar_bordes(img, permitir_abajo=True):
     if opaco[:, 0].any() or opaco[:, -1].any() or opaco[0, :].any():
         return False
     return permitir_abajo or not opaco[-1, :].any()
+
+
+# Cuánto se tuerce cada pose (píxeles que se adelanta la parte de arriba) y cuánto se estira de alto, por animación.
+VIDA = {"idle": ([0, 1], [1.0, 0.97]), "walk": ([0, 2, 0, -2], [1.0, 0.98, 1.0, 0.98]),
+        "atacar": ([-3, 5, 1], [1.0, 0.95, 1.0]), "golpe": ([-3], [0.97])}
+MARGEN = 6
+
+
+def vida(grid, anim, i, adelante=-1, fuerza=1.0):
+    """La pose con vida: los pies quietos, el cuerpo respira (se encoge y vuelve) y se mece o se echa encima del
+    enemigo (la parte de arriba se desplaza más que la de abajo). `adelante` es -1 si mira a la izquierda y 1 si
+    mira a la derecha; `fuerza` rebaja el movimiento de los cuadros justos. Sin esto, una pose sacada de una imagen solo se movería entera, un píxel arriba y abajo."""
+    torcer, estirar = VIDA[anim][0][i] * fuerza, VIDA[anim][1][i]
+    alto, ancho = len(grid), len(grid[0])
+    pie = alto - 1
+    sal = [[None] * (ancho + 2 * MARGEN) for _ in range(alto)]
+    for y in range(alto):
+        origen = round(pie - (pie - y) / estirar)
+        if not 0 <= origen < alto:
+            continue
+        desp = round(torcer * adelante * ((pie - y) / pie) ** 1.5)
+        for x, c in enumerate(grid[origen]):
+            if c is not None:
+                sal[y][x + MARGEN + desp] = c
+    return sal
+
+
+_Q = (0, 0)
+# Movimiento (dx, dy) de cada parte del cuerpo en cada fotograma: idle (2), walk (4), atacar (3), golpe (1).
+PATRONES = {
+    "pierna_a": {"idle": [_Q, _Q], "walk": [_Q, (0, -2), _Q, (0, 1)], "atacar": [_Q, _Q, _Q], "golpe": [_Q]},
+    "pierna_b": {"idle": [_Q, _Q], "walk": [_Q, (0, 1), _Q, (0, -2)], "atacar": [_Q, _Q, _Q], "golpe": [_Q]},
+    "brazo_i": {"idle": [_Q, (0, 1)], "walk": [_Q, (0, 2), _Q, (0, -2)], "atacar": [(0, -3), (1, 3), (0, 0)],
+                "golpe": [(0, -2)]},
+    "brazo_d": {"idle": [(0, 1), _Q], "walk": [_Q, (0, -2), _Q, (0, 2)], "atacar": [(0, -3), (-1, 3), (0, 0)],
+                "golpe": [(0, -2)]},
+    "cola": {"idle": [_Q, (1, 0)], "walk": [_Q, (2, -1), _Q, (-2, 1)], "atacar": [(3, 0), (-3, 1), (0, 0)],
+             "golpe": [(2, 0)]},
+    "cabeza": {"idle": [_Q, (0, 1)], "walk": [_Q, (0, 1), _Q, (0, 1)], "atacar": [(0, -2), (0, 2), (0, 0)],
+               "golpe": [(0, -1)]},
+}
+
+
+def partes(grid, lista, anim, i):
+    """La pose con cada parte de `lista` movida por separado: `(x0, y0, x1, y1, patron)`, con la caja en fracciones
+    de lo que ocupa la figura (0 a 1) y el patrón de `PATRONES`. Cada píxel va con la primera parte que lo contiene.
+    Así brazos, piernas, colas y cabezas se mueven de verdad, no solo la figura entera."""
+    alto, ancho = len(grid), len(grid[0])
+    ocupados = [(x, y) for y in range(alto) for x in range(ancho) if grid[y][x] is not None]
+    xs, ys = [p[0] for p in ocupados], [p[1] for p in ocupados]
+    bx, by, bw, bh = min(xs), min(ys), max(xs) - min(xs) + 1, max(ys) - min(ys) + 1
+    sal = [fila[:] for fila in grid]
+    movidos = []
+    for x, y in ocupados:
+        for fx0, fy0, fx1, fy1, patron in lista:
+            if fx0 <= (x - bx) / bw < fx1 and fy0 <= (y - by) / bh < fy1:
+                dx, dy = PATRONES[patron][anim][i]
+                sal[y][x] = None
+                movidos.append((x + dx, y + dy, grid[y][x]))
+                break
+    for x, y, c in movidos:
+        if 0 <= x < ancho and 0 <= y < alto:
+            sal[y][x] = c
+    return sal
