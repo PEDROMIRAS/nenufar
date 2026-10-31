@@ -31,6 +31,15 @@
         "caida": "«Mi señor... ya está despierto. Llegas tarde.»",
         "lluvia": 0
       }
+    },
+    "cauce": {
+      "nombre": "Cauce Seco",
+      "cartel": "Aquí corría el agua que el Rey se bebió. Ahora arde una luna falsa, y la Orden reza a ella.",
+      "jefe": {
+        "inicio": "«Yo le di una luz al mundo. Tú vienes a apagarla.»",
+        "caida": "«La luz... sigue encendida... en otro sitio...»",
+        "lluvia": 0
+      }
     }
   },
   "violetas": {
@@ -49,11 +58,21 @@
     "dragon_negro": {
       "inicio": "«Dormía bajo la luna. Sin luna, despierto con hambre.»",
       "caida": "«Toma mi corazón... aún late. Que lata por ti.»"
+    },
+    "oni": {
+      "inicio": "«Rezo bajo una luna que no existe. No interrumpas mi plegaria.»",
+      "caida": "«Ahora... por fin... callo.»"
     }
   },
   "recompensas": {
-    "habilidad": { "titulo": "Nueva habilidad", "texto": "Has aprendido {habilidad}." },
-    "pieza": { "titulo": "¡Recompensa!", "texto": "{jefe} deja {pieza}." },
+    "habilidad": {
+      "titulo": "Nueva habilidad",
+      "texto": "Has aprendido {habilidad}."
+    },
+    "pieza": {
+      "titulo": "¡Recompensa!",
+      "texto": "{jefe} deja {pieza}."
+    },
     "corazon": {
       "titulo": "Corazón del dragón negro",
       "texto": "Late contigo. Si caes en combate, te levantará una vez."

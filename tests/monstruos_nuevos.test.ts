@@ -54,15 +54,16 @@ describe('grupos de las zonas', () => {
     expect(claves('bosque')).toEqual(expect.arrayContaining(['jabali', 'cuervo']));
   });
 
-  test('la Cripta usa el lobo y ya ninguna zona usa al Espectro', () => {
+  test('la Cripta usa el lobo y solo el Cauce Seco usa al Espectro', () => {
     expect(claves('cripta')).toContain('lobo');
     for (const zona of Object.keys(zonas.zonas) as (keyof typeof zonas.zonas)[]) {
-      expect(claves(zona), zona).not.toContain('espectro');
+      if (zona === 'cauce') expect(claves(zona)).toContain('espectro');
+      else expect(claves(zona), zona).not.toContain('espectro');
     }
   });
 
-  test('el Espectro sigue existiendo, oculto hasta el Cauce Seco', () => {
-    expect(MONSTRUOS.espectro?.oculto).toBe(true);
+  test('el Espectro ya no está oculto: el Cauce Seco lo usa', () => {
+    expect(MONSTRUOS.espectro?.oculto).toBeUndefined();
   });
 
   test('todos los grupos nombran monstruos que existen y no son jefes', () => {

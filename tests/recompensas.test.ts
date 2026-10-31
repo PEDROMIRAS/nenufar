@@ -137,9 +137,9 @@ test('crecerEquipo suma lo que crecen las piezas puestas', () => {
   );
 });
 
-// Regla «siempre algo mejor»: tramo 1 en los niveles 1-3, 2 en los 4-6 y 3 en los 7-12 (el
-// simulador llega al jefe del Bosque con nivel 2-3, al de las Ruinas con 5-6 y al de la Cripta con 9-10).
-const tramo = (nivel: number): number => (nivel <= 3 ? 1 : nivel <= 6 ? 2 : 3);
+// Regla «siempre algo mejor»: tramo 1 en los niveles 1-3, 2 en los 4-6, 3 en los 7-9 y 4 en los 10-12 (el
+// simulador llega al jefe del Bosque con nivel 2-3, al de las Ruinas con 5-6, al de la Cripta con 9-10 y al del Cauce Seco con 11-12).
+const tramo = (nivel: number): number => (nivel <= 3 ? 1 : nivel <= 6 ? 2 : nivel <= 9 ? 3 : 4);
 
 describe.each(Object.keys(HEROES) as (keyof typeof HEROES)[])('%s: siempre algo mejor', (clave) => {
   const heroe = HEROES[clave];

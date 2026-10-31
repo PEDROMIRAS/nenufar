@@ -138,7 +138,7 @@ describe('guardado de la partida', () => {
     ['arma desconocida', (g) => (g.inventario.arma = 'espada_inexistente')],
     ['pieza desconocida en la mochila', (g) => g.inventario.mochila.push('escudo_raro')],
     ['consumible desconocido', (g) => (g.inventario.consumibles = { elixir: 1 })],
-    ['zona fuera de rango', (g) => (g.zona = 3)],
+    ['zona fuera de rango', (g) => (g.zona = 4)],
     ['sala no entera', (g) => (g.mapa.sala = 1.5)],
     ['pv no numérico', (g) => ((g.heroina as unknown as Record<string, unknown>).pv = 'mucho')],
   ])('descarta %s', (_, romper) => {

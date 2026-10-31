@@ -12,7 +12,8 @@
     "dragon": {
       "bosque": "dragon_negro_bosque",
       "ruinas": "dragon_negro_ruinas",
-      "cripta": "dragon_negro_cripta"
+      "cripta": "dragon_negro_cripta",
+      "cauce": "dragon_negro_cauce"
     }
   },
   "monstruos": {
@@ -214,6 +215,67 @@
           "monstruos": [
             "caballero",
             "arana"
+          ],
+          "peso": 1
+        }
+      ]
+    },
+    "cauce": {
+      "nombre": "Cauce Seco",
+      "salas": 17,
+      "jefe": "sacerdote",
+      "jefeVioleta": "oni",
+      "cofreTrampa": "cofre_trampa_cauce",
+      "cofre": [
+        {
+          "objeto": "arma",
+          "nivel": 4,
+          "peso": 50
+        },
+        {
+          "objeto": "armadura",
+          "nivel": 4,
+          "peso": 50
+        }
+      ],
+      "grupos": [
+        {
+          "monstruos": [
+            "salamandra"
+          ],
+          "peso": 3
+        },
+        {
+          "monstruos": [
+            "salamandra",
+            "salamandra"
+          ],
+          "peso": 2
+        },
+        {
+          "monstruos": [
+            "acolito"
+          ],
+          "peso": 2
+        },
+        {
+          "monstruos": [
+            "espectro",
+            "salamandra"
+          ],
+          "peso": 2
+        },
+        {
+          "monstruos": [
+            "acolito",
+            "salamandra"
+          ],
+          "peso": 2
+        },
+        {
+          "monstruos": [
+            "espectro",
+            "acolito"
           ],
           "peso": 1
         }

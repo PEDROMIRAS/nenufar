@@ -18,7 +18,8 @@
   "armaduras": [
     "tunica",
     "cota_malla",
-    "armadura_placas"
+    "armadura_placas",
+    "armadura_obsidiana"
   ],
   "equipo": {
     "katana_gastada": {
@@ -226,6 +227,51 @@
         "#3a2a78",
         "#22184c",
         "#6a5ac0"
+      ]
+    },
+    "katana_brasas": {
+      "nombre": "Katana de brasas",
+      "hueco": "arma",
+      "bonos": {
+        "ataque": 12
+      },
+      "efecto": {
+        "estado": "quemadura",
+        "probabilidad": 0.1
+      },
+      "tinte": [
+        "#3a1208",
+        "#f08a3a",
+        "#ffd08a",
+        "#b8421e"
+      ]
+    },
+    "baston_ceniza": {
+      "nombre": "Bastón de ceniza",
+      "hueco": "arma",
+      "bonos": {
+        "magia": 12
+      },
+      "efecto": {
+        "estado": "quemadura",
+        "probabilidad": 0.1
+      },
+      "tinte": [
+        "#4a2a1c",
+        "#2a1a14",
+        "#ff9a4a"
+      ]
+    },
+    "armadura_obsidiana": {
+      "nombre": "Armadura de obsidiana",
+      "hueco": "armadura",
+      "bonos": {
+        "defensa": 10
+      },
+      "tinte": [
+        "#2e2438",
+        "#1a1422",
+        "#e0702a"
       ]
     }
   }

@@ -211,7 +211,7 @@ describe('cofres', () => {
     });
   });
 
-  test('los cofres de zonas.json solo tienen cosas que existen, y el de la Cripta es de nivel 3', () => {
+  test('los cofres de zonas.json solo tienen cosas que existen, y los de la Cripta y el Cauce Seco son de nivel 3 y 4', () => {
     for (const z of Object.values(zonas.zonas)) {
       for (const b of z.cofre) {
         const ok =
@@ -221,6 +221,7 @@ describe('cofres', () => {
       }
     }
     expect(zonas.zonas.cripta.cofre.every((b) => (b as { nivel?: number }).nivel === 3)).toBe(true);
+    expect(zonas.zonas.cauce.cofre.every((b) => (b as { nivel?: number }).nivel === 4)).toBe(true);
   });
 });
 

@@ -457,7 +457,6 @@
       }
     ],
     "jefe": false,
-    "oculto": true,
     "experiencia": 26,
     "botin": [
       {
@@ -924,11 +923,27 @@
   "arbol_maldito": {
     "nombre": "Árbol maldito",
     "sprite": "monstruos/arbol_maldito",
-    "estadisticas": { "pv": 100, "pm": 20, "ataque": 11, "magia": 0, "defensa": 7, "velocidad": 2 },
+    "estadisticas": {
+      "pv": 100,
+      "pm": 20,
+      "ataque": 11,
+      "magia": 0,
+      "defensa": 7,
+      "velocidad": 2
+    },
     "acciones": [
-      { "accion": "atacar", "peso": 50 },
-      { "accion": "Raíces", "peso": 25 },
-      { "accion": "cargar", "peso": 25 }
+      {
+        "accion": "atacar",
+        "peso": 50
+      },
+      {
+        "accion": "Raíces",
+        "peso": 25
+      },
+      {
+        "accion": "cargar",
+        "peso": 25
+      }
     ],
     "habilidades": [
       {
@@ -936,42 +951,92 @@
         "nivel": 1,
         "pm": 5,
         "objetivo": "uno",
-        "danio": { "tipo": "fisico", "poder": 0.8 },
+        "danio": {
+          "tipo": "fisico",
+          "poder": 0.8
+        },
         "estado": "atrapado"
       }
     ],
-    "cargado": { "poder": 2.5, "aviso": "alza sus ramas..." },
+    "cargado": {
+      "poder": 2.5,
+      "aviso": "alza sus ramas..."
+    },
     "jefe": true,
     "oculto": true,
     "experiencia": 45,
-    "caja": { "ancho": 28, "alto": 16 },
+    "caja": {
+      "ancho": 28,
+      "alto": 16
+    },
     "color": "#5a4a2a"
   },
   "caballero_maldito": {
     "nombre": "Caballero maldito",
     "sprite": "monstruos/caballero_maldito",
-    "estadisticas": { "pv": 250, "pm": 0, "ataque": 13, "magia": 0, "defensa": 11, "velocidad": 3 },
+    "estadisticas": {
+      "pv": 250,
+      "pm": 0,
+      "ataque": 13,
+      "magia": 0,
+      "defensa": 11,
+      "velocidad": 3
+    },
     "acciones": [
-      { "accion": "atacar", "peso": 55 },
-      { "accion": "cargar", "peso": 30 },
-      { "accion": "defender", "peso": 15 }
+      {
+        "accion": "atacar",
+        "peso": 55
+      },
+      {
+        "accion": "cargar",
+        "peso": 30
+      },
+      {
+        "accion": "defender",
+        "peso": 15
+      }
     ],
-    "cargado": { "poder": 3.5, "aviso": "alza el espadón..." },
+    "cargado": {
+      "poder": 3.5,
+      "aviso": "alza el espadón..."
+    },
     "jefe": true,
     "oculto": true,
     "experiencia": 120,
-    "caja": { "ancho": 28, "alto": 16 },
+    "caja": {
+      "ancho": 28,
+      "alto": 16
+    },
     "color": "#8a2a2a"
   },
   "ojo_flotante": {
     "nombre": "Ojo flotante",
     "sprite": "monstruos/ojo_flotante",
-    "estadisticas": { "pv": 335, "pm": 50, "ataque": 28, "magia": 18, "defensa": 14, "velocidad": 9 },
+    "estadisticas": {
+      "pv": 335,
+      "pm": 50,
+      "ataque": 28,
+      "magia": 18,
+      "defensa": 14,
+      "velocidad": 9
+    },
     "acciones": [
-      { "accion": "atacar", "peso": 20 },
-      { "accion": "Mirada venenosa", "peso": 25 },
-      { "accion": "Mirada ardiente", "peso": 25 },
-      { "accion": "Mirada paralizante", "peso": 30 }
+      {
+        "accion": "atacar",
+        "peso": 20
+      },
+      {
+        "accion": "Mirada venenosa",
+        "peso": 25
+      },
+      {
+        "accion": "Mirada ardiente",
+        "peso": 25
+      },
+      {
+        "accion": "Mirada paralizante",
+        "peso": 30
+      }
     ],
     "habilidades": [
       {
@@ -979,7 +1044,10 @@
         "nivel": 1,
         "pm": 6,
         "objetivo": "uno",
-        "danio": { "tipo": "magico", "poder": 0.9 },
+        "danio": {
+          "tipo": "magico",
+          "poder": 0.9
+        },
         "estado": "veneno"
       },
       {
@@ -987,7 +1055,10 @@
         "nivel": 1,
         "pm": 6,
         "objetivo": "uno",
-        "danio": { "tipo": "magico", "poder": 1 },
+        "danio": {
+          "tipo": "magico",
+          "poder": 1
+        },
         "estado": "quemadura"
       },
       {
@@ -995,134 +1066,670 @@
         "nivel": 1,
         "pm": 8,
         "objetivo": "uno",
-        "danio": { "tipo": "magico", "poder": 0.6 },
+        "danio": {
+          "tipo": "magico",
+          "poder": 0.6
+        },
         "estado": "aturdido"
       }
     ],
     "jefe": true,
     "oculto": true,
     "experiencia": 200,
-    "caja": { "ancho": 28, "alto": 16 },
+    "caja": {
+      "ancho": 28,
+      "alto": 16
+    },
     "color": "#7a3a8a"
   },
   "dragon_negro_bosque": {
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
-    "estadisticas": { "pv": 70, "pm": 0, "ataque": 22, "magia": 0, "defensa": 4, "velocidad": 6 },
+    "estadisticas": {
+      "pv": 70,
+      "pm": 0,
+      "ataque": 22,
+      "magia": 0,
+      "defensa": 4,
+      "velocidad": 6
+    },
     "acciones": [
-      { "accion": "atacar", "peso": 55 },
-      { "accion": "cargar", "peso": 45 }
+      {
+        "accion": "atacar",
+        "peso": 55
+      },
+      {
+        "accion": "cargar",
+        "peso": 45
+      }
     ],
-    "cargado": { "poder": 3, "aviso": "toma aire... ¡aliento de fuego!" },
+    "cargado": {
+      "poder": 3,
+      "aviso": "toma aire... ¡aliento de fuego!"
+    },
     "fases": [
       {
         "pvMenorQue": 0.4,
         "aviso": "¡El dragón negro ruge, envuelto en llamas!",
         "acciones": [
-          { "accion": "atacar", "peso": 40 },
-          { "accion": "cargar", "peso": 60 }
+          {
+            "accion": "atacar",
+            "peso": 40
+          },
+          {
+            "accion": "cargar",
+            "peso": 60
+          }
         ]
       }
     ],
     "jefe": true,
     "oculto": true,
     "experiencia": 60,
-    "caja": { "ancho": 36, "alto": 16 },
+    "caja": {
+      "ancho": 36,
+      "alto": 16
+    },
     "color": "#2a2a3a"
   },
   "dragon_negro_ruinas": {
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
-    "estadisticas": { "pv": 148, "pm": 0, "ataque": 19, "magia": 0, "defensa": 10, "velocidad": 6 },
+    "estadisticas": {
+      "pv": 148,
+      "pm": 0,
+      "ataque": 19,
+      "magia": 0,
+      "defensa": 10,
+      "velocidad": 6
+    },
     "acciones": [
-      { "accion": "atacar", "peso": 55 },
-      { "accion": "cargar", "peso": 45 }
+      {
+        "accion": "atacar",
+        "peso": 55
+      },
+      {
+        "accion": "cargar",
+        "peso": 45
+      }
     ],
-    "cargado": { "poder": 3.5, "aviso": "toma aire... ¡aliento de fuego!" },
+    "cargado": {
+      "poder": 3.5,
+      "aviso": "toma aire... ¡aliento de fuego!"
+    },
     "fases": [
       {
         "pvMenorQue": 0.4,
         "aviso": "¡El dragón negro ruge, envuelto en llamas!",
         "acciones": [
-          { "accion": "atacar", "peso": 40 },
-          { "accion": "cargar", "peso": 60 }
+          {
+            "accion": "atacar",
+            "peso": 40
+          },
+          {
+            "accion": "cargar",
+            "peso": 60
+          }
         ]
       }
     ],
     "jefe": true,
     "oculto": true,
     "experiencia": 150,
-    "caja": { "ancho": 36, "alto": 16 },
+    "caja": {
+      "ancho": 36,
+      "alto": 16
+    },
     "color": "#2a2a3a"
   },
   "dragon_negro_cripta": {
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
-    "estadisticas": { "pv": 330, "pm": 0, "ataque": 27, "magia": 0, "defensa": 8, "velocidad": 10 },
+    "estadisticas": {
+      "pv": 330,
+      "pm": 0,
+      "ataque": 27,
+      "magia": 0,
+      "defensa": 8,
+      "velocidad": 10
+    },
     "acciones": [
-      { "accion": "atacar", "peso": 55 },
-      { "accion": "cargar", "peso": 45 }
+      {
+        "accion": "atacar",
+        "peso": 55
+      },
+      {
+        "accion": "cargar",
+        "peso": 45
+      }
     ],
-    "cargado": { "poder": 4, "aviso": "toma aire... ¡aliento de fuego!" },
+    "cargado": {
+      "poder": 4,
+      "aviso": "toma aire... ¡aliento de fuego!"
+    },
     "fases": [
       {
         "pvMenorQue": 0.4,
         "aviso": "¡El dragón negro ruge, envuelto en llamas!",
         "acciones": [
-          { "accion": "atacar", "peso": 40 },
-          { "accion": "cargar", "peso": 60 }
+          {
+            "accion": "atacar",
+            "peso": 40
+          },
+          {
+            "accion": "cargar",
+            "peso": 60
+          }
         ]
       }
     ],
     "jefe": true,
     "oculto": true,
     "experiencia": 250,
-    "caja": { "ancho": 36, "alto": 16 },
+    "caja": {
+      "ancho": 36,
+      "alto": 16
+    },
     "color": "#2a2a3a"
   },
   "cofre_trampa_bosque": {
     "nombre": "Cofre trampa",
     "sprite": "monstruos/cofre_trampa",
-    "estadisticas": { "pv": 38, "pm": 0, "ataque": 10, "magia": 0, "defensa": 5, "velocidad": 3 },
+    "estadisticas": {
+      "pv": 38,
+      "pm": 0,
+      "ataque": 10,
+      "magia": 0,
+      "defensa": 5,
+      "velocidad": 3
+    },
     "acciones": [
-      { "accion": "atacar", "peso": 70 },
-      { "accion": "cargar", "peso": 30 }
+      {
+        "accion": "atacar",
+        "peso": 70
+      },
+      {
+        "accion": "cargar",
+        "peso": 30
+      }
     ],
-    "cargado": { "poder": 2.5, "aviso": "abre las fauces..." },
+    "cargado": {
+      "poder": 2.5,
+      "aviso": "abre las fauces..."
+    },
     "jefe": false,
     "oculto": true,
     "experiencia": 20,
-    "caja": { "ancho": 20, "alto": 12 },
+    "caja": {
+      "ancho": 20,
+      "alto": 12
+    },
     "color": "#a0703a"
   },
   "cofre_trampa_ruinas": {
     "nombre": "Cofre trampa",
     "sprite": "monstruos/cofre_trampa",
-    "estadisticas": { "pv": 80, "pm": 0, "ataque": 16, "magia": 0, "defensa": 10, "velocidad": 4 },
+    "estadisticas": {
+      "pv": 80,
+      "pm": 0,
+      "ataque": 16,
+      "magia": 0,
+      "defensa": 10,
+      "velocidad": 4
+    },
     "acciones": [
-      { "accion": "atacar", "peso": 70 },
-      { "accion": "cargar", "peso": 30 }
+      {
+        "accion": "atacar",
+        "peso": 70
+      },
+      {
+        "accion": "cargar",
+        "peso": 30
+      }
     ],
-    "cargado": { "poder": 2.5, "aviso": "abre las fauces..." },
+    "cargado": {
+      "poder": 2.5,
+      "aviso": "abre las fauces..."
+    },
     "jefe": false,
     "oculto": true,
     "experiencia": 50,
-    "caja": { "ancho": 20, "alto": 12 },
+    "caja": {
+      "ancho": 20,
+      "alto": 12
+    },
     "color": "#a0703a"
   },
   "cofre_trampa_cripta": {
     "nombre": "Cofre trampa",
     "sprite": "monstruos/cofre_trampa",
-    "estadisticas": { "pv": 120, "pm": 0, "ataque": 22, "magia": 0, "defensa": 16, "velocidad": 6 },
+    "estadisticas": {
+      "pv": 120,
+      "pm": 0,
+      "ataque": 22,
+      "magia": 0,
+      "defensa": 16,
+      "velocidad": 6
+    },
     "acciones": [
-      { "accion": "atacar", "peso": 70 },
-      { "accion": "cargar", "peso": 30 }
+      {
+        "accion": "atacar",
+        "peso": 70
+      },
+      {
+        "accion": "cargar",
+        "peso": 30
+      }
     ],
-    "cargado": { "poder": 2.5, "aviso": "abre las fauces..." },
+    "cargado": {
+      "poder": 2.5,
+      "aviso": "abre las fauces..."
+    },
     "jefe": false,
     "oculto": true,
     "experiencia": 70,
-    "caja": { "ancho": 20, "alto": 12 },
+    "caja": {
+      "ancho": 20,
+      "alto": 12
+    },
+    "color": "#a0703a"
+  },
+  "salamandra": {
+    "nombre": "Salamandra de brasas",
+    "sprite": "monstruos/salamandra",
+    "estadisticas": {
+      "pv": 64,
+      "pm": 20,
+      "ataque": 15,
+      "magia": 13,
+      "defensa": 8,
+      "velocidad": 12
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 50
+      },
+      {
+        "accion": "Chispa",
+        "peso": 50
+      }
+    ],
+    "habilidades": [
+      {
+        "nombre": "Chispa",
+        "nivel": 1,
+        "pm": 4,
+        "objetivo": "uno",
+        "danio": {
+          "tipo": "magico",
+          "poder": 0.8
+        },
+        "estado": "quemadura"
+      }
+    ],
+    "jefe": false,
+    "experiencia": 30,
+    "botin": [
+      {
+        "objeto": "pocion",
+        "peso": 30
+      },
+      {
+        "objeto": "eter",
+        "peso": 20
+      },
+      {
+        "objeto": "antidoto",
+        "peso": 10
+      },
+      {
+        "objeto": "nada",
+        "peso": 45
+      },
+      {
+        "objeto": "arma",
+        "nivel": 3,
+        "peso": 5
+      },
+      {
+        "objeto": "armadura",
+        "nivel": 3,
+        "peso": 5
+      }
+    ],
+    "caja": {
+      "ancho": 22,
+      "alto": 12
+    },
+    "mapa": {
+      "velocidad": 45,
+      "persecucion": 85,
+      "vision": 96,
+      "patrulla": 48
+    },
+    "color": "#c8501e"
+  },
+  "acolito": {
+    "nombre": "Acólito de la luna falsa",
+    "sprite": "monstruos/acolito",
+    "estadisticas": {
+      "pv": 78,
+      "pm": 40,
+      "ataque": 8,
+      "magia": 19,
+      "defensa": 10,
+      "velocidad": 8
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 30
+      },
+      {
+        "accion": "Bola de fuego",
+        "peso": 70
+      }
+    ],
+    "habilidades": [
+      {
+        "nombre": "Bola de fuego",
+        "nivel": 1,
+        "pm": 5,
+        "objetivo": "uno",
+        "danio": {
+          "tipo": "magico",
+          "poder": 1.1
+        }
+      }
+    ],
+    "jefe": false,
+    "experiencia": 34,
+    "botin": [
+      {
+        "objeto": "pocion",
+        "peso": 30
+      },
+      {
+        "objeto": "eter",
+        "peso": 20
+      },
+      {
+        "objeto": "antidoto",
+        "peso": 10
+      },
+      {
+        "objeto": "nada",
+        "peso": 45
+      },
+      {
+        "objeto": "arma",
+        "nivel": 3,
+        "peso": 5
+      },
+      {
+        "objeto": "armadura",
+        "nivel": 3,
+        "peso": 5
+      }
+    ],
+    "caja": {
+      "ancho": 20,
+      "alto": 12
+    },
+    "mapa": {
+      "velocidad": 28,
+      "persecucion": 55,
+      "vision": 96,
+      "patrulla": 40
+    },
+    "color": "#8a3a22"
+  },
+  "sacerdote": {
+    "nombre": "Sacerdote de la luna falsa",
+    "sprite": "monstruos/sacerdote",
+    "estadisticas": {
+      "pv": 220,
+      "pm": 80,
+      "ataque": 22,
+      "magia": 26,
+      "defensa": 14,
+      "velocidad": 9
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 30
+      },
+      {
+        "accion": "Llama",
+        "peso": 40
+      },
+      {
+        "accion": "invocar",
+        "peso": 30
+      }
+    ],
+    "habilidades": [
+      {
+        "nombre": "Llama",
+        "nivel": 1,
+        "pm": 6,
+        "objetivo": "todos",
+        "danio": {
+          "tipo": "magico",
+          "poder": 0.5
+        },
+        "estado": "quemadura"
+      }
+    ],
+    "cargado": {
+      "poder": 4,
+      "aviso": "la luna falsa se eclipsa sobre él..."
+    },
+    "invocacion": {
+      "monstruos": [
+        "acolito",
+        "acolito"
+      ],
+      "maximo": 3,
+      "aviso": "El sacerdote llama a sus acólitos"
+    },
+    "fases": [
+      {
+        "pvMenorQue": 0.6,
+        "aviso": "¡La luna falsa se enciende!",
+        "acciones": [
+          {
+            "accion": "atacar",
+            "peso": 15
+          },
+          {
+            "accion": "Llama",
+            "peso": 45
+          },
+          {
+            "accion": "cargar",
+            "peso": 25
+          },
+          {
+            "accion": "invocar",
+            "peso": 15
+          }
+        ]
+      }
+    ],
+    "jefe": true,
+    "experiencia": 190,
+    "botin": [
+      {
+        "objeto": "pocion",
+        "peso": 50
+      },
+      {
+        "objeto": "eter",
+        "peso": 50
+      }
+    ],
+    "caja": {
+      "ancho": 28,
+      "alto": 16
+    },
+    "color": "#e0801e"
+  },
+  "oni": {
+    "nombre": "Monje oni",
+    "sprite": "monstruos/oni",
+    "estadisticas": {
+      "pv": 334,
+      "pm": 40,
+      "ataque": 24,
+      "magia": 14,
+      "defensa": 21,
+      "velocidad": 10
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 35
+      },
+      {
+        "accion": "Puño ardiente",
+        "peso": 35
+      },
+      {
+        "accion": "cargar",
+        "peso": 30
+      }
+    ],
+    "habilidades": [
+      {
+        "nombre": "Puño ardiente",
+        "nivel": 1,
+        "pm": 6,
+        "objetivo": "uno",
+        "danio": {
+          "tipo": "fisico",
+          "poder": 1.2
+        },
+        "estado": "quemadura"
+      }
+    ],
+    "cargado": {
+      "poder": 3.5,
+      "aviso": "alza los puños en llamas..."
+    },
+    "fases": [
+      {
+        "pvMenorQue": 0.5,
+        "aviso": "¡La máscara del oni se parte y el fuego lo envuelve!",
+        "acciones": [
+          {
+            "accion": "atacar",
+            "peso": 25
+          },
+          {
+            "accion": "Puño ardiente",
+            "peso": 40
+          },
+          {
+            "accion": "cargar",
+            "peso": 35
+          }
+        ]
+      }
+    ],
+    "jefe": true,
+    "oculto": true,
+    "experiencia": 260,
+    "caja": {
+      "ancho": 28,
+      "alto": 16
+    },
+    "color": "#b8421e"
+  },
+  "dragon_negro_cauce": {
+    "nombre": "Dragón negro",
+    "sprite": "monstruos/dragon_negro",
+    "estadisticas": {
+      "pv": 347,
+      "pm": 0,
+      "ataque": 32,
+      "magia": 0,
+      "defensa": 8,
+      "velocidad": 10
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 55
+      },
+      {
+        "accion": "cargar",
+        "peso": 45
+      }
+    ],
+    "cargado": {
+      "poder": 4,
+      "aviso": "toma aire... ¡aliento de fuego!"
+    },
+    "fases": [
+      {
+        "pvMenorQue": 0.4,
+        "aviso": "¡El dragón negro ruge, envuelto en llamas!",
+        "acciones": [
+          {
+            "accion": "atacar",
+            "peso": 40
+          },
+          {
+            "accion": "cargar",
+            "peso": 60
+          }
+        ]
+      }
+    ],
+    "jefe": true,
+    "oculto": true,
+    "experiencia": 280,
+    "caja": {
+      "ancho": 36,
+      "alto": 16
+    },
+    "color": "#2a2a3a"
+  },
+  "cofre_trampa_cauce": {
+    "nombre": "Cofre trampa",
+    "sprite": "monstruos/cofre_trampa",
+    "estadisticas": {
+      "pv": 140,
+      "pm": 0,
+      "ataque": 24,
+      "magia": 0,
+      "defensa": 16,
+      "velocidad": 6
+    },
+    "acciones": [
+      {
+        "accion": "atacar",
+        "peso": 70
+      },
+      {
+        "accion": "cargar",
+        "peso": 30
+      }
+    ],
+    "cargado": {
+      "poder": 2.5,
+      "aviso": "abre las fauces..."
+    },
+    "jefe": false,
+    "oculto": true,
+    "experiencia": 80,
+    "caja": {
+      "ancho": 20,
+      "alto": 12
+    },
     "color": "#a0703a"
   }
 }

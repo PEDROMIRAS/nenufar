@@ -5,7 +5,7 @@
     "ataque": 1.08,
     "vida": 1.07,
     "recuperacion": 1,
-    "violetas": 1.04
+    "violetas": 1.07
   },
   "normal": {
     "nombre": "Normal",
@@ -21,6 +21,6 @@
     "ataque": 1.11,
     "vida": 1.07,
     "recuperacion": 0.44,
-    "violetas": 1.075
+    "violetas": 1.05
   }
 }

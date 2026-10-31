@@ -111,9 +111,10 @@ const PLANTILLAS: Record<NombreZona, PlantillasJson> = {
   bosque: plantillasBosque,
   ruinas: plantillasRuinas,
   cripta: plantillasCripta,
+  cauce: plantillasCauce,
 };
-/** Solo para desarrollo (`?portada=<id de plantilla>`): también las zonas que aún no están en zonas.json. */
-const PLANTILLAS_DEV: Record<string, PlantillasJson> = { ...PLANTILLAS, cauce: plantillasCauce };
+/** Para `?portada=<id de plantilla>` (solo en desarrollo). */
+const PLANTILLAS_DEV: Record<string, PlantillasJson> = PLANTILLAS;
 
 /** Lo que comparten todas las zonas de una partida. */
 interface Partida {
