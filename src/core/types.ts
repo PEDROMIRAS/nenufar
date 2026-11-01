@@ -351,6 +351,14 @@ export interface HundidoHd2d {
   brillo: number;
 }
 
+/** Arco de piedra (o de troncos) de cada salida abierta: alto, grosor de los postes y del dintel, y el aro de fuego de encima si lo lleva. */
+export interface ArcoHd2d {
+  alto: number;
+  grosor: number;
+  dintel: number;
+  aro?: string;
+}
+
 /** Aspecto 3D de una zona: color de fondo, luces y borde. */
 export interface ZonaHd2d {
   fondo: string;
@@ -361,6 +369,7 @@ export interface ZonaHd2d {
   principal: { color: string; intensidad: number };
   borde: BordeHd2d;
   hundido: HundidoHd2d;
+  arco: ArcoHd2d;
 }
 
 /** `src/data/hd2d.json`: el aspecto HD-2D del mapa. */

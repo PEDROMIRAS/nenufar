@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { Tile } from '../../core/sala';
 import type { MaterialesBosque } from './borde';
+import type { ArcoHd2d } from '../../core/types';
 import { materialRuido, paleta } from './texturas';
 
 /**
@@ -273,6 +274,35 @@ export function crearBarrera(
     m.position.y = y;
     m.castShadow = true;
     grupo.add(m);
+  }
+  if (!aLoLargoDeX) grupo.rotation.y = Math.PI / 2;
+  return grupo;
+}
+
+/**
+ * Arco de una salida abierta: dos postes en los bordes de la casilla y un dintel con cornisa, de troncos en el
+ * Bosque y de la piedra del muro en las demás zonas; si la zona lo pide, con un aro de fuego encima. Va a lo largo
+ * de X (salidas norte y sur) o de Z (este y oeste), como la barrera.
+ */
+export function crearArco(piedra: THREE.Material, a: ArcoHd2d, aLoLargoDeX: boolean): THREE.Group {
+  const grupo = new THREE.Group();
+  const caja = (ancho: number, alto: number, fondo: number, x: number, y: number): void => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(ancho, alto, fondo), piedra);
+    m.position.set(x, y, 0);
+    m.castShadow = true;
+    m.receiveShadow = true;
+    grupo.add(m);
+  };
+  for (const lado of [-1, 1]) caja(a.grosor, a.alto, 0.3, lado * (0.5 - a.grosor / 2), a.alto / 2);
+  caja(1, a.dintel, 0.3, 0, a.alto - a.dintel / 2);
+  caja(1.1, a.dintel * 0.35, 0.4, 0, a.alto + a.dintel * 0.175);
+  if (a.aro) {
+    const aro = new THREE.Mesh(
+      new THREE.TorusGeometry(0.2, 0.035, 8, 24),
+      new THREE.MeshBasicMaterial({ color: a.aro }),
+    );
+    aro.position.set(0, a.alto + a.dintel * 0.35 + 0.25, 0);
+    grupo.add(aro);
   }
   if (!aLoLargoDeX) grupo.rotation.y = Math.PI / 2;
   return grupo;
