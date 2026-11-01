@@ -25,8 +25,8 @@ import { crearElemento } from './elementos';
 import { crearFuente } from './fuente';
 import { crearHundidos } from './hundidos';
 import { compararLuces } from '../../core/luces';
-import { crearBarrera, crearModelo } from './modelos';
-import { ajustarPixelArt, cuentaColores, pintar, textura } from './texturas';
+import { crearArco, crearBarrera, crearModelo } from './modelos';
+import { ajustarPixelArt, cuentaColores, materialRuido, paleta, pintar, textura } from './texturas';
 import { transparentar, uniformesTransparencia } from './transparencia';
 
 // Calidad elegida en la pausa (como el sonido): el mundo la aplica al dibujar el siguiente fotograma.
@@ -392,6 +392,13 @@ export class Mundo {
 
     for (const o of sala.objetos) this.ponerObjeto(v, o);
 
+    // Arco de piedra (de troncos en el Bosque) en cada salida abierta, a la vista siempre.
+    const cara = catalogo.get('muro_norte_a');
+    const piedra =
+      z.bosque?.tronco ??
+      (cara
+        ? materialRuido(paleta(imagenes, cara, tam, 3), [0.6, 0.3, 0.1], azar)
+        : new THREE.MeshLambertMaterial({ color: 0x777777 }));
     // Barreras de las salidas, escondidas hasta que se cierran. La norte, en la fila de dentro del muro.
     for (const s of salidas) {
       const norte = s.lado === N;
@@ -399,6 +406,12 @@ export class Mundo {
       const tile = catalogo.get(aLoLargoDeX ? 'barrera_h' : 'barrera_v');
       const celda = s.celdas[norte ? 1 : 0];
       if (!tile || !celda) continue;
+      const suelo = sala.base[celda[1] * sala.ancho + celda[0]];
+      if (suelo && !(suelo.layer === 'muro' && suelo.solid)) {
+        const arco = crearArco(piedra, aspecto.arco, aLoLargoDeX);
+        arco.position.set(celda[0] + 0.5, 0, celda[1] + 0.5);
+        grupo.add(arco);
+      }
       const obj = crearBarrera(tile, imagenes, tam, aLoLargoDeX, azar);
       obj.position.set(celda[0] + 0.5, 0, celda[1] + 0.5);
       obj.visible = false;
