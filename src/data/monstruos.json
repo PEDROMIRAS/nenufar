@@ -874,9 +874,9 @@
     "nombre": "Rey sin Charca",
     "sprite": "monstruos/rey_sin_charca",
     "estadisticas": {
-      "pv": 234,
+      "pv": 360,
       "pm": 60,
-      "ataque": 25,
+      "ataque": 20,
       "magia": 30,
       "defensa": 8,
       "velocidad": 9
