@@ -41,7 +41,7 @@
     "margenEsquina": 8,
     "pmAlAtacar": 1,
     "estadisticas": {
-      "pv": 46,
+      "pv": 44,
       "pm": 8,
       "ataque": 9,
       "magia": 3,
@@ -171,8 +171,8 @@
     },
     "margenEsquina": 8,
     "estadisticas": {
-      "pv": 40,
-      "pm": 20,
+      "pv": 43,
+      "pm": 21,
       "ataque": 5,
       "magia": 10,
       "defensa": 4,
@@ -249,7 +249,7 @@
         "nombre": "Cometa arcano",
         "nivel": 99,
         "recompensa": true,
-        "pm": 24,
+        "pm": 25,
         "objetivo": "todos",
         "danio": {
           "tipo": "magico",

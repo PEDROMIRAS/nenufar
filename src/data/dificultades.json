@@ -5,15 +5,15 @@
     "ataque": 1.07,
     "vida": 1.07,
     "recuperacion": 1,
-    "violetas": 1.07
+    "violetas": 1.124
   },
   "normal": {
     "nombre": "Normal",
     "descripcion": "El reto pensado para una primera partida: hay que usar bien Defender, las habilidades y los objetos.",
     "ataque": 1.08,
     "vida": 1.07,
-    "recuperacion": 0.69,
-    "violetas": 1.09
+    "recuperacion": 0.6,
+    "violetas": 1.125
   },
   "dificil": {
     "nombre": "Difícil",
@@ -21,6 +21,6 @@
     "ataque": 1.09,
     "vida": 1.07,
     "recuperacion": 0.44,
-    "violetas": 1.06
+    "violetas": 1.136
   }
 }
