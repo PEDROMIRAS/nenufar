@@ -25,7 +25,7 @@
       "aviso": "se hincha..."
     },
     "jefe": false,
-    "experiencia": 6,
+    "experiencia": 5,
     "botin": [
       {
         "objeto": "pocion",
@@ -80,7 +80,7 @@
       }
     ],
     "jefe": false,
-    "experiencia": 7,
+    "experiencia": 6,
     "botin": [
       {
         "objeto": "pocion",
@@ -138,7 +138,7 @@
       "aviso": "escarba el suelo..."
     },
     "jefe": false,
-    "experiencia": 9,
+    "experiencia": 8,
     "botin": [
       {
         "objeto": "pocion",
@@ -189,7 +189,7 @@
       }
     ],
     "jefe": false,
-    "experiencia": 6,
+    "experiencia": 5,
     "botin": [
       {
         "objeto": "eter",
@@ -241,7 +241,7 @@
       }
     ],
     "jefe": false,
-    "experiencia": 16,
+    "experiencia": 14,
     "botin": [
       {
         "objeto": "pocion",
@@ -317,7 +317,7 @@
       }
     ],
     "jefe": false,
-    "experiencia": 16,
+    "experiencia": 14,
     "botin": [
       {
         "objeto": "pocion",
@@ -375,7 +375,7 @@
       "aviso": "alza su espada..."
     },
     "jefe": false,
-    "experiencia": 30,
+    "experiencia": 26,
     "botin": [
       {
         "objeto": "pocion",
@@ -457,7 +457,7 @@
       }
     ],
     "jefe": false,
-    "experiencia": 26,
+    "experiencia": 22,
     "botin": [
       {
         "objeto": "pocion",
@@ -519,7 +519,7 @@
       "aviso": "muestra los colmillos..."
     },
     "jefe": false,
-    "experiencia": 28,
+    "experiencia": 24,
     "botin": [
       {
         "objeto": "pocion",
@@ -924,7 +924,7 @@
     "nombre": "Árbol maldito",
     "sprite": "monstruos/arbol_maldito",
     "estadisticas": {
-      "pv": 100,
+      "pv": 99,
       "pm": 20,
       "ataque": 11,
       "magia": 0,
@@ -975,7 +975,7 @@
     "nombre": "Caballero maldito",
     "sprite": "monstruos/caballero_maldito",
     "estadisticas": {
-      "pv": 250,
+      "pv": 348,
       "pm": 0,
       "ataque": 13,
       "magia": 0,
@@ -1013,7 +1013,7 @@
     "nombre": "Ojo flotante",
     "sprite": "monstruos/ojo_flotante",
     "estadisticas": {
-      "pv": 335,
+      "pv": 334,
       "pm": 50,
       "ataque": 28,
       "magia": 18,
@@ -1086,7 +1086,7 @@
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
     "estadisticas": {
-      "pv": 70,
+      "pv": 68,
       "pm": 0,
       "ataque": 22,
       "magia": 0,
@@ -1136,7 +1136,7 @@
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
     "estadisticas": {
-      "pv": 148,
+      "pv": 181,
       "pm": 0,
       "ataque": 19,
       "magia": 0,
@@ -1186,7 +1186,7 @@
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
     "estadisticas": {
-      "pv": 330,
+      "pv": 351,
       "pm": 0,
       "ataque": 27,
       "magia": 0,
@@ -1259,7 +1259,7 @@
     },
     "jefe": false,
     "oculto": true,
-    "experiencia": 20,
+    "experiencia": 17,
     "caja": {
       "ancho": 20,
       "alto": 12
@@ -1293,7 +1293,7 @@
     },
     "jefe": false,
     "oculto": true,
-    "experiencia": 50,
+    "experiencia": 43,
     "caja": {
       "ancho": 20,
       "alto": 12
@@ -1327,7 +1327,7 @@
     },
     "jefe": false,
     "oculto": true,
-    "experiencia": 70,
+    "experiencia": 60,
     "caja": {
       "ancho": 20,
       "alto": 12
@@ -1369,7 +1369,7 @@
       }
     ],
     "jefe": false,
-    "experiencia": 30,
+    "experiencia": 26,
     "botin": [
       {
         "objeto": "pocion",
@@ -1444,7 +1444,7 @@
       }
     ],
     "jefe": false,
-    "experiencia": 34,
+    "experiencia": 29,
     "botin": [
       {
         "objeto": "pocion",
@@ -1581,7 +1581,7 @@
     "nombre": "Monje oni",
     "sprite": "monstruos/oni",
     "estadisticas": {
-      "pv": 376,
+      "pv": 335,
       "pm": 40,
       "ataque": 22,
       "magia": 14,
@@ -1652,7 +1652,7 @@
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
     "estadisticas": {
-      "pv": 375,
+      "pv": 314,
       "pm": 0,
       "ataque": 32,
       "magia": 0,
@@ -1725,7 +1725,7 @@
     },
     "jefe": false,
     "oculto": true,
-    "experiencia": 80,
+    "experiencia": 68,
     "caja": {
       "ancho": 20,
       "alto": 12
