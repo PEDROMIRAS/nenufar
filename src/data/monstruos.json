@@ -874,9 +874,9 @@
     "nombre": "Rey sin Charca",
     "sprite": "monstruos/rey_sin_charca",
     "estadisticas": {
-      "pv": 234,
+      "pv": 360,
       "pm": 60,
-      "ataque": 25,
+      "ataque": 20,
       "magia": 30,
       "defensa": 8,
       "velocidad": 9
@@ -1581,9 +1581,9 @@
     "nombre": "Monje oni",
     "sprite": "monstruos/oni",
     "estadisticas": {
-      "pv": 334,
+      "pv": 376,
       "pm": 40,
-      "ataque": 24,
+      "ataque": 22,
       "magia": 14,
       "defensa": 21,
       "velocidad": 10
@@ -1652,7 +1652,7 @@
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
     "estadisticas": {
-      "pv": 347,
+      "pv": 375,
       "pm": 0,
       "ataque": 32,
       "magia": 0,

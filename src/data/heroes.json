@@ -49,7 +49,7 @@
       "velocidad": 6
     },
     "porNivel": {
-      "pv": 6,
+      "pv": 7,
       "pm": 2,
       "ataque": 2,
       "magia": 0,
@@ -109,7 +109,7 @@
         "objetivo": "uno",
         "danio": {
           "tipo": "fisico",
-          "poder": 2.1,
+          "poder": 2,
           "criticoSeguro": true
         },
         "efecto": "iaido",

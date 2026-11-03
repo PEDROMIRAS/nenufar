@@ -81,9 +81,9 @@ describe('habilidades', () => {
   test('Iaido es siempre crítico', () => {
     const c = combate(heroes.ronin, 7);
     const eventos = usar(c, 'Iaido', heroes.ronin);
-    // (9 × 2,1)² / (9 × 2,1 + 1,5) × 1,5 = 26,27 → 26
+    // (9 × 2)² / (9 × 2 + 1,5) × 1,5 = 24,92 → 24
     expect(eventos).toContainEqual(
-      expect.objectContaining({ tipo: 'danio', cantidad: 26, critico: true }),
+      expect.objectContaining({ tipo: 'danio', cantidad: 24, critico: true }),
     );
   });
 
