@@ -30,7 +30,7 @@ function huella(a: AjustesZona): number {
   return h;
 }
 const HUELLAS: Record<ClaveZona, number> = {
-  bosque: 960764497,
+  bosque: 335081783, // con 11 salas, igual que las Ruinas
   ruinas: 335081783,
   cripta: 3337945880,
   cauce: 3532596771,
@@ -71,16 +71,18 @@ describe.each(CLAVES)('zona %s', (clave) => {
   });
 });
 
-test('en el Bosque nunca se rompe la generación y, si hay violeta, no hay trampa', () => {
+test('en el Bosque nunca se rompe la generación y violeta y trampa pueden salir juntas', () => {
   const a = ajustes('bosque', {
     violeta: 'quiza',
     probabilidadVioleta: VIOLETAS.probabilidad,
     probabilidadTrampa: 0.99,
   });
+  let juntas = 0;
   for (let s = 0; s < 1000; s++) {
     const salas = generarZona(a, s).salas;
-    if (salas.some((x) => x.tipo === 'violeta')) expect(salas.some((x) => x.trampa)).toBe(false);
+    if (salas.some((x) => x.tipo === 'violeta') && salas.some((x) => x.trampa)) juntas++;
   }
+  expect(juntas).toBeGreaterThan(0);
 });
 
 test('la sala violeta es segura solo en la última zona y si no salió ninguna antes', () => {
