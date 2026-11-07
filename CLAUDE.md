@@ -46,7 +46,6 @@ En este orden:
 2. **Móvil en vertical, en curso**: entrega 1 (el mapa) publicada el 2026-11-07, **sin probar en móvil real** (Pedro la prueba primero: cámara que sigue, HUD sin tapar la sala, móviles muy altos tipo 412×915 por si el decorado de abajo se queda corto). Siguen la entrega 2 (combate apilado: escena arriba, y debajo lista, descripción y ficha) y la 3 (menús con pestañas, Seguir/Salir abajo y quitar el aviso de girar `#girar`); cada una con su plan, que se escribe tras probar la anterior (titular las tareas «Task N» para que sirvan los scripts de la habilidad). Menores aplazados de la entrega 1: chispas del fondo de combate ~1,9× más grandes en vertical (`tamPunto` se fija al construir la sala con el rect del mapa) y comentarios viejos en `mundo.ts` (`sala2d`) y en el JSDoc de `vista` (falta `salaY`). Diseño en `docs/superpowers/specs/2026-11-07-movil-vertical-design.md`.
 3. **Poner al día el documento de desarrollo** (artefacto de arriba): Bosque a 11 salas, maga a 45 PV, 2 a 4 grupos por sala, nivel máximo 12 y las cifras de los jefes; sus tablas de monstruos, jefes y objetos siguen siendo las de la versión 1.
 4. **Versión final y versión 2**: enlace desde el portafolio (fuera del hito 7, para la versión final) y variedad entre partidas.
-5. **Limpieza**: el traspaso `docs/superpowers/handoff/2026-10-30-cauce-seco-traspaso.md` está anticuado (borrarlo o ponerlo al día).
 
 ## Stack y decisiones fijas
 
