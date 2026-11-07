@@ -12,5 +12,17 @@
     "alturaDescripcion": 76,
     "alturaFicha": 44,
     "alturaPestana": 16
+  },
+  "menu": {
+    "margen": 8,
+    "pestana": 36,
+    "boton": 44,
+    "fila": 36,
+    "filaMin": 30,
+    "cabecera": 40,
+    "pie": 24,
+    "tarjetaMax": 190,
+    "celda": 48,
+    "separacion": 2
   }
 }

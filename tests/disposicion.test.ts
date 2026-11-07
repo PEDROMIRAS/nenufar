@@ -1,5 +1,14 @@
 import { describe, expect, test } from 'vitest';
-import { anchoNombre, disposicionCombate, type DisposicionCombate } from '../src/core/disposicion';
+import {
+  anchoNombre,
+  botonesAltos,
+  celdasBestiario,
+  disposicionCombate,
+  disposicionPausa,
+  filasLista,
+  tarjetasAltas,
+  type DisposicionCombate,
+} from '../src/core/disposicion';
 import { partirTexto } from '../src/core/texto';
 import type { Rect } from '../src/core/menu';
 import { VERTICAL } from '../src/data/datos';
@@ -85,5 +94,82 @@ describe('anchoNombre', () => {
     const lineas = partirTexto('Acólito de la luna falsa A', letras);
     expect(lineas.length).toBeGreaterThan(1);
     for (const l of lineas) expect(l.length).toBeLessThanOrEqual(letras);
+  });
+});
+
+describe('menús en vertical', () => {
+  const sePisan = (r: Rect[]): boolean =>
+    r.some((a, i) => r.slice(i + 1).some((b) => seCruzan(a, b)));
+
+  test('disposicionPausa en 320×569: pestañas arriba, botones abajo y contenido en medio', () => {
+    const p = disposicionPausa(320, 569, VERTICAL);
+    expect(p.pestanas).toHaveLength(5);
+    expect(p.pestanas[0]!.y).toBe(8);
+    expect(p.pestanas[0]!.ancho).toBeCloseTo(57.6);
+    expect(p.botones).toHaveLength(2);
+    for (const b of p.botones) expect(b.y + b.alto).toBe(561);
+    const arriba = p.pestanas[0]!.y + p.pestanas[0]!.alto;
+    expect(p.contenido.y).toBeGreaterThanOrEqual(arriba);
+    expect(p.contenido.y + p.contenido.alto).toBeLessThanOrEqual(p.botones[0]!.y);
+    const todo = [...p.pestanas, p.contenido, ...p.botones];
+    for (const r of todo) expect(dentroDe(r, 320, 569)).toBe(true);
+    expect(sePisan(todo)).toBe(false);
+  });
+
+  test('disposicionPausa en una tableta de 480×640 usa todo el ancho menos márgenes', () => {
+    const p = disposicionPausa(480, 640, VERTICAL);
+    expect(p.contenido.x).toBe(8);
+    expect(p.contenido.ancho).toBe(464);
+    expect(p.pestanas[0]!.x).toBe(8);
+    const ultima = p.pestanas[4]!;
+    expect(ultima.x + ultima.ancho).toBeCloseTo(472);
+  });
+
+  test('botonesAltos: tres en una fila y más en dos columnas, siempre dentro', () => {
+    const tres = botonesAltos(3, 320, 569, VERTICAL);
+    expect(new Set(tres.map((b) => b.y)).size).toBe(1);
+    expect(tres[2]!.x + tres[2]!.ancho).toBe(312);
+    expect(tres[0]!.y + tres[0]!.alto).toBe(561);
+    const cinco = botonesAltos(5, 320, 569, VERTICAL);
+    expect(new Set(cinco.map((b) => b.x)).size).toBe(2);
+    for (const b of cinco) expect(dentroDe(b, 320, 569)).toBe(true);
+    expect(sePisan(cinco)).toBe(false);
+  });
+
+  test('tarjetasAltas: dos tarjetas a ancho completo entre la cabecera y el pie', () => {
+    const t = tarjetasAltas(2, 320, 569, VERTICAL);
+    expect(t).toHaveLength(2);
+    for (const r of t) {
+      expect(r.ancho).toBe(304);
+      expect(r.y).toBeGreaterThanOrEqual(40);
+      expect(r.y + r.alto).toBeLessThanOrEqual(569 - 24);
+      expect(r.alto).toBeLessThanOrEqual(190);
+    }
+    expect(sePisan(t)).toBe(false);
+  });
+
+  test('filasLista: siete filas dentro del hueco, o filaMin si no caben', () => {
+    const { filas, alto } = filasLista(7, 70, 500, 320, VERTICAL);
+    expect(filas).toHaveLength(7);
+    for (const f of filas) {
+      expect(f.ancho).toBe(304);
+      expect(f.y).toBeGreaterThanOrEqual(70);
+      expect(f.y + f.alto).toBeLessThanOrEqual(500);
+    }
+    expect(alto).toBeCloseTo(7 * filas[0]!.alto);
+    const justas = filasLista(7, 70, 120, 320, VERTICAL);
+    expect(justas.filas[0]!.alto).toBe(VERTICAL.menu.filaMin);
+    expect(justas.filas[6]!.y + justas.filas[6]!.alto).toBeLessThanOrEqual(569);
+  });
+
+  test('celdasBestiario: 24 casillas en 6 columnas × 4 filas dentro del ancho', () => {
+    const { celdas, alto } = celdasBestiario(24, 320, 56, VERTICAL);
+    expect(celdas).toHaveLength(24);
+    expect(new Set(celdas.map((c) => c.x)).size).toBe(6);
+    expect(new Set(celdas.map((c) => c.y)).size).toBe(4);
+    for (const c of celdas) expect(dentroDe(c, 320, 9999)).toBe(true);
+    expect(sePisan(celdas)).toBe(false);
+    const ultima = celdas[23]!;
+    expect(alto).toBeCloseTo(ultima.y + ultima.alto - 56);
   });
 });

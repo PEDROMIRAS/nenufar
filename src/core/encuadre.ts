@@ -24,6 +24,24 @@ export interface DatosVertical {
     /** Sitio sobre la lista para la pestaña con el nombre del menú. */
     alturaPestana: number;
   };
+  /** Medidas de los menús en la interfaz alta (pausa, elegir rana, listas, bestiario), en unidades lógicas. */
+  menu: {
+    margen: number;
+    /** Alto de las pestañas de arriba. */
+    pestana: number;
+    /** Alto de los botones de abajo: lo bastante para un dedo. */
+    boton: number;
+    /** Alto de una fila de lista y lo mínimo a lo que se encoge cuando hay muchas. */
+    fila: number;
+    filaMin: number;
+    /** Sitio fijo arriba y abajo de las tarjetas (título y pista), y alto máximo de cada tarjeta. */
+    cabecera: number;
+    pie: number;
+    tarjetaMax: number;
+    /** Lado mínimo de una casilla del bestiario y separación entre casillas. */
+    celda: number;
+    separacion: number;
+  };
 }
 
 /** `escala` es unidades de ventana por unidad lógica de la sala; `x`, `y` la esquina de la sala sin desplazar. */
