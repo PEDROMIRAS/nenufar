@@ -1,4 +1,11 @@
-import { colocarSala, desplazamientoX, encajarSala, type Colocacion } from '../core/encuadre';
+import {
+  colocarSala,
+  cubrirSala,
+  desplazamientoX,
+  encajarSala,
+  interfazAlta,
+  type Colocacion,
+} from '../core/encuadre';
 import { VERTICAL } from '../data/datos';
 
 /** Tamaño lógico de la interfaz de los menús (elegir rana, combate, inventario…): 15×11 tiles de 32 px. */
@@ -31,13 +38,23 @@ export const vista = { ancho: SALA_ANCHO, alto: SALA_ALTO, hud: 1, salaY: 0 };
  */
 const HUD_CSS = { divisor: 400, min: 0.9, max: 2 };
 export const area = { x: 0, y: 0, ancho: ANCHO, alto: ALTO };
+/**
+ * Tamaño lógico de la interfaz que se está usando: 480×352 (centrada) o, con la ventana vertical y una escena
+ * adaptada (`alta`), de ancho fijo (~320) y el alto que dé la ventana. Las escenas adaptadas se reparten con él.
+ */
+export const interfaz = { ancho: ANCHO, alto: ALTO, alta: false };
 
 let dpr = 1;
 let ventana = true;
+/** La escena de arriba pide la interfaz alta; solo vale si la ventana es vertical. */
+let pideAlta = false;
+let vertical = false;
+const interfazVertical = { ancho: ANCHO, alto: ALTO };
 /** Píxeles reales por píxel lógico y desplazamiento (en píxeles reales) del origen, en cada forma. */
 const modos = {
   ventana: { escala: 1, x: 0, y: 0 },
   menu: { escala: 1, x: 0, y: 0 },
+  alta: { escala: 1, x: 0, y: 0 },
 };
 /** Ancho y alto reales de la ventana. */
 const real = { ancho: 1, alto: 1 };
@@ -58,7 +75,32 @@ export const alRedimensionar = (f: () => void): void => {
 let reajustar = (): void => {};
 
 /** Escala activa: lo que mide un píxel lógico en píxeles reales. */
-const activo = () => (ventana ? modos.ventana : modos.menu);
+const activo = () => (ventana ? modos.ventana : pideAlta && vertical ? modos.alta : modos.menu);
+
+/** ¿La ventana es más alta que ancha (móvil de pie)? */
+export const esVertical = (): boolean => vertical;
+
+/** Pone `interfaz` y `area` al tamaño de la forma activa. */
+function refrescarInterfaz(): void {
+  if (!ventana && pideAlta && vertical) {
+    interfaz.ancho = interfazVertical.ancho;
+    interfaz.alto = interfazVertical.alto;
+    interfaz.alta = true;
+    area.x = 0;
+    area.y = 0;
+    area.ancho = interfaz.ancho;
+    area.alto = interfaz.alto;
+    return;
+  }
+  const menu = modos.menu.escala;
+  interfaz.ancho = ANCHO;
+  interfaz.alto = ALTO;
+  interfaz.alta = false;
+  area.x = -modos.menu.x / menu;
+  area.y = -modos.menu.y / menu;
+  area.ancho = real.ancho / menu;
+  area.alto = real.alto / menu;
+}
 
 /**
  * Coordenada lógica redondeada al píxel real de pantalla, no al lógico: con pasos de 1,6 px lógicos por
@@ -72,8 +114,10 @@ export function rellenarArea(ctx: CanvasRenderingContext2D): void {
 }
 
 /** Cambia de forma de colocar (la escena de arriba del mapa usa «ventana»). */
-export function fijarModo(esVentana: boolean): void {
+export function fijarModo(esVentana: boolean, alta = false): void {
   ventana = esVentana;
+  pideAlta = alta;
+  refrescarInterfaz();
 }
 
 /** Deja el contexto limpio y colocado para la forma activa; se llama antes de dibujar cada fotograma. */
@@ -160,7 +204,9 @@ export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingCont
       SALA_ALTO,
       TILE,
     );
-    completa = encajarSala(real.ancho, real.alto, SALA_ANCHO, SALA_ALTO);
+    vertical = real.ancho < real.alto;
+    // En vertical la sala de fondo (combate, título) cubre la ventana, recortada por los lados: sin bandas negras.
+    completa = (vertical ? cubrirSala : encajarSala)(real.ancho, real.alto, SALA_ANCHO, SALA_ALTO);
     const sala = mapa.escala;
     const menu = Math.min(real.ancho / ANCHO, real.alto / ALTO);
     // Origen en la esquina de la ventana; la sala queda centrada y lo que sobra a los lados es de la interfaz.
@@ -174,10 +220,11 @@ export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingCont
       x: (real.ancho - ANCHO * menu) / 2,
       y: (real.alto - ALTO * menu) / 2,
     };
-    area.x = -modos.menu.x / menu;
-    area.y = -modos.menu.y / menu;
-    area.ancho = real.ancho / menu;
-    area.alto = real.alto / menu;
+    const alta = interfazAlta(innerWidth, innerHeight, VERTICAL);
+    interfazVertical.ancho = alta.ancho;
+    interfazVertical.alto = alta.alto;
+    modos.alta = { escala: alta.escala * dpr, x: 0, y: 0 };
+    refrescarInterfaz();
     reajustar();
     for (const f of alCambiar) f();
   };

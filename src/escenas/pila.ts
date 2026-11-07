@@ -5,18 +5,22 @@ import type { Escena } from './escena';
 export class PilaEscenas {
   private readonly escenas: Escena[] = [];
 
-  /** `alCambiar` se avisa, antes de entrar, de si la escena de arriba dibuja en coordenadas de la ventana. */
-  constructor(private readonly alCambiar: (ventana: boolean) => void = () => {}) {}
+  /**
+   * `alCambiar` se avisa, antes de entrar, de si la escena de arriba dibuja en coordenadas de la ventana y de si
+   * pide la interfaz alta (ventana vertical).
+   */
+  constructor(private readonly alCambiar: (ventana: boolean, alta: boolean) => void = () => {}) {}
 
   apilar(escena: Escena): void {
-    this.alCambiar(escena.ventana === true);
+    this.alCambiar(escena.ventana === true, escena.alta === true);
     this.escenas.push(escena);
     escena.enter();
   }
 
   desapilar(): void {
     this.escenas.pop()?.exit();
-    this.alCambiar(this.escenas[this.escenas.length - 1]?.ventana === true);
+    const arriba = this.escenas[this.escenas.length - 1];
+    this.alCambiar(arriba?.ventana === true, arriba?.alta === true);
   }
 
   /** Sustituye la escena de arriba (por ejemplo, el mapa de una zona por el de la siguiente). */
