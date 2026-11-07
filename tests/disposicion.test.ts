@@ -5,6 +5,7 @@ import {
   botonesAltosCacheados,
   celdasBestiario,
   disposicionCombate,
+  disposicionEquipo,
   disposicionAjustes,
   disposicionPausa,
   disposicionPausaCacheada,
@@ -13,6 +14,7 @@ import {
   letrasEnAncho,
   tarjetaTocada,
   toquePuntos,
+  toqueEquipo,
   tarjetasAltas,
   type DisposicionCombate,
 } from '../src/core/disposicion';
@@ -290,4 +292,34 @@ describe('toquePuntos', () => {
     expect(toquePuntos(f.x + 50, y - 20, horizontal, signoH).fila).toBe(1);
     expect(toquePuntos(f.x + 50, 20, horizontal, signoH).fila).toBe(-1);
   });
+});
+
+describe('equipo en vertical', () => {
+  test('toqueEquipo: los extremos de cada fila ciclan −1 y +1 y el centro solo elige', () => {
+    const { filas } = disposicionEquipo(320, 569, VERTICAL);
+    expect(filas).toHaveLength(2);
+    filas.forEach((f, i) => {
+      const y = f.y + f.alto / 2;
+      expect(toqueEquipo(f.x + 22, y, filas, 44)).toEqual({ fila: i, dir: -1 });
+      expect(toqueEquipo(f.x + f.ancho - 22, y, filas, 44)).toEqual({ fila: i, dir: 1 });
+      expect(toqueEquipo(f.x + f.ancho / 2, y, filas, 44)).toEqual({ fila: i, dir: 0 });
+    });
+    expect(toqueEquipo(160, 5, filas, 44)).toEqual({ fila: -1, dir: 0 });
+  });
+
+  test.each([569, 640, 692])(
+    'disposicionEquipo en 320×%i cabe sin pisarse y sobre los botones',
+    (alto) => {
+      const d = disposicionEquipo(320, alto, VERTICAL);
+      const botones = botonesAltos(2, 320, alto, VERTICAL);
+      const piezas = [d.rana, ...d.filas, d.estadisticas];
+      for (const r of piezas) expect(dentroDe(r, 320, alto)).toBe(true);
+      expect(sePisan(piezas)).toBe(false);
+      // Debajo de cada fila cabe su efecto (dos líneas) antes de lo siguiente.
+      const ultima = piezas[piezas.length - 1]!;
+      expect(ultima.y + ultima.alto).toBeLessThanOrEqual(botones[0]!.y);
+      expect(d.filas[1]!.y).toBeGreaterThanOrEqual(d.filas[0]!.y + d.filas[0]!.alto + 26);
+      expect(d.estadisticas.y).toBeGreaterThanOrEqual(d.filas[1]!.y + d.filas[1]!.alto + 26);
+    },
+  );
 });

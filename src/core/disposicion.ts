@@ -271,3 +271,39 @@ export function toquePuntos(
   if (dx >= signo.menos - h && dx < signo.menos + signo.ancho + h) return { fila, signo: -1 };
   return { fila, signo: dx >= signo.mas - h ? 1 : 0 };
 }
+
+/**
+ * Pantalla de equipo en la interfaz alta, de arriba abajo: la rana, las filas de arma y armadura (a ancho
+ * completo, con sitio debajo para dos líneas de efecto) y las estadísticas; los botones van abajo aparte.
+ * La cabecera ocupa hasta `y = 100` (hasta dos líneas de título y dos de pista).
+ */
+export function disposicionEquipo(
+  ancho: number,
+  alto: number,
+  d: DatosVertical,
+): { rana: Rect; filas: Rect[]; estadisticas: Rect } {
+  const m = d.menu.margen;
+  const util = ancho - 2 * m;
+  const rana = r(m, 100, util, 112);
+  const paso = d.menu.boton + 2 * 13 + 10;
+  const filas = [0, 1].map((i) => r(m, rana.y + rana.alto + m + i * paso, util, d.menu.boton));
+  const estadisticas = r(m, filas[1]!.y + paso, util, 88);
+  return { rana, filas, estadisticas };
+}
+
+/**
+ * Qué se toca en una fila de equipo: la fila bajo (x, y) y `dir`: −1 en los `anchoFlecha` de la izquierda, 1 en
+ * los de la derecha y 0 en medio (solo la elige).
+ */
+export function toqueEquipo(
+  x: number,
+  y: number,
+  filas: readonly Rect[],
+  anchoFlecha: number,
+): { fila: number; dir: -1 | 0 | 1 } {
+  const fila = filas.findIndex((f) => contiene(f, x, y));
+  const f = filas[fila];
+  if (!f) return { fila: -1, dir: 0 };
+  if (x < f.x + anchoFlecha) return { fila, dir: -1 };
+  return { fila, dir: x >= f.x + f.ancho - anchoFlecha ? 1 : 0 };
+}

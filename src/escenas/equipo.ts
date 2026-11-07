@@ -1,4 +1,5 @@
 import type { Acciones } from '../core/acciones';
+import { toqueEquipo } from '../core/disposicion';
 import type { Luchador } from '../core/combate';
 import {
   bonoDe,
@@ -17,12 +18,12 @@ import { opcionTocada, type MenuVista } from '../render/combate';
 import {
   ANCHO_FLECHA,
   dibujarEquipo,
-  FILAS_EQUIPO,
+  filasEquipo,
   type CambioEstadistica,
   type FilaEquipo,
   type VistaEquipo,
 } from '../render/equipo';
-import { dentro, esTactil } from '../render/pantalla';
+import { esTactil } from '../render/pantalla';
 import type { Sprite } from '../render/recursos';
 import { sonar } from '../render/sonido';
 import { vestirHoja } from '../render/tinte';
@@ -61,6 +62,8 @@ const ESTADISTICAS: [keyof Instantanea, keyof Estadisticas, string][] = [
 
 /** Pantalla de equipo: la rana vestida con lo que se mira, sus estadísticas antes y después, y la decisión. */
 export class EscenaEquipo implements Escena {
+  readonly alta = true;
+
   private tiempo = 0;
   private activa = 0;
   private ultimoX = 0;
@@ -180,12 +183,10 @@ export class EscenaEquipo implements Escena {
       return;
     }
     if (this.modo.tipo !== 'cambiar') return;
-    const i = FILAS_EQUIPO.findIndex((r) => dentro(x, y, r));
-    const r = FILAS_EQUIPO[i];
-    if (!r) return;
-    this.activa = i;
-    if (x < r.x + ANCHO_FLECHA) this.ciclar(-1);
-    else if (x >= r.x + r.ancho - ANCHO_FLECHA) this.ciclar(1);
+    const { fila, dir } = toqueEquipo(x, y, filasEquipo(), ANCHO_FLECHA);
+    if (fila < 0) return;
+    this.activa = fila;
+    if (dir !== 0) this.ciclar(dir);
     else this.rehacer();
   }
 
