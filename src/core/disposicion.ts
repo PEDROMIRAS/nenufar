@@ -239,3 +239,13 @@ export function disposicionAjustes(
   const efectos = r(x, musica.y + control + 22, ancho, control);
   return { sonido, calidad, musica, efectos, controlesY: efectos.y + control + 14 };
 }
+
+/** Índice de la tarjeta (o botón, o casilla) de `rects` bajo el toque (x, y); -1 si ninguna. */
+export function tarjetaTocada(x: number, y: number, rects: readonly Rect[]): number {
+  return rects.findIndex((rc) => contiene(rc, x, y));
+}
+
+/** Letras de la fuente normal que caben en `ancho` píxeles lógicos. */
+export function letrasEnAncho(ancho: number): number {
+  return Math.max(0, Math.floor(ancho / ANCHO_LETRA));
+}

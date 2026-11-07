@@ -10,6 +10,8 @@ import {
   disposicionPausaCacheada,
   filasLista,
   seccionTocadaAlta,
+  letrasEnAncho,
+  tarjetaTocada,
   tarjetasAltas,
   type DisposicionCombate,
 } from '../src/core/disposicion';
@@ -223,5 +225,20 @@ describe('pausa en vertical: toque y ajustes', () => {
     expect(a.musica.ancho).toBe(a.efectos.ancho);
     expect(a.controlesY).toBeGreaterThan(a.efectos.y + a.efectos.alto);
     expect(a.sonido.alto).toBeGreaterThanOrEqual(40);
+  });
+});
+
+describe('elegir rana y dificultad en vertical', () => {
+  test('tarjetaTocada: el centro de cada tarjeta da su índice y fuera de ellas -1', () => {
+    const t = tarjetasAltas(2, 320, 569, VERTICAL);
+    t.forEach((r, i) => expect(tarjetaTocada(r.x + r.ancho / 2, r.y + r.alto / 2, t)).toBe(i));
+    expect(tarjetaTocada(2, 2, t)).toBe(-1);
+    expect(tarjetaTocada(160, t[0]!.y + t[0]!.alto + 2, t)).toBe(-1);
+  });
+
+  test('letrasEnAncho: letras de la fuente normal que caben en un ancho', () => {
+    expect(letrasEnAncho(72)).toBe(10);
+    expect(letrasEnAncho(272)).toBe(37);
+    expect(letrasEnAncho(0)).toBe(0);
   });
 });
