@@ -13,6 +13,8 @@ export interface DatosVertical {
   /** Medidas del panel apilado del combate vertical, en unidades lógicas. */
   combate: {
     margen: number;
+    /** Filas que se reservan en el panel aunque el menú tenga menos, para que la escena no salte de un menú a otro. */
+    filas: number;
     /** Alto de una fila de la lista: lo bastante para un dedo. */
     fila: number;
     /** Lo mínimo a lo que se encoge una fila cuando hay muchas opciones. */

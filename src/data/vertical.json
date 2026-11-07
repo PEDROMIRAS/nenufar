@@ -6,9 +6,10 @@
   "escenaMin": 260,
   "combate": {
     "margen": 8,
+    "filas": 5,
     "fila": 36,
     "filaMin": 28,
-    "alturaDescripcion": 64,
+    "alturaDescripcion": 76,
     "alturaFicha": 44,
     "alturaPestana": 16
   }
