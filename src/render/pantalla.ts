@@ -147,10 +147,15 @@ export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingCont
     canvas.height = real.alto;
     canvas.style.width = `${innerWidth}px`;
     canvas.style.height = `${innerHeight}px`;
+    const hudCss = Math.min(
+      HUD_CSS.max,
+      Math.max(HUD_CSS.min, Math.min(innerWidth, innerHeight) / HUD_CSS.divisor),
+    );
+    // La franja del HUD está en unidades del HUD: crece con él (en una tableta, el minimapa es mucho más alto).
     mapa = colocarSala(
       real.ancho,
       real.alto,
-      { columnas: VERTICAL.columnas, franjaHud: VERTICAL.franjaHud * dpr },
+      { columnas: VERTICAL.columnas, franjaHud: VERTICAL.franjaHud * hudCss * dpr },
       SALA_ANCHO,
       SALA_ALTO,
       TILE,
@@ -163,10 +168,6 @@ export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingCont
     vista.ancho = real.ancho / sala;
     vista.alto = real.alto / sala;
     vista.salaY = mapa.y / sala;
-    const hudCss = Math.min(
-      HUD_CSS.max,
-      Math.max(HUD_CSS.min, Math.min(innerWidth, innerHeight) / HUD_CSS.divisor),
-    );
     vista.hud = (hudCss * dpr) / sala;
     modos.menu = {
       escala: menu,

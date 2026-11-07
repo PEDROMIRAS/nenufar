@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { colocarSala, desplazamientoX, encajarSala } from '../src/core/encuadre';
+import { VERTICAL } from '../src/data/datos';
 
 const SALA_ANCHO = 672;
 const SALA_ALTO = 416;
@@ -47,6 +48,12 @@ describe('colocarSala', () => {
     expect(colocarSala(390, 844, d, SALA_ANCHO, SALA_ALTO, TILE).escala).not.toBeCloseTo(
       encajarSala(390, 844, SALA_ANCHO, SALA_ALTO).escala,
     );
+  });
+});
+
+describe('franja del HUD en vertical', () => {
+  test('cubre el minimapa entero (6 de margen + 7·12 − 4 + 2·3 de alto), en unidades del HUD', () => {
+    expect(VERTICAL.franjaHud).toBeGreaterThanOrEqual(6 + (7 * 12 - 4 + 2 * 3));
   });
 });
 
