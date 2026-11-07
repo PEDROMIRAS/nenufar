@@ -355,6 +355,16 @@ async function iniciar(): Promise<void> {
     crearZona(partida, zonaInicial, true)
       .then((zona) => {
         pila.cambiar(zona);
+        // ?combate=clave1,clave2 abre un combate contra esos monstruos nada más empezar (solo en desarrollo):
+        // para revisar la pantalla de combate sin recorrer las salas.
+        const claves = import.meta.env.DEV
+          ? new URLSearchParams(location.search).get('combate')
+          : null;
+        const grupo = claves?.split(',').flatMap((c) => (MONSTRUOS[c] ? [MONSTRUOS[c]] : [])) ?? [];
+        if (grupo.length > 0) {
+          luchar(partida, grupo, zona.fondoSala, () => {});
+          return;
+        }
         guardarAjustes({ pistasVistas: true }); // las pistas, si tocaban, ya van en esta zona
         // La historia se cuenta encima del mapa ya cargado: al pasarla, empieza el fundido de entrada.
         contar(

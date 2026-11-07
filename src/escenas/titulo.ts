@@ -147,11 +147,9 @@ export class EscenaTitulo implements Escena {
     const y = this.avisoY - VERTICAL.margen - VERTICAL.botones;
     BOTON_CONTROLES.x = VERTICAL.margen;
     BOTON_EXTRAS.x = 2 * VERTICAL.margen + ancho;
-    for (const b of [BOTON_CONTROLES, BOTON_EXTRAS]) {
-      b.y = y;
-      b.ancho = ancho;
-      b.alto = VERTICAL.botones;
-    }
+    BOTON_CONTROLES.y = BOTON_EXTRAS.y = y;
+    BOTON_CONTROLES.ancho = BOTON_EXTRAS.ancho = ancho;
+    BOTON_CONTROLES.alto = BOTON_EXTRAS.alto = VERTICAL.botones;
     this.bandaY = y - VERTICAL.margen;
   }
 

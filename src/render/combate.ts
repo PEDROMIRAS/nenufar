@@ -456,7 +456,9 @@ function dibujarEnemigo(
   const extra = (lineas.length - 1) * LINEA_NOMBRE;
   const sinSitio = tope - 36 - extra < FIN_BARRA_TURNOS;
   const avisoEnNombre = sinSitio && v.cargando.has(e);
-  const yNombre = tope - 18 - extra;
+  // Nunca sube sobre la barra de turnos: un jefe alto con el nombre en dos líneas lo baja hasta su borde
+  // (los fotogramas dejan unos píxeles libres por arriba).
+  const yNombre = Math.max(FIN_BARRA_TURNOS, tope - 18 - extra);
   if (avisoEnNombre) escribir(ctx, '¡Golpe fuerte!', x, yNombre, COLOR.aviso, 'center');
   else
     for (let i = 0; i < lineas.length; i++)
@@ -465,8 +467,10 @@ function dibujarEnemigo(
     const sube = Math.round(Math.sin(v.tiempo * 8) * 2);
     if (sinSitio) {
       const ancho = lineas.reduce((m, l) => Math.max(m, l.length), 0);
-      const izquierda = x - (avisoEnNombre ? 7 : ancho / 2) * ANCHO_LETRA - 10;
-      escribir(ctx, '▶', izquierda, yNombre, COLOR.aviso, 'center');
+      const medio = (avisoEnNombre ? 7 : ancho / 2) * ANCHO_LETRA + 10;
+      // A la izquierda del nombre; si ahí no cabe (primer enemigo, pegado al borde), a la derecha.
+      if (x - medio < 6) escribir(ctx, '◀', x + medio, yNombre, COLOR.aviso, 'center');
+      else escribir(ctx, '▶', x - medio, yNombre, COLOR.aviso, 'center');
     } else escribir(ctx, '▼', x, tope - 34 - extra + sube, COLOR.aviso, 'center');
   }
   const anchoBarra = Math.min(80, G.separacion - 8);
