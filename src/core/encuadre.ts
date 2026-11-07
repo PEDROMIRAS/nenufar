@@ -10,6 +10,18 @@ export interface DatosVertical {
   escalaMax: number;
   /** Alto lógico mínimo de la escena del combate, sobre el panel. */
   escenaMin: number;
+  /** Medidas del panel apilado del combate vertical, en unidades lógicas. */
+  combate: {
+    margen: number;
+    /** Alto de una fila de la lista: lo bastante para un dedo. */
+    fila: number;
+    /** Lo mínimo a lo que se encoge una fila cuando hay muchas opciones. */
+    filaMin: number;
+    alturaDescripcion: number;
+    alturaFicha: number;
+    /** Sitio sobre la lista para la pestaña con el nombre del menú. */
+    alturaPestana: number;
+  };
 }
 
 /** `escala` es unidades de ventana por unidad lógica de la sala; `x`, `y` la esquina de la sala sin desplazar. */

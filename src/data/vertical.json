@@ -3,5 +3,13 @@
   "franjaHud": 98,
   "interfazAncho": 320,
   "escalaMax": 1.6,
-  "escenaMin": 260
+  "escenaMin": 260,
+  "combate": {
+    "margen": 8,
+    "fila": 36,
+    "filaMin": 28,
+    "alturaDescripcion": 64,
+    "alturaFicha": 44,
+    "alturaPestana": 16
+  }
 }
