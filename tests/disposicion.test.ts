@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 import {
   anchoNombre,
   botonesAltos,
+  botonesAltosCacheados,
   celdasBestiario,
   disposicionCombate,
   disposicionPausa,
@@ -171,5 +172,21 @@ describe('menús en vertical', () => {
     expect(sePisan(celdas)).toBe(false);
     const ultima = celdas[23]!;
     expect(alto).toBeCloseTo(ultima.y + ultima.alto - 56);
+  });
+});
+
+describe('botonesAltosCacheados', () => {
+  test('la misma lista mientras no cambian n, ancho ni alto, y nueva cuando cambian', () => {
+    const a = botonesAltosCacheados(3, 320, 569, VERTICAL);
+    expect(botonesAltosCacheados(3, 320, 569, VERTICAL)).toBe(a);
+    expect(botonesAltosCacheados(3, 320, 640, VERTICAL)).not.toBe(a);
+    expect(botonesAltosCacheados(4, 320, 640, VERTICAL)).toHaveLength(4);
+  });
+
+  test('el centro de cada botón de 3 cae solo en ese botón', () => {
+    const b = botonesAltosCacheados(3, 320, 569, VERTICAL);
+    const en = (x: number, y: number): number =>
+      b.findIndex((r) => x >= r.x && x < r.x + r.ancho && y >= r.y && y < r.y + r.alto);
+    b.forEach((r, i) => expect(en(r.x + r.ancho / 2, r.y + r.alto / 2)).toBe(i));
   });
 });

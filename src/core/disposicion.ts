@@ -171,3 +171,20 @@ export function celdasBestiario(
     alto: filas * m.celda + Math.max(0, filas - 1) * m.separacion,
   };
 }
+
+let cache: { n: number; ancho: number; alto: number; botones: Rect[] } | null = null;
+
+/**
+ * `botonesAltos` recordado: se pide en cada fotograma y solo se recalcula si cambian `n`, `ancho` o `alto`
+ * (sin asignar memoria el resto del tiempo). No se tocan los rectángulos devueltos.
+ */
+export function botonesAltosCacheados(
+  n: number,
+  ancho: number,
+  alto: number,
+  d: DatosVertical,
+): Rect[] {
+  if (!cache || cache.n !== n || cache.ancho !== ancho || cache.alto !== alto)
+    cache = { n, ancho, alto, botones: botonesAltos(n, ancho, alto, d) };
+  return cache.botones;
+}

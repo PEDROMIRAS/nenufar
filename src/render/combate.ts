@@ -1,6 +1,11 @@
 import type { Combate, Luchador } from '../core/combate';
 import { partirTexto } from '../core/texto';
-import { anchoNombre, disposicionCombate, type DisposicionCombate } from '../core/disposicion';
+import {
+  anchoNombre,
+  botonesAltosCacheados,
+  disposicionCombate,
+  type DisposicionCombate,
+} from '../core/disposicion';
 import { VERTICAL } from '../data/datos';
 import { ANCHO, aPixel, dentro, interfaz, rellenarArea } from './pantalla';
 import { movimientoReducido } from './accesibilidad';
@@ -215,6 +220,7 @@ const RECT = { x: 0, y: 0, ancho: 0, alto: 0 };
  * Devuelve siempre el mismo objeto (se pide en cada fotograma): vale hasta la siguiente llamada.
  */
 function rectOpcion(i: number, n: number): typeof RECT {
+  if (interfaz.alta) return botonesAltosCacheados(n, interfaz.ancho, interfaz.alto, VERTICAL)[i]!;
   const r = RECT;
   if (n <= 6) {
     r.ancho = (ANCHO - 32 - (n - 1) * 8) / n;
