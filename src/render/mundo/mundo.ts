@@ -211,11 +211,24 @@ export class Mundo {
   }
 
   /**
-   * Toda la ventana, a la resolución de la pantalla con un tope. La sala sigue cayendo justo bajo el canvas 2D
-   * (centrado): la cámara se calcula para él y el encuadre se ensancha hasta los bordes con `setViewOffset`.
+   * Toda la ventana, a la resolución de la pantalla con un tope. La cámara se calcula para el rectángulo de la
+   * sala (`rectSala`) y el encuadre se ensancha hasta los bordes con `setViewOffset`; `encuadrar` lo repite en
+   * cada fotograma, porque en el mapa en vertical sigue a la heroína.
    */
-  private ajustarTamano(): void {
+  private encuadrar(): void {
     const { x, y, ancho, alto } = rectSala();
+    this.camara.setViewOffset(ancho, alto, -x, -y, innerWidth, innerHeight);
+    const s = this.sala2d;
+    s.x = x;
+    s.y = y;
+    s.ancho = ancho;
+    s.alto = alto;
+    const densidad = this.renderer.domElement.width / innerWidth;
+    uniformesTransparencia.uRadioPx.value =
+      (this.a.transparencia.radio * ancho * densidad) / (SALA_ANCHO / 32);
+  }
+
+  private ajustarTamano(): void {
     const densidad = Math.min(window.devicePixelRatio || 1, this.a.resolucionMaxima);
     const w = Math.round(innerWidth * densidad);
     const h = Math.round(innerHeight * densidad);
@@ -223,12 +236,9 @@ export class Mundo {
     this.renderer.domElement.style.width = `${innerWidth}px`;
     this.renderer.domElement.style.height = `${innerHeight}px`;
     this.composer.setSize(w, h);
-    this.camara.setViewOffset(ancho, alto, -x, -y, innerWidth, innerHeight);
-    this.sala2d = { x, y, ancho, alto };
+    this.encuadrar();
     this.desenfoqueH = this.a.desenfoque / w;
     this.desenfoqueV = this.a.desenfoque / h;
-    uniformesTransparencia.uRadioPx.value =
-      (this.a.transparencia.radio * ancho * densidad) / (SALA_ANCHO / 32);
   }
 
   /** Luces y materiales de una zona. Se llama al entrar en su mapa. */
@@ -565,6 +575,7 @@ export class Mundo {
     tiempo: number,
   ): void {
     this.aplicarCalidad();
+    this.encuadrar();
     if (v !== this.vista) this.mostrar(v);
     if (this.heroe?.sprite !== sprite) this.cambiarHeroina(sprite);
     const h = this.heroe!;
@@ -606,6 +617,7 @@ export class Mundo {
     luz: { nombre: string; x: number; y: number } | null,
   ): void {
     this.aplicarCalidad();
+    this.encuadrar();
     if (v !== this.vista) this.mostrar(v);
     if (this.heroe) this.heroe.malla.visible = false;
     for (const a of v.actores) a.malla.visible = false;

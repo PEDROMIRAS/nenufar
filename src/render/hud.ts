@@ -24,7 +24,7 @@ export function dibujarHud(ctx: CanvasRenderingContext2D, h: Luchador, t: Textos
 
 /** Aviso centrado en la parte baja de la sala («La fuente te restaura…»). */
 export function dibujarAviso(ctx: CanvasRenderingContext2D, texto: string): void {
-  const y = (vista.alto + SALA_ALTO) / 2 / vista.hud - 46;
+  const y = (vista.salaY + SALA_ALTO) / vista.hud - 46;
   const x = vista.ancho / 2 / vista.hud;
   ctx.fillStyle = 'rgba(9, 7, 18, 0.8)';
   ctx.fillRect(x - 170, y, 340, 26);
