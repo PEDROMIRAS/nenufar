@@ -1,9 +1,14 @@
+import { colocarSala, desplazamientoX, encajarSala, type Colocacion } from '../core/encuadre';
+import { VERTICAL } from '../data/datos';
+
 /** Tamaño lógico de la interfaz de los menús (elegir rana, combate, inventario…): 15×11 tiles de 32 px. */
 export const ANCHO = 480;
 export const ALTO = 352;
 /** La sala del mapa entera: 21×13 tiles de 32 px. Con ella se escala el mapa y el 3D. */
 export const SALA_ANCHO = 672;
 export const SALA_ALTO = 416;
+/** Lado del tile en píxeles lógicos (672 = 21·32). */
+const TILE = 32;
 /** Fondo común de las pantallas de menú (título aparte, que tiene su sala). */
 export const FONDO = '#10161a';
 
@@ -19,7 +24,7 @@ export const esTactil = (): boolean => TACTIL.matches;
  * - «menú» (todo lo demás): la interfaz de 480×352 centrada, a la mayor escala que cabe; `area` es la ventana
  *   entera en esas coordenadas, para los fondos que llenan lo que sobra.
  */
-export const vista = { ancho: SALA_ANCHO, alto: SALA_ALTO, hud: 1 };
+export const vista = { ancho: SALA_ANCHO, alto: SALA_ALTO, hud: 1, salaY: 0 };
 /**
  * Píxeles CSS por unidad del HUD del mapa: crece con el lado corto de la ventana (lado/400), pero con tope por
  * debajo y por arriba, para que en un móvil se lea y en un monitor grande no tape el mapa.
@@ -36,6 +41,15 @@ const modos = {
 };
 /** Ancho y alto reales de la ventana. */
 const real = { ancho: 1, alto: 1 };
+/**
+ * Dónde cae la sala (en píxeles reales): `mapa` es la del mapa (en vertical, ampliada y bajo el HUD) y `completa`
+ * la sala entera, que usan el fondo del combate, la presentación y el título.
+ */
+let mapa: Colocacion = { escala: 1, x: 0, y: 0 };
+let completa: Colocacion = { escala: 1, x: 0, y: 0 };
+/** Cuánto se ha corrido la sala del mapa a la izquierda para seguir a la heroína (píxeles lógicos). */
+let desplazamiento = 0;
+const rect = { x: 0, y: 0, ancho: 0, alto: 0 };
 /** Quién más debe rehacerse (el 3D) cuando cambia la ventana; se llama tras recalcular las escalas. */
 const alCambiar: (() => void)[] = [];
 export const alRedimensionar = (f: () => void): void => {
@@ -83,11 +97,23 @@ export function aVentana(x: number, y: number): [number, number] {
   return [(x * m.escala + m.x) / dpr, (y * m.escala + m.y) / dpr];
 }
 
-/** Dónde cae la sala del mapa en la ventana, en píxeles CSS: el 3D se encuadra con ella. */
+/** La cámara del mapa sigue a la heroína (que está en la x lógica `xHeroina` de la sala); solo cuenta en vertical. */
+export function seguir(xHeroina: number): void {
+  desplazamiento = desplazamientoX(xHeroina, vista.ancho, SALA_ANCHO);
+}
+
+/**
+ * Dónde cae la sala en la ventana, en píxeles CSS: el 3D se encuadra con ella. En el mapa sigue a la heroína
+ * (en vertical, ampliada y corrida); en las demás escenas es la sala entera. Devuelve siempre el mismo objeto,
+ * para no asignar memoria en cada fotograma.
+ */
 export function rectSala(): { x: number; y: number; ancho: number; alto: number } {
-  const ancho = (SALA_ANCHO * modos.ventana.escala) / dpr;
-  const alto = (SALA_ALTO * modos.ventana.escala) / dpr;
-  return { x: (innerWidth - ancho) / 2, y: (innerHeight - alto) / 2, ancho, alto };
+  const c = ventana ? mapa : completa;
+  rect.x = (c.x - (ventana ? desplazamiento * c.escala : 0)) / dpr;
+  rect.y = c.y / dpr;
+  rect.ancho = (SALA_ANCHO * c.escala) / dpr;
+  rect.alto = (SALA_ALTO * c.escala) / dpr;
+  return rect;
 }
 
 /**
@@ -121,12 +147,22 @@ export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingCont
     canvas.height = real.alto;
     canvas.style.width = `${innerWidth}px`;
     canvas.style.height = `${innerHeight}px`;
-    const sala = Math.min(real.ancho / SALA_ANCHO, real.alto / SALA_ALTO);
+    mapa = colocarSala(
+      real.ancho,
+      real.alto,
+      { columnas: VERTICAL.columnas, franjaHud: VERTICAL.franjaHud * dpr },
+      SALA_ANCHO,
+      SALA_ALTO,
+      TILE,
+    );
+    completa = encajarSala(real.ancho, real.alto, SALA_ANCHO, SALA_ALTO);
+    const sala = mapa.escala;
     const menu = Math.min(real.ancho / ANCHO, real.alto / ALTO);
     // Origen en la esquina de la ventana; la sala queda centrada y lo que sobra a los lados es de la interfaz.
     modos.ventana = { escala: sala, x: 0, y: 0 };
     vista.ancho = real.ancho / sala;
     vista.alto = real.alto / sala;
+    vista.salaY = mapa.y / sala;
     const hudCss = Math.min(
       HUD_CSS.max,
       Math.max(HUD_CSS.min, Math.min(innerWidth, innerHeight) / HUD_CSS.divisor),
