@@ -4,6 +4,12 @@ export interface DatosVertical {
   columnas: number;
   /** Alto que se deja libre arriba para el HUD, en las mismas unidades que la ventana. */
   franjaHud: number;
+  /** Ancho lógico de la interfaz alta (combate, título y menús de pie), en unidades lógicas. */
+  interfazAncho: number;
+  /** Tope de la escala de la interfaz alta (píxeles CSS por unidad lógica): en una tableta no se agranda más. */
+  escalaMax: number;
+  /** Alto lógico mínimo de la escena del combate, sobre el panel. */
+  escenaMin: number;
 }
 
 /** `escala` es unidades de ventana por unidad lógica de la sala; `x`, `y` la esquina de la sala sin desplazar. */
@@ -49,4 +55,28 @@ export function colocarSala(
 export function desplazamientoX(xHeroina: number, visibleAncho: number, salaAncho: number): number {
   if (visibleAncho >= salaAncho) return 0;
   return Math.min(Math.max(xHeroina - visibleAncho / 2, 0), salaAncho - visibleAncho);
+}
+
+/** La sala a la escala que cubre la ventana entera, centrada (recorta lo que sobra). */
+export function cubrirSala(
+  ancho: number,
+  alto: number,
+  salaAncho: number,
+  salaAlto: number,
+): Colocacion {
+  const escala = Math.max(ancho / salaAncho, alto / salaAlto);
+  return { escala, x: (ancho - salaAncho * escala) / 2, y: (alto - salaAlto * escala) / 2 };
+}
+
+/**
+ * La interfaz alta (ventana vertical): ancho lógico fijo (más en una tableta, por el tope de escala) y el alto
+ * que dé la ventana. Entra y sale en píxeles CSS; `escala` es píxeles CSS por unidad lógica.
+ */
+export function interfazAlta(
+  anchoCss: number,
+  altoCss: number,
+  d: DatosVertical,
+): { escala: number; ancho: number; alto: number } {
+  const escala = Math.min(anchoCss / d.interfazAncho, d.escalaMax);
+  return { escala, ancho: anchoCss / escala, alto: altoCss / escala };
 }

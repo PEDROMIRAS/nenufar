@@ -1,4 +1,7 @@
 {
   "columnas": 11,
-  "franjaHud": 98
+  "franjaHud": 98,
+  "interfazAncho": 320,
+  "escalaMax": 1.6,
+  "escenaMin": 260
 }

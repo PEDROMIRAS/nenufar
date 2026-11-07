@@ -155,7 +155,7 @@ export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingCont
     mapa = colocarSala(
       real.ancho,
       real.alto,
-      { columnas: VERTICAL.columnas, franjaHud: VERTICAL.franjaHud * hudCss * dpr },
+      { ...VERTICAL, franjaHud: VERTICAL.franjaHud * hudCss * dpr },
       SALA_ANCHO,
       SALA_ALTO,
       TILE,

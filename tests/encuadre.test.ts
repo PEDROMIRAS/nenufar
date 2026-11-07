@@ -1,11 +1,17 @@
 import { describe, expect, test } from 'vitest';
-import { colocarSala, desplazamientoX, encajarSala } from '../src/core/encuadre';
+import {
+  colocarSala,
+  cubrirSala,
+  desplazamientoX,
+  encajarSala,
+  interfazAlta,
+} from '../src/core/encuadre';
 import { VERTICAL } from '../src/data/datos';
 
 const SALA_ANCHO = 672;
 const SALA_ALTO = 416;
 const TILE = 32;
-const d = { columnas: 11, franjaHud: 56 };
+const d = { ...VERTICAL, franjaHud: 56 };
 
 describe('encajarSala', () => {
   test('encaja la sala entera y la centra', () => {
@@ -66,5 +72,44 @@ describe('desplazamientoX', () => {
 
   test('si se ve más ancho que la sala no hay desplazamiento', () => {
     expect(desplazamientoX(100, 700, SALA_ANCHO)).toBe(0);
+  });
+});
+
+describe('interfazAlta', () => {
+  test('en un móvil de 390 de ancho la interfaz mide 320 de ancho lógico', () => {
+    const i = interfazAlta(390, 844, VERTICAL);
+    expect(i.escala).toBeCloseTo(390 / 320);
+    expect(i.ancho).toBeCloseTo(320);
+    expect(i.alto).toBeCloseTo(844 / (390 / 320));
+  });
+
+  test('en una tableta la escala tiene tope y la interfaz se ensancha', () => {
+    const i = interfazAlta(768, 1024, VERTICAL);
+    expect(i.escala).toBe(VERTICAL.escalaMax);
+    expect(i.ancho).toBeCloseTo(768 / VERTICAL.escalaMax);
+    expect(i.alto).toBeCloseTo(1024 / VERTICAL.escalaMax);
+  });
+
+  test('en un móvil estrecho el ancho lógico sigue siendo 320', () => {
+    const i = interfazAlta(360, 640, VERTICAL);
+    expect(i.ancho).toBeCloseTo(320);
+    expect(i.alto).toBeCloseTo(640 / (360 / 320));
+  });
+});
+
+describe('cubrirSala', () => {
+  test('en vertical la sala cubre la ventana entera, recortada por los lados', () => {
+    const c = cubrirSala(390, 844, SALA_ANCHO, SALA_ALTO);
+    expect(c.escala).toBeCloseTo(844 / 416);
+    expect(c.y).toBeCloseTo(0);
+    expect(c.x).toBeLessThan(0);
+    expect(c.x + SALA_ANCHO * c.escala).toBeGreaterThanOrEqual(390);
+  });
+
+  test('en horizontal alargado cubre a lo ancho y se centra en alto', () => {
+    const c = cubrirSala(1280, 400, SALA_ANCHO, SALA_ALTO);
+    expect(c.escala).toBeCloseTo(1280 / 672);
+    expect(c.x).toBeCloseTo(0);
+    expect(c.y).toBeLessThan(0);
   });
 });
