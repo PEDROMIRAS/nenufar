@@ -307,3 +307,10 @@ export function toqueEquipo(
   if (x < f.x + anchoFlecha) return { fila, dir: -1 };
   return { fila, dir: x >= f.x + f.ancho - anchoFlecha ? 1 : 0 };
 }
+
+/** Las pestañas Bestiario y Logros, lado a lado arriba, a ancho completo menos márgenes. */
+export function pestanasExtras(ancho: number, d: DatosVertical): Rect[] {
+  const m = d.menu.margen;
+  const w = (ancho - 2 * m - m) / 2;
+  return [r(m, 4, w, d.menu.pestana - 4), r(m + w + m, 4, w, d.menu.pestana - 4)];
+}

@@ -1,9 +1,12 @@
+import { celdasBestiario, filasLista, letrasEnAncho, pestanasExtras } from '../core/disposicion';
 import { CASILLAS_BESTIARIO } from '../core/logros';
+import type { Rect } from '../core/menu';
+import { VERTICAL } from '../data/datos';
 import { dibujarMenu, type MenuVista } from './combate';
 import { dibujarCaja, dibujarFondo, dibujarMarco, PALETA } from './marco';
-import { ANCHO } from './pantalla';
+import { ANCHO, interfaz } from './pantalla';
 import { dibujarFotograma, type Sprite } from './recursos';
-import { escribir, FUENTE_GRANDE } from './texto';
+import { escribir, FUENTE_GRANDE, partirCacheado } from './texto';
 
 /** Un monstruo del bestiario: su hoja, su silueta (si aún no se ha vencido) y los textos de su ficha. */
 export interface FichaMonstruo {
@@ -47,6 +50,69 @@ export const PESTANAS = [
   { x: ANCHO / 2 + 4, y: 2, ancho: 150, alto: 32 },
 ];
 
+/** Alto de una fila de logro en la interfaz alta: el nombre y hasta dos líneas de descripción. */
+const FILA_LOGRO = 48;
+const FILAS_LOGRO_D = {
+  ...VERTICAL,
+  menu: { ...VERTICAL.menu, fila: FILA_LOGRO, filaMin: FILA_LOGRO },
+};
+
+/** La disposición de la interfaz alta, recordada mientras no cambian el tamaño ni la cantidad de logros. */
+let alta: {
+  ancho: number;
+  alto: number;
+  pestanas: Rect[];
+  celdas: Rect[];
+  columnas: number;
+  /** Debajo de la rejilla, donde va la ficha del monstruo. */
+  yFicha: number;
+} | null = null;
+
+/** Las filas de logros por separado: dependen también de cuántos hay. */
+let logrosAlta: { ancho: number; alto: number; filas: Rect[] } | null = null;
+
+function filasLogros(n: number): Rect[] {
+  if (
+    !logrosAlta ||
+    logrosAlta.ancho !== interfaz.ancho ||
+    logrosAlta.alto !== interfaz.alto ||
+    logrosAlta.filas.length !== n
+  )
+    logrosAlta = {
+      ancho: interfaz.ancho,
+      alto: interfaz.alto,
+      filas: filasLista(n, 76, interfaz.alto, interfaz.ancho, FILAS_LOGRO_D).filas,
+    };
+  return logrosAlta.filas;
+}
+
+function disposicionAlta(): NonNullable<typeof alta> {
+  if (!alta || alta.ancho !== interfaz.ancho || alta.alto !== interfaz.alto) {
+    const { celdas, alto } = celdasBestiario(CASILLAS_BESTIARIO, interfaz.ancho, 76, VERTICAL);
+    const columnas = celdas.filter((c) => c.y === celdas[0]!.y).length;
+    alta = {
+      ancho: interfaz.ancho,
+      alto: interfaz.alto,
+      pestanas: pestanasExtras(interfaz.ancho, VERTICAL),
+      celdas,
+      columnas,
+      yFicha: 76 + alto + 10,
+    };
+  }
+  return alta;
+}
+
+/** Las pestañas ahora (para dibujar y para tocar). */
+export const pestanas = (): readonly Rect[] =>
+  interfaz.alta ? disposicionAlta().pestanas : PESTANAS;
+/** Las casillas del bestiario ahora. */
+export const celdas = (): readonly Rect[] => (interfaz.alta ? disposicionAlta().celdas : CELDAS);
+/** Casillas por fila del bestiario ahora (lo que salta ↑ y ↓ con el teclado). */
+export const columnasBestiario = (): number => (interfaz.alta ? disposicionAlta().columnas : 8);
+/** Letras por línea de la ficha de un monstruo: las que caben en su marco. */
+export const letrasFicha = (): number =>
+  interfaz.alta ? letrasEnAncho(interfaz.ancho - 2 * VERTICAL.menu.margen - 16) : 52;
+
 const COLOR = {
   texto: PALETA.texto,
   tenue: PALETA.apagada,
@@ -71,9 +137,11 @@ export function siluetaDe(s: Sprite): Sprite {
 
 export function dibujarExtras(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
   dibujarFondo(ctx);
+  const esAlta = interfaz.alta;
+  const pesta = pestanas();
   // Pestañas en lugar de título: la de la página que se ve, en blanco lavanda y subrayada.
-  for (let i = 0; i < PESTANAS.length; i++) {
-    const r = PESTANAS[i]!;
+  for (let i = 0; i < pesta.length; i++) {
+    const r = pesta[i]!;
     const activa = (i === 0) === (v.pagina === 'bestiario');
     const texto = i === 0 ? 'Bestiario' : 'Logros';
     escribir(
@@ -93,17 +161,19 @@ export function dibujarExtras(ctx: CanvasRenderingContext2D, v: VistaExtras): vo
     ctx.lineWidth = 1;
     ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.ancho - 1, r.alto - 1);
   }
-  escribir(ctx, v.subtitulo, ANCHO / 2, 36, COLOR.texto, 'center');
-  escribir(ctx, v.pista, ANCHO / 2, 50, COLOR.tenue, 'center');
+  const centro = interfaz.ancho / 2;
+  escribir(ctx, v.subtitulo, centro, esAlta ? 42 : 36, COLOR.texto, 'center');
+  escribir(ctx, v.pista, centro, esAlta ? 56 : 50, COLOR.tenue, 'center');
   if (v.pagina === 'bestiario') dibujarBestiario(ctx, v);
   else dibujarLogros(ctx, v);
   dibujarMenu(ctx, v.menu);
 }
 
 function dibujarBestiario(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
+  const casillas = celdas();
   for (let i = 0; i < v.fichas.length; i++) {
     const f = v.fichas[i]!;
-    const c = CELDAS[i]!;
+    const c = casillas[i]!;
     // La casilla elegida solo se marca con las flechas en la rejilla (no en las pestañas ni en Volver).
     const marcada = i === v.elegido && !v.focoPestanas && v.menu.seleccion < 0;
     dibujarCaja(ctx, c.x, c.y, c.ancho, c.alto, marcada ? 'elegida' : 'normal');
@@ -124,13 +194,48 @@ function dibujarBestiario(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
   }
   const f = v.fichas[v.elegido];
   if (!f) return;
-  dibujarMarco(ctx, 40, 220, ANCHO - 80, 70);
-  escribir(ctx, f.nombre, ANCHO / 2, 226, f.visto ? COLOR.oro : COLOR.apagado, 'center');
+  // La ficha del elegido: en horizontal, en un marco bajo la rejilla; en la interfaz alta, a ancho completo.
+  const m = VERTICAL.menu.margen;
+  const yFicha = interfaz.alta ? disposicionAlta().yFicha : 220;
+  const marco = interfaz.alta
+    ? { x: m, y: yFicha, ancho: interfaz.ancho - 2 * m, alto: 100 }
+    : { x: 40, y: 220, ancho: ANCHO - 80, alto: 70 };
+  dibujarMarco(ctx, marco.x, marco.y, marco.ancho, marco.alto);
+  const centro = interfaz.ancho / 2;
+  escribir(ctx, f.nombre, centro, marco.y + 6, f.visto ? COLOR.oro : COLOR.apagado, 'center');
   for (let i = 0; i < f.lineas.length; i++)
-    escribir(ctx, f.lineas[i]!, ANCHO / 2, 240 + i * 12, COLOR.texto, 'center');
+    escribir(ctx, f.lineas[i]!, centro, marco.y + 20 + i * 12, COLOR.texto, 'center');
 }
 
 function dibujarLogros(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
+  if (interfaz.alta) {
+    // Una fila por logro a ancho completo; la descripción, partida si no cabe en una línea.
+    const filas = filasLogros(v.logros.length);
+    for (let i = 0; i < v.logros.length; i++) {
+      const l = v.logros[i]!;
+      const r = filas[i]!;
+      dibujarCaja(ctx, r.x, r.y + 2, r.ancho, r.alto - 4, 'normal');
+      escribir(
+        ctx,
+        l.conseguido ? '★' : '·',
+        r.x + 14,
+        r.y + 8,
+        l.conseguido ? COLOR.oro : COLOR.apagado,
+        'center',
+      );
+      escribir(ctx, l.nombre, r.x + 28, r.y + 6, l.conseguido ? COLOR.oro : COLOR.tenue);
+      const lineas = partirCacheado(l.descripcion, letrasEnAncho(r.ancho - 36));
+      for (let k = 0; k < lineas.length; k++)
+        escribir(
+          ctx,
+          lineas[k]!,
+          r.x + 28,
+          r.y + 20 + k * 12,
+          l.conseguido ? COLOR.texto : COLOR.apagado,
+        );
+    }
+    return;
+  }
   for (let i = 0; i < v.logros.length; i++) {
     const l = v.logros[i]!;
     const y = 68 + i * 36;

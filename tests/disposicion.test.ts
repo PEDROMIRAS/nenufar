@@ -10,6 +10,7 @@ import {
   disposicionPausa,
   disposicionPausaCacheada,
   filasLista,
+  pestanasExtras,
   seccionTocadaAlta,
   letrasEnAncho,
   tarjetaTocada,
@@ -322,4 +323,24 @@ describe('equipo en vertical', () => {
       expect(d.estadisticas.y).toBeGreaterThanOrEqual(d.filas[1]!.y + d.filas[1]!.alto + 26);
     },
   );
+});
+
+describe('bestiario y logros en vertical', () => {
+  test('cada una de las 24 casillas se toca por su centro y cabe en el ancho', () => {
+    const { celdas } = celdasBestiario(24, 320, 76, VERTICAL);
+    celdas.forEach((c, i) => {
+      expect(dentroDe(c, 320, 9999)).toBe(true);
+      expect(tarjetaTocada(c.x + c.ancho / 2, c.y + c.alto / 2, celdas)).toBe(i);
+    });
+  });
+
+  test('pestanasExtras: dos pestañas iguales dentro del ancho y sin pisarse', () => {
+    for (const ancho of [320, 480]) {
+      const p = pestanasExtras(ancho, VERTICAL);
+      expect(p).toHaveLength(2);
+      for (const r of p) expect(dentroDe(r, ancho, 9999)).toBe(true);
+      expect(p[0]!.ancho).toBe(p[1]!.ancho);
+      expect(sePisan(p)).toBe(false);
+    }
+  });
 });
