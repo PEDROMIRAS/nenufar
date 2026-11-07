@@ -350,6 +350,9 @@ async function iniciar(): Promise<void> {
   ): void => {
     const luchadora = luchadorDeHeroe(heroe);
     luchadora.nombre = nombre;
+    // ?puntos=N da N puntos de mejora al empezar (solo en desarrollo): para revisar la pantalla de puntos.
+    if (import.meta.env.DEV)
+      luchadora.puntos = Number(new URLSearchParams(location.search).get('puntos')) || 0;
     const inventario = inventarioInicial(luchadora, heroe, OBJETOS);
     const partida = crearPartida(heroe, sprite, dificultad, luchadora, inventario, semilla);
     crearZona(partida, zonaInicial, true)

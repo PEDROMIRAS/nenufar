@@ -12,6 +12,7 @@ import {
   seccionTocadaAlta,
   letrasEnAncho,
   tarjetaTocada,
+  toquePuntos,
   tarjetasAltas,
   type DisposicionCombate,
 } from '../src/core/disposicion';
@@ -240,5 +241,53 @@ describe('elegir rana y dificultad en vertical', () => {
     expect(letrasEnAncho(72)).toBe(10);
     expect(letrasEnAncho(272)).toBe(37);
     expect(letrasEnAncho(0)).toBe(0);
+  });
+});
+
+describe('toquePuntos', () => {
+  const horizontal = Array.from({ length: 7 }, (_, i) => ({
+    x: 16,
+    y: 70 + i * 30,
+    ancho: 448,
+    alto: 26,
+  }));
+  const signoH = { menos: 300, mas: 404, ancho: 44 };
+  const vertical = filasLista(7, 94, 505, 320, VERTICAL).filas;
+  const ancho = vertical[0]!.ancho;
+  const signoV = { menos: ancho - 6 - 44 - 50, mas: ancho - 6 - 44, ancho: 44 };
+
+  test('en vertical el centro de − y + de cada fila da su fila y su signo', () => {
+    vertical.forEach((f, i) => {
+      const y = f.y + f.alto / 2;
+      expect(toquePuntos(f.x + signoV.menos + 22, y, vertical, signoV)).toEqual({
+        fila: i,
+        signo: -1,
+      });
+      expect(toquePuntos(f.x + signoV.mas + 22, y, vertical, signoV)).toEqual({
+        fila: i,
+        signo: 1,
+      });
+      expect(toquePuntos(f.x + 20, y, vertical, signoV)).toEqual({ fila: i, signo: 0 });
+    });
+  });
+
+  test('en vertical − y + no se pisan aunque estén juntos', () => {
+    const f = vertical[0]!;
+    const y = f.y + f.alto / 2;
+    const entre = f.x + signoV.menos + signoV.ancho + 3;
+    const { signo } = toquePuntos(entre, y, vertical, signoV);
+    expect([-1, 1]).toContain(signo);
+    expect(toquePuntos(f.x + signoV.menos + 10, y, vertical, signoV).signo).toBe(-1);
+    expect(toquePuntos(f.x + signoV.mas + 10, y, vertical, signoV).signo).toBe(1);
+  });
+
+  test('en horizontal se comporta como siempre (holgura de 22 alrededor de − y +)', () => {
+    const f = horizontal[2]!;
+    const y = f.y + 13;
+    expect(toquePuntos(f.x + 280, y, horizontal, signoH)).toEqual({ fila: 2, signo: -1 });
+    expect(toquePuntos(f.x + 366, y, horizontal, signoH)).toEqual({ fila: 2, signo: 0 });
+    expect(toquePuntos(f.x + 384, y, horizontal, signoH)).toEqual({ fila: 2, signo: 1 });
+    expect(toquePuntos(f.x + 50, y - 20, horizontal, signoH).fila).toBe(1);
+    expect(toquePuntos(f.x + 50, 20, horizontal, signoH).fila).toBe(-1);
   });
 });

@@ -249,3 +249,25 @@ export function tarjetaTocada(x: number, y: number, rects: readonly Rect[]): num
 export function letrasEnAncho(ancho: number): number {
   return Math.max(0, Math.floor(ancho / ANCHO_LETRA));
 }
+
+/**
+ * Qué se toca en la pantalla de puntos: la fila bajo (x, y), contando también el hueco hasta la siguiente, y
+ * qué hay en ella: −1 (el «−»), 1 (el «+») o 0 (el resto). `signo` da `menos` y `mas` como desplazamiento desde el
+ * borde izquierdo de la fila; alrededor de cada uno se toca hasta `holgura` de más, sin pasar de la mitad del
+ * hueco entre los dos (para que no se pisen cuando están juntos).
+ */
+export function toquePuntos(
+  x: number,
+  y: number,
+  filas: readonly Rect[],
+  signo: { menos: number; mas: number; ancho: number },
+  holgura = 22,
+): { fila: number; signo: -1 | 0 | 1 } {
+  const fila = filas.findIndex((f) => contiene({ ...f, y: f.y - 2, alto: f.alto + 4 }, x, y));
+  const f = filas[fila];
+  if (!f) return { fila: -1, signo: 0 };
+  const dx = x - f.x;
+  const h = Math.min(holgura, Math.max(0, (signo.mas - signo.menos - signo.ancho) / 2));
+  if (dx >= signo.menos - h && dx < signo.menos + signo.ancho + h) return { fila, signo: -1 };
+  return { fila, signo: dx >= signo.mas - h ? 1 : 0 };
+}
