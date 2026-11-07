@@ -227,10 +227,21 @@ export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingCont
   ajustar();
   // El iPhone da medidas viejas al girar: se repite cuando el giro ya se asentó.
   let reintento = 0;
+  // El reintento avisa con un resize propio para que los controles HTML (Ajustes, Nombre) se recoloquen con las
+  // medidas buenas; ese aviso no vuelve a programar otro reintento.
+  let propio = false;
   addEventListener('resize', () => {
+    if (propio) {
+      propio = false;
+      ajustar();
+      return;
+    }
     ajustar();
     clearTimeout(reintento);
-    reintento = window.setTimeout(ajustar, 300);
+    reintento = window.setTimeout(() => {
+      propio = true;
+      dispatchEvent(new Event('resize'));
+    }, 300);
   });
   return ctx;
 }

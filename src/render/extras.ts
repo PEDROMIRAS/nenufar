@@ -64,8 +64,6 @@ let alta: {
   pestanas: Rect[];
   celdas: Rect[];
   columnas: number;
-  /** Debajo de la rejilla, donde va la ficha del monstruo. */
-  yFicha: number;
 } | null = null;
 
 /** Las filas de logros por separado: dependen también de cuántos hay. */
@@ -88,7 +86,7 @@ function filasLogros(n: number): Rect[] {
 
 function disposicionAlta(): NonNullable<typeof alta> {
   if (!alta || alta.ancho !== interfaz.ancho || alta.alto !== interfaz.alto) {
-    const { celdas, alto } = celdasBestiario(CASILLAS_BESTIARIO, interfaz.ancho, 76, VERTICAL);
+    const { celdas } = celdasBestiario(CASILLAS_BESTIARIO, interfaz.ancho, 76, VERTICAL);
     const columnas = celdas.filter((c) => c.y === celdas[0]!.y).length;
     alta = {
       ancho: interfaz.ancho,
@@ -96,7 +94,6 @@ function disposicionAlta(): NonNullable<typeof alta> {
       pestanas: pestanasExtras(interfaz.ancho, VERTICAL),
       celdas,
       columnas,
-      yFicha: 76 + alto + 10,
     };
   }
   return alta;
@@ -196,7 +193,9 @@ function dibujarBestiario(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
   if (!f) return;
   // La ficha del elegido: en horizontal, en un marco bajo la rejilla; en la interfaz alta, a ancho completo.
   const m = VERTICAL.menu.margen;
-  const yFicha = interfaz.alta ? disposicionAlta().yFicha : 220;
+  // En la interfaz alta la ficha va justo bajo la última casilla que se usa (no bajo las 4 filas reservadas).
+  const ultima = casillas[v.fichas.length - 1];
+  const yFicha = interfaz.alta && ultima ? ultima.y + ultima.alto + 10 : 220;
   const marco = interfaz.alta
     ? { x: m, y: yFicha, ancho: interfaz.ancho - 2 * m, alto: 100 }
     : { x: 40, y: 220, ancho: ANCHO - 80, alto: 70 };
