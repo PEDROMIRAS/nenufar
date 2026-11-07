@@ -52,7 +52,7 @@ import type { Actor, FondoSala, Mundo, VistaSala } from '../render/mundo/mundo';
 import type { Sprite } from '../render/recursos';
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
 import { ponerMusica, sonar } from '../render/sonido';
-import { dentro, SALA_ANCHO, vista as ventana } from '../render/pantalla';
+import { dentro, SALA_ANCHO, seguir, vista as ventana } from '../render/pantalla';
 import type { Escena } from './escena';
 
 /** Vector hacia el que mira la heroína según su dirección. */
@@ -389,10 +389,12 @@ export class EscenaMapa implements Escena {
     } else if (Math.floor(this.invulnerable * 6) % 2 !== 0) {
       opacidad = 0;
     }
+    const x = h.xAnterior + (h.cuerpo.x - h.xAnterior) * alpha;
+    seguir(x);
     mundo.dibujar(
       vista.sala,
       this.o.sprite,
-      h.xAnterior + (h.cuerpo.x - h.xAnterior) * alpha,
+      x,
       h.yAnterior + (h.cuerpo.y - h.yAnterior) * alpha,
       h.animacion,
       h.direccion,
