@@ -43,6 +43,9 @@ export interface DatosVertical {
     separacion: number;
     /** Letras por línea de las listas de un panel a ancho completo (Equipo y Objetos en la pausa). */
     letrasPanel: number;
+    /** Ancho de una letra de la fuente del título (32 px) y de la grande (24 px), en unidades lógicas: para partir textos. */
+    letraTitulo: number;
+    letraGrande: number;
   };
 }
 

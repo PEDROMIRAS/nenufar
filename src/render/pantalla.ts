@@ -168,11 +168,6 @@ export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingCont
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('El navegador no soporta Canvas 2D');
 
-  // En vertical se recomienda girar el móvil; quien elige jugar así no vuelve a ver el aviso hasta recargar.
-  document.getElementById('jugar-vertical')?.addEventListener('click', () => {
-    document.body.classList.add('vertical');
-  });
-
   // En táctil, pantalla completa con cada toque mientras no lo esté (el navegador solo la da tras un gesto;
   // en el iPhone no existe y se usa el icono de la pantalla de inicio). En el ordenador no: Escape, que
   // abre la pausa, la quitaría.

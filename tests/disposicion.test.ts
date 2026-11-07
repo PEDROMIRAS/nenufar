@@ -21,7 +21,7 @@ import {
 } from '../src/core/disposicion';
 import { partirTexto } from '../src/core/texto';
 import type { Rect } from '../src/core/menu';
-import { VERTICAL } from '../src/data/datos';
+import { MONSTRUOS, VERTICAL } from '../src/data/datos';
 
 const dentroDe = (r: Rect, ancho: number, alto: number): boolean =>
   r.x >= 0 &&
@@ -342,5 +342,27 @@ describe('bestiario y logros en vertical', () => {
       expect(p[0]!.ancho).toBe(p[1]!.ancho);
       expect(sePisan(p)).toBe(false);
     }
+  });
+});
+
+describe('nombres de jefe en la presentación vertical', () => {
+  const letras = letrasEnAncho(320 - 2 * VERTICAL.menu.margen, VERTICAL.menu.letraTitulo);
+
+  test('el nombre más largo de los monstruos, partido, cabe en el ancho con la fuente del título', () => {
+    const nombres = Object.values(MONSTRUOS).map((m) => m.nombre.split(',')[0]!.trim());
+    expect(nombres).toContain('Sacerdote de la luna falsa');
+    for (const n of nombres) {
+      const lineas = partirTexto(n, letras);
+      for (const l of lineas) expect(l.length * VERTICAL.menu.letraTitulo).toBeLessThanOrEqual(320);
+    }
+    expect(partirTexto('Sacerdote de la luna falsa', letras)).toEqual([
+      'Sacerdote de la',
+      'luna falsa',
+    ]);
+  });
+
+  test('letrasEnAncho admite el ancho de letra de otra fuente', () => {
+    expect(letrasEnAncho(288, 14.4)).toBe(20);
+    expect(letrasEnAncho(288)).toBe(40);
   });
 });

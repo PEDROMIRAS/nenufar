@@ -24,6 +24,8 @@
     "tarjetaMax": 190,
     "celda": 48,
     "separacion": 2,
-    "letrasPanel": 40
+    "letrasPanel": 40,
+    "letraTitulo": 19.2,
+    "letraGrande": 14.4
   }
 }

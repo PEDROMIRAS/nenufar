@@ -63,28 +63,6 @@
         pointer-events: none;
         image-rendering: auto;
       }
-      /* En un móvil en vertical el juego se ve pequeño: se recomienda girarlo, o jugar así igualmente. */
-      #girar {
-        display: none;
-        position: fixed;
-        inset: 0;
-        z-index: 1;
-        place-content: center;
-        gap: 16px;
-        padding: 24px;
-        background: #10161a;
-        color: #efe9da;
-        font: bold 18px monospace;
-        text-align: center;
-      }
-      #girar button {
-        justify-self: center;
-        padding: 12px 20px;
-        border: 2px solid #9b7fd6;
-        background: #120e20;
-        color: #efe9da;
-        font: bold 16px monospace;
-      }
       /* Versión nueva publicada: un toque recarga. */
       #actualizacion {
         position: fixed;
@@ -100,25 +78,6 @@
       }
       #actualizacion[hidden] {
         display: none;
-      }
-      #girar small {
-        font-size: 13px;
-        font-weight: normal;
-        color: #a99cc8;
-      }
-      @media (display-mode: fullscreen), (display-mode: standalone) {
-        #consejo-inicio {
-          display: none;
-        }
-      }
-      #girar span {
-        font-size: 48px;
-        color: #c9b6ff;
-      }
-      @media (orientation: portrait) and (pointer: coarse) {
-        body:not(.vertical) #girar {
-          display: grid;
-        }
       }
       /* Solo para lectores de pantalla: no se ve, pero se lee. */
       .solo-lector {
@@ -138,12 +97,6 @@
       aria-label="Nenúfar. Se juega con las flechas o WASD, Enter para aceptar, Escape o I para abrir el inventario, Escape para volver, e I en combate para ver qué hace cada opción; también tocando la pantalla."
     ></canvas>
     <div id="anuncios" class="solo-lector" aria-live="polite"></div>
-    <div id="girar">
-      <span aria-hidden="true">⟳</span>
-      Se juega mejor con el móvil en horizontal
-      <button id="jugar-vertical" type="button">Jugar así igualmente</button>
-      <small id="consejo-inicio">Sin barras: Compartir → Añadir a pantalla de inicio</small>
-    </div>
     <button id="actualizacion" type="button" hidden>
       Hay una versión nueva · toca para recargar
     </button>

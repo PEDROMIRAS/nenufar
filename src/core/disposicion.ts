@@ -245,9 +245,9 @@ export function tarjetaTocada(x: number, y: number, rects: readonly Rect[]): num
   return rects.findIndex((rc) => contiene(rc, x, y));
 }
 
-/** Letras de la fuente normal que caben en `ancho` píxeles lógicos. */
-export function letrasEnAncho(ancho: number): number {
-  return Math.max(0, Math.floor(ancho / ANCHO_LETRA));
+/** Letras que caben en `ancho` píxeles lógicos; sin `letra`, de la fuente normal. */
+export function letrasEnAncho(ancho: number, letra = ANCHO_LETRA): number {
+  return Math.max(0, Math.floor(ancho / letra));
 }
 
 /**
