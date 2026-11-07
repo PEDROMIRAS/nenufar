@@ -5,8 +5,11 @@ import {
   botonesAltosCacheados,
   celdasBestiario,
   disposicionCombate,
+  disposicionAjustes,
   disposicionPausa,
+  disposicionPausaCacheada,
   filasLista,
+  seccionTocadaAlta,
   tarjetasAltas,
   type DisposicionCombate,
 } from '../src/core/disposicion';
@@ -23,6 +26,8 @@ const dentroDe = (r: Rect, ancho: number, alto: number): boolean =>
   r.y + r.alto <= alto;
 const seCruzan = (a: Rect, b: Rect): boolean =>
   a.x < b.x + b.ancho && b.x < a.x + a.ancho && a.y < b.y + b.alto && b.y < a.y + a.alto;
+const sePisan = (r: Rect[]): boolean =>
+  r.some((a, i) => r.slice(i + 1).some((b) => seCruzan(a, b)));
 const piezas = (d: DisposicionCombate): Rect[] => [d.escena, d.lista, d.descripcion, d.ficha];
 
 function compruebaOrdenado(d: DisposicionCombate, ancho: number, alto: number): void {
@@ -99,9 +104,6 @@ describe('anchoNombre', () => {
 });
 
 describe('menús en vertical', () => {
-  const sePisan = (r: Rect[]): boolean =>
-    r.some((a, i) => r.slice(i + 1).some((b) => seCruzan(a, b)));
-
   test('disposicionPausa en 320×569: pestañas arriba, botones abajo y contenido en medio', () => {
     const p = disposicionPausa(320, 569, VERTICAL);
     expect(p.pestanas).toHaveLength(5);
@@ -188,5 +190,38 @@ describe('botonesAltosCacheados', () => {
     const en = (x: number, y: number): number =>
       b.findIndex((r) => x >= r.x && x < r.x + r.ancho && y >= r.y && y < r.y + r.alto);
     b.forEach((r, i) => expect(en(r.x + r.ancho / 2, r.y + r.alto / 2)).toBe(i));
+  });
+});
+
+describe('pausa en vertical: toque y ajustes', () => {
+  const centro = (r: Rect): [number, number] => [r.x + r.ancho / 2, r.y + r.alto / 2];
+
+  test('seccionTocadaAlta: pestañas 0 a 4, Seguir 5, Salir 6 y el contenido -1', () => {
+    const p = disposicionPausa(320, 569, VERTICAL);
+    p.pestanas.forEach((r, i) => expect(seccionTocadaAlta(...centro(r), p)).toBe(i));
+    expect(seccionTocadaAlta(...centro(p.botones[0]!), p)).toBe(5);
+    expect(seccionTocadaAlta(...centro(p.botones[1]!), p)).toBe(6);
+    expect(seccionTocadaAlta(...centro(p.contenido), p)).toBe(-1);
+  });
+
+  test('disposicionPausaCacheada da la misma disposición mientras no cambia el tamaño', () => {
+    const a = disposicionPausaCacheada(320, 569, VERTICAL);
+    expect(disposicionPausaCacheada(320, 569, VERTICAL)).toBe(a);
+    expect(disposicionPausaCacheada(320, 692, VERTICAL)).not.toBe(a);
+  });
+
+  test('disposicionAjustes: sonido, calidad y dos deslizadores uno bajo otro dentro del contenido', () => {
+    const c = disposicionPausa(320, 569, VERTICAL).contenido;
+    const a = disposicionAjustes(c, VERTICAL);
+    const cuatro = [a.sonido, a.calidad, a.musica, a.efectos];
+    for (const r of cuatro) {
+      expect(r.x).toBeGreaterThanOrEqual(c.x);
+      expect(r.x + r.ancho).toBeLessThanOrEqual(c.x + c.ancho);
+      expect(r.y).toBeGreaterThanOrEqual(c.y);
+    }
+    expect(sePisan(cuatro)).toBe(false);
+    expect(a.musica.ancho).toBe(a.efectos.ancho);
+    expect(a.controlesY).toBeGreaterThan(a.efectos.y + a.efectos.alto);
+    expect(a.sonido.alto).toBeGreaterThanOrEqual(40);
   });
 });

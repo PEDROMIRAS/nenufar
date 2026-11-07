@@ -23,6 +23,7 @@
     "pie": 24,
     "tarjetaMax": 190,
     "celda": 48,
-    "separacion": 2
+    "separacion": 2,
+    "letrasPanel": 40
   }
 }

@@ -188,3 +188,54 @@ export function botonesAltosCacheados(
     cache = { n, ancho, alto, botones: botonesAltos(n, ancho, alto, d) };
   return cache.botones;
 }
+
+let cachePausa: {
+  ancho: number;
+  alto: number;
+  disposicion: ReturnType<typeof disposicionPausa>;
+} | null = null;
+
+/** `disposicionPausa` recordada: se pide en cada fotograma y en cada toque, y solo cambia con el tamaño. */
+export function disposicionPausaCacheada(
+  ancho: number,
+  alto: number,
+  d: DatosVertical,
+): ReturnType<typeof disposicionPausa> {
+  if (!cachePausa || cachePausa.ancho !== ancho || cachePausa.alto !== alto)
+    cachePausa = { ancho, alto, disposicion: disposicionPausa(ancho, alto, d) };
+  return cachePausa.disposicion;
+}
+
+const contiene = (rc: Rect, x: number, y: number): boolean =>
+  x >= rc.x && x < rc.x + rc.ancho && y >= rc.y && y < rc.y + rc.alto;
+
+/** Sección bajo el toque con las pestañas y los botones verticales: 0-4 pestañas, 5 Seguir, 6 Salir; -1 ninguna. */
+export function seccionTocadaAlta(
+  x: number,
+  y: number,
+  p: ReturnType<typeof disposicionPausa>,
+): number {
+  const pestana = p.pestanas.findIndex((rc) => contiene(rc, x, y));
+  if (pestana >= 0) return pestana;
+  const boton = p.botones.findIndex((rc) => contiene(rc, x, y));
+  return boton >= 0 ? 5 + boton : -1;
+}
+
+/**
+ * Dónde van los controles de Ajustes (casillas de sonido y calidad, deslizadores de música y efectos) y desde
+ * qué altura la lista de controles, dentro del contenido `c` de la pausa vertical: uno bajo otro, a ancho completo.
+ */
+export function disposicionAjustes(
+  c: Rect,
+  d: DatosVertical,
+): { sonido: Rect; calidad: Rect; musica: Rect; efectos: Rect; controlesY: number } {
+  const sangria = d.menu.margen + 4;
+  const x = c.x + sangria;
+  const ancho = c.ancho - 2 * sangria;
+  const control = 40;
+  const sonido = r(x, c.y + 32, control, control);
+  const calidad = r(x, sonido.y + control + 4, control, control);
+  const musica = r(x, calidad.y + control + 22, ancho, control);
+  const efectos = r(x, musica.y + control + 22, ancho, control);
+  return { sonido, calidad, musica, efectos, controlesY: efectos.y + control + 14 };
+}

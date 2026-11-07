@@ -41,6 +41,8 @@ export interface DatosVertical {
     /** Lado mínimo de una casilla del bestiario y separación entre casillas. */
     celda: number;
     separacion: number;
+    /** Letras por línea de las listas de un panel a ancho completo (Equipo y Objetos en la pausa). */
+    letrasPanel: number;
   };
 }
 
