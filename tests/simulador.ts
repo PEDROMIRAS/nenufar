@@ -11,7 +11,7 @@ import {
   type Luchador,
 } from '../src/core/combate';
 import { abrirCofre, equipar, inventarioInicial } from '../src/core/equipo';
-import { aplicarAltar, opcionesAltar } from '../src/core/eventos';
+import { aplicarAltar, gruposDesafio, opcionesAltar, reglasDesafio } from '../src/core/eventos';
 import type { Inventario } from '../src/core/inventario';
 import { mejorar } from '../src/core/progresion';
 import type {
@@ -184,6 +184,32 @@ function usarAltar(h: Luchador, inv: Inventario): string {
   return elegida;
 }
 
+/** Con al menos esta parte de los PV la jugadora simulada acepta el desafío; con menos, se marcha. */
+const VIDA_PARA_DESAFIO = 0.6;
+
+/**
+ * La jugadora simulada ante el desafío: lo acepta si le quedan PV de sobra, lucha los combates seguidos (los
+ * primeros sin recuperación) y, si los vence todos, abre el cofre. Devuelve si sigue viva (huir no cuenta: nunca huye).
+ */
+function jugarDesafio(
+  h: Luchador,
+  inv: Inventario,
+  grupos: readonly { monstruos: string[]; peso: number }[],
+  azar: () => number,
+  mundo: Mundo,
+  premio: () => void,
+): boolean {
+  if (h.pv < h.pvMax * VIDA_PARA_DESAFIO) return true;
+  const cadena = gruposDesafio(grupos, EVENTOS.desafio.combates, azar);
+  for (const [i, grupo] of cadena.entries()) {
+    const ultimo = i === cadena.length - 1;
+    const reglas = ultimo ? mundo.reglas : reglasDesafio(mundo.reglas);
+    if (!pelear(h, inv, grupo, azar, { ...mundo, reglas })) return false;
+  }
+  premio();
+  return true;
+}
+
 export function simular(
   nombre: string,
   partidas = 300,
@@ -204,8 +230,10 @@ export function simular(
    * (con la semilla de cada zona). Sin esto, o con probabilidad 0, ninguna zona tiene presagio.
    */
   presagios?: { forzado?: string; probabilidad?: number },
-  /** Probabilidad de un altar en cada zona (como el juego); sin esto, ninguna zona lo tiene. */
+  /** Probabilidad de una sala de evento en cada zona (como el juego); sin esto, ninguna zona la tiene. */
   probabilidadAltar = 0,
+  /** Fracción de esos eventos que son un desafío (el resto, altares). */
+  fraccionDesafio = 0,
 ) {
   const mundo: Mundo = {
     bestiario: bestiarioCon(MONSTRUOS, dificultad),
@@ -241,6 +269,7 @@ export function simular(
           salas: z.salas,
           probabilidadTrampa: zonas.violetas.probabilidadTrampa,
           probabilidadEvento: probabilidadAltar,
+          probabilidadDesafio: fraccionDesafio,
         },
         s + i * 7919,
       );
@@ -268,7 +297,7 @@ export function simular(
         if (hallazgo?.tipo === 'equipo') quizaEquipar(h, inv, hallazgo.clave);
       };
       for (const sala of zona.salas) {
-        if (sala.tipo !== 'combate' && !sala.trampa) {
+        if (sala.tipo !== 'combate' && !sala.trampa && sala.evento !== 'desafio') {
           if (sala.tipo === 'tesoro') abrir();
           if (sala.tipo === 'evento') usarAltar(h, inv);
           continue;
@@ -277,6 +306,11 @@ export function simular(
         if (fuente && h.pv < h.pvMax * 0.5) {
           fuente = false;
           restaurarFuente(h, modoFuente);
+        }
+        if (sala.evento === 'desafio') {
+          viva = jugarDesafio(h, inv, z.grupos, azar, mundoZona, abrir);
+          if (!viva) break;
+          continue;
         }
         if (sala.trampa) {
           viva = pelear(h, inv, [z.cofreTrampa], azar, mundoZona);
