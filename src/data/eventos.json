@@ -14,13 +14,36 @@
     "magia": {
       "texto": "Ofrecer magia",
       "porcentaje": 0.3,
-      "consumibles": ["pocion"],
+      "consumibles": [
+        "pocion"
+      ],
       "descripcion": "Pierdes todos tus PM ({coste}) y recuperas {cura} PV y una Poción.",
       "sinEfecto": "Sin PM que ofrecer o con la vida llena no pasaría nada."
     },
     "marcharse": {
       "texto": "Marcharse",
       "descripcion": "No pasa nada. El altar sigue esperando."
+    }
+  },
+  "desafio": {
+    "fraccion": 0.5,
+    "combates": 3,
+    "nombre": "Desafío",
+    "descripcion": "Un círculo de piedra con runas rojas. Reta a quien se acerca.",
+    "aceptar": {
+      "texto": "Aceptar el desafío",
+      "descripcion": "{combates} combates seguidos de la zona, sin recuperar vida entre ellos. Si huyes, pierdes el premio: un cofre."
+    },
+    "marcharse": {
+      "texto": "Marcharse",
+      "descripcion": "No pasa nada. El círculo sigue esperando."
+    },
+    "avisos": {
+      "superado": "¡Desafío superado!",
+      "huida": "Huyes del desafío: sin premio",
+      "vacio": "El premio del desafío está vacío",
+      "hay": "Premio del desafío",
+      "sinSitio": "no te caben más"
     }
   }
 }

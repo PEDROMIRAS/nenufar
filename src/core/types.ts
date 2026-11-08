@@ -315,6 +315,18 @@ export interface DatosEventos {
     };
     marcharse: { texto: string; descripcion: string };
   };
+  desafio: {
+    /** Fracción de las salas de evento que son un desafío. */
+    fraccion: number;
+    /** Combates seguidos, sin recuperación entre ellos. */
+    combates: number;
+    nombre: string;
+    descripcion: string;
+    /** Con `{combates}` en el sitio de la cifra. */
+    aceptar: { texto: string; descripcion: string };
+    marcharse: { texto: string; descripcion: string };
+    avisos: { superado: string; huida: string; vacio: string; hay: string; sinSitio: string };
+  };
 }
 
 /** `src/data/combate.json`: reglas comunes de todos los combates. */

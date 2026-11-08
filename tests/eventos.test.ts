@@ -1,10 +1,24 @@
 import { describe, expect, test } from 'vitest';
-import { luchadorDeHeroe, type Luchador } from '../src/core/combate';
+import {
+  actuar,
+  avanzar,
+  crearCombate,
+  luchadorDeHeroe,
+  luchadoresDeGrupo,
+  type Luchador,
+} from '../src/core/combate';
+import { crearAzar } from '../src/core/azar';
 import { equipar, inventarioInicial } from '../src/core/equipo';
-import { aplicarAltar, opcionesAltar } from '../src/core/eventos';
+import {
+  aplicarAltar,
+  gruposDesafio,
+  opcionesAltar,
+  opcionesDesafio,
+  reglasDesafio,
+} from '../src/core/eventos';
 import { crearInventario } from '../src/core/inventario';
 import { experienciaParaSubir } from '../src/core/progresion';
-import { EVENTOS, HEROES, OBJETOS, REGLAS } from '../src/data/datos';
+import { EVENTOS, HEROES, MONSTRUOS, OBJETOS, REGLAS } from '../src/data/datos';
 
 const altar = EVENTOS.altar;
 const reglas = REGLAS.experiencia;
@@ -144,5 +158,54 @@ describe('aplicarAltar', () => {
     aplicarAltar(l, inv, 'marcharse', altar, objetos, reglas);
     expect(l).toEqual(heroina(10, 40, 3, 10));
     expect(inv.consumibles).toEqual({});
+  });
+});
+
+describe('desafío', () => {
+  const desafio = EVENTOS.desafio;
+
+  test('opcionesDesafio: aceptar y marcharse, activas, con el número de combates puesto', () => {
+    const o = opcionesDesafio(desafio);
+    expect(o.map((x) => [x.clave, x.activa])).toEqual([
+      ['aceptar', true],
+      ['marcharse', true],
+    ]);
+    expect(o[0]!.descripcion).toContain(String(desafio.combates));
+    expect(o[0]!.descripcion).not.toContain('{');
+  });
+
+  test('reglasDesafio quita la recuperación y deja el resto como estaba', () => {
+    const r = reglasDesafio(REGLAS);
+    expect(REGLAS.recuperacionTrasVictoria).toBeGreaterThan(0);
+    expect(r.recuperacionTrasVictoria).toBe(0);
+    expect({ ...r, recuperacionTrasVictoria: REGLAS.recuperacionTrasVictoria }).toEqual(REGLAS);
+  });
+
+  /** La ronin con vida a medias vence de un golpe a un limo, con unas reglas u otras; devuelve su vida. */
+  function vidaTrasVencer(reglas: typeof REGLAS): number {
+    const l = heroina(10, 40, 3, 10);
+    Object.assign(l, { ataque: 999, velocidad: 999 });
+    const c = crearCombate(l, luchadoresDeGrupo([MONSTRUOS.limo!]), reglas, crearAzar(1));
+    avanzar(c);
+    actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
+    expect(c.resultado).toBe('victoria');
+    return l.pv;
+  }
+
+  test('con reglasDesafio un combate ganado no devuelve vida; con las normales, sí', () => {
+    expect(vidaTrasVencer(REGLAS)).toBeGreaterThan(10);
+    expect(vidaTrasVencer(reglasDesafio(REGLAS))).toBe(10);
+  });
+
+  test('gruposDesafio da tantos grupos como combates, los mismos con la misma semilla', () => {
+    const grupos = [
+      { monstruos: 'a', peso: 1 },
+      { monstruos: 'b', peso: 1 },
+      { monstruos: 'c', peso: 2 },
+    ];
+    const una = gruposDesafio(grupos, desafio.combates, crearAzar(5));
+    expect(una).toHaveLength(desafio.combates);
+    expect(gruposDesafio(grupos, desafio.combates, crearAzar(5))).toEqual(una);
+    expect(new Set(gruposDesafio(grupos, 200, crearAzar(9)))).toEqual(new Set(['a', 'b', 'c']));
   });
 });

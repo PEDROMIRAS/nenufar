@@ -61,6 +61,8 @@ describe('guardado de la partida', () => {
     [{ tipo: 'grupo', indice: 0, quien: null }],
     [{ tipo: 'trampa' }],
     [{ tipo: 'final' }],
+    [{ tipo: 'desafio', paso: 0 }],
+    [{ tipo: 'desafio', paso: 2 }],
   ] as const)('conserva el combate interrumpido %j', (combate) => {
     const g = { ...ejemplo(), combate };
     expect(leerGuardado(JSON.stringify(g), conocido)?.combate).toEqual(combate);
@@ -132,6 +134,15 @@ describe('guardado de la partida', () => {
       'iniciativa rara',
       (g) =>
         ((g as Record<string, unknown>).combate = { tipo: 'grupo', indice: 0, quien: 'nadie' }),
+    ],
+    ['desafío sin paso', (g) => ((g as Record<string, unknown>).combate = { tipo: 'desafio' })],
+    [
+      'desafío con paso a medias',
+      (g) => ((g as Record<string, unknown>).combate = { tipo: 'desafio', paso: 1.5 }),
+    ],
+    [
+      'desafío con paso negativo',
+      (g) => ((g as Record<string, unknown>).combate = { tipo: 'desafio', paso: -1 }),
     ],
     ['heroína desconocida', (g) => (g.heroe = 'sapo')],
     ['dificultad desconocida', (g) => (g.dificultad = 'imposible')],

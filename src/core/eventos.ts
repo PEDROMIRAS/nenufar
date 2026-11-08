@@ -1,14 +1,16 @@
+import { elegirConPeso } from './azar';
 import type { Luchador } from './combate';
 import { crecerEquipo } from './equipo';
 import { guardar, type Inventario } from './inventario';
 import { experienciaParaSubir, ganarExperiencia } from './progresion';
-import type { DatosEventos, ObjetosJson, ReglasProgresion } from './types';
+import type { DatosEventos, ObjetosJson, ReglasCombate, ReglasProgresion } from './types';
 
 type Altar = DatosEventos['altar'];
+type Desafio = DatosEventos['desafio'];
 type Vida = Pick<Luchador, 'pv' | 'pvMax' | 'pm' | 'pmMax' | 'nivel'>;
 
 export interface OpcionEvento {
-  clave: 'vida' | 'magia' | 'marcharse';
+  clave: 'vida' | 'magia' | 'aceptar' | 'marcharse';
   texto: string;
   /** Qué hace (o por qué no se puede) con las cifras ya puestas. */
   descripcion: string;
@@ -99,4 +101,38 @@ export function aplicarAltar(
     return `El altar acepta tu magia y te cura ${cura} PV${darConsumibles(inv, a.magia.consumibles, objetos.maximoPorTipo)}`;
   }
   return 'Te marchas del altar';
+}
+
+/** Las dos opciones del desafío, con el número de combates puesto. */
+export function opcionesDesafio(d: Desafio): OpcionEvento[] {
+  return [
+    {
+      clave: 'aceptar',
+      texto: d.aceptar.texto,
+      descripcion: d.aceptar.descripcion.replace('{combates}', String(d.combates)),
+      activa: true,
+    },
+    {
+      clave: 'marcharse',
+      texto: d.marcharse.texto,
+      descripcion: d.marcharse.descripcion,
+      activa: true,
+    },
+  ];
+}
+
+/** Las reglas de los combates del desafío que no son el último: ganar no devuelve vida ni PM. */
+export function reglasDesafio(r: ReglasCombate): ReglasCombate {
+  return { ...r, recuperacionTrasVictoria: 0 };
+}
+
+/** Los `n` grupos del desafío, sorteados con el peso de cada uno (pueden repetirse). */
+export function gruposDesafio<G>(
+  grupos: readonly { monstruos: G; peso: number }[],
+  n: number,
+  azar: () => number,
+): G[] {
+  return Array.from({ length: n }, () => elegirConPeso(grupos, azar)).flatMap((g) =>
+    g ? [g.monstruos] : [],
+  );
 }

@@ -67,7 +67,9 @@ export interface PartidaGuardada {
 export type CombateGuardado =
   | { tipo: 'grupo'; indice: number; quien: 'heroina' | 'monstruos' | null }
   | { tipo: 'trampa' }
-  | { tipo: 'final' };
+  | { tipo: 'final' }
+  /** Combate `paso` (desde 0) de la cadena del desafío de la sala. */
+  | { tipo: 'desafio'; paso: number };
 
 /** Lo que el juego conoce, para rechazar claves que ya no existen. */
 export interface Conocido {
@@ -154,6 +156,7 @@ function combateValido(c: unknown): boolean {
   if (c === null) return true;
   if (!esObjeto(c)) return false;
   if (c.tipo === 'trampa' || c.tipo === 'final') return true;
+  if (c.tipo === 'desafio') return esIndice(c.paso);
   return (
     c.tipo === 'grupo' &&
     esIndice(c.indice) &&
