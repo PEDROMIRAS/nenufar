@@ -260,6 +260,31 @@ export interface DificultadJson {
   recuperacion: number;
   /** Multiplica, además, el ataque, la magia y los PV de los jefes violetas. */
   violetas: number;
+  /** Multiplica la experiencia que dan los monstruos (un presagio); ausente = 1. */
+  experiencia?: number;
+}
+
+/** Un presagio de `src/data/presagios.json`: un precio y un premio para una zona (1 y 0 = sin cambio). */
+export interface PresagioJson {
+  nombre: string;
+  descripcion: string;
+  /** Multiplican el ataque y la vida de los monstruos de la zona. */
+  ataque: number;
+  vida: number;
+  /** Multiplica la experiencia de los monstruos. */
+  experiencia: number;
+  /** Grupos de monstruos de más en cada sala de combate. */
+  gruposExtra: number;
+  /** Niveles de más del equipo que dan los cofres. */
+  nivelCofre: number;
+  /** Qué devuelve la fuente de descanso. */
+  fuente: 'todo' | 'pm';
+}
+
+/** `src/data/presagios.json`: probabilidad de que una zona tenga presagio y la lista por clave. */
+export interface DatosPresagios {
+  probabilidad: number;
+  lista: Record<string, PresagioJson>;
 }
 
 /** `src/data/combate.json`: reglas comunes de todos los combates. */
