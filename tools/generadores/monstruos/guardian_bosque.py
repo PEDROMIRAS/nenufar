@@ -4,6 +4,7 @@ Su pose sale de la imagen de referencia (la 8) con `reducir.py`; aquí se anima.
 
 Cabe en 48 de alto con los pies en 46. Hoja: idle (2: respira), walk (4: se mece), atacar (3: se echa
 atrás y se lanza) y golpe (1). Todas las filas son la misma vista."""
+import math
 import os
 
 import numpy as np
@@ -24,11 +25,27 @@ PALETA = {"negro": (24, 20, 30), "tierra": (70, 50, 40), "piedra": (112, 90, 108
 
 DY = {"idle": [0, -1], "walk": [0, -1, 0, -1], "atacar": [1, -1, 0], "golpe": [0]}
 DX = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [4, -4, -1], "golpe": [2]}
-
-# Partes que se mueven por separado (cajas en fracciones de la figura; ver reducir.partes)
-PARTES = [(0, 0, 0.5, 0.55, "cabeza"), (0.7, 0.2, 1, 0.75, "cola")]
+# Ondulación del cuerpo (amplitud en píxeles arriba del todo, fase en vueltas): sustituye a mover partes sueltas,
+# que dejaba una grieta en el cuerpo. Cada columna se desplaza con suavidad y los pies quedan pegados al suelo.
+ONDA = {"idle": [(0.8, 0.0), (0.8, 0.5)], "walk": [(1.6, 0.0), (1.6, 0.25), (1.6, 0.5), (1.6, 0.75)],
+        "atacar": [(-1.5, 0.0), (2.5, 0.3), (0.5, 0.6)], "golpe": [(-1.0, 0.0)]}
+SUELO = 5  # filas de tierra y hierba de abajo que no se mueven
 
 _BASE = None
+
+
+def ondular(grid, amplitud, fase, ciclos=1.0, suelo=SUELO):
+    """El cuerpo ondulando como un gusano: cada columna sube o baja con una onda, más cuanto más alto (los pies
+    no se mueven). Se remuestrea fila a fila, así que no se abre ninguna grieta."""
+    alto, ancho = len(grid), len(grid[0])
+    tope = alto - suelo
+    sal = [fila[:] for fila in grid]
+    for x in range(ancho):
+        a = amplitud * math.sin(2 * math.pi * (ciclos * x / ancho - fase))
+        for y in range(tope):
+            origen = round(y + a * (tope - y) / tope)
+            sal[y][x] = grid[origen][x] if 0 <= origen < alto else None
+    return sal
 
 
 def _cuernos(grid):
@@ -56,9 +73,17 @@ def _pose():
     return _BASE
 
 
-def fotograma(direccion, anim, i):
+def _lateral(anim, i):
     lienzo = np.zeros((H, W, 4), dtype=np.uint8)
-    sal = reducir.vida(reducir.partes(_pose(), PARTES, anim, i), anim, i)
+    amp, fase = ONDA[anim][i]
+    sal = reducir.vida(ondular(_pose(), amp, fase), anim, i)
     alto, ancho = len(sal), len(sal[0])
     reducir.pegar(lienzo, sal, (W - ancho) // 2 + DX[anim][i], 47 - alto + DY[anim][i])
     return lienzo
+
+
+def fotograma(direccion, anim, i):
+    """Mira a la izquierda (hacia la heroína); `right` es la misma imagen volteada. De frente y de espaldas usa el
+    perfil hasta que haya imágenes de referencia de esas vistas (lo dibujado a mano salió infantil)."""
+    lienzo = _lateral(anim, i)
+    return lienzo[:, ::-1].copy() if direccion in ("right", "up") else lienzo
