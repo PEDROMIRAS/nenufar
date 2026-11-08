@@ -88,7 +88,6 @@ def _perfil(t, dy, bal, llama, paso):
         put(t, bx + 2, 30, MADERA[0])
     shade(t, poly_mask(t, [(12, 7 + dy), (17, 7 + dy), (21, 10 + dy), (23, 14 + dy), (18, 15 + dy), (11, 16 + dy),
                            (9, 12 + dy)]), CAPA, bias=-0.05)
-    t[ell_mask(t, 19.2, 12.4 + dy, 2.0, 2.4)] = (*VACIO, 255)
     sx = 26 + (paso if paso > 0 else 0)  # el bastón se planta delante en el paso
     by = -1 if paso < 0 else 0
     _baston(t, sx, 5 + dy + by, 30 + by)
