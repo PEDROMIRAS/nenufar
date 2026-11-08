@@ -72,3 +72,11 @@ Los márgenes actuales son de 0,6 a 2 puntos en Fácil y Difícil (ver CLAUDE.md
 ## Orden y tamaño
 
 Bloque 1 son unas 6-8 tareas (datos, sorteo en `zona.ts`, aplicar modificadores, guardado, cartel y HUD, simulador, búsqueda de cifras, test). Bloque 2 es similar pero con una escena por evento. Tras aprobar este documento, el siguiente paso es el plan (`superpowers:writing-plans`) del bloque 1.
+
+## Decisiones tomadas al ejecutar el bloque 1 (2026-11-08)
+
+- Presagio **por zona**, visible solo al entrar (cartel y nombre en el HUD), sin elección y fuera de récords y logros: las cuatro suposiciones de «Lo que decide Pedro», sin confirmar con Pedro.
+- **No se guarda** el presagio: sale de la semilla de la zona y se vuelve a sortear igual al recuperar la partida; no hizo falta subir `VERSION_GUARDADO`.
+- Lista final: `luna_roja`, `manada`, `fuente_seca` y `coraza`. *Niebla* y *Presa herida* quedan fuera. Los premios y precios cambiaron respecto a los ejemplos de arriba: el ataque de los monstruos da saltos por el redondeo y no sirve para afinar, así que se añadió `recuperacion` (continua).
+- El jefe final se lucha sin presagio.
+- El criterio de ±3 puntos no es comprobable con menos de ~2400 partidas por el ruido del simulador: se aceptó la media de las seis celdas (heroína × dificultad) dentro de ±1,5 y ninguna celda a más de unos 4 puntos. Detalle y cifras en CLAUDE.md y en el commit «Presagios: cifras equilibradas».
