@@ -181,24 +181,45 @@ PATRONES = {
 }
 
 
-def partes(grid, lista, anim, i):
-    """La pose con cada parte de `lista` movida por separado: `(x0, y0, x1, y1, patron)`, con la caja en fracciones
-    de lo que ocupa la figura (0 a 1) y el patrón de `PATRONES`. Cada píxel va con la primera parte que lo contiene.
-    Así brazos, piernas, colas y cabezas se mueven de verdad, no solo la figura entera."""
+def _ventana(f, a, b, borde):
+    """1 dentro de [a, b] y, fuera, baja suavemente a 0 a lo largo de `borde` (todo en fracciones de la figura)."""
+    if a <= f <= b:
+        return 1.0
+    d = (a - f) if f < a else (f - b)
+    u = max(0.0, 1.0 - d / borde)
+    return u * u * (3 - 2 * u)
+
+
+def partes(grid, lista, anim, i, borde=0.14):
+    """La pose con brazos, piernas, colas y cabezas moviéndose de verdad: `lista` son `(x0, y0, x1, y1, patron)`, con
+    la caja en fracciones de lo que ocupa la figura (0 a 1) y el patrón de `PATRONES`.
+
+    Cada parte arrastra la imagen con un campo de desplazamiento suave: vale lo del patrón dentro de su caja y
+    baja a cero a lo largo de `borde` fuera de ella (donde se solapan dos partes, se reparten). La imagen se
+    remuestrea con ese campo, así que nada se corta: lo que une una pierna con el cuerpo se estira en lugar de
+    abrirse (moverlas como piezas sueltas dejaba grietas y trozos flotando)."""
     alto, ancho = len(grid), len(grid[0])
     ocupados = [(x, y) for y in range(alto) for x in range(ancho) if grid[y][x] is not None]
     xs, ys = [p[0] for p in ocupados], [p[1] for p in ocupados]
     bx, by, bw, bh = min(xs), min(ys), max(xs) - min(xs) + 1, max(ys) - min(ys) + 1
-    sal = [fila[:] for fila in grid]
-    movidos = []
-    for x, y in ocupados:
-        for fx0, fy0, fx1, fy1, patron in lista:
-            if fx0 <= (x - bx) / bw < fx1 and fy0 <= (y - by) / bh < fy1:
-                dx, dy = PATRONES[patron][anim][i]
+    sal = [[None] * ancho for _ in range(alto)]
+    for y in range(alto):
+        fy = (y - by + 0.5) / bh
+        for x in range(ancho):
+            fx = (x - bx + 0.5) / bw
+            sx = sy = total = 0.0
+            for fx0, fy0, fx1, fy1, patron in lista:
+                w = _ventana(fx, fx0, fx1, borde) * _ventana(fy, fy0, fy1, borde)
+                if w > 0:
+                    dx, dy = PATRONES[patron][anim][i]
+                    sx, sy, total = sx + w * dx, sy + w * dy, total + w
+            if total > 1:
+                sx, sy = sx / total, sy / total
+            ox, oy = round(x - sx), round(y - sy)
+            if 0 <= ox < ancho and 0 <= oy < alto:
+                sal[y][x] = grid[oy][ox]
+    for y in range(alto):  # ningún píxel suelto: lo que el estiramiento deja sin vecinos se quita
+        for x in range(ancho):
+            if sal[y][x] is not None and all(k is None for k in _vecinos(sal, x, y)):
                 sal[y][x] = None
-                movidos.append((x + dx, y + dy, grid[y][x]))
-                break
-    for x, y, c in movidos:
-        if 0 <= x < ancho and 0 <= y < alto:
-            sal[y][x] = c
     return sal
