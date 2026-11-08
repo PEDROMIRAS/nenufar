@@ -10,7 +10,6 @@ import os
 import numpy as np
 
 import reducir
-from dibujo import put, line, outline, ell_mask, poly_mask, shade, rng
 
 W, H = 64, 48
 OUT = (14, 10, 20)
@@ -83,113 +82,8 @@ def _lateral(anim, i):
     return lienzo
 
 
-# --- De frente y de espaldas (dibujadas a mano con la paleta de la imagen de referencia) ---
-MUSGO = [PALETA[k] for k in ("musgo_s", "musgo", "musgo_l")]
-HUESO = [PALETA[k] for k in ("hueso_s", "hueso", "hueso_l")]
-CRESTA = [PALETA[k] for k in ("cresta_s", "cresta", "cresta_l")]
-TIERRA = [(52, 38, 34), PALETA["tierra"], (96, 72, 52)]
-PIEDRA = [(80, 64, 78), PALETA["piedra"], (140, 118, 134)]
-# Por fotograma: desplazamiento de las espiras (ox), de la cabeza (hx, hy), cuánto crece y abre la boca
-POSES = {"idle": [(0, 0, 0, 0, 0), (0, 0, 1, 0, 0)],
-         "walk": [(-1, 1, 0, 0, 0), (0, 0, 1, 0, 0), (1, -1, 0, 0, 0), (0, 0, 1, 0, 0)],
-         "atacar": [(0, 0, -2, 0, 0), (0, 0, 3, 1, 3), (0, 0, 1, 0, 1)], "golpe": [(0, 0, -1, 0, 0)]}
-
-
-def _suelo(t):
-    shade(t, ell_mask(t, 32, 44, 29, 3.4), TIERRA, rim=False)
-    g = rng(3)
-    for _ in range(30):
-        x, y = g.randint(6, 57), g.randint(42, 45)
-        if t[y, x, 3]:
-            put(t, x, y, PALETA["musgo" if g.random() < 0.7 else "musgo_l"])
-    for x in (22, 30, 38, 46):
-        put(t, x, 45, PALETA["ambar"])
-
-
-def _cuerpo(t, ox):
-    """Las espiras del cuerpo musgoso y el cuello que sube hacia la cabeza."""
-    shade(t, poly_mask(t, [(25, 20), (39, 20), (42, 34), (22, 34)]), MUSGO, bias=-0.05)  # el cuello
-    for y in range(24, 34, 3):  # anillos del cuello
-        line(t, 26 - (y - 24) // 3, y, 38 + (y - 24) // 3, y, MUSGO[0])
-    shade(t, ell_mask(t, 14 + ox, 40, 10, 5.5), MUSGO, bias=-0.1)
-    shade(t, ell_mask(t, 50 - ox, 40, 10, 5.5), MUSGO, bias=-0.1)
-    shade(t, ell_mask(t, 32 + ox * 0.5, 38, 19, 7.5), MUSGO)
-    shade(t, ell_mask(t, 32, 42, 7, 2.6), PIEDRA)
-    g = rng(11)
-    for _ in range(26):  # hiedra y brotes sobre el musgo
-        x, y = g.randint(13, 51), g.randint(22, 42)
-        if t[y, x, 3] and tuple(t[y, x, :3]) in MUSGO:
-            put(t, x, y, MUSGO[2] if g.random() < 0.5 else MUSGO[0])
-    for x in (20, 27, 37, 44):  # ramas oscuras colgando
-        line(t, x, 34, x - 1, 39 + x % 3, PALETA["negro"])
-
-
-def _aletas(t, cx, cy):
-    """Las aletas de cresta, turquesas, abiertas a los lados de la cabeza como orejas de dragón, con las puntas
-    de cuchilla hacia atrás y arriba, y un cuerno corto en medio."""
-    for s in (-1, 1):
-        shade(t, poly_mask(t, [(cx + s * 6, cy - 3), (cx + s * 12, cy - 9), (cx + s * 17, cy - 11), (cx + s * 15, cy - 4),
-                               (cx + s * 18, cy + 2), (cx + s * 13, cy + 1), (cx + s * 14, cy + 7), (cx + s * 7, cy + 4)]),
-              CRESTA, bias=0.0, rim=False)
-        for k in range(4):  # vetas más claras en cada aleta
-            put(t, cx + s * (9 + k * 2), cy - 5 + k, CRESTA[2])
-    for k in range(5):
-        put(t, cx, cy - 8 - k, CRESTA[2] if k > 2 else CRESTA[1]); put(t, cx + 1, cy - 8 - k, CRESTA[0])
-
-
-def _cabeza_frente(t, cx, cy, crece, abre):
-    _aletas(t, cx, cy)
-    # Cráneo en forma de escudo que se estrecha en el hocico (visto de frente, algo escorzado)
-    pts = [(cx - 7, cy - 6), (cx + 7, cy - 6), (cx + 9, cy + 1), (cx + 6 + crece, cy + 8), (cx + 4 + crece, cy + 14 + abre),
-           (cx - 4 - crece, cy + 14 + abre), (cx - 6 - crece, cy + 8), (cx - 9, cy + 1)]
-    shade(t, poly_mask(t, pts), HUESO, bias=0.15)
-    line(t, cx, cy - 5, cx, cy + 10, HUESO[2])  # el caballete del hocico, más claro
-    for s in (-1, 1):
-        line(t, cx + s * 2, cy - 2, cx + s * 9, cy - 4, HUESO[0])  # ceja
-        for k in range(4):  # cuenca: rendija inclinada hacia el hocico
-            put(t, cx + s * (7 - k * 1.4), cy + k * 0.8, PALETA["negro"]); put(t, cx + s * (7 - k * 1.4), cy + 1 + k * 0.8, PALETA["negro"])
-        put(t, cx + s * 6, cy + 1, PALETA["cresta_l"])
-        put(t, cx + s * 2, cy + 10, PALETA["negro"])  # fosas
-        line(t, cx + s * 5, cy + 6, cx + s * 4, cy + 12 + abre, HUESO[0])  # la comisura baja hasta la mandíbula
-    for x in range(cx - 3, cx + 4, 2):  # colmillos
-        put(t, x, cy + 14 + abre, HUESO[2]); put(t, x, cy + 13 + abre, HUESO[1])
-    for x in (cx - 4, cx + 3):  # musgo que se le agarra a la frente
-        put(t, x, cy - 5, MUSGO[1]); put(t, x + 1, cy - 4, MUSGO[0])
-
-
-def _cabeza_espalda(t, cx, cy):
-    """La nuca: placas de hueso en sombra, las aletas abiertas y musgo cayendo por el cuello."""
-    _aletas(t, cx, cy)
-    pts = [(cx - 7, cy - 6), (cx + 7, cy - 6), (cx + 9, cy + 1), (cx + 8, cy + 9), (cx - 8, cy + 9), (cx - 9, cy + 1)]
-    shade(t, poly_mask(t, pts), [HUESO[0], HUESO[0], HUESO[1], HUESO[1]], bias=0.0)
-    for k in range(-5, 9, 3):  # espinazo: placas turquesa a lo largo de la nuca
-        put(t, cx, cy + k, CRESTA[2]); put(t, cx, cy + k + 1, CRESTA[1]); put(t, cx + 1, cy + k + 1, CRESTA[0])
-    for k in range(-3, 9, 4):  # costuras de las placas
-        line(t, cx - 7, cy + k, cx - 2, cy + k + 1, HUESO[0]); line(t, cx + 3, cy + k + 1, cx + 7, cy + k, HUESO[0])
-    for x in range(cx - 8, cx + 9, 3):  # musgo cayendo por el cuello
-        line(t, x, cy + 8, x + 1, cy + 13 + x % 3, MUSGO[1])
-        put(t, x + 1, cy + 13 + x % 3, MUSGO[0])
-
-
-def _figura(vista, anim, i):
-    t = np.zeros((H, W, 4), dtype=np.uint8)
-    ox, hx, hy, crece, abre = POSES[anim][i]
-    _suelo(t)
-    _cuerpo(t, ox)
-    cx, cy = 32 + hx, 16 + hy
-    if vista == "frente":
-        _cabeza_frente(t, cx, cy, crece, abre)
-    else:
-        _cabeza_espalda(t, cx, cy)
-    outline(t, OUT)
-    return t
-
-
 def fotograma(direccion, anim, i):
-    """De frente (`down`), de espaldas (`up`) y de perfil mirando a la izquierda; `right` es el perfil volteado."""
-    if direccion == "down":
-        return _figura("frente", anim, i)
-    if direccion == "up":
-        return _figura("espalda", anim, i)
+    """Mira a la izquierda (hacia la heroína); `right` es la misma imagen volteada. De frente y de espaldas usa el
+    perfil hasta que haya imágenes de referencia de esas vistas (lo dibujado a mano salió infantil)."""
     lienzo = _lateral(anim, i)
-    return lienzo[:, ::-1].copy() if direccion == "right" else lienzo
+    return lienzo[:, ::-1].copy() if direccion in ("right", "up") else lienzo
