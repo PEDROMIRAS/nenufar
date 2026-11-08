@@ -683,7 +683,8 @@ function terminar(c: Combate, resultado: Resultado, eventos: Evento[]): void {
     eventos.push({ tipo: 'recupera', pv, pm });
     // En el nivel máximo ya no se gana experiencia: ni se cobra ni se anuncia.
     if (h.nivel < c.reglas.experiencia.nivelMaximo) {
-      const px = c.enemigos.reduce((suma, e) => suma + (e.monstruo?.experiencia ?? 0), 0);
+      const base = c.enemigos.reduce((suma, e) => suma + (e.monstruo?.experiencia ?? 0), 0);
+      const px = Math.round(base * (c.reglas.multiplicadorExperiencia ?? 1));
       eventos.push({ tipo: 'experiencia', cantidad: px });
       const niveles = ganarExperiencia(h, px, c.reglas.experiencia);
       for (const nivel of niveles) eventos.push({ tipo: 'nivel', nivel });

@@ -304,6 +304,8 @@ export interface ReglasCombate {
   invulnerabilidadTrasCombate: number;
   /** Fracción de PV y PM máximos que recupera la heroína al ganar un combate. */
   recuperacionTrasVictoria: number;
+  /** Multiplica la experiencia de cada victoria (un presagio); ausente = 1. */
+  multiplicadorExperiencia?: number;
   experiencia: ReglasProgresion;
   estados: Record<string, EstadoJson>;
 }

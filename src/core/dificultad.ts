@@ -29,5 +29,9 @@ export function bestiarioCon(
 
 /** Las reglas de combate con la recuperación tras ganar ajustada a la dificultad. */
 export function reglasCon(r: ReglasCombate, d: DificultadJson): ReglasCombate {
-  return { ...r, recuperacionTrasVictoria: r.recuperacionTrasVictoria * d.recuperacion };
+  const ajustadas = { ...r, recuperacionTrasVictoria: r.recuperacionTrasVictoria * d.recuperacion };
+  // Solo con un presagio: sin él las reglas quedan como están.
+  return d.experiencia === undefined
+    ? ajustadas
+    : { ...ajustadas, multiplicadorExperiencia: d.experiencia };
 }
