@@ -45,8 +45,8 @@ import type {
 import { aplicarRecompensa, elegirRecompensa } from './core/recompensas';
 import { cofreCon, dificultadCon, elegirPresagio, presagioUtil } from './core/presagios';
 import { jefeVioleta, modoVioleta } from './core/violetas';
-import { aplicarAltar, opcionesAltar } from './core/eventos';
-import { generarZona } from './core/zona';
+import { aplicarAltar, opcionesAltar, opcionesDesafio, reglasDesafio } from './core/eventos';
+import { generarZona, type Zona } from './core/zona';
 import controles from './data/controles.json';
 import {
   DIFICULTADES,
@@ -513,6 +513,7 @@ async function crearZona(
       probabilidadVioleta: zonas.violetas.probabilidad,
       probabilidadTrampa: zonas.violetas.probabilidadTrampa,
       probabilidadEvento: probabilidadEvento(),
+      probabilidadDesafio: probabilidadDesafio(),
     },
     partida.semilla + indice * 7919,
   );
@@ -580,7 +581,7 @@ async function crearZona(
           );
         },
     entrarDesdeNegro,
-    recuperado,
+    recuperado: recuperado ?? empezarEnDesafio(zona),
     alEntrarEnSala: (estado) => guardarPartida(guardado(partida, indice, estado)),
     grupos: datos.grupos.map(({ monstruos, peso }) => ({
       peso,
@@ -597,6 +598,8 @@ async function crearZona(
     inventario: partida.inventario,
     objetos: OBJETOS,
     usarAltar: (alTerminar) => abrirAltar(partida, alTerminar),
+    desafio: EVENTOS.desafio,
+    usarDesafio: (alTerminar) => abrirDesafio(partida, alTerminar),
     ofrecerEquipo: (clave, alFinal) => ofrecerEquipo(partida, [clave], alFinal),
     abrirPausa: () => {
       const pausa: EscenaPausa = new EscenaPausa(
@@ -652,7 +655,13 @@ async function crearZona(
       if (jefe?.jefe && jefe.oculto) lucharVioleta(partida, jefe, escena.fondoSala, alTerminar);
       else if (jefe?.jefe)
         lucharJefe(partida, jefe, historia.zonas[nombre].jefe, escena.fondoSala, alTerminar);
-      else luchar(partida, grupo, escena.fondoSala, alTerminar, quien);
+      else {
+        // En el desafío solo el último combate devuelve vida: los anteriores se luchan sin recuperación.
+        const sinRecuperar =
+          combate.tipo === 'desafio' && combate.paso + 1 < EVENTOS.desafio.combates;
+        const reglas = sinRecuperar ? reglasDesafio(partida.reglas) : partida.reglas;
+        luchar(partida, grupo, escena.fondoSala, alTerminar, quien, null, reglas);
+      }
     },
   });
   return escena;
@@ -689,11 +698,43 @@ function abrirAltar(partida: Partida, alTerminar: (usado: boolean, aviso: string
   );
 }
 
-/** ?evento=1 hace que toda zona con un callejón libre tenga un altar, solo en desarrollo. */
+/** ?desafio empieza dentro de la sala del desafío de la zona, si la tiene (solo en desarrollo). */
+function empezarEnDesafio(zona: Zona): EstadoMapa | null {
+  // shortcut: solo en desarrollo, para probar el desafío sin recorrer la zona
+  if (!import.meta.env.DEV || !new URLSearchParams(location.search).has('desafio')) return null;
+  const sala = zona.salas.findIndex((s) => s.evento === 'desafio');
+  if (sala < 0) return null;
+  return { sala, lado: null, visitadas: [sala], hechas: [], vencidos: {}, fuenteUsada: false };
+}
+
+/** La elección del desafío encima del mapa: avisa de si se acepta. */
+function abrirDesafio(partida: Partida, alTerminar: (aceptado: boolean) => void): void {
+  partida.pila.apilar(
+    new EscenaEvento(
+      EVENTOS.desafio.nombre,
+      EVENTOS.desafio.descripcion,
+      opcionesDesafio(EVENTOS.desafio),
+      (clave) => {
+        partida.pila.desapilar();
+        alTerminar(clave === 'aceptar');
+      },
+    ),
+  );
+}
+
+/** ?evento hace que toda zona con un callejón libre tenga un evento (?desafio, además, un desafío), solo en desarrollo. */
 function probabilidadEvento(): number {
-  // shortcut: solo en desarrollo, para probar el altar sin buscarlo
+  // shortcut: solo en desarrollo, para probar los eventos sin buscarlos
   if (!import.meta.env.DEV) return EVENTOS.probabilidad;
-  return new URLSearchParams(location.search).has('evento') ? 1 : EVENTOS.probabilidad;
+  const url = new URLSearchParams(location.search);
+  return url.has('evento') || url.has('desafio') ? 1 : EVENTOS.probabilidad;
+}
+
+/** La fracción de eventos que son un desafío; con ?desafio, todos (solo en desarrollo). */
+function probabilidadDesafio(): number {
+  // shortcut: solo en desarrollo, para probar el desafío sin buscarlo
+  if (!import.meta.env.DEV) return EVENTOS.desafio.fraccion;
+  return new URLSearchParams(location.search).has('desafio') ? 1 : EVENTOS.desafio.fraccion;
 }
 
 /** ?presagio=clave fuerza el presagio de todas las zonas, solo en desarrollo. */
@@ -939,6 +980,8 @@ function luchar(
   iniciativa: 'heroina' | 'monstruos' | null = null,
   /** Lo que dice el jefe al caer, antes de la subida de nivel y del equipo. */
   caida: Pagina | null = null,
+  /** Las reglas del combate; las de la partida salvo en los primeros combates del desafío. */
+  reglas: ReglasCombate = partida.reglas,
 ): void {
   const { pila, luchadora } = partida;
   const antes = instantanea(luchadora);
@@ -946,7 +989,7 @@ function luchar(
   const combate = crearCombate(
     luchadora,
     luchadoresDeGrupo(grupo.map((m) => monstruoCon(m, partida.dificultadZona))),
-    partida.reglas,
+    reglas,
     azar,
     partida.bestiario,
   );

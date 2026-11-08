@@ -41,9 +41,8 @@
     "avisos": {
       "superado": "¡Desafío superado!",
       "huida": "Huyes del desafío: sin premio",
-      "vacio": "El premio del desafío está vacío",
-      "hay": "Premio del desafío",
-      "sinSitio": "no te caben más"
+      "vacio": "El premio está vacío",
+      "hay": "Premio"
     }
   }
 }

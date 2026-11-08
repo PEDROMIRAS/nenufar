@@ -325,7 +325,7 @@ export interface DatosEventos {
     /** Con `{combates}` en el sitio de la cifra. */
     aceptar: { texto: string; descripcion: string };
     marcharse: { texto: string; descripcion: string };
-    avisos: { superado: string; huida: string; vacio: string; hay: string; sinSitio: string };
+    avisos: { superado: string; huida: string; vacio: string; hay: string };
   };
 }
 

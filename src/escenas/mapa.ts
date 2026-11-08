@@ -27,10 +27,12 @@ import {
   type Tile,
 } from '../core/sala';
 import { abrirCofre } from '../core/equipo';
+import { gruposDesafio } from '../core/eventos';
 import type { CombateGuardado, EstadoMapa } from '../core/guardado';
 import type { Inventario } from '../core/inventario';
 import type {
   BotinJson,
+  DatosEventos,
   Direccion,
   MonstruoJson,
   ObjetosJson,
@@ -147,6 +149,9 @@ export interface OpcionesMapa {
   objetos: ObjetosJson;
   /** Abre la elección del altar; avisa de si se aceptó un trato y de lo que pasó (el texto del aviso). */
   usarAltar: (alTerminar: (usado: boolean, aviso: string) => void) => void;
+  /** Los textos del desafío y cuántos combates seguidos son; y la elección encima del mapa (true si se acepta). */
+  desafio: DatosEventos['desafio'];
+  usarDesafio: (alTerminar: (aceptado: boolean) => void) => void;
   /** Enseña la comparación de una pieza de equipo encontrada y avisa al decidir. */
   ofrecerEquipo: (clave: string, alFinal: () => void) => void;
   /** Abre la pausa (MENU o el botón de la esquina). */
@@ -191,8 +196,10 @@ export class EscenaMapa implements Escena {
   private readonly azarMapa: () => number;
   /** La fuente de la sala de descanso restaura una sola vez por zona. */
   private fuenteUsada = false;
-  /** Falso tras elegir «marcharse» y hasta que la heroína se aparte del altar: así no se reabre a cada paso. */
-  private altarListo = true;
+  /** Falso tras elegir «marcharse» y hasta que la heroína se aparte del altar o del círculo: así no se reabre a cada paso. */
+  private eventoListo = true;
+  /** Combate de la cadena del desafío que sigue; se lanza en el siguiente fotograma, ya guardado el anterior. */
+  private desafioPendiente: number | null = null;
   /** Segundos de lluvia que quedan, y sus gotas (solo si la zona tiene lluvia tras el jefe). */
   private lluvia = 0;
   /** Siguiente pista por enseñar. */
@@ -254,7 +261,8 @@ export class EscenaMapa implements Escena {
       } else if (s.tipo === 'jefe') {
         this.abrirPortal(this.montar(s));
       } else if (s.tipo === 'evento' && apagado) {
-        for (const o of this.montar(s).sala.objetos) if (o.inf.name === 'altar') o.inf = apagado;
+        for (const o of this.montar(s).sala.objetos)
+          if (o.inf.name === 'altar' || o.inf.name === 'desafio') o.inf = apagado;
       }
     }
   }
@@ -309,6 +317,12 @@ export class EscenaMapa implements Escena {
       if (this.fundido >= duracionFundido) this.fundido = 0;
       return;
     }
+    if (this.desafioPendiente !== null) {
+      const paso = this.desafioPendiente;
+      this.desafioPendiente = null;
+      this.desafiar(paso);
+      return;
+    }
     // Escape, la tecla I o la mochila abren el inventario.
     colocarHud();
     if (
@@ -345,11 +359,19 @@ export class EscenaMapa implements Escena {
       );
     }
     if (this.actual.tipo === 'evento' && !this.hechas.has(this.actual)) {
-      const altar = objetoAlAlcance(this.montada.sala, 'altar', h.cuerpo, tam, ALCANCE);
-      if (!altar) this.altarListo = true;
-      else if (this.altarListo) {
-        this.altarListo = false;
-        this.usarAltar(altar);
+      const desafio = this.actual.evento === 'desafio';
+      const objeto = objetoAlAlcance(
+        this.montada.sala,
+        desafio ? 'desafio' : 'altar',
+        h.cuerpo,
+        tam,
+        ALCANCE,
+      );
+      if (!objeto) this.eventoListo = true;
+      else if (this.eventoListo) {
+        this.eventoListo = false;
+        if (desafio) this.retar(objeto);
+        else this.usarAltar(objeto);
         return;
       }
     }
@@ -471,25 +493,31 @@ export class EscenaMapa implements Escena {
 
   /** Abre el cofre (se queda abierto) y guarda lo que hay o enseña la pieza de equipo. */
   private abrir(cofre: ObjetoSala): void {
-    const { catalogo, cofre: tabla, luchadora, objetos, inventario } = this.o;
-    const abierto = catalogo.get('cofre_abierto');
+    const abierto = this.o.catalogo.get('cofre_abierto');
     if (abierto) cofre.inf = abierto;
     if (this.montada.vista) this.o.mundo.rehacerObjeto(this.montada.vista.sala, cofre);
     this.marcarHecha(this.actual);
     sonar('cofre');
+    this.sacarBotin('El cofre está vacío', 'En el cofre hay');
+  }
+
+  /**
+   * Sortea el cofre de la zona para esta sala y guarda lo que sale o enseña la pieza de equipo. `vacio` y `hay`
+   * son el principio del aviso («hay: objeto»); `equipo`, el aviso al salir una pieza (si lo hay).
+   */
+  private sacarBotin(vacio: string, hay: string, equipo = ''): void {
+    const { cofre: tabla, luchadora, objetos, inventario, zona } = this.o;
     // Cada cofre sortea con su propio azar (zona y sala): cerrar el navegador y volver no lo cambia.
-    const { zona } = this.o;
     const azar = crearAzar(zona.semilla * 1013 + zona.salas.indexOf(this.actual));
     const hallazgo = abrirCofre(tabla, azar, luchadora.heroe, objetos, inventario);
     if (!hallazgo) {
-      this.avisar('El cofre está vacío');
+      this.avisar(vacio);
     } else if (hallazgo.tipo === 'consumible') {
       this.avisar(
-        hallazgo.guardado
-          ? `En el cofre hay: ${hallazgo.nombre}`
-          : `${hallazgo.nombre}: no te caben más`,
+        hallazgo.guardado ? `${hay}: ${hallazgo.nombre}` : `${hallazgo.nombre}: no te caben más`,
       );
     } else {
+      if (equipo) this.avisar(equipo);
       this.o.ofrecerEquipo(hallazgo.clave, () => {});
     }
   }
@@ -498,15 +526,58 @@ export class EscenaMapa implements Escena {
   private usarAltar(altar: ObjetoSala): void {
     const sala = this.actual;
     this.o.usarAltar((usado, aviso) => {
-      if (usado && this.actual === sala) {
-        const apagado = this.o.catalogo.get('altar_apagado');
-        if (apagado) altar.inf = apagado;
-        if (this.montada.vista) this.o.mundo.rehacerObjeto(this.montada.vista.sala, altar);
-        this.marcarHecha(sala);
-        this.o.mundo.refrescarLuces();
-      }
+      if (usado && this.actual === sala) this.apagarEvento(altar);
       this.avisar(aviso);
     });
+  }
+
+  /** El altar o el círculo se apaga y la sala queda hecha: no se repite. */
+  private apagarEvento(objeto: ObjetoSala): void {
+    const apagado = this.o.catalogo.get('altar_apagado');
+    if (apagado) objeto.inf = apagado;
+    if (this.montada.vista) this.o.mundo.rehacerObjeto(this.montada.vista.sala, objeto);
+    this.marcarHecha(this.actual);
+    this.o.mundo.refrescarLuces();
+  }
+
+  /** Abre la elección del desafío; si se acepta, el círculo se apaga y empieza la cadena de combates. */
+  private retar(circulo: ObjetoSala): void {
+    const sala = this.actual;
+    this.o.usarDesafio((aceptado) => {
+      if (!aceptado || this.actual !== sala) return;
+      this.apagarEvento(circulo);
+      this.desafiar(0);
+    });
+  }
+
+  /**
+   * Combate `paso` (desde 0) del desafío: los grupos salen de la semilla de la zona y la sala, así que son los
+   * mismos si se cierra el navegador y se vuelve. Ganado, sigue el siguiente; el último da el premio; huir lo deja.
+   */
+  private desafiar(paso: number): void {
+    const { desafio, zona, grupos } = this.o;
+    const sala = this.actual;
+    const azar = crearAzar(zona.semilla * 1019 + zona.salas.indexOf(sala));
+    const grupo = gruposDesafio(grupos, desafio.combates, azar)[paso];
+    if (!grupo) return;
+    this.o.iniciarCombate(
+      grupo,
+      (resultado) => {
+        this.invulnerable = this.o.invulnerabilidad;
+        if (resultado !== 'victoria') {
+          this.avisar(desafio.avisos.huida);
+        } else if (paso + 1 < desafio.combates) {
+          // No se lanza ya: main guarda la partida al volver aquí y pisaría el guardado del siguiente.
+          this.desafioPendiente = paso + 1;
+        } else if (this.actual === sala) {
+          const { superado, vacio, hay } = desafio.avisos;
+          sonar('cofre');
+          this.sacarBotin(`${superado} ${vacio}`, `${superado} ${hay}`, superado);
+        }
+      },
+      null,
+      { tipo: 'desafio', paso },
+    );
   }
 
   /** El cofre de un tesoro trampa es un monstruo: se abre igual (mismo sonido) y empieza el combate. */
@@ -536,6 +607,8 @@ export class EscenaMapa implements Escena {
     } else if (c.tipo === 'trampa' && this.actual.trampa && !this.hechas.has(this.actual)) {
       const cofre = this.montada.sala.objetos.find((o) => o.inf.name === 'cofre_cerrado');
       if (cofre) this.morder(cofre);
+    } else if (c.tipo === 'desafio') {
+      if (this.actual.evento === 'desafio') this.desafiar(c.paso);
     } else if (c.tipo === 'final') {
       // En la última zona, el portal lleva al jefe final.
       this.o.alUsarPortal?.();
@@ -709,6 +782,11 @@ export class EscenaMapa implements Escena {
       catalogo,
       azar,
     );
+    const circulo = catalogo.get('desafio');
+    if (s.evento === 'desafio' && circulo) {
+      const altar = sala.objetos.find((o) => o.inf.name === 'altar');
+      if (altar) altar.inf = circulo;
+    }
     const fuente = sala.objetos.find((o) => o.inf.name === 'fuente_cen_inf');
     if (fuente) {
       const f = this.o.fuente;
