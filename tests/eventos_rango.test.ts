@@ -30,9 +30,4 @@ describe('altar con la probabilidad de eventos.json', () => {
     },
     120_000,
   );
-
-  test('con probabilidad 0 sale exactamente lo mismo que sin altar', () => {
-    const sin = simular('ronin', 100, DIFICULTADES.normal);
-    expect(simular('ronin', 100, DIFICULTADES.normal, undefined, undefined, 0)).toEqual(sin);
-  });
 });

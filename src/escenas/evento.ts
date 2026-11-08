@@ -5,7 +5,7 @@ import { partirTexto } from '../core/texto';
 import { anunciar } from '../render/accesibilidad';
 import { dibujarFila, dibujarFondo, dibujarMarco, PALETA } from '../render/marco';
 import { interfaz } from '../render/pantalla';
-import { ponerMusica, sonar } from '../render/sonido';
+import { sonar } from '../render/sonido';
 import { escribir, FUENTE_GRANDE } from '../render/texto';
 import type { Escena } from './escena';
 import { letras } from './mensaje';
@@ -22,7 +22,8 @@ export class EscenaEvento implements Escena {
   readonly alta = true;
 
   private seleccion: number;
-  private ultimoY = 0;
+  /** La dirección vertical del fotograma anterior; null hasta el primero, para ignorar la que se trae pulsada. */
+  private ultimoY: number | null = null;
   private hecha = false;
   // Los textos se parten una vez, y otra si cambia la forma de la interfaz.
   private letrasLinea = 0;
@@ -64,7 +65,6 @@ export class EscenaEvento implements Escena {
   exit(): void {}
 
   update(_dt: number, a: Acciones): void {
-    ponerMusica(null);
     if (this.hecha) return;
     if (a.cancelar) {
       this.elegir(this.opciones.length - 1);
@@ -84,7 +84,7 @@ export class EscenaEvento implements Escena {
       return;
     }
     const dir = Math.sign(a.moverY);
-    if (dir !== 0 && dir !== this.ultimoY) {
+    if (this.ultimoY !== null && dir !== 0 && dir !== this.ultimoY) {
       const n = this.opciones.length;
       this.mover((this.seleccion + dir + n) % n);
     }

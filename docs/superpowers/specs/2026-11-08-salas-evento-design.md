@@ -23,7 +23,7 @@ Cada una se publica sola; 2b y 2c reutilizan lo de 2a.
 **Interacción.** Se acerca la heroína al altar (el mismo `objetoAlAlcance` que la fuente y el cofre) y se abre la **escena de elección** (`src/escenas/evento.ts`, `alta = true`): título, una línea que explica cada opción con su coste a la vista y una lista de opciones con la misma ayuda de toque que el resto de menús (dos toques: el primero elige y explica). Escena genérica: título, descripción y opciones `{ texto, efecto }`; el ermitaño la reutilizará.
 
 **El altar** (`src/data/eventos.json`, sin números en el código):
-- *Ofrecer vida:* pierdes el 30 % de tus PV máximos (nunca bajas de 1 PV), recuperas todos los PM y ganas el 50 % de la experiencia que falta para el siguiente nivel.
+- *Ofrecer vida:* pierdes el 30 % de tus PV máximos (nunca bajas de 1 PV), recuperas todos los PM y ganas el 50 % de la experiencia que cuesta subir de nivel.
 - *Ofrecer magia:* pierdes todos tus PM actuales y recuperas el 30 % de tus PV máximos y una Poción.
 - *Marcharse:* no pasa nada y el altar sigue esperando.
 - Las dos primeras opciones **no se pueden elegir** si no hacen nada (PV a 1 para la primera; PM a cero o PV llenos para la segunda); la escena lo dice. Una vez aceptada una, el altar se apaga (`hechas` del mapa, como la fuente) y no se repite.

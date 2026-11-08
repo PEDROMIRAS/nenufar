@@ -680,7 +680,7 @@ function abrirAltar(partida: Partida, alTerminar: (usado: boolean, aviso: string
           partida.inventario,
           clave,
           EVENTOS.altar,
-          OBJETOS.maximoPorTipo,
+          OBJETOS,
           REGLAS.experiencia,
         );
         alTerminar(clave !== 'marcharse', aviso);

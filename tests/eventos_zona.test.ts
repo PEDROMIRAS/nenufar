@@ -16,12 +16,14 @@ const ajustes = (zona: ClaveZona, extra: Partial<AjustesZona> = {}): AjustesZona
 const unaPuerta = (s: SalaZona) => s.puertas !== 0 && (s.puertas & (s.puertas - 1)) === 0;
 
 describe.each(CLAVES)('zona %s', (clave) => {
-  test('con probabilidad 0 no hay eventos y el trazado es el de siempre', () => {
+  // Que el trazado de siempre no cambia lo guardan las huellas de tests/violetas_zona.test.ts.
+  test('con probabilidad 0 o sin el campo no hay eventos', () => {
     for (let s = 0; s < 300; s++) {
-      const sin = generarZona(ajustes(clave), s);
-      const cero = generarZona(ajustes(clave, { probabilidadEvento: 0 }), s);
-      expect(cero).toEqual(sin);
-      expect(sin.salas.some((x) => x.tipo === 'evento')).toBe(false);
+      for (const extra of [{}, { probabilidadEvento: 0 }]) {
+        expect(generarZona(ajustes(clave, extra), s).salas.some((x) => x.tipo === 'evento')).toBe(
+          false,
+        );
+      }
     }
   });
 

@@ -180,7 +180,7 @@ function usarAltar(h: Luchador, inv: Inventario): string {
   const activa = (c: string): boolean => opciones.find((o) => o.clave === c)!.activa;
   const elegida =
     activa('vida') && h.pv >= h.pvMax * 0.5 ? 'vida' : activa('magia') ? 'magia' : 'marcharse';
-  aplicarAltar(h, inv, elegida, EVENTOS.altar, OBJETOS.maximoPorTipo, REGLAS.experiencia);
+  aplicarAltar(h, inv, elegida, EVENTOS.altar, OBJETOS, REGLAS.experiencia);
   return elegida;
 }
 

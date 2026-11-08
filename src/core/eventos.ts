@@ -1,7 +1,8 @@
 import type { Luchador } from './combate';
+import { crecerEquipo } from './equipo';
 import { guardar, type Inventario } from './inventario';
 import { experienciaParaSubir, ganarExperiencia } from './progresion';
-import type { DatosEventos, ReglasProgresion } from './types';
+import type { DatosEventos, ObjetosJson, ReglasProgresion } from './types';
 
 type Altar = DatosEventos['altar'];
 type Vida = Pick<Luchador, 'pv' | 'pvMax' | 'pm' | 'pmMax' | 'nivel'>;
@@ -19,7 +20,7 @@ function costeVida(l: Vida, a: Altar): number {
   return Math.min(Math.round(l.pvMax * a.vida.porcentaje), l.pv - 1);
 }
 
-/** La experiencia que da ofrecer vida: una parte de la que falta para el siguiente nivel (nada en el máximo). */
+/** La experiencia que da ofrecer vida: una parte de la que cuesta subir de nivel (nada en el máximo). */
 function pxVida(l: Vida, a: Altar, r: ReglasProgresion): number {
   return l.nivel >= r.nivelMaximo
     ? 0
@@ -36,18 +37,18 @@ export function opcionesAltar(l: Vida, a: Altar, r: ReglasProgresion): OpcionEve
   const coste = costeVida(l, a);
   const cura = curaMagia(l, a);
   const px = pxVida(l, a, r);
+  const sirveVida = coste > 0 && (px > 0 || l.pm < l.pmMax);
   const sirveMagia = l.pm > 0 && cura > 0;
   return [
     {
       clave: 'vida',
       texto: a.vida.texto,
-      descripcion:
-        coste === 0
-          ? a.vida.sinEfecto
-          : (px > 0 ? a.vida.descripcion : a.vida.descripcionNivelMaximo)
-              .replace('{coste}', String(coste))
-              .replace('{px}', String(px)),
-      activa: coste > 0,
+      descripcion: !sirveVida
+        ? a.vida.sinEfecto
+        : (px > 0 ? a.vida.descripcion : a.vida.descripcionNivelMaximo)
+            .replace('{coste}', String(coste))
+            .replace('{px}', String(px)),
+      activa: sirveVida,
     },
     {
       clave: 'magia',
@@ -73,20 +74,21 @@ function darConsumibles(inv: Inventario, claves: readonly string[], maximo: numb
 }
 
 /**
- * Aplica la opción elegida y devuelve el aviso de lo ocurrido. `maximo` es lo que cabe de cada consumible.
+ * Aplica la opción elegida y devuelve el aviso de lo ocurrido. `objetos` da lo que cabe de cada consumible y cómo crece el equipo.
  */
 export function aplicarAltar(
   l: Luchador,
   inv: Inventario,
   clave: OpcionEvento['clave'],
   a: Altar,
-  maximo: number,
+  objetos: ObjetosJson,
   r: ReglasProgresion,
 ): string {
   if (clave === 'vida') {
     l.pv -= costeVida(l, a);
     l.pm = l.pmMax;
     const subidos = ganarExperiencia(l, pxVida(l, a, r), r);
+    crecerEquipo(l, inv, objetos, subidos.length);
     const nivel = subidos.length > 0 ? `. ¡Subes a nivel ${l.nivel}!` : '';
     return `El altar acepta tu vida y te devuelve la magia${nivel}`;
   }
@@ -94,7 +96,7 @@ export function aplicarAltar(
     const cura = curaMagia(l, a);
     l.pm = 0;
     l.pv += cura;
-    return `El altar acepta tu magia y te cura ${cura} PV${darConsumibles(inv, a.magia.consumibles, maximo)}`;
+    return `El altar acepta tu magia y te cura ${cura} PV${darConsumibles(inv, a.magia.consumibles, objetos.maximoPorTipo)}`;
   }
   return 'Te marchas del altar';
 }

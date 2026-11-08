@@ -299,7 +299,7 @@ export interface DatosEventos {
     vida: {
       texto: string;
       porcentaje: number;
-      /** Fracción de la experiencia que falta para el siguiente nivel que da el altar. */
+      /** Fracción de la experiencia que cuesta subir de nivel que da el altar. */
       experiencia: number;
       /** Con `{px}` además de `{coste}`; en el nivel máximo se lee la otra. */
       descripcion: string;
