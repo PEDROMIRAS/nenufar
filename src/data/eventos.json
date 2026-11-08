@@ -1,0 +1,24 @@
+{
+  "probabilidad": 0.4,
+  "altar": {
+    "nombre": "Altar",
+    "descripcion": "Una losa antigua con runas moradas. Pide algo a cambio.",
+    "vida": {
+      "texto": "Ofrecer vida",
+      "porcentaje": 0.3,
+      "consumible": "eter",
+      "descripcion": "Pierdes {coste} PV y recuperas todos los PM y un Éter.",
+      "sinEfecto": "No te queda vida que ofrecer."
+    },
+    "magia": {
+      "texto": "Ofrecer magia",
+      "porcentaje": 0.3,
+      "descripcion": "Pierdes todos tus PM ({coste}) y recuperas {cura} PV.",
+      "sinEfecto": "Sin PM que ofrecer o con la vida llena no pasaría nada."
+    },
+    "marcharse": {
+      "texto": "Marcharse",
+      "descripcion": "No pasa nada. El altar sigue esperando."
+    }
+  }
+}

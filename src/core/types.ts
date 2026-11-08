@@ -289,6 +289,25 @@ export interface DatosPresagios {
   lista: Record<string, PresagioJson>;
 }
 
+/** `src/data/eventos.json`: probabilidad de sala de evento en un callejón libre y el altar. */
+export interface DatosEventos {
+  probabilidad: number;
+  altar: {
+    nombre: string;
+    descripcion: string;
+    /** Con `{coste}` y `{cura}` en el sitio de las cifras; `sinEfecto` se lee si la opción no haría nada. */
+    vida: {
+      texto: string;
+      porcentaje: number;
+      consumible: string;
+      descripcion: string;
+      sinEfecto: string;
+    };
+    magia: { texto: string; porcentaje: number; descripcion: string; sinEfecto: string };
+    marcharse: { texto: string; descripcion: string };
+  };
+}
+
 /** `src/data/combate.json`: reglas comunes de todos los combates. */
 export interface ReglasCombate {
   varianza: { min: number; max: number };

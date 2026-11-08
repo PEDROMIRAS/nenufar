@@ -1,6 +1,7 @@
 // Los JSON de datos con sus tipos: TypeScript infiere "uno" como string y no como 'uno' | 'todos' | 'propio'.
 import type { DatosVertical } from '../core/encuadre';
 import type {
+  DatosEventos,
   DatosPresagios,
   DificultadJson,
   Hd2dJson,
@@ -11,6 +12,7 @@ import type {
 } from '../core/types';
 import combateJson from './combate.json';
 import dificultadesJson from './dificultades.json';
+import eventosJson from './eventos.json';
 import hd2dJson from './hd2d.json';
 import heroesJson from './heroes.json';
 import monstruosJson from './monstruos.json';
@@ -24,6 +26,7 @@ for (const [clave, m] of Object.entries(MONSTRUOS)) m.clave = clave;
 export const REGLAS = combateJson as ReglasCombate;
 export const OBJETOS = objetosJson as ObjetosJson;
 export const DIFICULTADES = dificultadesJson as Record<keyof typeof dificultadesJson, DificultadJson>;
+export const EVENTOS = eventosJson as DatosEventos;
 export const PRESAGIOS = presagiosJson as DatosPresagios;
 export const HD2D = hd2dJson as Hd2dJson;
 export const VERTICAL: DatosVertical = verticalJson;
