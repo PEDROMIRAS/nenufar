@@ -16,22 +16,28 @@ Cada una se publica sola; 2b y 2c reutilizan lo de 2a.
 
 ## Entrega 2a
 
-**Colocación.** `colocarExtras` (`src/core/zona.ts`) sortea un tercer extra, **después** de la violeta y la trampa y solo en un callejón que quede libre: `probabilidadEvento` por zona en `zonas.json`. La sala pasa a `tipo: 'evento'` con `evento: 'altar'`. Sin el campo, nunca. Como la tirada va al final del azar de los extras y con probabilidad 0 no cambia nada, el trazado de siempre y las huellas de `tests/violetas_zona.test.ts` no se mueven.
+**Colocación.** `colocarExtras` (`src/core/zona.ts`) sortea un tercer extra, **después** de la violeta y la trampa y solo en un callejón que quede libre: `probabilidadEvento` (una sola para todas las zonas, en `eventos.json`: 0,4). La sala pasa a `tipo: 'evento'` con `evento: 'altar'`. Sin el campo, nunca. Como la tirada va al final del azar de los extras y con probabilidad 0 no cambia nada, el trazado de siempre y las huellas de `tests/violetas_zona.test.ts` no se mueven.
 
 **Aspecto.** Una plantilla `evento` por zona en `plantillas_<zona>.json` (sala despejada con el altar en el centro, sin monstruos, puertas siempre abiertas). El altar es un **modelo 3D hecho en código** (`crearModelo`, como la fuente y el cofre): losa de piedra con runas lavanda que brillan, igual en las cuatro zonas y teñida por su luz. No toca el arte generado por script. *Mi apuesta; el aspecto lo aprueba Pedro.* El minimapa gana un punto para `evento`.
 
 **Interacción.** Se acerca la heroína al altar (el mismo `objetoAlAlcance` que la fuente y el cofre) y se abre la **escena de elección** (`src/escenas/evento.ts`, `alta = true`): título, una línea que explica cada opción con su coste a la vista y una lista de opciones con la misma ayuda de toque que el resto de menús (dos toques: el primero elige y explica). Escena genérica: título, descripción y opciones `{ texto, efecto }`; el ermitaño la reutilizará.
 
 **El altar** (`src/data/eventos.json`, sin números en el código):
-- *Ofrecer vida:* pierdes el 30 % de tus PV máximos (nunca bajas de 1 PV) y recuperas todos los PM y un Éter.
-- *Ofrecer magia:* pierdes todos tus PM actuales y recuperas el 30 % de tus PV máximos.
+- *Ofrecer vida:* pierdes el 30 % de tus PV máximos (nunca bajas de 1 PV), recuperas todos los PM y ganas el 50 % de la experiencia que falta para el siguiente nivel.
+- *Ofrecer magia:* pierdes todos tus PM actuales y recuperas el 30 % de tus PV máximos y una Poción.
 - *Marcharse:* no pasa nada y el altar sigue esperando.
-- Las dos primeras opciones **no se pueden elegir** si no hacen nada (PV al mínimo para la primera, PM a cero para la segunda); la escena lo dice. Una vez aceptada una, el altar se apaga (`hechas` del mapa, como la fuente) y no se repite.
+- Las dos primeras opciones **no se pueden elegir** si no hacen nada (PV a 1 para la primera; PM a cero o PV llenos para la segunda); la escena lo dice. Una vez aceptada una, el altar se apaga (`hechas` del mapa, como la fuente) y no se repite.
 - Nada distingue a las heroínas en la lógica: la ronin tiene pocos PM y la maga más, y el efecto sale solo de sus números.
 
 **Lógica pura** en `src/core/eventos.ts`: `opcionesAltar(l, datos)` (qué opciones hay, cuáles están desactivadas y por qué) y `aplicarAltar(l, inv, opcion, datos)`; test con `Luchador` y `Inventario` reales.
 
 **Guardado.** Salir de la sala con el altar sin usar lo deja sin usar; usado, queda en `hechas` igual que la fuente. No hay combate en medio, así que no hace falta nada en `CombateGuardado`. Se recupera al volver (la sala guardada ya lleva `hechas`).
+
+## Decisiones tomadas al ejecutar la entrega 2a
+
+- **La recompensa de ofrecer vida es experiencia, no un Éter ni un cofre.** Un evento sustituye a una sala de combate y pierde su experiencia: con el altar forzado en las cuatro zonas la ronin en Normal bajaba 6-7 puntos aunque el altar curase del todo o diera un cofre; con experiencia, el efecto queda dentro de ±3 con la probabilidad real (ver `CLAUDE.md`).
+- **La probabilidad es una sola, en `eventos.json`,** no una por zona: no hacía falta distinguir.
+- **El ±3 solo vale con la probabilidad real (0,4), no con el altar forzado:** forzado en las cuatro zonas la maga en Difícil sube hasta 7 con 600 partidas.
 
 ## Equilibrio
 
