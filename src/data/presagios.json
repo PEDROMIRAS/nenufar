@@ -3,9 +3,10 @@
   "lista": {
     "luna_roja": {
       "nombre": "Luna roja",
-      "descripcion": "Los monstruos golpean más fuerte, pero los cofres de la zona dan equipo de un nivel más.",
-      "ataque": 1.06,
+      "descripcion": "Tras cada combate te recuperas menos, pero los cofres de la zona dan equipo de un nivel más.",
+      "ataque": 1,
       "vida": 1,
+      "recuperacion": 0.93,
       "experiencia": 1,
       "gruposExtra": 0,
       "nivelCofre": 1,
@@ -13,10 +14,11 @@
     },
     "manada": {
       "nombre": "Manada",
-      "descripcion": "Hay un grupo más en cada sala, pero cada combate da más experiencia.",
+      "descripcion": "Hay un grupo más en cada sala: más botín, pero cada monstruo da menos experiencia.",
       "ataque": 1,
       "vida": 1,
-      "experiencia": 1.15,
+      "recuperacion": 1,
+      "experiencia": 0.93,
       "gruposExtra": 1,
       "nivelCofre": 0,
       "fuente": "todo"
@@ -26,7 +28,8 @@
       "descripcion": "La fuente de descanso solo te devuelve los PM, pero ganas más experiencia.",
       "ataque": 1,
       "vida": 1,
-      "experiencia": 1.15,
+      "recuperacion": 1,
+      "experiencia": 1.07,
       "gruposExtra": 0,
       "nivelCofre": 0,
       "fuente": "pm"
@@ -35,7 +38,8 @@
       "nombre": "Coraza",
       "descripcion": "Los monstruos aguantan más, pero los cofres de la zona dan equipo de un nivel más.",
       "ataque": 1,
-      "vida": 1.08,
+      "vida": 1.02,
+      "recuperacion": 1,
       "experiencia": 1,
       "gruposExtra": 0,
       "nivelCofre": 1,

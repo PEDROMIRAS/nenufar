@@ -18,7 +18,13 @@ export function elegirPresagio(datos: DatosPresagios, semillaZona: number): stri
  */
 export function dificultadCon(d: DificultadJson, p: PresagioJson | null): DificultadJson {
   if (!p) return d;
-  return { ...d, ataque: d.ataque * p.ataque, vida: d.vida * p.vida, experiencia: p.experiencia };
+  return {
+    ...d,
+    ataque: d.ataque * p.ataque,
+    vida: d.vida * p.vida,
+    recuperacion: d.recuperacion * p.recuperacion,
+    experiencia: p.experiencia,
+  };
 }
 
 /** Tabla del cofre con el equipo `nivelCofre` niveles por encima, sin pasar de `nivelMaximo`. */

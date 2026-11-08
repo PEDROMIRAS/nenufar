@@ -9,6 +9,7 @@ const neutro: PresagioJson = {
   descripcion: 'No cambia nada.',
   ataque: 1,
   vida: 1,
+  recuperacion: 1,
   experiencia: 1,
   gruposExtra: 0,
   nivelCofre: 0,
@@ -51,12 +52,14 @@ describe('dificultadCon', () => {
       ...neutro,
       ataque: 1.5,
       vida: 2,
+      recuperacion: 0.5,
       experiencia: 1.25,
     });
     expect(d.ataque).toBeCloseTo(DIFICULTADES.normal.ataque * 1.5);
     expect(d.vida).toBeCloseTo(DIFICULTADES.normal.vida * 2);
     expect(d.experiencia).toBe(1.25);
-    expect(d.recuperacion).toBe(DIFICULTADES.normal.recuperacion);
+    expect(d.recuperacion).toBeCloseTo(DIFICULTADES.normal.recuperacion * 0.5);
+    expect(d.violetas).toBe(DIFICULTADES.normal.violetas);
   });
 });
 
@@ -105,7 +108,8 @@ describe('datos de los presagios', () => {
     expect(p.nombre.length).toBeGreaterThan(0);
     expect(p.nombre.length).toBeLessThanOrEqual(12);
     expect(p.descripcion.length).toBeGreaterThan(0);
-    for (const k of ['ataque', 'vida', 'experiencia'] as const) expect(p[k]).toBeGreaterThan(0);
+    for (const k of ['ataque', 'vida', 'recuperacion', 'experiencia'] as const)
+      expect(p[k]).toBeGreaterThan(0);
     expect(Number.isInteger(p.gruposExtra) && p.gruposExtra >= 0).toBe(true);
     expect(Number.isInteger(p.nivelCofre) && p.nivelCofre >= 0).toBe(true);
     expect(['todo', 'pm']).toContain(p.fuente);

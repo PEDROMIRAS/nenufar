@@ -268,9 +268,11 @@ export interface DificultadJson {
 export interface PresagioJson {
   nombre: string;
   descripcion: string;
-  /** Multiplican el ataque y la vida de los monstruos de la zona. */
+  /** Multiplican el ataque y la vida de los monstruos de la zona (el redondeo a enteros los hace dar saltos: mejor `recuperacion` para afinar). */
   ataque: number;
   vida: number;
+  /** Multiplica lo que la heroína recupera tras cada victoria (continuo, sin redondeos que den saltos). */
+  recuperacion: number;
   /** Multiplica la experiencia de los monstruos. */
   experiencia: number;
   /** Grupos de monstruos de más en cada sala de combate. */
