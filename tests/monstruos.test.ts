@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { crearAzar } from '../src/core/azar';
-import { colocarMonstruos, seTocan } from '../src/core/monstruos';
+import { colocarMonstruos, cuantosGrupos, seTocan } from '../src/core/monstruos';
 import { salidas, type Sala, type Tile } from '../src/core/sala';
 import { MONSTRUOS } from '../src/data/datos';
 import historia from '../src/data/historia.json';
@@ -49,6 +49,37 @@ describe('colocarMonstruos', () => {
     const elegidas = colocarMonstruos(sala, lista, 3, 3, crearAzar(7));
     expect(new Set(elegidas.map(String)).size).toBe(3);
     expect(colocarMonstruos(sala, lista, 3, 3, crearAzar(7))).toEqual(elegidas);
+  });
+
+  test('pidiendo más grupos que casillas libres devuelve las que hay, sin fallar', () => {
+    const elegidas = colocarMonstruos(sala, lista, 500, 3, crearAzar(1));
+    expect(elegidas.length).toBeGreaterThan(0);
+    expect(elegidas.length).toBeLessThan(500);
+    expect(new Set(elegidas.map(String)).size).toBe(elegidas.length);
+  });
+});
+
+describe('cuantosGrupos', () => {
+  const ajustes = { min: 2, max: 4 };
+
+  test('sin extra da lo de siempre: entre min y max, con una sola tirada', () => {
+    for (let s = 0; s < 200; s++) {
+      const azar = crearAzar(s);
+      const n = cuantosGrupos(ajustes, 0, azar);
+      expect(n).toBe(2 + Math.floor(crearAzar(s)() * 3));
+      // Una sola tirada: la siguiente es la segunda del azar de la semilla.
+      const igual = crearAzar(s);
+      igual();
+      expect(azar()).toBe(igual());
+    }
+  });
+
+  test('con extra suma esos grupos al resultado de siempre', () => {
+    for (let s = 0; s < 200; s++) {
+      expect(cuantosGrupos(ajustes, 1, crearAzar(s))).toBe(
+        cuantosGrupos(ajustes, 0, crearAzar(s)) + 1,
+      );
+    }
   });
 });
 

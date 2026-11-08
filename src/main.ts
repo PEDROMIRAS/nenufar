@@ -536,6 +536,8 @@ async function crearZona(
       monstruos: monstruos.map(monstruo),
     })),
     gruposPorSala: zonas.monstruos.gruposPorSala,
+    gruposExtra: 0,
+    modoFuente: 'todo',
     jefe: monstruo(datos.jefe),
     jefeVioleta: violeta,
     cofreTrampa: monstruo(datos.cofreTrampa),

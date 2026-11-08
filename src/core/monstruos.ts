@@ -43,3 +43,12 @@ export function colocarMonstruos(
   }
   return candidatas.slice(0, cuantos);
 }
+
+/** Grupos de monstruos de una sala de combate: entre `min` y `max` (una sola tirada) más los `extra` de un presagio. */
+export function cuantosGrupos(
+  ajustes: { min: number; max: number },
+  extra: number,
+  azar: () => number,
+): number {
+  return ajustes.min + Math.floor(azar() * (ajustes.max - ajustes.min + 1)) + extra;
+}
