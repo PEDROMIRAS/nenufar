@@ -8,7 +8,7 @@ const PARTIDAS = 300;
 // completa más de 8 puntos respecto a no tener presagio. Con 300 partidas cada celda baila ±3-4 por el azar,
 // así que esto no comprueba el equilibrado fino: las cifras se buscaron con 1200 y 2400 partidas (media de las
 // seis celdas heroína × dificultad dentro de ±1,5 y ninguna celda a más de 4 puntos). La ronin en Difícil con
-// la fuente seca sale de 4 a 7 puntos por debajo: la maga cura con un hechizo y la ronin no.
+// la fuente seca sale 3,6 puntos por debajo con 2400 partidas y de 3,9 a 7 con 300-1200: la maga cura con un hechizo y la ronin no.
 const TOLERANCIA = 8;
 
 describe.each(Object.keys(PRESAGIOS.lista))('presagio %s forzado', (clave) => {

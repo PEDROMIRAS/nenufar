@@ -29,7 +29,7 @@
 - `nivelCofre: 1` en un cofre que ya es del nivel más alto: se queda en ese nivel, no apunta a una pieza inexistente (Task 1).
 - `manada` con más grupos que casillas libres: `colocarMonstruos` devuelve menos y la sala se puebla igual, sin error (Task 3).
 - Partida recuperada a mitad de zona: mismo presagio, mismos multiplicadores, y **sin** repetir el cartel (Task 2 y 4; el HUD sí lo muestra).
-- Jefe violeta y presagio con `ataque`: se multiplican los dos (`violetas` × presagio); queda dicho en el comentario de `dificultadCon` y lo cubre la medición de Task 5.
+- Jefe violeta y presagio con `ataque`: se multiplican los dos (`violetas` × presagio); queda dicho en el comentario de `dificultadCon`. La medición de Task 5 no juega salas violetas: se midió aparte tras la revisión final (los violetas salen más fáciles con presagio; cifras en CLAUDE.md).
 
 ---
 

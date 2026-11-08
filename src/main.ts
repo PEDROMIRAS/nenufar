@@ -414,6 +414,8 @@ async function iniciar(): Promise<void> {
                   titulo: 'Partida recuperada',
                   texto: `${luchadora.nombre}, nivel ${luchadora.nivel}, en ${partida.zona}. Sigues donde lo dejaste.`,
                 },
+            // El combate final se lucha sin presagio: no tiene sentido recordárselo.
+            ...(guardada.combate?.tipo === 'final' ? [] : paginaPresagio(partida)),
           ],
           () => {
             if (guardada.combate) zona.reanudarCombate(guardada.combate);
