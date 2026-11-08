@@ -1,4 +1,31 @@
 {
   "columnas": 11,
-  "franjaHud": 98
+  "franjaHud": 98,
+  "interfazAncho": 320,
+  "escalaMax": 1.6,
+  "escenaMin": 260,
+  "combate": {
+    "margen": 8,
+    "filas": 5,
+    "fila": 36,
+    "filaMin": 28,
+    "alturaDescripcion": 76,
+    "alturaFicha": 44,
+    "alturaPestana": 16
+  },
+  "menu": {
+    "margen": 8,
+    "pestana": 36,
+    "boton": 44,
+    "fila": 36,
+    "filaMin": 30,
+    "cabecera": 40,
+    "pie": 24,
+    "tarjetaMax": 190,
+    "celda": 48,
+    "separacion": 2,
+    "letrasPanel": 40,
+    "letraTitulo": 19.2,
+    "letraGrande": 14.4
+  }
 }

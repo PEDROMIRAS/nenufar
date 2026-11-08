@@ -3,17 +3,18 @@ import { partirEnLineas } from '../core/descripciones';
 import type { DificultadJson } from '../core/types';
 import { anunciar } from '../render/accesibilidad';
 import { opcionTocada, type MenuVista } from '../render/combate';
-import { dibujarDificultad, type FichaDificultad } from '../render/dificultad';
+import { dibujarDificultad, letrasFicha, type FichaDificultad } from '../render/dificultad';
 import { ponerMusica, sonar } from '../render/sonido';
 import type { Escena } from './escena';
 
-/** Caracteres por línea dentro de la ficha. */
-const LARGO_LINEA = 50;
-
 /** Elección de dificultad, después de elegir la heroína. Empieza en la del medio (Normal). */
 export class EscenaDificultad implements Escena {
+  readonly alta = true;
+
   private readonly menu: MenuVista;
-  private readonly fichas: FichaDificultad[];
+  private fichas: FichaDificultad[] = [];
+  /** Letras por línea con las que se partieron las fichas (cambian al pasar de horizontal a vertical). */
+  private letras = 0;
   private ultimoX = 0;
   private elegida = false;
 
@@ -27,11 +28,18 @@ export class EscenaDificultad implements Escena {
       opciones: dificultades.map((d) => ({ texto: d.nombre, detalle: '', disponible: true })),
       seleccion: Math.floor(dificultades.length / 2),
     };
-    this.fichas = dificultades.map((d) => ({
+    this.partirFichas();
+  }
+
+  /**
+   * Parte las descripciones al ancho de la interfaz actual. Solo la descripción: los multiplicadores no se leen
+   * bien sueltos (Difícil aprieta sobre todo quitando recuperación, no subiendo el ataque).
+   */
+  private partirFichas(): void {
+    this.letras = letrasFicha();
+    this.fichas = this.dificultades.map((d) => ({
       nombre: d.nombre,
-      // Solo la descripción: los multiplicadores no se leen bien sueltos (Difícil aprieta sobre todo
-      // quitando recuperación, no subiendo el ataque).
-      lineas: partirEnLineas(d.descripcion, LARGO_LINEA),
+      lineas: partirEnLineas(d.descripcion, this.letras),
     }));
   }
 
@@ -64,6 +72,7 @@ export class EscenaDificultad implements Escena {
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
+    if (letrasFicha() !== this.letras) this.partirFichas();
     dibujarDificultad(ctx, this.subtitulo, this.fichas[this.menu.seleccion]!, this.menu);
   }
 

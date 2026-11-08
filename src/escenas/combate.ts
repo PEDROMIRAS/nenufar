@@ -15,8 +15,8 @@ import {
   dibujarCombate,
   duracionEfecto,
   aPanel,
-  FILA_COMBATE,
-  LISTA_COMBATE,
+  filaCombate,
+  listaCombate,
   type MenuVista,
   type VistaCombate,
 } from '../render/combate';
@@ -72,6 +72,7 @@ const textoVida = (pv: number, max: number): string => `${pv}/${max}`;
 /** Pantalla de combate: anima los eventos de `core/combate` uno a uno y recoge la acción de la heroína. */
 export class EscenaCombate implements Escena {
   readonly conMundo = true;
+  readonly alta = true;
 
   private readonly cola: Evento[] = [];
   /** Segundos que faltan para pasar al siguiente evento. */
@@ -516,7 +517,7 @@ export class EscenaCombate implements Escena {
     // y «Volver» (la última fila) van al primer toque.
     if (a.toqueX >= 0) {
       const [px, py] = aPanel(a.toqueX, a.toqueY);
-      const i = filaTocada(px, py, LISTA_COMBATE, FILA_COMBATE, n);
+      const i = filaTocada(px, py, listaCombate(n), filaCombate(n), n);
       if (i < 0) return;
       const dobleToque = this.modo !== 'principal' && i !== n - 1;
       const soloElegir = efectoToque(menu.seleccion, i, dobleToque) === 'elegir';

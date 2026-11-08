@@ -1,8 +1,14 @@
+import {
+  disposicionAjustes,
+  disposicionPausaCacheada,
+  seccionTocadaAlta,
+} from '../core/disposicion';
 import { filaTocada, type Rect } from '../core/menu';
+import { VERTICAL } from '../data/datos';
 import { barra, COLOR_BARRA } from './combate';
 import { dibujarControles } from './controles';
 import { dibujarFila, dibujarMarco, dibujarTitulo, PALETA } from './marco';
-import { rellenarArea } from './pantalla';
+import { alRedimensionar, interfaz, rellenarArea } from './pantalla';
 import { dibujarFotograma, type Sprite } from './recursos';
 import { escribir } from './texto';
 
@@ -60,8 +66,51 @@ export const RECT_CALIDAD = { x: DX + 150, y: 44, ancho: 40, alto: 40 };
 export const RECT_MUSICA = { x: DX, y: 112, ancho: 136, alto: 40 };
 export const RECT_EFECTOS = { x: DX + 154, y: 112, ancho: 136, alto: 40 };
 
+const HORIZONTAL = {
+  sonido: { ...RECT_SONIDO },
+  calidad: { ...RECT_CALIDAD },
+  musica: { ...RECT_MUSICA },
+  efectos: { ...RECT_EFECTOS },
+};
+const copiar = (a: Rect, b: Rect): void => {
+  a.x = b.x;
+  a.y = b.y;
+  a.ancho = b.ancho;
+  a.alto = b.alto;
+};
+
+/**
+ * Coloca los controles de Ajustes según la interfaz: en la alta (móvil de pie), uno bajo otro en el contenido
+ * de la pausa vertical; si no, donde siempre. Se llama al mostrarlos y al cambiar el tamaño de la ventana,
+ * antes de que cada control se recoloque sobre su rectángulo.
+ */
+export function ajustarControlesAjustes(): void {
+  if (!interfaz.alta) {
+    copiar(RECT_SONIDO, HORIZONTAL.sonido);
+    copiar(RECT_CALIDAD, HORIZONTAL.calidad);
+    copiar(RECT_MUSICA, HORIZONTAL.musica);
+    copiar(RECT_EFECTOS, HORIZONTAL.efectos);
+    return;
+  }
+  const a = disposicionAjustes(
+    disposicionPausaCacheada(interfaz.ancho, interfaz.alto, VERTICAL).contenido,
+    VERTICAL,
+  );
+  copiar(RECT_SONIDO, a.sonido);
+  copiar(RECT_CALIDAD, a.calidad);
+  copiar(RECT_MUSICA, a.musica);
+  copiar(RECT_EFECTOS, a.efectos);
+}
+alRedimensionar(ajustarControlesAjustes);
+
 /** Fila de la lista (posición en `SECCIONES`) bajo el toque (x, y); -1 si ninguna. */
 export function seccionTocada(x: number, y: number): number {
+  if (interfaz.alta)
+    return seccionTocadaAlta(
+      x,
+      y,
+      disposicionPausaCacheada(interfaz.ancho, interfaz.alto, VERTICAL),
+    );
   const arriba = filaTocada(x, y, ARRIBA, FILA_INVENTARIO, 5);
   if (arriba >= 0) return arriba;
   const abajo = filaTocada(x, y, ABAJO, FILA_INVENTARIO, 2);
@@ -96,6 +145,8 @@ export interface FichaInventario {
   estadisticas: string[];
   /** Piezas puestas, su efecto, el Corazón y la mochila, ya partidas al ancho de la columna. */
   equipo: string[];
+  /** El presagio de la zona: su nombre y su descripción ya partida (vacío si no hay). */
+  presagio: string[];
   objetos: ObjetoFicha[];
   /** Detalle de cada fila de la lista («2» puntos libres en Mejorar, «¿Seguro?» en Salir). */
   detalles: Record<SeccionInventario, string>;
@@ -116,7 +167,7 @@ export interface VistaInventario {
   ficha: FichaInventario;
 }
 
-const COLOR = { etiqueta: PALETA.claro };
+export const COLOR = { etiqueta: PALETA.claro };
 
 export function dibujarInventario(ctx: CanvasRenderingContext2D, v: VistaInventario): void {
   ctx.fillStyle = 'rgba(8, 10, 14, 0.94)';
@@ -189,6 +240,18 @@ function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaInventario): void
   dibujarTitulo(ctx, derecha, 136, ancho, 'Habilidades');
   for (let i = 0; i < f.habilidades.length; i++)
     escribir(ctx, f.habilidades[i]!, derecha, 158 + i * 14, PALETA.texto);
+  if (f.presagio.length > 0) {
+    const yPresagio = 158 + f.habilidades.length * 14 + 6;
+    dibujarTitulo(ctx, derecha, yPresagio, ancho, 'Presagio');
+    for (let i = 0; i < f.presagio.length; i++)
+      escribir(
+        ctx,
+        f.presagio[i]!,
+        derecha,
+        yPresagio + 20 + i * 13,
+        i === 0 ? PALETA.claro : PALETA.texto,
+      );
+  }
 }
 
 /** Los consumibles en filas; debajo, qué hace el elegido; abajo, los PV y PM para saber si hace falta. */
@@ -247,7 +310,7 @@ function dibujarAjustes(ctx: CanvasRenderingContext2D): void {
   dibujarControles(ctx, DX, 190);
 }
 
-function barraConTexto(
+export function barraConTexto(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,

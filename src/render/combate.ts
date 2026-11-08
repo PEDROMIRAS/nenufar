@@ -1,6 +1,13 @@
 import type { Combate, Luchador } from '../core/combate';
 import { partirTexto } from '../core/texto';
-import { ANCHO, aPixel, dentro, rellenarArea } from './pantalla';
+import {
+  anchoNombre,
+  botonesAltosCacheados,
+  disposicionCombate,
+  type DisposicionCombate,
+} from '../core/disposicion';
+import { VERTICAL } from '../data/datos';
+import { ANCHO, aPixel, dentro, interfaz, rellenarArea } from './pantalla';
 import { movimientoReducido } from './accesibilidad';
 import { dibujarFotograma, type Sprite } from './recursos';
 import type { FondoSala } from './mundo/mundo';
@@ -104,6 +111,60 @@ const FIN_BARRA_TURNOS = 26;
 const HEROINA = { x: 48, y: 184, escala: 2 };
 /** Centro de los enemigos: algo a la derecha, para dejar sitio a la heroína. */
 const CENTRO_ENEMIGOS = ANCHO / 2 + 30;
+/**
+ * Dónde cae cada cosa del combate en este fotograma: en horizontal, las medidas de siempre; en vertical (interfaz
+ * alta), repartidas en la escena de arriba. Se rellena al empezar a dibujar (`colocar`).
+ */
+const G = {
+  ancho: ANCHO,
+  enemigoY: ENEMIGO.y,
+  escala: ENEMIGO.escala,
+  separacion: ENEMIGO.separacion,
+  centro: CENTRO_ENEMIGOS,
+  heroinaX: HEROINA.x,
+  heroinaY: HEROINA.y,
+  tituloY: 112,
+};
+/** Reparto del panel apilado en vertical; se rellena de nuevo en cada llamada (sin asignar memoria). */
+const DISP: DisposicionCombate = disposicionCombate(1, 1, 1, VERTICAL);
+function disposicion(n: number): DisposicionCombate {
+  return disposicionCombate(
+    interfaz.ancho,
+    interfaz.alto,
+    Math.max(VERTICAL.combate.filas, n),
+    VERTICAL,
+    DISP,
+  );
+}
+
+function colocar(v: VistaCombate): void {
+  G.ancho = interfaz.ancho;
+  if (!interfaz.alta) {
+    G.enemigoY = ENEMIGO.y;
+    G.escala = ENEMIGO.escala;
+    G.separacion = ENEMIGO.separacion;
+    G.centro = CENTRO_ENEMIGOS;
+    G.heroinaX = HEROINA.x;
+    G.heroinaY = HEROINA.y;
+    G.tituloY = 112;
+    return;
+  }
+  const e = disposicion(v.menu?.opciones.length ?? 0).escena;
+  G.separacion = e.ancho / Math.max(1, v.enemigos.length);
+  G.centro = e.ancho / 2;
+  G.enemigoY = Math.max(ENEMIGO.y, Math.round(e.alto * 0.42));
+  G.heroinaX = 40;
+  G.heroinaY = e.alto - 16;
+  G.tituloY = Math.round(e.alto / 2 - 46);
+  // Los sprites se achican lo justo para que no se pisen con los de al lado.
+  let ancho = 1;
+  for (const en of v.enemigos) {
+    const hoja = en.monstruo && v.hojas.get(en.monstruo.sprite);
+    if (hoja) ancho = Math.max(ancho, hoja.datos.frameWidth);
+  }
+  G.escala = Math.min(ENEMIGO.escala, (G.separacion - 8) / ancho);
+}
+
 /** Segundos que dura la animación de ataque de un enemigo (3 fotogramas a 10 fps y un respiro). */
 const DURACION_ATAQUE = 0.45;
 /** Segundos que tarda un proyectil en llegar, y lo mínimo que se ve un ataque antes de su golpe. */
@@ -139,16 +200,16 @@ export function anticipoAtaque(v: VistaCombate, l: Luchador): number {
 /** Centro del cuerpo de un luchador en pantalla, donde se dibujan efectos y proyectiles. */
 function centroX(v: VistaCombate, l: Luchador): number {
   const enemigos = v.enemigos;
-  return l.esHeroina ? HEROINA.x : xEnemigo(enemigos.indexOf(l), enemigos.length);
+  return l.esHeroina ? G.heroinaX : xEnemigo(enemigos.indexOf(l), enemigos.length);
 }
 
 function centroY(l: Luchador): number {
-  return l.esHeroina ? HEROINA.y - 28 : ENEMIGO.y - 26;
+  return l.esHeroina ? G.heroinaY - 28 : G.enemigoY - 26;
 }
 
 /** Centro horizontal del enemigo `i` de `n`, repartidos alrededor de `CENTRO_ENEMIGOS`. */
 export function xEnemigo(i: number, n: number): number {
-  return CENTRO_ENEMIGOS + (i - (n - 1) / 2) * ENEMIGO.separacion;
+  return G.centro + (i - (n - 1) / 2) * G.separacion;
 }
 
 const RECT = { x: 0, y: 0, ancho: 0, alto: 0 };
@@ -159,6 +220,7 @@ const RECT = { x: 0, y: 0, ancho: 0, alto: 0 };
  * Devuelve siempre el mismo objeto (se pide en cada fotograma): vale hasta la siguiente llamada.
  */
 function rectOpcion(i: number, n: number): typeof RECT {
+  if (interfaz.alta) return botonesAltosCacheados(n, interfaz.ancho, interfaz.alto, VERTICAL)[i]!;
   const r = RECT;
   if (n <= 6) {
     r.ancho = (ANCHO - 32 - (n - 1) * 8) / n;
@@ -181,6 +243,7 @@ export function opcionTocada(x: number, y: number, n: number): number {
 }
 
 export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
+  colocar(v);
   v.fondo(v.tiempo, 0, posicionProyectil(v));
   // El canvas 2D queda transparente encima de la sala en 3D.
   ctx.fillStyle = COLOR.velo;
@@ -194,20 +257,31 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   dibujarEfecto(ctx, v);
   dibujarFlotante(ctx, v);
 
-  ctx.save();
-  ctx.translate(ANCLA_PANEL.x, ANCLA_PANEL.y);
-  ctx.scale(PANEL_ESCALA, PANEL_ESCALA);
-  ctx.translate(-ANCLA_PANEL.x, -ANCLA_PANEL.y);
-  dibujarPanel(ctx, v);
-  ctx.restore();
+  if (interfaz.alta) dibujarPanelVertical(ctx, v);
+  else {
+    ctx.save();
+    ctx.translate(ANCLA_PANEL.x, ANCLA_PANEL.y);
+    ctx.scale(PANEL_ESCALA, PANEL_ESCALA);
+    ctx.translate(-ANCLA_PANEL.x, -ANCLA_PANEL.y);
+    dibujarPanel(ctx, v);
+    ctx.restore();
+  }
 
   if (v.titulo) {
     // Velo y un recuadro propio, para que el título no se monte sobre la ficha de la heroína.
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
     rellenarArea(ctx);
-    dibujarMarco(ctx, ANCHO / 2 - 140, 112, 280, 92);
-    escribir(ctx, v.titulo, ANCHO / 2, 128, PALETA.elegida, 'center', FUENTE_GRANDE);
-    escribir(ctx, 'Pulsa o toca para continuar', ANCHO / 2, 172, PALETA.texto, 'center');
+    const ancho = Math.min(280, G.ancho - 16);
+    dibujarMarco(ctx, G.ancho / 2 - ancho / 2, G.tituloY, ancho, 92);
+    escribir(ctx, v.titulo, G.ancho / 2, G.tituloY + 16, PALETA.elegida, 'center', FUENTE_GRANDE);
+    escribir(
+      ctx,
+      'Pulsa o toca para continuar',
+      G.ancho / 2,
+      G.tituloY + 60,
+      PALETA.texto,
+      'center',
+    );
   }
 }
 
@@ -289,6 +363,20 @@ const nombreCorto = (l: Luchador): string => {
   return corto;
 };
 
+/** Alto de cada línea del nombre de un enemigo cuando no cabe en una. */
+const LINEA_NOMBRE = 14;
+const NOMBRES = new WeakMap<Luchador, { letras: number; lineas: readonly string[] }>();
+/** El nombre corto partido en las líneas que caben en lo que le toca a cada enemigo (una vez por tamaño). */
+function lineasNombre(l: Luchador): readonly string[] {
+  const letras = anchoNombre(G.separacion);
+  let c = NOMBRES.get(l);
+  if (!c || c.letras !== letras) {
+    c = { letras, lineas: partirTexto(nombreCorto(l), letras) };
+    NOMBRES.set(l, c);
+  }
+  return c.lineas;
+}
+
 /** Barra con quién actúa en lo que queda de ronda; el primero es el que tiene el turno. */
 function dibujarOrden(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   escribir(ctx, 'Turno', 12, 10, PALETA.claro);
@@ -298,7 +386,7 @@ function dibujarOrden(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
     if ((v.pv.get(l) ?? l.pv) <= 0) continue;
     const nombre = nombreCorto(l);
     // Lo que no cabe se resume en «…» en vez de salirse de la pantalla.
-    if (x + 12 + nombre.length * ANCHO_LETRA > ANCHO - 8) {
+    if (x + 12 + nombre.length * ANCHO_LETRA > G.ancho - 8) {
       escribir(ctx, '…', x, 10);
       return;
     }
@@ -336,8 +424,8 @@ function parpadea(v: VistaCombate, l: Luchador): boolean {
 function topeEnemigo(v: VistaCombate, e: Luchador): number {
   const sprite = e.monstruo && v.hojas.get(e.monstruo.sprite);
   // Los fotogramas dejan unos píxeles libres por arriba; los jefes grandes no deben pisar la barra de turnos.
-  const alto = sprite ? (sprite.datos.frameHeight - 6) * ENEMIGO.escala : ENEMIGO.alto;
-  return Math.max(ENEMIGO.topeMinimo, ENEMIGO.y - alto);
+  const alto = sprite ? (sprite.datos.frameHeight - 6) * G.escala : ENEMIGO.alto;
+  return Math.max(ENEMIGO.topeMinimo, G.enemigoY - alto);
 }
 
 function dibujarEnemigo(
@@ -348,7 +436,7 @@ function dibujarEnemigo(
 ): void {
   const pv = v.pv.get(e) ?? e.pv;
   if (pv <= 0 && v.golpeado !== e) return;
-  const { y } = ENEMIGO;
+  const y = G.enemigoY;
   const tope = topeEnemigo(v, e);
   const sprite = e.monstruo && v.hojas.get(e.monstruo.sprite);
   if (sprite) {
@@ -365,33 +453,47 @@ function dibujarEnemigo(
       t = 0;
       dx = Math.round(Math.sin(v.tiempo * 40));
     }
-    dibujarFotograma(ctx, sprite, anim, 'down', t, x + dx, y, ENEMIGO.escala);
+    dibujarFotograma(ctx, sprite, anim, 'down', t, x + dx, y, G.escala);
   }
   // Un jefe alto no deja sitio encima del nombre sin pisar la barra de turnos: el aviso de golpe
   // fuerte ocupa entonces el sitio del nombre y la flecha de objetivo va a su izquierda.
-  const sinSitio = tope - 36 < FIN_BARRA_TURNOS;
+  // Un nombre largo se parte en líneas y sube lo que ocupen.
+  const lineas = lineasNombre(e);
+  const extra = (lineas.length - 1) * LINEA_NOMBRE;
+  const sinSitio = tope - 36 - extra < FIN_BARRA_TURNOS;
   const avisoEnNombre = sinSitio && v.cargando.has(e);
-  if (avisoEnNombre) escribir(ctx, '¡Golpe fuerte!', x, tope - 18, COLOR.aviso, 'center');
-  else escribir(ctx, nombreCorto(e), x, tope - 18, PALETA.texto, 'center');
+  // Nunca sube sobre la barra de turnos: un jefe alto con el nombre en dos líneas lo baja hasta su borde
+  // (los fotogramas dejan unos píxeles libres por arriba).
+  const yNombre = Math.max(FIN_BARRA_TURNOS, tope - 18 - extra);
+  if (avisoEnNombre) escribir(ctx, '¡Golpe fuerte!', x, yNombre, COLOR.aviso, 'center');
+  else
+    for (let i = 0; i < lineas.length; i++)
+      escribir(ctx, lineas[i]!, x, yNombre + i * LINEA_NOMBRE, PALETA.texto, 'center');
   if (v.apuntado === e) {
     const sube = Math.round(Math.sin(v.tiempo * 8) * 2);
     if (sinSitio) {
-      const izquierda = x - (avisoEnNombre ? 7 : nombreCorto(e).length / 2) * ANCHO_LETRA - 10;
-      escribir(ctx, '▶', izquierda, tope - 18, COLOR.aviso, 'center');
-    } else escribir(ctx, '▼', x, tope - 34 + sube, COLOR.aviso, 'center');
+      const ancho = lineas.reduce((m, l) => Math.max(m, l.length), 0);
+      const medio = (avisoEnNombre ? 7 : ancho / 2) * ANCHO_LETRA + 10;
+      // A la izquierda del nombre; si ahí no cabe (primer enemigo, pegado al borde), a la derecha.
+      if (x - medio < 6) escribir(ctx, '◀', x + medio, yNombre, COLOR.aviso, 'center');
+      else escribir(ctx, '▶', x - medio, yNombre, COLOR.aviso, 'center');
+    } else escribir(ctx, '▼', x, tope - 34 - extra + sube, COLOR.aviso, 'center');
   }
-  barra(ctx, x - 40, y + 8, 80, pv / e.pvMax, COLOR.pv);
+  const anchoBarra = Math.min(80, G.separacion - 8);
+  barra(ctx, x - anchoBarra / 2, y + 8, anchoBarra, pv / e.pvMax, COLOR.pv);
   escribir(ctx, v.textoPv.get(e) ?? '', x, y + 18, PALETA.texto, 'center');
   escribir(ctx, v.estados.get(e) ?? '', x, y + 32, COLOR.estado, 'center');
   if (v.cargando.has(e) && !avisoEnNombre) {
     // Corto: con dos o tres enemigos a la vez, los avisos no deben pisarse (los separa 140 px).
-    escribir(ctx, '¡Golpe fuerte!', x, tope - 36, COLOR.aviso, 'center');
+    escribir(ctx, '¡Golpe fuerte!', x, tope - 36 - extra, COLOR.aviso, 'center');
   }
 }
 
 function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   const h = v.combate.heroina;
-  const { x, y, escala } = HEROINA;
+  const x = G.heroinaX;
+  const y = G.heroinaY;
+  const escala = HEROINA.escala;
   let anim = 'idle';
   let t = v.tiempo;
   if (v.tiempoCaida >= 0) {
@@ -422,6 +524,13 @@ export function aPanel(x: number, y: number): [number, number] {
 /** Panel de abajo: dos columnas (lista y qué hace lo elegido) y, debajo a la derecha, la ficha de la heroína. */
 export const LISTA_COMBATE: Rect = { x: 8, y: 201, ancho: 210, alto: 144 };
 export const FILA_COMBATE = 24;
+/** La lista del menú abierto (`n` opciones) y el alto de sus filas, donde cae el toque: en vertical, apilada abajo. */
+export function listaCombate(n: number): Rect {
+  return interfaz.alta ? disposicion(n).lista : LISTA_COMBATE;
+}
+export function filaCombate(n: number): number {
+  return interfaz.alta ? disposicion(n).fila : FILA_COMBATE;
+}
 const PANEL = { x: 8, y: 200, ancho: 464, alto: 146 };
 /** Columna derecha: arriba la ficha de la heroína (Pedro, 2026-10-26) y debajo qué hace lo elegido. */
 const DERECHA = {
@@ -434,15 +543,18 @@ const DERECHA = {
 /** Letras por línea de la descripción en la columna derecha. */
 const LETRAS_DERECHA = Math.floor(DERECHA.ancho / 7.2);
 /** La ayuda de cada opción, partida al ancho de la columna derecha (una vez por texto). */
-const AYUDA_PARTIDA = new WeakMap<readonly string[], readonly string[]>();
+const AYUDA_PARTIDA = new WeakMap<
+  readonly string[],
+  { letras: number; lineas: readonly string[] }
+>();
 
-function ayudaPartida(ayuda: readonly string[]): readonly string[] {
-  let lineas = AYUDA_PARTIDA.get(ayuda);
-  if (!lineas) {
-    lineas = partirTexto(ayuda.join(' '), LETRAS_DERECHA);
-    AYUDA_PARTIDA.set(ayuda, lineas);
+function ayudaPartida(ayuda: readonly string[], letras = LETRAS_DERECHA): readonly string[] {
+  let c = AYUDA_PARTIDA.get(ayuda);
+  if (!c || c.letras !== letras) {
+    c = { letras, lineas: partirTexto(ayuda.join(' '), letras) };
+    AYUDA_PARTIDA.set(ayuda, c);
   }
-  return lineas;
+  return c.lineas;
 }
 
 /** Letras por línea del registro en la columna izquierda, sin llegar a la ficha. */
@@ -451,6 +563,9 @@ const LETRAS_IZQUIERDA = Math.floor((DERECHA.x - 8 - (PANEL.x + 14)) / 7.2);
 /** Avisos del registro partidos al ancho de cada columna (cambian poco: se guardan). */
 const AVISOS = new Map<string, readonly string[]>();
 const REGISTRO = new Map<string, readonly string[]>();
+/** Lo mismo para el panel apilado de la interfaz alta, que parte a otro ancho. */
+const AVISOS_V = new Map<string, readonly string[]>();
+const REGISTRO_V = new Map<string, readonly string[]>();
 
 function avisoPartido(texto: string, cache = AVISOS, letras = LETRAS_DERECHA): readonly string[] {
   let lineas = cache.get(texto);
@@ -461,6 +576,79 @@ function avisoPartido(texto: string, cache = AVISOS, letras = LETRAS_DERECHA): r
     cache.set(texto, lineas);
   }
   return lineas;
+}
+
+/** Panel de la interfaz alta: pestaña, lista, qué hace lo elegido y la ficha de la heroína, en una columna. */
+function dibujarPanelVertical(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
+  const menu = v.menu;
+  const n = menu?.opciones.length ?? 0;
+  const d = disposicion(n);
+  const c = VERTICAL.combate;
+  dibujarMarco(
+    ctx,
+    d.panel.x,
+    d.panel.y + c.alturaPestana,
+    d.panel.ancho,
+    d.panel.alto - c.alturaPestana,
+  );
+  const pie = d.descripcion;
+  const letras = Math.floor((pie.ancho - 16) / ANCHO_LETRA);
+  if (menu) {
+    dibujarPestana(ctx, d.panel.x + 8, d.panel.y + c.alturaPestana - 14, v.pestana);
+    for (let i = 0; i < n; i++) {
+      const o = menu.opciones[i]!;
+      const elegida = i === menu.seleccion;
+      const estado = o.disponible
+        ? elegida
+          ? 'elegida'
+          : 'normal'
+        : elegida
+          ? 'elegidaApagada'
+          : 'apagada';
+      dibujarFila(
+        ctx,
+        d.lista.x,
+        d.lista.y + i * d.fila,
+        d.lista.ancho,
+        d.fila,
+        o.texto,
+        o.detalle,
+        estado,
+      );
+    }
+    const elegida = menu.opciones[menu.seleccion];
+    if (elegida) dibujarTitulo(ctx, pie.x + 8, pie.y + 2, pie.ancho - 16, elegida.texto);
+    if (v.aviso && v.registro[1]) {
+      let y = pie.y + 26;
+      for (let r = 0; r < v.registro.length; r++) {
+        const lineas = avisoPartido(v.registro[r]!, AVISOS_V, letras);
+        for (let i = 0; i < lineas.length; i++, y += 14)
+          escribir(ctx, lineas[i]!, pie.x + 8, y, COLOR.aviso);
+      }
+    } else if (elegida?.ayuda) {
+      const lineas = ayudaPartida(elegida.ayuda, letras);
+      for (let i = 0; i < lineas.length; i++)
+        escribir(ctx, lineas[i]!, pie.x + 8, pie.y + 26 + i * 14, PALETA.texto);
+    }
+  } else {
+    // Mientras se animan los turnos, el registro ocupa el sitio de la lista.
+    let y = d.lista.y + 8;
+    for (let r = 0; r < v.registro.length; r++, y += 4) {
+      const lineas = avisoPartido(v.registro[r]!, REGISTRO_V, letras);
+      for (let i = 0; i < lineas.length; i++, y += 14)
+        escribir(ctx, lineas[i]!, d.lista.x + 8, y, r === 0 ? PALETA.claro : PALETA.texto);
+    }
+  }
+  const h = v.combate.heroina;
+  const f = d.ficha;
+  const fx = f.x + 8;
+  const ancho = f.ancho - 16 - 56;
+  escribir(ctx, h.nombre, fx, f.y + 2, PALETA.texto);
+  escribir(ctx, v.estados.get(h) ?? '', fx + 100, f.y + 2, COLOR.estado);
+  barra(ctx, fx, f.y + 18, ancho, (v.pv.get(h) ?? h.pv) / h.pvMax, COLOR.pv);
+  escribir(ctx, v.textoPv.get(h) ?? '', fx + ancho + 8, f.y + 14);
+  barra(ctx, fx, f.y + 32, ancho, v.pmHeroina / Math.max(1, h.pmMax), COLOR.pm);
+  escribir(ctx, v.textoPm, fx + ancho + 8, f.y + 28);
 }
 
 function dibujarPanel(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
@@ -568,7 +756,7 @@ function dibujarFlotante(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   const enemigos = v.enemigos;
   const color = v.flotanteCura ? COLOR.cura : g.esHeroina ? COLOR.pv : '#ffffff';
   if (g.esHeroina) {
-    escribir(ctx, v.flotante, HEROINA.x, HEROINA.y - 80 - sube, color, 'center', FUENTE_GRANDE);
+    escribir(ctx, v.flotante, G.heroinaX, G.heroinaY - 80 - sube, color, 'center', FUENTE_GRANDE);
     return;
   }
   // A la derecha del nombre (que ocupa unos 36 px a cada lado), para no taparlo mientras sube.

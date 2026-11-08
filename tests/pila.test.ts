@@ -30,3 +30,20 @@ test('solo la escena de arriba se actualiza, y al desapilar vuelve la de debajo'
     'otraZona.enter',
   ]);
 });
+
+test('la pila avisa de si la escena de arriba dibuja en la ventana y si pide la interfaz alta', () => {
+  const avisos: [boolean, boolean][] = [];
+  const pila = new PilaEscenas((ventana, alta) => avisos.push([ventana, alta]));
+  pila.apilar({ ...escena('mapa'), ventana: true });
+  pila.apilar({ ...escena('combate'), alta: true });
+  pila.apilar(escena('menu'));
+  pila.desapilar();
+  pila.desapilar();
+  expect(avisos).toEqual([
+    [true, false],
+    [false, true],
+    [false, false],
+    [false, true],
+    [true, false],
+  ]);
+});

@@ -1,14 +1,15 @@
 import type { Acciones } from '../core/acciones';
+import { toquePuntos } from '../core/disposicion';
 import type { Luchador } from '../core/combate';
 import { mejorar } from '../core/progresion';
 import type { Mejora, ReglasCombate } from '../core/types';
 import { anunciar } from '../render/accesibilidad';
 import { opcionTocada, type MenuVista } from '../render/combate';
-import { dentro, esTactil } from '../render/pantalla';
+import { esTactil } from '../render/pantalla';
 import {
   dibujarPuntos,
-  FILAS_PUNTOS,
-  SIGNO,
+  filasPuntos,
+  signos,
   type FilaPuntos,
   type VistaPuntos,
 } from '../render/puntos';
@@ -36,6 +37,8 @@ const MEJORAS: [Mejora, string][] = [
  * Salir sin más (Luego, Escape) los guarda para gastarlos otro día desde el inventario.
  */
 export class EscenaPuntos implements Escena {
+  readonly alta = true;
+
   private activa = 0;
   private ultimoX = 0;
   private ultimoY = 0;
@@ -124,13 +127,10 @@ export class EscenaPuntos implements Escena {
       return;
     }
     // Cada fila cuenta también el hueco hasta la siguiente: no hay toques que caigan en el vacío.
-    const i = FILAS_PUNTOS.findIndex((r) => dentro(x, y, { ...r, y: r.y - 2, alto: r.alto + 4 }));
-    const r = FILAS_PUNTOS[i];
-    if (!r) return;
-    this.activa = i;
-    const dx = x - r.x;
-    if (dx >= SIGNO.menos - HOLGURA && dx < SIGNO.menos + SIGNO.ancho + HOLGURA) this.poner(-1);
-    else if (dx >= SIGNO.mas - HOLGURA) this.poner(1);
+    const { fila, signo } = toquePuntos(x, y, filasPuntos(), signos(), HOLGURA);
+    if (fila < 0) return;
+    this.activa = fila;
+    if (signo !== 0) this.poner(signo);
     else this.rehacer();
   }
 

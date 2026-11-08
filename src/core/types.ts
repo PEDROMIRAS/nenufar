@@ -260,6 +260,33 @@ export interface DificultadJson {
   recuperacion: number;
   /** Multiplica, además, el ataque, la magia y los PV de los jefes violetas. */
   violetas: number;
+  /** Multiplica la experiencia que dan los monstruos (un presagio); ausente = 1. */
+  experiencia?: number;
+}
+
+/** Un presagio de `src/data/presagios.json`: un precio y un premio para una zona (1 y 0 = sin cambio). */
+export interface PresagioJson {
+  nombre: string;
+  descripcion: string;
+  /** Multiplican el ataque y la vida de los monstruos de la zona (el redondeo a enteros los hace dar saltos: mejor `recuperacion` para afinar). */
+  ataque: number;
+  vida: number;
+  /** Multiplica lo que la heroína recupera tras cada victoria (continuo, sin redondeos que den saltos). */
+  recuperacion: number;
+  /** Multiplica la experiencia de los monstruos. */
+  experiencia: number;
+  /** Grupos de monstruos de más en cada sala de combate. */
+  gruposExtra: number;
+  /** Niveles de más del equipo que dan los cofres. */
+  nivelCofre: number;
+  /** Qué devuelve la fuente de descanso. */
+  fuente: 'todo' | 'pm';
+}
+
+/** `src/data/presagios.json`: probabilidad de que una zona tenga presagio y la lista por clave. */
+export interface DatosPresagios {
+  probabilidad: number;
+  lista: Record<string, PresagioJson>;
 }
 
 /** `src/data/combate.json`: reglas comunes de todos los combates. */
@@ -279,6 +306,8 @@ export interface ReglasCombate {
   invulnerabilidadTrasCombate: number;
   /** Fracción de PV y PM máximos que recupera la heroína al ganar un combate. */
   recuperacionTrasVictoria: number;
+  /** Multiplica la experiencia de cada victoria (un presagio); ausente = 1. */
+  multiplicadorExperiencia?: number;
   experiencia: ReglasProgresion;
   estados: Record<string, EstadoJson>;
 }

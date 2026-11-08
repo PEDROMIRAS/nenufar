@@ -47,3 +47,9 @@ test('los jefes violetas llevan además el multiplicador de su dificultad; el re
   expect(monstruoCon(MONSTRUOS.cofre_trampa_bosque!, d)).toEqual(MONSTRUOS.cofre_trampa_bosque);
   for (const dif of Object.values(DIFICULTADES)) expect(dif.violetas).toBeGreaterThan(0);
 });
+
+test('la experiencia de la dificultad pasa a las reglas; sin ella las reglas quedan como están', () => {
+  const d = { nombre: 'x', descripcion: '', ataque: 1, vida: 1, recuperacion: 1, violetas: 1 };
+  expect(reglasCon(REGLAS, { ...d, experiencia: 1.15 }).multiplicadorExperiencia).toBe(1.15);
+  expect(reglasCon(REGLAS, d)).toEqual(REGLAS);
+});

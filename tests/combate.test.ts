@@ -215,6 +215,24 @@ describe('final', () => {
     expect(c.esperando).toBe(false);
   });
 
+  test('con multiplicador de experiencia se cobra la suma redondeada por él', () => {
+    const enemigo = luchadorDeMonstruo({ ...limo, experiencia: 12 });
+    const c = crearCombate(
+      luchadorDeHeroe(heroes.ronin),
+      [enemigo],
+      { ...reglas, multiplicadorExperiencia: 1.15 },
+      cola(),
+    );
+    avanzar(c);
+    let eventos = actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
+    while (!c.resultado) eventos = actuar(c, { tipo: 'atacar', objetivo: c.enemigos[0]! });
+    // 12 × 1,15 = 13,8 → 14
+    expect(eventos.find((e) => e.tipo === 'experiencia')).toEqual({
+      tipo: 'experiencia',
+      cantidad: 14,
+    });
+  });
+
   test('en el nivel máximo ya no se gana ni se anuncia experiencia', () => {
     const c = combate(cola());
     c.heroina.nivel = reglas.experiencia.nivelMaximo;

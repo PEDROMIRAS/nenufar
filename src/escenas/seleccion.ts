@@ -1,10 +1,10 @@
 import type { Acciones } from '../core/acciones';
+import { tarjetaTocada } from '../core/disposicion';
 import type { HeroeJson } from '../core/types';
 import type { Sprite } from '../render/recursos';
-import { dibujarSeleccion, TARJETAS } from '../render/seleccion';
+import { dibujarSeleccion, tarjetasVisibles } from '../render/seleccion';
 import { ponerMusica } from '../render/sonido';
 import { anunciar } from '../render/accesibilidad';
-import { dentro } from '../render/pantalla';
 import type { Escena } from './escena';
 
 export interface OpcionHeroina {
@@ -14,6 +14,8 @@ export interface OpcionHeroina {
 
 /** Elección de heroína al empezar la partida. */
 export class EscenaSeleccion implements Escena {
+  readonly alta = true;
+
   private seleccion = 0;
   private ultimoX = 0;
   private tiempo = 0;
@@ -35,7 +37,7 @@ export class EscenaSeleccion implements Escena {
     this.tiempo += dt;
     if (this.elegida) return; // la partida se está cargando
     if (a.toqueX >= 0) {
-      const i = TARJETAS.findIndex((t) => dentro(a.toqueX, a.toqueY, t));
+      const i = tarjetaTocada(a.toqueX, a.toqueY, tarjetasVisibles(this.opciones.length));
       if (i >= 0 && i < this.opciones.length) {
         this.seleccion = i;
         this.elegir();

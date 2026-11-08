@@ -12,7 +12,8 @@ import {
   salaVecina,
   salidaPisada,
 } from '../core/mapa';
-import { colocarMonstruos, seTocan } from '../core/monstruos';
+import { colocarMonstruos, cuantosGrupos, seTocan } from '../core/monstruos';
+import { restaurarFuente } from '../core/presagios';
 import { actualizarPatrulla, crearPatrulla, iniciativa, type Patrulla } from '../core/patrulla';
 import { buscarInicio } from '../core/movimiento';
 import {
@@ -110,6 +111,11 @@ export interface OpcionesMapa {
   /** Tipos de monstruo de la zona; cuántos hay por sala de combate y a cuántas casillas de las entradas. */
   grupos: readonly { monstruos: MonstruoJson[]; peso: number }[];
   gruposPorSala: { min: number; max: number };
+  /** Grupos de más por sala (un presagio) y qué devuelve la fuente de descanso. */
+  gruposExtra: number;
+  modoFuente: 'todo' | 'pm';
+  /** Nombre del presagio de la zona, si lo hay: va en el HUD. */
+  presagio: string | null;
   /** Jefe de la zona: espera en el centro de su sala, y el portal no aparece hasta vencerlo. */
   jefe: MonstruoJson | null;
   /** Jefe de la sala violeta, si la zona la tiene: espera en su centro como el de zona, sin portal. */
@@ -321,12 +327,15 @@ export class EscenaMapa implements Escena {
       objetoAlAlcance(this.montada.sala, 'fuente', h.cuerpo, tam, ALCANCE)
     ) {
       const l = this.o.luchadora;
-      l.pv = l.pvMax;
-      l.pm = l.pmMax;
+      restaurarFuente(l, this.o.modoFuente);
       this.fuenteUsada = true;
       this.marcarHecha(this.actual);
       sonar('cura');
-      this.avisar('La fuente te restaura los PV y los PM');
+      this.avisar(
+        this.o.modoFuente === 'pm'
+          ? 'La fuente solo te restaura los PM'
+          : 'La fuente te restaura los PV y los PM',
+      );
     }
     // Tras huir del cofre trampa hay un momento para apartarse antes de que vuelva a morder.
     if (this.actual.tipo === 'tesoro' && !(this.actual.trampa && this.invulnerable > 0)) {
@@ -509,7 +518,7 @@ export class EscenaMapa implements Escena {
     const firma = ((l.nivel * 1000 + l.pv) * 1000 + l.pvMax) * 1000000 + l.pm * 1000 + l.pmMax;
     if (firma === this.hudFirma) return;
     this.hudFirma = firma;
-    this.hud.cabecera = `${this.o.nombreZona} · Nv ${l.nivel}`;
+    this.hud.cabecera = `${this.o.nombreZona}${this.o.presagio ? ` · ${this.o.presagio}` : ''} · Nv ${l.nivel}`;
     this.hud.pv = `${l.pv}/${l.pvMax}`;
     this.hud.pm = `${l.pm}/${l.pmMax}`;
   }
@@ -712,8 +721,7 @@ export class EscenaMapa implements Escena {
       return [{ p: crearPatrulla({ x, y, ancho, alto }), grupo: [central], vivo: true }];
     }
     if (s.tipo !== 'combate' || grupos.length === 0) return [];
-    const { min, max } = gruposPorSala;
-    const cuantos = min + Math.floor(azar() * (max - min + 1));
+    const cuantos = cuantosGrupos(gruposPorSala, this.o.gruposExtra, azar);
     return colocarMonstruos(sala, this.salidas, cuantos, distanciaMonstruos, azar).flatMap(
       ([c, f]) => {
         const grupo = elegirConPeso(grupos, azar)?.monstruos;

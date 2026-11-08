@@ -1,4 +1,5 @@
 import type { Acciones } from '../core/acciones';
+import { tarjetaTocada } from '../core/disposicion';
 import { entradasBestiario, type Logro } from '../core/logros';
 import type { Records } from '../core/records';
 import { partirTexto } from '../core/texto';
@@ -6,20 +7,21 @@ import type { MonstruoJson } from '../core/types';
 import { anunciar } from '../render/accesibilidad';
 import { opcionTocada, type MenuVista } from '../render/combate';
 import {
-  CELDAS,
-  PESTANAS,
+  celdas,
+  columnasBestiario,
   dibujarExtras,
+  letrasFicha,
+  pestanas,
   siluetaDe,
   type FichaMonstruo,
   type LogroVisto,
   type VistaExtras,
 } from '../render/extras';
-import { dentro, esTactil } from '../render/pantalla';
+import { esTactil } from '../render/pantalla';
 import type { Sprite } from '../render/recursos';
 import { sonar } from '../render/sonido';
 import type { Escena } from './escena';
 
-const POR_FILA = 8;
 const PISTA = esTactil()
   ? {
       bestiario: 'Toca un monstruo para ver su ficha',
@@ -34,10 +36,9 @@ const PISTA = esTactil()
 type Foco = 'pestanas' | 'rejilla' | 'volver';
 
 /** Bestiario (los monstruos vencidos, el resto en silueta) y logros, desde el título. */
-/** Letras por línea de la ficha del monstruo: lo que cabe en su marco (fuente monoespaciada). */
-const LETRAS_FICHA = 52;
-
 export class EscenaExtras implements Escena {
+  readonly alta = true;
+
   private pagina: 'bestiario' | 'logros' = 'bestiario';
   private foco: Foco = 'rejilla';
   private elegido = 0;
@@ -45,6 +46,10 @@ export class EscenaExtras implements Escena {
   private ultimoX = 0;
   private ultimoY = 0;
   private readonly fichas: FichaMonstruo[];
+  /** Las líneas de cada ficha que no dependen del ancho, y las habilidades, que se parten al ancho de cada forma. */
+  private readonly textos: { fijas: string[]; habilidades: string }[] = [];
+  /** Letras por línea con las que se partieron las fichas. */
+  private letras = 0;
   private readonly logros: LogroVisto[];
   private readonly vistos: string;
   private readonly conseguidos: string;
@@ -68,22 +73,28 @@ export class EscenaExtras implements Escena {
       if (!sprite) return [];
       const e = m.estadisticas;
       const habilidades = m.habilidades?.map((h) => h.nombre).join(', ') || 'ninguna';
+      this.textos.push(
+        visto
+          ? {
+              fijas: [
+                `PV ${e.pv} · Ataque ${e.ataque} · Magia ${e.magia}`,
+                `Defensa ${e.defensa} · Velocidad ${e.velocidad}`,
+              ],
+              habilidades,
+            }
+          : { fijas: ['Aún no lo has vencido'], habilidades: '' },
+      );
       return [
         {
           sprite,
           silueta: siluetaDe(sprite),
           visto,
           nombre: visto ? `${m.nombre}${m.jefe ? ' (jefe)' : ''}` : '???',
-          lineas: visto
-            ? [
-                `PV ${e.pv} · Ataque ${e.ataque} · Magia ${e.magia}`,
-                `Defensa ${e.defensa} · Velocidad ${e.velocidad}`,
-                ...partirTexto(`Habilidades: ${habilidades}`, LETRAS_FICHA),
-              ]
-            : ['Aún no lo has vencido'],
+          lineas: [],
         },
       ];
     });
+    this.partirFichas();
     this.logros = logros.map((l) => ({
       nombre: l.nombre,
       descripcion: l.descripcion,
@@ -102,6 +113,18 @@ export class EscenaExtras implements Escena {
       menu: this.menu,
       tiempo: 0,
     };
+  }
+
+  /** Parte las habilidades de cada ficha al ancho de la interfaz actual (hace falta al pasar de horizontal a vertical). */
+  private partirFichas(): void {
+    this.letras = letrasFicha();
+    this.fichas.forEach((f, i) => {
+      const t = this.textos[i]!;
+      f.lineas = [
+        ...t.fijas,
+        ...(t.habilidades ? partirTexto(`Habilidades: ${t.habilidades}`, this.letras) : []),
+      ];
+    });
   }
 
   enter(): void {
@@ -126,6 +149,7 @@ export class EscenaExtras implements Escena {
     this.ultimoX = dx;
     this.ultimoY = dy;
     const bestiario = this.pagina === 'bestiario';
+    const porFila = columnasBestiario();
     // De arriba abajo: pestañas, rejilla (solo en el bestiario) y Volver.
     if (this.foco === 'pestanas') {
       if (nuevoX) this.verPagina(bestiario ? 'logros' : 'bestiario');
@@ -136,7 +160,7 @@ export class EscenaExtras implements Escena {
     } else if (nuevoX) {
       this.elegir(this.elegido + dx);
     } else if (nuevoY) {
-      const destino = this.elegido + dy * POR_FILA;
+      const destino = this.elegido + dy * porFila;
       if (destino < 0) this.enfocar('pestanas');
       else if (destino >= this.fichas.length) this.enfocar('volver');
       else this.elegir(destino);
@@ -145,6 +169,7 @@ export class EscenaExtras implements Escena {
 
   draw(ctx: CanvasRenderingContext2D): void {
     // La misma vista en cada fotograma, puesta al día (crear una nueva sería memoria en el bucle).
+    if (letrasFicha() !== this.letras) this.partirFichas();
     const v = this.vista;
     v.pagina = this.pagina;
     v.focoPestanas = this.foco === 'pestanas';
@@ -156,11 +181,11 @@ export class EscenaExtras implements Escena {
   }
 
   private tocar(x: number, y: number): void {
-    const pestana = PESTANAS.findIndex((r) => dentro(x, y, r));
+    const pestana = tarjetaTocada(x, y, pestanas());
     if (pestana >= 0) this.verPagina(pestana === 0 ? 'bestiario' : 'logros');
     else if (opcionTocada(x, y, this.menu.opciones.length) === 0) this.alVolver();
     else if (this.pagina === 'bestiario') {
-      const i = CELDAS.findIndex((c) => dentro(x, y, c));
+      const i = tarjetaTocada(x, y, celdas());
       if (i >= 0 && i < this.fichas.length) {
         this.foco = 'rejilla';
         this.menu.seleccion = -1;

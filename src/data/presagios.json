@@ -1,0 +1,49 @@
+{
+  "probabilidad": 0.6,
+  "lista": {
+    "luna_roja": {
+      "nombre": "Luna roja",
+      "descripcion": "Tras cada combate te recuperas menos, pero los cofres de la zona dan equipo de un nivel más.",
+      "ataque": 1,
+      "vida": 1,
+      "recuperacion": 0.93,
+      "experiencia": 1,
+      "gruposExtra": 0,
+      "nivelCofre": 1,
+      "fuente": "todo"
+    },
+    "manada": {
+      "nombre": "Manada",
+      "descripcion": "Hay un grupo más en cada sala: más botín, pero cada monstruo da menos experiencia.",
+      "ataque": 1,
+      "vida": 1,
+      "recuperacion": 1,
+      "experiencia": 0.93,
+      "gruposExtra": 1,
+      "nivelCofre": 0,
+      "fuente": "todo"
+    },
+    "fuente_seca": {
+      "nombre": "Fuente seca",
+      "descripcion": "La fuente de descanso solo te devuelve los PM, pero ganas más experiencia.",
+      "ataque": 1,
+      "vida": 1,
+      "recuperacion": 1,
+      "experiencia": 1.07,
+      "gruposExtra": 0,
+      "nivelCofre": 0,
+      "fuente": "pm"
+    },
+    "coraza": {
+      "nombre": "Coraza",
+      "descripcion": "Los monstruos aguantan más, pero los cofres de la zona dan equipo de un nivel más.",
+      "ataque": 1,
+      "vida": 1.02,
+      "recuperacion": 1,
+      "experiencia": 1,
+      "gruposExtra": 0,
+      "nivelCofre": 1,
+      "fuente": "todo"
+    }
+  }
+}

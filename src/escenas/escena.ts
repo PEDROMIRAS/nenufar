@@ -5,6 +5,8 @@ export interface Escena {
   readonly conMundo?: boolean;
   /** ¿Dibuja en coordenadas de la ventana (el mapa) y no con la interfaz de 480×352 centrada? */
   readonly ventana?: boolean;
+  /** ¿Está adaptada a la interfaz alta (ventana vertical)? Si no, en vertical sigue con los 480×352 centrados. */
+  readonly alta?: boolean;
   enter(): void;
   update(dt: number, acciones: Acciones): void;
   draw(ctx: CanvasRenderingContext2D, alpha: number): void;

@@ -1,3 +1,4 @@
+import { partirTexto } from '../core/texto';
 // Fuentes fijas: construir el texto de la fuente en cada fotograma crearía cadenas en el bucle.
 export const FUENTE = 'bold 12px monospace';
 export const FUENTE_GRANDE = 'bold 24px monospace';
@@ -23,4 +24,17 @@ export function escribir(
   ctx.fillText(texto, x + 1, y + 1);
   ctx.fillStyle = color;
   ctx.fillText(texto, x, y);
+}
+
+const LINEAS = new Map<string, string[]>();
+
+/** `partirTexto` recordado por texto y ancho: se pide en cada fotograma y solo se calcula una vez. */
+export function partirCacheado(texto: string, letras: number): string[] {
+  const clave = `${letras}|${texto}`;
+  let lineas = LINEAS.get(clave);
+  if (!lineas) {
+    lineas = partirTexto(texto, letras);
+    LINEAS.set(clave, lineas);
+  }
+  return lineas;
 }

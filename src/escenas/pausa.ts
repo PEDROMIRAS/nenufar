@@ -5,9 +5,19 @@ import { describirConsumible, partirEnLineas } from '../core/descripciones';
 import { bonoDe, describirEfecto } from '../core/equipo';
 import { efectoToque, filaTocada } from '../core/menu';
 import { experienciaParaSubir } from '../core/progresion';
-import type { EquipoJson, EstadoJson, ObjetosJson, ReglasProgresion } from '../core/types';
+import { lineasPresagio } from '../core/presagios';
+import type {
+  EquipoJson,
+  EstadoJson,
+  ObjetosJson,
+  PresagioJson,
+  ReglasProgresion,
+} from '../core/types';
+import { VERTICAL } from '../data/datos';
 import { TEXTO_CONTROLES } from '../render/controles';
+import { interfaz } from '../render/pantalla';
 import {
+  ajustarControlesAjustes,
   dibujarInventario,
   FILA_INVENTARIO,
   LETRAS_COLUMNA,
@@ -20,6 +30,7 @@ import {
   type PaginaInventario,
   type VistaInventario,
 } from '../render/pausa';
+import { dibujarInventarioAlto, objetosAltos } from '../render/pausaAlta';
 import type { Sprite } from '../render/recursos';
 import type { Casilla, Deslizador } from '../render/deslizador';
 import { esCalidadAlta, ponerCalidadAlta } from '../render/mundo/mundo';
@@ -42,6 +53,8 @@ import type { Escena } from './escena';
  * y la lista de controles). Equipo y Mejorar abren sus pantallas encima.
  */
 export class EscenaPausa implements Escena {
+  readonly alta = true;
+
   private ficha!: FichaInventario;
   private readonly vista: VistaInventario;
   private pagina: PaginaInventario = 'heroina';
@@ -57,6 +70,8 @@ export class EscenaPausa implements Escena {
   private salirPulsado = false;
   /** Equipo o Mejorar está encima: los controles HTML no se ven aunque se esté en Ajustes. */
   private tapado = false;
+  /** Con qué forma de interfaz se partió la ficha (el equipo se parte al ancho de cada una). */
+  private fichaAlta = false;
 
   constructor(
     private readonly l: Luchador,
@@ -65,6 +80,8 @@ export class EscenaPausa implements Escena {
     private readonly objetos: ObjetosJson,
     private readonly progresion: ReglasProgresion,
     private readonly estados: Record<string, EstadoJson>,
+    /** Presagio de la zona en que está, para que se pueda releer. */
+    private readonly presagio: PresagioJson | null,
     /** Sonido sí o no, calidad alta o baja y volumen de música y efectos: controles HTML sobre el canvas en Ajustes. */
     private readonly controles: {
       sonido: Casilla;
@@ -167,8 +184,14 @@ export class EscenaPausa implements Escena {
     v.enObjetos = this.enObjetos;
     v.objeto = this.objeto;
     v.tiempo = this.tiempo;
+    // La ficha parte el equipo al ancho de la interfaz: se rehace solo al pasar de una a otra.
+    if (interfaz.alta !== this.fichaAlta) {
+      this.rehacer();
+      v.ficha = this.ficha;
+    }
     v.ficha = this.ficha;
-    dibujarInventario(ctx, v);
+    if (interfaz.alta) dibujarInventarioAlto(ctx, v);
+    else dibujarInventario(ctx, v);
   }
 
   /** Vuelve a leer a la heroína (al volver de la pantalla de Equipo o de la de puntos). */
@@ -191,7 +214,10 @@ export class EscenaPausa implements Escena {
     }
     if (this.pagina !== 'objetos') return;
     const n = this.ficha.objetos.length;
-    const o = filaTocada(x, y, OBJETOS_INVENTARIO, FILA_INVENTARIO, n);
+    const filas = interfaz.alta
+      ? objetosAltos(n)
+      : { caja: OBJETOS_INVENTARIO, fila: FILA_INVENTARIO };
+    const o = filaTocada(x, y, filas.caja, filas.fila, n);
     if (o < 0) return;
     // Usar un objeto pide dos toques, como en el combate: el primero solo lo elige y dice qué hace.
     const usar = this.enObjetos && efectoToque(this.objeto, o, true) === 'usar';
@@ -307,6 +333,7 @@ export class EscenaPausa implements Escena {
       this.ocultarControles();
       return;
     }
+    ajustarControlesAjustes();
     this.controles.sonido.mostrar(!estaSilenciado(), (si) => silenciar(!si));
     this.controles.calidad.mostrar(esCalidadAlta(), ponerCalidadAlta);
     this.controles.musica.mostrar(leerVolumenMusica(), ponerVolumenMusica);
@@ -361,7 +388,9 @@ export class EscenaPausa implements Escena {
       const bono = piezas.reduce((suma, p) => suma + (p ? bonoDe(p, clave, l.nivel) : 0), 0);
       return `${etiqueta} ${l[clave]}${bono ? ` (+${bono})` : ''}`;
     };
-    const columna = (texto: string): string[] => partirEnLineas(texto, LETRAS_COLUMNA);
+    this.fichaAlta = interfaz.alta;
+    const columna = (texto: string): string[] =>
+      partirEnLineas(texto, interfaz.alta ? VERTICAL.menu.letrasPanel : LETRAS_COLUMNA);
     const pieza = (p: EquipoJson | undefined): string[] => [
       ...columna(p?.nombre ?? 'Nada'),
       ...(p?.efecto ? columna(describirEfecto(p.efecto, this.estados)) : []),
@@ -397,6 +426,10 @@ export class EscenaPausa implements Escena {
           : columna(`Corazón: ${inv.corazon === 'lleno' ? 'del dragón negro' : 'vacío'}`)),
         ...(inv.mochila.length > 0 ? [`Mochila: ${inv.mochila.length}`] : []),
       ],
+      presagio: lineasPresagio(
+        this.presagio,
+        interfaz.alta ? VERTICAL.menu.letrasPanel : LETRAS_COLUMNA,
+      ),
       // Todos los consumibles; solo se pueden usar aquí los que restauran PV o PM y si hacen algo.
       objetos: Object.entries(objetos.consumibles).map(([clave, o]) => {
         const cuantos = inv.consumibles[clave] ?? 0;
