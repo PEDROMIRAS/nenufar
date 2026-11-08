@@ -114,6 +114,8 @@ export interface OpcionesMapa {
   /** Grupos de más por sala (un presagio) y qué devuelve la fuente de descanso. */
   gruposExtra: number;
   modoFuente: 'todo' | 'pm';
+  /** Nombre del presagio de la zona, si lo hay: va en el HUD. */
+  presagio: string | null;
   /** Jefe de la zona: espera en el centro de su sala, y el portal no aparece hasta vencerlo. */
   jefe: MonstruoJson | null;
   /** Jefe de la sala violeta, si la zona la tiene: espera en su centro como el de zona, sin portal. */
@@ -516,7 +518,7 @@ export class EscenaMapa implements Escena {
     const firma = ((l.nivel * 1000 + l.pv) * 1000 + l.pvMax) * 1000000 + l.pm * 1000 + l.pmMax;
     if (firma === this.hudFirma) return;
     this.hudFirma = firma;
-    this.hud.cabecera = `${this.o.nombreZona} · Nv ${l.nivel}`;
+    this.hud.cabecera = `${this.o.nombreZona}${this.o.presagio ? ` · ${this.o.presagio}` : ''} · Nv ${l.nivel}`;
     this.hud.pv = `${l.pv}/${l.pvMax}`;
     this.hud.pm = `${l.pm}/${l.pmMax}`;
   }

@@ -38,14 +38,16 @@ import type {
   HeroeJson,
   MonstruoJson,
   PlantillasJson,
+  PresagioJson,
   ReglasCombate,
   ZonaHd2d,
 } from './core/types';
 import { aplicarRecompensa, elegirRecompensa } from './core/recompensas';
+import { cofreCon, dificultadCon, elegirPresagio } from './core/presagios';
 import { jefeVioleta, modoVioleta } from './core/violetas';
 import { generarZona } from './core/zona';
 import controles from './data/controles.json';
-import { DIFICULTADES, HD2D, HEROES, MONSTRUOS, OBJETOS, REGLAS } from './data/datos';
+import { DIFICULTADES, HD2D, HEROES, MONSTRUOS, OBJETOS, PRESAGIOS, REGLAS } from './data/datos';
 import plantillasBosque from './data/salas/plantillas_bosque.json';
 import plantillasCauce from './data/salas/plantillas_cauce.json';
 import plantillasCripta from './data/salas/plantillas_cripta.json';
@@ -137,6 +139,9 @@ interface Partida {
   zona: string;
   /** Dificultad elegida, y monstruos y reglas de combate con ella ya aplicada. */
   dificultad: DificultadJson;
+  /** Presagio de la zona en que está, y la dificultad con él puesto (`dificultad` no cambia: los récords la buscan por identidad). */
+  presagio: PresagioJson | null;
+  dificultadZona: DificultadJson;
   bestiario: Record<string, MonstruoJson>;
   reglas: ReglasCombate;
   /** Volumen de música y efectos y sonido sí o no en el inventario (controles HTML, uno por partida). */
@@ -327,6 +332,8 @@ async function iniciar(): Promise<void> {
       vencidos: 0,
       zona: '',
       dificultad,
+      presagio: null,
+      dificultadZona: dificultad,
       bestiario: bestiarioCon(MONSTRUOS, dificultad),
       reglas: reglasCon(REGLAS, dificultad),
       rival: tituloRival(),
@@ -359,7 +366,11 @@ async function iniciar(): Promise<void> {
         // La historia se cuenta encima del mapa ya cargado: al pasarla, empieza el fundido de entrada.
         contar(
           pila,
-          [...paginas([...historia.inicio, ...heroe.historia.inicio]), cartel(0)],
+          [
+            ...paginas([...historia.inicio, ...heroe.historia.inicio]),
+            cartel(0),
+            ...paginaPresagio(partida),
+          ],
           () => {},
         );
       })
@@ -474,6 +485,9 @@ async function crearZona(
     partida.semilla + indice * 7919,
   );
   console.info(`Zona ${nombre}, semilla ${zona.semilla}`);
+  const clavePresagio = presagioForzado() ?? elegirPresagio(PRESAGIOS, zona.semilla);
+  fijarPresagio(partida, clavePresagio ? PRESAGIOS.lista[clavePresagio]! : null);
+  const presagio = partida.presagio;
   // Lo que se guarda es lo de antes de crear la zona: al recuperarla se vuelve a crear igual.
   partida.violetasAntes = partida.violetas;
   partida.dragonAntes = partida.dragonUsado;
@@ -514,12 +528,13 @@ async function crearZona(
           crearZona(partida, indice + 1, true)
             .then((siguiente) => {
               partida.pila.cambiar(siguiente);
-              contar(partida.pila, [cartel(indice + 1)], () => {});
+              contar(partida.pila, [cartel(indice + 1), ...paginaPresagio(partida)], () => {});
             })
             .catch(mostrarError);
         }
       : () => {
           guardarPartida(guardado(partida, indice, escena.estado(), { tipo: 'final' }));
+          fijarPresagio(partida, null); // el jefe final se lucha sin presagio
           lucharJefe(
             partida,
             { ...monstruo(zonas.jefeFinal), nombre: partida.rival },
@@ -536,12 +551,13 @@ async function crearZona(
       monstruos: monstruos.map(monstruo),
     })),
     gruposPorSala: zonas.monstruos.gruposPorSala,
-    gruposExtra: 0,
-    modoFuente: 'todo',
+    gruposExtra: presagio?.gruposExtra ?? 0,
+    modoFuente: presagio?.fuente ?? 'todo',
+    presagio: presagio?.nombre ?? null,
     jefe: monstruo(datos.jefe),
     jefeVioleta: violeta,
     cofreTrampa: monstruo(datos.cofreTrampa),
-    cofre: datos.cofre,
+    cofre: cofreCon(datos.cofre, presagio, OBJETOS.armaduras.length),
     inventario: partida.inventario,
     objetos: OBJETOS,
     ofrecerEquipo: (clave, alFinal) => ofrecerEquipo(partida, [clave], alFinal),
@@ -602,6 +618,28 @@ async function crearZona(
     },
   });
   return escena;
+}
+
+/** Pone (o quita) el presagio de la zona y recalcula lo que depende de él: la dificultad, los monstruos y las reglas. */
+function fijarPresagio(partida: Partida, presagio: PresagioJson | null): void {
+  partida.presagio = presagio;
+  partida.dificultadZona = dificultadCon(partida.dificultad, presagio);
+  partida.bestiario = bestiarioCon(MONSTRUOS, partida.dificultadZona);
+  partida.reglas = reglasCon(REGLAS, partida.dificultadZona);
+}
+
+/** ?presagio=clave fuerza el presagio de todas las zonas, solo en desarrollo. */
+function presagioForzado(): string | null {
+  // shortcut: solo en desarrollo, para probar un presagio concreto
+  if (!import.meta.env.DEV) return null;
+  const clave = new URLSearchParams(location.search).get('presagio');
+  return clave && clave in PRESAGIOS.lista ? clave : null;
+}
+
+/** Página del presagio de la zona, tras su cartel (ninguna si no hay). */
+function paginaPresagio(partida: Partida): Pagina[] {
+  const p = partida.presagio;
+  return p ? [{ titulo: `Presagio: ${p.nombre}`, texto: p.descripcion }] : [];
 }
 
 /** Cartel de la zona `indice` al entrar: su nombre largo y una o dos líneas. */
@@ -839,7 +877,7 @@ function luchar(
   const azar = crearAzar(partida.semilla * 31 + ++partida.combates);
   const combate = crearCombate(
     luchadora,
-    luchadoresDeGrupo(grupo.map((m) => monstruoCon(m, partida.dificultad))),
+    luchadoresDeGrupo(grupo.map((m) => monstruoCon(m, partida.dificultadZona))),
     partida.reglas,
     azar,
     partida.bestiario,
