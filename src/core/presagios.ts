@@ -1,4 +1,5 @@
 import { crearAzar } from './azar';
+import { partirEnLineas } from './descripciones';
 import type { BotinJson, DatosPresagios, DificultadJson, PresagioJson } from './types';
 
 /**
@@ -54,6 +55,11 @@ export function cofreCon(
       ? { ...e }
       : { ...e, nivel: Math.min(e.nivel + p.nivelCofre, Math.max(e.nivel, nivelMaximo)) },
   );
+}
+
+/** Para la pausa: el nombre del presagio y su descripción partida a `letras` por línea (nada si no hay). */
+export function lineasPresagio(p: PresagioJson | null, letras: number): string[] {
+  return p ? [p.nombre, ...partirEnLineas(p.descripcion, letras)] : [];
 }
 
 /** Lo que devuelve la fuente de descanso: todo, o solo los PM. */

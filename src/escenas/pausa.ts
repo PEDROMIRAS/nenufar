@@ -5,7 +5,14 @@ import { describirConsumible, partirEnLineas } from '../core/descripciones';
 import { bonoDe, describirEfecto } from '../core/equipo';
 import { efectoToque, filaTocada } from '../core/menu';
 import { experienciaParaSubir } from '../core/progresion';
-import type { EquipoJson, EstadoJson, ObjetosJson, ReglasProgresion } from '../core/types';
+import { lineasPresagio } from '../core/presagios';
+import type {
+  EquipoJson,
+  EstadoJson,
+  ObjetosJson,
+  PresagioJson,
+  ReglasProgresion,
+} from '../core/types';
 import { VERTICAL } from '../data/datos';
 import { TEXTO_CONTROLES } from '../render/controles';
 import { interfaz } from '../render/pantalla';
@@ -73,6 +80,8 @@ export class EscenaPausa implements Escena {
     private readonly objetos: ObjetosJson,
     private readonly progresion: ReglasProgresion,
     private readonly estados: Record<string, EstadoJson>,
+    /** Presagio de la zona en que está, para que se pueda releer. */
+    private readonly presagio: PresagioJson | null,
     /** Sonido sí o no, calidad alta o baja y volumen de música y efectos: controles HTML sobre el canvas en Ajustes. */
     private readonly controles: {
       sonido: Casilla;
@@ -417,6 +426,10 @@ export class EscenaPausa implements Escena {
           : columna(`Corazón: ${inv.corazon === 'lleno' ? 'del dragón negro' : 'vacío'}`)),
         ...(inv.mochila.length > 0 ? [`Mochila: ${inv.mochila.length}`] : []),
       ],
+      presagio: lineasPresagio(
+        this.presagio,
+        interfaz.alta ? VERTICAL.menu.letrasPanel : LETRAS_COLUMNA,
+      ),
       // Todos los consumibles; solo se pueden usar aquí los que restauran PV o PM y si hacen algo.
       objetos: Object.entries(objetos.consumibles).map(([clave, o]) => {
         const cuantos = inv.consumibles[clave] ?? 0;

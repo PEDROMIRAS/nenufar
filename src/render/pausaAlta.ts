@@ -132,6 +132,18 @@ function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaInventario, c: Re
   dibujarTitulo(ctx, x0, yEquipo, ancho, 'Equipo');
   for (let i = 0; i < f.equipo.length; i++)
     escribir(ctx, f.equipo[i]!, x0, yEquipo + 22 + i * 13, PALETA.texto);
+  if (f.presagio.length > 0) {
+    const yPresagio = yEquipo + 22 + f.equipo.length * 13 + 8;
+    dibujarTitulo(ctx, x0, yPresagio, ancho, 'Presagio');
+    for (let i = 0; i < f.presagio.length; i++)
+      escribir(
+        ctx,
+        f.presagio[i]!,
+        x0,
+        yPresagio + 22 + i * 13,
+        i === 0 ? PALETA.claro : PALETA.texto,
+      );
+  }
 }
 
 /** Los consumibles en filas; debajo, qué hace el elegido; al pie, los PV y PM. */

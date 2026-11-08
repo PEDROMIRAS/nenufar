@@ -588,6 +588,7 @@ async function crearZona(
         OBJETOS,
         REGLAS.experiencia,
         REGLAS.estados,
+        partida.presagio,
         partida.controles,
         () =>
           partida.pila.apilar(

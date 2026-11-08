@@ -3,6 +3,7 @@ import {
   cofreCon,
   dificultadCon,
   elegirPresagio,
+  lineasPresagio,
   presagioUtil,
   restaurarFuente,
 } from '../src/core/presagios';
@@ -45,6 +46,28 @@ describe('elegirPresagio', () => {
     const vistos = new Set<string | null>();
     for (let s = 0; s < 2000; s++) vistos.add(elegirPresagio(PRESAGIOS, s));
     expect(vistos).toEqual(new Set([...CLAVES, null]));
+  });
+});
+
+describe('lineasPresagio', () => {
+  test('sin presagio no hay líneas', () => {
+    expect(lineasPresagio(null, 20)).toEqual([]);
+  });
+
+  test('el nombre va primero y la descripción se parte al ancho sin perder palabras', () => {
+    const p = {
+      ...neutro,
+      nombre: 'Luna roja',
+      descripcion: 'Tras cada combate te recuperas menos.',
+    };
+    const lineas = lineasPresagio(p, 20);
+    expect(lineas[0]).toBe('Luna roja');
+    expect(lineas.slice(1).join(' ')).toBe(p.descripcion);
+    for (const l of lineas) expect(l.length).toBeLessThanOrEqual(20);
+  });
+
+  test.each(CLAVES)('%s cabe en columnas de 20 letras en 6 líneas o menos', (clave) => {
+    expect(lineasPresagio(PRESAGIOS.lista[clave]!, 20).length).toBeLessThanOrEqual(6);
   });
 });
 

@@ -145,6 +145,8 @@ export interface FichaInventario {
   estadisticas: string[];
   /** Piezas puestas, su efecto, el Corazón y la mochila, ya partidas al ancho de la columna. */
   equipo: string[];
+  /** El presagio de la zona: su nombre y su descripción ya partida (vacío si no hay). */
+  presagio: string[];
   objetos: ObjetoFicha[];
   /** Detalle de cada fila de la lista («2» puntos libres en Mejorar, «¿Seguro?» en Salir). */
   detalles: Record<SeccionInventario, string>;
@@ -238,6 +240,18 @@ function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaInventario): void
   dibujarTitulo(ctx, derecha, 136, ancho, 'Habilidades');
   for (let i = 0; i < f.habilidades.length; i++)
     escribir(ctx, f.habilidades[i]!, derecha, 158 + i * 14, PALETA.texto);
+  if (f.presagio.length > 0) {
+    const yPresagio = 158 + f.habilidades.length * 14 + 6;
+    dibujarTitulo(ctx, derecha, yPresagio, ancho, 'Presagio');
+    for (let i = 0; i < f.presagio.length; i++)
+      escribir(
+        ctx,
+        f.presagio[i]!,
+        derecha,
+        yPresagio + 20 + i * 13,
+        i === 0 ? PALETA.claro : PALETA.texto,
+      );
+  }
 }
 
 /** Los consumibles en filas; debajo, qué hace el elegido; abajo, los PV y PM para saber si hace falta. */
