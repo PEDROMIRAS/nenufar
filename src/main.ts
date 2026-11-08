@@ -47,7 +47,16 @@ import { cofreCon, dificultadCon, elegirPresagio, presagioUtil } from './core/pr
 import { jefeVioleta, modoVioleta } from './core/violetas';
 import { generarZona } from './core/zona';
 import controles from './data/controles.json';
-import { DIFICULTADES, HD2D, HEROES, MONSTRUOS, OBJETOS, PRESAGIOS, REGLAS } from './data/datos';
+import {
+  DIFICULTADES,
+  EVENTOS,
+  HD2D,
+  HEROES,
+  MONSTRUOS,
+  OBJETOS,
+  PRESAGIOS,
+  REGLAS,
+} from './data/datos';
 import plantillasBosque from './data/salas/plantillas_bosque.json';
 import plantillasCauce from './data/salas/plantillas_cauce.json';
 import plantillasCripta from './data/salas/plantillas_cripta.json';
@@ -496,6 +505,7 @@ async function crearZona(
       violeta: modoVioleta(indice, ORDEN.length, partida.violetas),
       probabilidadVioleta: zonas.violetas.probabilidad,
       probabilidadTrampa: zonas.violetas.probabilidadTrampa,
+      probabilidadEvento: EVENTOS.probabilidad,
     },
     partida.semilla + indice * 7919,
   );

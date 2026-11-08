@@ -1,6 +1,6 @@
 import { crearAzar } from './azar';
 
-export type TipoSala = 'inicio' | 'combate' | 'tesoro' | 'descanso' | 'jefe' | 'violeta';
+export type TipoSala = 'inicio' | 'combate' | 'tesoro' | 'descanso' | 'jefe' | 'violeta' | 'evento';
 
 /** Bits de `puertas`, en el mismo orden que la máscara de los autotiles. */
 export const N = 1;
@@ -24,6 +24,8 @@ export interface SalaZona {
   puertas: number;
   /** Solo en salas 'tesoro': el cofre es un monstruo. */
   trampa?: boolean;
+  /** Solo en salas 'evento': cuál es. */
+  evento?: 'altar';
 }
 
 export interface Zona {
@@ -43,6 +45,8 @@ export interface AjustesZona {
   probabilidadVioleta?: number;
   /** Probabilidad de un tesoro trampa en otro callejón libre. */
   probabilidadTrampa?: number;
+  /** Probabilidad de una sala de evento en otro callejón libre, tras la violeta y la trampa. */
+  probabilidadEvento?: number;
 }
 
 const MAX_SEMILLAS = 1000;
@@ -113,7 +117,7 @@ function intentar(a: AjustesZona, azar: () => number): SalaZona[] | null {
   return salas;
 }
 
-/** Sala violeta y tesoro trampa en los callejones que quedan libres. Falso si la violeta es segura y no cabe. */
+/** Sala violeta, tesoro trampa y sala de evento en los callejones que quedan libres. Falso si la violeta es segura y no cabe. */
 function colocarExtras(a: AjustesZona, salas: SalaZona[], azar: () => number): boolean {
   let libres = salas.filter((s) => s.tipo === 'combate' && (s.puertas & (s.puertas - 1)) === 0);
   const violeta = a.violeta ?? 'no';
@@ -128,6 +132,15 @@ function colocarExtras(a: AjustesZona, salas: SalaZona[], azar: () => number): b
     if (sala) {
       sala.tipo = 'tesoro';
       sala.trampa = true;
+      libres = libres.filter((s) => s !== sala);
+    }
+  }
+  // La última tirada: con probabilidad 0 o sin campo, el resto del trazado no cambia.
+  if (azar() < (a.probabilidadEvento ?? 0)) {
+    const sala = elegir(libres, azar);
+    if (sala) {
+      sala.tipo = 'evento';
+      sala.evento = 'altar';
     }
   }
   return true;
