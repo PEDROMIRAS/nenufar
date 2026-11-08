@@ -299,11 +299,20 @@ export interface DatosEventos {
     vida: {
       texto: string;
       porcentaje: number;
-      consumible: string;
+      /** Fracción de la experiencia que falta para el siguiente nivel que da el altar. */
+      experiencia: number;
+      /** Con `{px}` además de `{coste}`; en el nivel máximo se lee la otra. */
+      descripcion: string;
+      descripcionNivelMaximo: string;
+      sinEfecto: string;
+    };
+    magia: {
+      texto: string;
+      porcentaje: number;
+      consumibles: string[];
       descripcion: string;
       sinEfecto: string;
     };
-    magia: { texto: string; porcentaje: number; descripcion: string; sinEfecto: string };
     marcharse: { texto: string; descripcion: string };
   };
 }

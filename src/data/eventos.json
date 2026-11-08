@@ -6,14 +6,16 @@
     "vida": {
       "texto": "Ofrecer vida",
       "porcentaje": 0.3,
-      "consumible": "eter",
-      "descripcion": "Pierdes {coste} PV y recuperas todos los PM y un Éter.",
+      "experiencia": 0.5,
+      "descripcion": "Pierdes {coste} PV, recuperas todos los PM y ganas {px} PX.",
+      "descripcionNivelMaximo": "Pierdes {coste} PV y recuperas todos los PM.",
       "sinEfecto": "No te queda vida que ofrecer."
     },
     "magia": {
       "texto": "Ofrecer magia",
       "porcentaje": 0.3,
-      "descripcion": "Pierdes todos tus PM ({coste}) y recuperas {cura} PV.",
+      "consumibles": ["pocion"],
+      "descripcion": "Pierdes todos tus PM ({coste}) y recuperas {cura} PV y una Poción.",
       "sinEfecto": "Sin PM que ofrecer o con la vida llena no pasaría nada."
     },
     "marcharse": {

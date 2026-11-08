@@ -672,7 +672,7 @@ function abrirAltar(partida: Partida, alTerminar: (usado: boolean, aviso: string
     new EscenaEvento(
       EVENTOS.altar.nombre,
       EVENTOS.altar.descripcion,
-      opcionesAltar(partida.luchadora, EVENTOS.altar),
+      opcionesAltar(partida.luchadora, EVENTOS.altar, REGLAS.experiencia),
       (clave) => {
         partida.pila.desapilar();
         const aviso = aplicarAltar(
@@ -681,6 +681,7 @@ function abrirAltar(partida: Partida, alTerminar: (usado: boolean, aviso: string
           clave,
           EVENTOS.altar,
           OBJETOS.maximoPorTipo,
+          REGLAS.experiencia,
         );
         alTerminar(clave !== 'marcharse', aviso);
       },

@@ -11,6 +11,7 @@ import {
   type Luchador,
 } from '../src/core/combate';
 import { abrirCofre, equipar, inventarioInicial } from '../src/core/equipo';
+import { aplicarAltar, opcionesAltar } from '../src/core/eventos';
 import type { Inventario } from '../src/core/inventario';
 import { mejorar } from '../src/core/progresion';
 import type {
@@ -30,7 +31,15 @@ import {
   presagioUtil,
   restaurarFuente,
 } from '../src/core/presagios';
-import { DIFICULTADES, HEROES, MONSTRUOS, OBJETOS, PRESAGIOS, REGLAS } from '../src/data/datos';
+import {
+  DIFICULTADES,
+  EVENTOS,
+  HEROES,
+  MONSTRUOS,
+  OBJETOS,
+  PRESAGIOS,
+  REGLAS,
+} from '../src/data/datos';
 import zonas from '../src/data/zonas.json';
 
 /** Simulador de partidas enteras jugadas con una política razonable (para el equilibrado). */
@@ -162,6 +171,19 @@ export interface Media {
 /** La media en porcentaje, con un decimal. */
 export const media = (m: Media): number => (m.n ? Math.round((m.suma / m.n) * 1000) / 10 : 0);
 
+/**
+ * La política de la jugadora simulada en el altar: ofrece vida (y se lleva el cofre) si le quedan al menos la mitad
+ * de los PV, ofrece magia si va corta de PV y le sobran PM, y si no se marcha. Devuelve lo que eligió.
+ */
+function usarAltar(h: Luchador, inv: Inventario): string {
+  const opciones = opcionesAltar(h, EVENTOS.altar, REGLAS.experiencia);
+  const activa = (c: string): boolean => opciones.find((o) => o.clave === c)!.activa;
+  const elegida =
+    activa('vida') && h.pv >= h.pvMax * 0.5 ? 'vida' : activa('magia') ? 'magia' : 'marcharse';
+  aplicarAltar(h, inv, elegida, EVENTOS.altar, OBJETOS.maximoPorTipo, REGLAS.experiencia);
+  return elegida;
+}
+
 export function simular(
   nombre: string,
   partidas = 300,
@@ -182,6 +204,8 @@ export function simular(
    * (con la semilla de cada zona). Sin esto, o con probabilidad 0, ninguna zona tiene presagio.
    */
   presagios?: { forzado?: string; probabilidad?: number },
+  /** Probabilidad de un altar en cada zona (como el juego); sin esto, ninguna zona lo tiene. */
+  probabilidadAltar = 0,
 ) {
   const mundo: Mundo = {
     bestiario: bestiarioCon(MONSTRUOS, dificultad),
@@ -216,6 +240,7 @@ export function simular(
           ...zonas.generacion,
           salas: z.salas,
           probabilidadTrampa: zonas.violetas.probabilidadTrampa,
+          probabilidadEvento: probabilidadAltar,
         },
         s + i * 7919,
       );
@@ -245,6 +270,7 @@ export function simular(
       for (const sala of zona.salas) {
         if (sala.tipo !== 'combate' && !sala.trampa) {
           if (sala.tipo === 'tesoro') abrir();
+          if (sala.tipo === 'evento') usarAltar(h, inv);
           continue;
         }
         // La fuente se guarda para cuando hace falta.
