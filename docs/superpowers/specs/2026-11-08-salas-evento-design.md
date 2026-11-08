@@ -59,3 +59,19 @@ Ermitaño, desafío, más eventos, moneda y tienda; que un evento cuente para r�
 ## Reglas del proyecto que se mantienen
 
 Lógica en `src/core/` sin DOM y con tests; escenas y dibujo en `src/escenas/` y `src/render/`; ningún número de diseño en el código; en vertical la escena se dibuja en la interfaz alta; textos en español en `eventos.json` o `historia.json`.
+
+## Entrega 2c: el desafío
+
+Pedro dijo «sigue» tras publicar el altar; todo lo marcado como *mi apuesta* es una suposición que puede cambiar.
+
+**Idea.** Una sala de evento puede ser un **desafío**: un círculo de piedra con runas rojas que reta a la heroína a **tres combates seguidos de la zona sin recuperar vida entre ellos**. Premio: un cofre de la zona (el mismo sorteo que un tesoro) además de la experiencia de los tres combates. Si huye de uno, pierde el premio. Si cae, es el fin de la partida como siempre.
+
+**Colocación.** El mismo sorteo del altar (probabilidad 0,4 de que un callejón libre sea evento). Una tirada más, solo cuando ya hay evento y al final, decide cuál: `fraccion` de `eventos.json` (*mi apuesta*: 0,5) son desafíos y el resto altares. `SalaZona.evento` pasa a `'altar' | 'desafio'`; sin el campo `probabilidadDesafio` todo son altares y el trazado no cambia.
+
+**Aspecto.** Misma plantilla de evento: el objeto central de `montar` se cambia por `desafio` (el altar con las runas rojas, `desafio_apagado` ya usado). Dos fotogramas más en `comunes` y el modelo 3D del altar con otro color y otra luz. *Mi apuesta; lo aprueba Pedro.*
+
+**Interacción.** Al acercarse se abre `EscenaEvento` con dos opciones: *Aceptar el desafío* y *Marcharse*. Aceptar apaga el círculo (`hechas`) y encadena los combates a través de `iniciarCombate`, con `CombateGuardado` `{ tipo: 'desafio', paso }`: cerrar el navegador repite el combate en curso con la vida de entonces y sigue la cadena. Los grupos salen de la semilla de la zona y la sala, así que son los mismos al volver. En los dos primeros combates `recuperacionTrasVictoria` vale 0 (`reglasDesafio`); el último recupera como siempre. Entre combate y combate la heroína puede usar objetos, repartir puntos y equiparse como siempre.
+
+**Equilibrio.** Un desafío sustituye a una sala de combate: da la experiencia de tres grupos (parecida a la de 2-4 de la sala que sustituye) sin las recuperaciones y con un cofre. La política simulada acepta con al menos el 60 % de los PV. El número de combates y la fracción de desafíos son lo que se afina; objetivo, como el altar: ±3 puntos con la probabilidad real.
+
+**Fuera de esta entrega.** El ermitaño (2b), un premio propio del desafío, desafíos más duros que los combates normales y avisar antes de aceptar de qué grupos se trata.

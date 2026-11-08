@@ -25,7 +25,7 @@ export interface SalaZona {
   /** Solo en salas 'tesoro': el cofre es un monstruo. */
   trampa?: boolean;
   /** Solo en salas 'evento': cuál es. */
-  evento?: 'altar';
+  evento?: 'altar' | 'desafio';
 }
 
 export interface Zona {
@@ -47,6 +47,8 @@ export interface AjustesZona {
   probabilidadTrampa?: number;
   /** Probabilidad de una sala de evento en otro callejón libre, tras la violeta y la trampa. */
   probabilidadEvento?: number;
+  /** Fracción de las salas de evento que son un desafío (el resto, altares). */
+  probabilidadDesafio?: number;
 }
 
 const MAX_SEMILLAS = 1000;
@@ -140,7 +142,8 @@ function colocarExtras(a: AjustesZona, salas: SalaZona[], azar: () => number): b
     const sala = elegir(libres, azar);
     if (sala) {
       sala.tipo = 'evento';
-      sala.evento = 'altar';
+      // Tirada solo si hay evento y después de todo lo demás: sin el campo, todos son altares.
+      sala.evento = azar() < (a.probabilidadDesafio ?? 0) ? 'desafio' : 'altar';
     }
   }
   return true;
