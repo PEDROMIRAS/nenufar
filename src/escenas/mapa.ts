@@ -145,6 +145,8 @@ export interface OpcionesMapa {
   cofre: readonly BotinJson[];
   inventario: Inventario;
   objetos: ObjetosJson;
+  /** Abre la elección del altar; avisa de si se aceptó un trato y de lo que pasó (el texto del aviso). */
+  usarAltar: (alTerminar: (usado: boolean, aviso: string) => void) => void;
   /** Enseña la comparación de una pieza de equipo encontrada y avisa al decidir. */
   ofrecerEquipo: (clave: string, alFinal: () => void) => void;
   /** Abre la pausa (MENU o el botón de la esquina). */
@@ -189,6 +191,8 @@ export class EscenaMapa implements Escena {
   private readonly azarMapa: () => number;
   /** La fuente de la sala de descanso restaura una sola vez por zona. */
   private fuenteUsada = false;
+  /** Falso tras elegir «marcharse» y hasta que la heroína se aparte del altar: así no se reabre a cada paso. */
+  private altarListo = true;
   /** Segundos de lluvia que quedan, y sus gotas (solo si la zona tiene lluvia tras el jefe). */
   private lluvia = 0;
   /** Siguiente pista por enseñar. */
@@ -238,6 +242,7 @@ export class EscenaMapa implements Escena {
     }
     this.fuenteUsada = r.fuenteUsada;
     const abierto = this.o.catalogo.get('cofre_abierto');
+    const apagado = this.o.catalogo.get('altar_apagado');
     for (const i of r.hechas) {
       const s = salas[i];
       if (!s) continue;
@@ -248,6 +253,8 @@ export class EscenaMapa implements Escena {
           if (o.inf.name === 'cofre_cerrado') o.inf = abierto;
       } else if (s.tipo === 'jefe') {
         this.abrirPortal(this.montar(s));
+      } else if (s.tipo === 'evento' && apagado) {
+        for (const o of this.montar(s).sala.objetos) if (o.inf.name === 'altar') o.inf = apagado;
       }
     }
   }
@@ -336,6 +343,15 @@ export class EscenaMapa implements Escena {
           ? 'La fuente solo te restaura los PM'
           : 'La fuente te restaura los PV y los PM',
       );
+    }
+    if (this.actual.tipo === 'evento' && !this.hechas.has(this.actual)) {
+      const altar = objetoAlAlcance(this.montada.sala, 'altar', h.cuerpo, tam, ALCANCE);
+      if (!altar) this.altarListo = true;
+      else if (this.altarListo) {
+        this.altarListo = false;
+        this.usarAltar(altar);
+        return;
+      }
     }
     // Tras huir del cofre trampa hay un momento para apartarse antes de que vuelva a morder.
     if (this.actual.tipo === 'tesoro' && !(this.actual.trampa && this.invulnerable > 0)) {
@@ -476,6 +492,21 @@ export class EscenaMapa implements Escena {
     } else {
       this.o.ofrecerEquipo(hallazgo.clave, () => {});
     }
+  }
+
+  /** Abre la elección del altar; si se acepta un trato, el altar se apaga y no se repite. */
+  private usarAltar(altar: ObjetoSala): void {
+    const sala = this.actual;
+    this.o.usarAltar((usado, aviso) => {
+      if (usado && this.actual === sala) {
+        const apagado = this.o.catalogo.get('altar_apagado');
+        if (apagado) altar.inf = apagado;
+        if (this.montada.vista) this.o.mundo.rehacerObjeto(this.montada.vista.sala, altar);
+        this.marcarHecha(sala);
+        this.o.mundo.refrescarLuces();
+      }
+      this.avisar(aviso);
+    });
   }
 
   /** El cofre de un tesoro trampa es un monstruo: se abre igual (mismo sonido) y empieza el combate. */

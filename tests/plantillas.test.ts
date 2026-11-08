@@ -24,7 +24,7 @@ import ruinasTiles from '../public/assets/tilesets/ruinas.json';
 const ZONAS: Record<string, PlantillasJson> = { bosque, ruinas, cripta, cauce };
 /** Lado de un tile en píxeles. */
 const TAM = 32;
-const TIPOS: TipoSala[] = ['inicio', 'combate', 'tesoro', 'descanso', 'jefe', 'violeta'];
+const TIPOS: TipoSala[] = ['inicio', 'combate', 'tesoro', 'descanso', 'jefe', 'violeta', 'evento'];
 // Los JSON de assets traen 'layer' como string; aquí se tratan como el tipo que documentan.
 const TILESETS = {
   bosque: [bosqueTiles, bosqueAuto],
@@ -79,6 +79,18 @@ describe.each(Object.entries(ZONAS))('plantillas de %s', (zona, plantillas) => {
       const portales = sala.objetos.filter((o) => o.inf.name === 'portal');
       expect(portales).toHaveLength(tipo === 'jefe' ? 1 : 0);
       for (const o of portales) expect(vistas.has(o.y * sala.ancho + o.x)).toBe(true);
+      // La sala de evento lleva su altar, sin monstruos, y se llega a una casilla de al lado.
+      const altares = sala.objetos.filter((o) => o.inf.name === 'altar');
+      expect(altares).toHaveLength(tipo === 'evento' ? 1 : 0);
+      for (const o of altares) {
+        const lados = [
+          [0, -1],
+          [1, 0],
+          [0, 1],
+          [-1, 0],
+        ] as const;
+        expect(lados.some(([dx, dy]) => vistas.has((o.y + dy) * sala.ancho + o.x + dx))).toBe(true);
+      }
     },
   );
 

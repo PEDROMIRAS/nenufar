@@ -113,6 +113,30 @@
         29,
         31
       ]
+    },
+    {
+      "name": "altar",
+      "index": 18,
+      "layer": "objeto",
+      "solid": true,
+      "caja": [
+        4,
+        19,
+        28,
+        31
+      ]
+    },
+    {
+      "name": "altar_apagado",
+      "index": 19,
+      "layer": "objeto",
+      "solid": true,
+      "caja": [
+        4,
+        19,
+        28,
+        31
+      ]
     }
   ]
 }

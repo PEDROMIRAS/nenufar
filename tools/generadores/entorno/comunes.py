@@ -1,4 +1,4 @@
-"""Objetos comunes a todas las zonas: cofre, fuente (de 3x2 casillas), portal y hoguera."""
+"""Objetos comunes a todas las zonas: cofre, fuente (de 3x2 casillas), portal, hoguera y altar."""
 import math
 from base import *
 
@@ -154,6 +154,25 @@ def campfire(frame):
     return t
 
 
+def altar(encendido=True):
+    """Losa de piedra sobre un pie ancho, con una runa morada en el frente y un resplandor encima (en el juego es un modelo 3D). Apagado, las runas son de piedra y no hay resplandor."""
+    runa = VIO if encendido else ST
+    t = tile()
+    rect(t, 7, 18, 24, 28, ST[1]); rect(t, 7, 18, 24, 19, ST[2])
+    line(t, 7, 18, 7, 28, ST[2]); line(t, 24, 18, 24, 28, ST[0])
+    rect(t, 5, 13, 26, 17, ST[2]); rect(t, 5, 13, 26, 14, ST[3]); rect(t, 5, 17, 26, 17, ST[0])
+    for x, y in ((16, 21), (15, 22), (17, 22), (16, 23), (16, 24), (14, 24), (18, 24)):
+        put(t, x, y, runa[2] if encendido else runa[0])
+    put(t, 16, 22, runa[3] if encendido else runa[0])
+    if encendido:
+        for x, y in ((12, 10), (16, 7), (20, 11), (14, 5)):
+            put(t, x, y, VIO[2])
+        put(t, 16, 9, VIO[3]); put(t, 16, 8, VIO[2]); put(t, 15, 10, VIO[1]); put(t, 17, 10, VIO[1])
+    outline(t)
+    ground_shadow(t, 16, 29, 12, 2)
+    return t
+
+
 def tiles():
     return [
         ("cofre_cerrado", "objeto", True, [chest()], None),
@@ -161,4 +180,6 @@ def tiles():
         *piezas_fuente(),
         ("portal", "objeto", False, [portal(0), portal(1)], None),
         ("hoguera", "objeto", True, [campfire(0), campfire(1)], None),
+        ("altar", "objeto", True, [altar()], None),
+        ("altar_apagado", "objeto", True, [altar(False)], None),
     ]

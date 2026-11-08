@@ -456,7 +456,59 @@ function portal(azar: Azar, tamPunto: number): Elemento {
   };
 }
 
-/** El objeto común `nombre` (cofre, hoguera o portal) hecho en 3D, o null si no es uno de ellos. */
+/** Runa morada de píxeles: un rombo con una raya y puntos, sobre fondo transparente. */
+function texturaRuna(): THREE.CanvasTexture {
+  return dibujar(16, 16, (ctx) => {
+    ctx.fillStyle = MORADO[2]!;
+    for (let i = 0; i < 6; i++) {
+      ctx.fillRect(8 - i, 2 + i, 1, 1);
+      ctx.fillRect(7 + i, 2 + i, 1, 1);
+      ctx.fillRect(8 - i, 13 - i, 1, 1);
+      ctx.fillRect(7 + i, 13 - i, 1, 1);
+    }
+    ctx.fillStyle = MORADO[3]!;
+    ctx.fillRect(7, 4, 2, 8);
+    ctx.fillRect(5, 7, 6, 2);
+  });
+}
+
+/** Losa de piedra con una runa morada y una chispa que flota encima; apagado, sin runa ni chispa. */
+function altar(encendido: boolean, azar: Azar): Elemento {
+  const grupo = new THREE.Group();
+  const piedra = new THREE.MeshLambertMaterial({ map: texturaPiedra(azar) });
+  const caja = new THREE.BoxGeometry(1, 1, 1);
+  const alto = 0.34;
+  malla(grupo, caja, piedra, 0, alto / 2, 0).scale.set(0.6, alto, 0.42);
+  malla(grupo, caja, piedra, 0, alto + 0.05, 0).scale.set(0.8, 0.1, 0.58);
+  malla(grupo, caja, piedra, 0, 0.03, 0).scale.set(0.72, 0.06, 0.52);
+  if (!encendido) return { grupo };
+
+  const runa = new THREE.MeshBasicMaterial({
+    map: texturaRuna(),
+    transparent: true,
+    depthWrite: false,
+  });
+  const plano = malla(grupo, new THREE.PlaneGeometry(0.26, 0.26), runa, 0, alto / 2 + 0.02, 0.215);
+  plano.renderOrder = 1;
+  const chispa = malla(
+    grupo,
+    new THREE.OctahedronGeometry(0.07),
+    new THREE.MeshBasicMaterial({ color: MORADO[3] }),
+    0,
+    alto + 0.3,
+    0,
+  );
+  return {
+    grupo,
+    actualizar: (t) => {
+      runa.opacity = 0.75 + Math.sin(t * 2.2) * 0.25;
+      chispa.position.y = alto + 0.3 + Math.sin(t * 1.6) * 0.05;
+      chispa.rotation.y = t * 1.5;
+    },
+  };
+}
+
+/** El objeto común `nombre` (cofre, hoguera, portal o altar) hecho en 3D, o null si no es uno de ellos. */
 export function crearElemento(nombre: string, azar: Azar, tamPunto: number): Elemento | null {
   switch (nombre) {
     case 'cofre_cerrado':
@@ -467,6 +519,10 @@ export function crearElemento(nombre: string, azar: Azar, tamPunto: number): Ele
       return hoguera(azar, tamPunto);
     case 'portal':
       return portal(azar, tamPunto);
+    case 'altar':
+      return altar(true, azar);
+    case 'altar_apagado':
+      return altar(false, azar);
     default:
       return null;
   }

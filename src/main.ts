@@ -45,6 +45,7 @@ import type {
 import { aplicarRecompensa, elegirRecompensa } from './core/recompensas';
 import { cofreCon, dificultadCon, elegirPresagio, presagioUtil } from './core/presagios';
 import { jefeVioleta, modoVioleta } from './core/violetas';
+import { aplicarAltar, opcionesAltar } from './core/eventos';
 import { generarZona } from './core/zona';
 import controles from './data/controles.json';
 import {
@@ -70,6 +71,7 @@ import { EscenaDificultad } from './escenas/dificultad';
 import { EscenaExtras } from './escenas/extras';
 import { EscenaNombre } from './escenas/nombre';
 import { EscenaEquipo, type DatosEquipo } from './escenas/equipo';
+import { EscenaEvento } from './escenas/evento';
 import { EscenaMensaje } from './escenas/mensaje';
 import { EscenaMapa } from './escenas/mapa';
 import { PilaEscenas } from './escenas/pila';
@@ -384,6 +386,11 @@ async function iniciar(): Promise<void> {
           luchar(partida, grupo, zona.fondoSala, () => {});
           return;
         }
+        // ?altar abre la elección del altar nada más empezar (solo en desarrollo), para revisar su pantalla.
+        if (import.meta.env.DEV && new URLSearchParams(location.search).has('altar')) {
+          abrirAltar(partida, () => {});
+          return;
+        }
         guardarAjustes({ pistasVistas: true }); // las pistas, si tocaban, ya van en esta zona
         // La historia se cuenta encima del mapa ya cargado: al pasarla, empieza el fundido de entrada.
         contar(
@@ -505,7 +512,7 @@ async function crearZona(
       violeta: modoVioleta(indice, ORDEN.length, partida.violetas),
       probabilidadVioleta: zonas.violetas.probabilidad,
       probabilidadTrampa: zonas.violetas.probabilidadTrampa,
-      probabilidadEvento: EVENTOS.probabilidad,
+      probabilidadEvento: probabilidadEvento(),
     },
     partida.semilla + indice * 7919,
   );
@@ -589,6 +596,7 @@ async function crearZona(
     cofre: cofreCon(datos.cofre, presagio, OBJETOS.armaduras.length),
     inventario: partida.inventario,
     objetos: OBJETOS,
+    usarAltar: (alTerminar) => abrirAltar(partida, alTerminar),
     ofrecerEquipo: (clave, alFinal) => ofrecerEquipo(partida, [clave], alFinal),
     abrirPausa: () => {
       const pausa: EscenaPausa = new EscenaPausa(
@@ -656,6 +664,35 @@ function fijarPresagio(partida: Partida, presagio: PresagioJson | null): void {
   partida.dificultadZona = dificultadCon(partida.dificultad, presagio);
   partida.bestiario = bestiarioCon(MONSTRUOS, partida.dificultadZona);
   partida.reglas = reglasCon(REGLAS, partida.dificultadZona);
+}
+
+/** La elección del altar encima del mapa: aplica el trato elegido y avisa de lo ocurrido. */
+function abrirAltar(partida: Partida, alTerminar: (usado: boolean, aviso: string) => void): void {
+  partida.pila.apilar(
+    new EscenaEvento(
+      EVENTOS.altar.nombre,
+      EVENTOS.altar.descripcion,
+      opcionesAltar(partida.luchadora, EVENTOS.altar),
+      (clave) => {
+        partida.pila.desapilar();
+        const aviso = aplicarAltar(
+          partida.luchadora,
+          partida.inventario,
+          clave,
+          EVENTOS.altar,
+          OBJETOS.maximoPorTipo,
+        );
+        alTerminar(clave !== 'marcharse', aviso);
+      },
+    ),
+  );
+}
+
+/** ?evento=1 hace que toda zona con un callejón libre tenga un altar, solo en desarrollo. */
+function probabilidadEvento(): number {
+  // shortcut: solo en desarrollo, para probar el altar sin buscarlo
+  if (!import.meta.env.DEV) return EVENTOS.probabilidad;
+  return new URLSearchParams(location.search).has('evento') ? 1 : EVENTOS.probabilidad;
 }
 
 /** ?presagio=clave fuerza el presagio de todas las zonas, solo en desarrollo. */

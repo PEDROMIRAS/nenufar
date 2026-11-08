@@ -58,6 +58,14 @@
       "parpadeo": 0.08,
       "sombra": false
     },
+    "altar": {
+      "color": "#b46cff",
+      "intensidad": 5,
+      "alcance": 3.5,
+      "alto": 0.7,
+      "parpadeo": 0.1,
+      "sombra": false
+    },
     "brasero": {
       "color": "#ff8a3a",
       "intensidad": 6.5,

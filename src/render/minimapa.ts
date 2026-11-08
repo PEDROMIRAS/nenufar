@@ -21,6 +21,8 @@ const COLOR = {
   jefe: '#d8584a',
   /** Violeta claro, distinto del morado del portal y del fuego. */
   violeta: '#b07cff',
+  /** Dorado claro: algo que decidir. */
+  evento: '#e8c85a',
   hecha: '#6f7a6c',
 };
 const PUNTO: Partial<Record<SalaZona['tipo'], string>> = {
@@ -28,6 +30,7 @@ const PUNTO: Partial<Record<SalaZona['tipo'], string>> = {
   descanso: COLOR.descanso,
   jefe: COLOR.jefe,
   violeta: COLOR.violeta,
+  evento: COLOR.evento,
 };
 
 /** Pinta el minimapa entero; se rehace al cambiar de sala y se copia tal cual en cada fotograma. */

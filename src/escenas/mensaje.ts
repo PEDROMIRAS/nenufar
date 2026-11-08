@@ -13,7 +13,7 @@ const LETRAS_TITULO = 30;
 const LETRAS_LINEA = 60;
 
 /** Letras por línea en la forma de interfaz actual: las de siempre o, en la interfaz alta, las que caben. */
-function letras(): { titulo: number; linea: number } {
+export function letras(): { titulo: number; linea: number } {
   if (!interfaz.alta) return { titulo: LETRAS_TITULO, linea: LETRAS_LINEA };
   const util = interfaz.ancho - 4 * VERTICAL.menu.margen;
   return {
