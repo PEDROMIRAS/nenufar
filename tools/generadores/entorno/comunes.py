@@ -8,6 +8,7 @@ ST = [(64, 66, 74), (100, 104, 112), (140, 144, 150), (182, 186, 188)]
 WATER = [(40, 92, 160), (70, 140, 210), (130, 196, 240), (220, 244, 255)]
 FIRE = [(210, 84, 40), (246, 150, 52), (255, 214, 110), (255, 246, 210)]
 VIO = [(46, 18, 76), (96, 40, 160), (164, 96, 236), (230, 204, 255)]
+RED = [(70, 14, 14), (150, 30, 30), (226, 72, 60), (255, 176, 150)]
 
 
 def chest(opened=False):
@@ -154,9 +155,9 @@ def campfire(frame):
     return t
 
 
-def altar(encendido=True):
-    """Losa de piedra sobre un pie ancho, con una runa morada en el frente y un resplandor encima (en el juego es un modelo 3D). Apagado, las runas son de piedra y no hay resplandor."""
-    runa = VIO if encendido else ST
+def altar(encendido=True, brillo=VIO):
+    """Losa de piedra sobre un pie ancho, con una runa (morada; roja en el desafío) en el frente y un resplandor encima (en el juego es un modelo 3D). Apagado, las runas son de piedra y no hay resplandor."""
+    runa = brillo if encendido else ST
     t = tile()
     rect(t, 7, 18, 24, 28, ST[1]); rect(t, 7, 18, 24, 19, ST[2])
     line(t, 7, 18, 7, 28, ST[2]); line(t, 24, 18, 24, 28, ST[0])
@@ -166,8 +167,8 @@ def altar(encendido=True):
     put(t, 16, 22, runa[3] if encendido else runa[0])
     if encendido:
         for x, y in ((12, 10), (16, 7), (20, 11), (14, 5)):
-            put(t, x, y, VIO[2])
-        put(t, 16, 9, VIO[3]); put(t, 16, 8, VIO[2]); put(t, 15, 10, VIO[1]); put(t, 17, 10, VIO[1])
+            put(t, x, y, brillo[2])
+        put(t, 16, 9, brillo[3]); put(t, 16, 8, brillo[2]); put(t, 15, 10, brillo[1]); put(t, 17, 10, brillo[1])
     outline(t)
     ground_shadow(t, 16, 29, 12, 2)
     return t
@@ -182,4 +183,5 @@ def tiles():
         ("hoguera", "objeto", True, [campfire(0), campfire(1)], None),
         ("altar", "objeto", True, [altar()], None),
         ("altar_apagado", "objeto", True, [altar(False)], None),
+        ("desafio", "objeto", True, [altar(True, RED)], None),
     ]

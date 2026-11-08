@@ -50,6 +50,7 @@ const METAL = ['#262a36', '#3e4454', '#6a7388', '#a8b2c8'];
 const ORO = ['#8c6226', '#cea23e', '#f6d678'];
 const PIEDRA = ['#3a3e4c', '#5a5f70', '#80869a', '#aab0c0'];
 const MORADO = ['#2e124c', '#6028a0', '#a460ec', '#e6ccff'];
+const ROJO = ['#460e0e', '#961e1e', '#e2483c', '#ffb096'];
 
 /** Tablones de madera con vetas, juntas oscuras y clavos. */
 function texturaMadera(azar: Azar): THREE.CanvasTexture {
@@ -456,24 +457,24 @@ function portal(azar: Azar, tamPunto: number): Elemento {
   };
 }
 
-/** Runa morada de píxeles: un rombo con una raya y puntos, sobre fondo transparente. */
-function texturaRuna(): THREE.CanvasTexture {
+/** Runa de píxeles (morada; roja en el desafío): un rombo con una raya y puntos, sobre fondo transparente. */
+function texturaRuna(paleta: readonly string[]): THREE.CanvasTexture {
   return dibujar(16, 16, (ctx) => {
-    ctx.fillStyle = MORADO[2]!;
+    ctx.fillStyle = paleta[2]!;
     for (let i = 0; i < 6; i++) {
       ctx.fillRect(8 - i, 2 + i, 1, 1);
       ctx.fillRect(7 + i, 2 + i, 1, 1);
       ctx.fillRect(8 - i, 13 - i, 1, 1);
       ctx.fillRect(7 + i, 13 - i, 1, 1);
     }
-    ctx.fillStyle = MORADO[3]!;
+    ctx.fillStyle = paleta[3]!;
     ctx.fillRect(7, 4, 2, 8);
     ctx.fillRect(5, 7, 6, 2);
   });
 }
 
-/** Losa de piedra con una runa morada y una chispa que flota encima; apagado, sin runa ni chispa. */
-function altar(encendido: boolean, azar: Azar): Elemento {
+/** Losa de piedra con una runa y una chispa que flota encima (de la `paleta`: morada el altar, roja el desafío); apagado, sin runa ni chispa. */
+function altar(encendido: boolean, azar: Azar, paleta: readonly string[] = MORADO): Elemento {
   const grupo = new THREE.Group();
   const piedra = new THREE.MeshLambertMaterial({ map: texturaPiedra(azar) });
   const caja = new THREE.BoxGeometry(1, 1, 1);
@@ -484,7 +485,7 @@ function altar(encendido: boolean, azar: Azar): Elemento {
   if (!encendido) return { grupo };
 
   const runa = new THREE.MeshBasicMaterial({
-    map: texturaRuna(),
+    map: texturaRuna(paleta),
     transparent: true,
     depthWrite: false,
   });
@@ -493,7 +494,7 @@ function altar(encendido: boolean, azar: Azar): Elemento {
   const chispa = malla(
     grupo,
     new THREE.OctahedronGeometry(0.07),
-    new THREE.MeshBasicMaterial({ color: MORADO[3] }),
+    new THREE.MeshBasicMaterial({ color: paleta[3] }),
     0,
     alto + 0.3,
     0,
@@ -508,7 +509,7 @@ function altar(encendido: boolean, azar: Azar): Elemento {
   };
 }
 
-/** El objeto común `nombre` (cofre, hoguera, portal o altar) hecho en 3D, o null si no es uno de ellos. */
+/** El objeto común `nombre` (cofre, hoguera, portal, altar o círculo del desafío) hecho en 3D, o null si no es uno de ellos. */
 export function crearElemento(nombre: string, azar: Azar, tamPunto: number): Elemento | null {
   switch (nombre) {
     case 'cofre_cerrado':
@@ -521,6 +522,8 @@ export function crearElemento(nombre: string, azar: Azar, tamPunto: number): Ele
       return portal(azar, tamPunto);
     case 'altar':
       return altar(true, azar);
+    case 'desafio':
+      return altar(true, azar, ROJO);
     case 'altar_apagado':
       return altar(false, azar);
     default:

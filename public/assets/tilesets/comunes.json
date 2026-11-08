@@ -137,6 +137,18 @@
         28,
         31
       ]
+    },
+    {
+      "name": "desafio",
+      "index": 20,
+      "layer": "objeto",
+      "solid": true,
+      "caja": [
+        4,
+        19,
+        28,
+        31
+      ]
     }
   ]
 }
