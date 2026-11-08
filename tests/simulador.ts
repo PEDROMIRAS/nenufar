@@ -22,7 +22,9 @@ import type {
 } from '../src/core/types';
 import { generarZona } from '../src/core/zona';
 import { bestiarioCon, reglasCon } from '../src/core/dificultad';
-import { DIFICULTADES, HEROES, MONSTRUOS, OBJETOS, REGLAS } from '../src/data/datos';
+import { cuantosGrupos } from '../src/core/monstruos';
+import { cofreCon, dificultadCon, elegirPresagio, restaurarFuente } from '../src/core/presagios';
+import { DIFICULTADES, HEROES, MONSTRUOS, OBJETOS, PRESAGIOS, REGLAS } from '../src/data/datos';
 import zonas from '../src/data/zonas.json';
 
 /** Simulador de partidas enteras jugadas con una política razonable (para el equilibrado). */
@@ -169,6 +171,11 @@ export function simular(
     mundo: Mundo,
     s: number,
   ) => void,
+  /**
+   * Presagios de las zonas: `forzado` pone ese en las cuatro; `probabilidad` los sortea como el juego
+   * (con la semilla de cada zona). Sin esto, o con probabilidad 0, ninguna zona tiene presagio.
+   */
+  presagios?: { forzado?: string; probabilidad?: number },
 ) {
   const mundo: Mundo = {
     bestiario: bestiarioCon(MONSTRUOS, dificultad),
@@ -206,9 +213,23 @@ export function simular(
         },
         s + i * 7919,
       );
+      const clavePresagio =
+        presagios?.forzado ??
+        (presagios?.probabilidad
+          ? elegirPresagio({ ...PRESAGIOS, probabilidad: presagios.probabilidad }, zona.semilla)
+          : null);
+      const presagio = clavePresagio ? PRESAGIOS.lista[clavePresagio]! : null;
+      const mundoZona: Mundo = presagio
+        ? {
+            bestiario: bestiarioCon(MONSTRUOS, dificultadCon(dificultad, presagio)),
+            reglas: reglasCon(REGLAS, dificultadCon(dificultad, presagio)),
+          }
+        : mundo;
+      const cofre = cofreCon(z.cofre, presagio, OBJETOS.armaduras.length);
+      const modoFuente = presagio?.fuente ?? 'todo';
       let fuente = zona.salas.some((x) => x.tipo === 'descanso');
       const abrir = (): void => {
-        const hallazgo = abrirCofre(z.cofre, azar, heroe, OBJETOS, inv);
+        const hallazgo = abrirCofre(cofre, azar, heroe, OBJETOS, inv);
         if (hallazgo?.tipo === 'equipo') quizaEquipar(h, inv, hallazgo.clave);
       };
       for (const sala of zona.salas) {
@@ -219,18 +240,17 @@ export function simular(
         // La fuente se guarda para cuando hace falta.
         if (fuente && h.pv < h.pvMax * 0.5) {
           fuente = false;
-          h.pv = h.pvMax;
-          h.pm = h.pmMax;
+          restaurarFuente(h, modoFuente);
         }
         if (sala.trampa) {
-          viva = pelear(h, inv, [z.cofreTrampa], azar, mundo);
+          viva = pelear(h, inv, [z.cofreTrampa], azar, mundoZona);
           contar(trampas, clave, viva);
           if (!viva) break;
           abrir();
           continue;
         }
         const grupos = zonas.monstruos.gruposPorSala;
-        const n = grupos.min + Math.floor(azar() * (grupos.max - grupos.min + 1));
+        const n = cuantosGrupos(grupos, presagio?.gruposExtra ?? 0, azar);
         for (let g = 0; g < n && viva; g++) {
           const grupo = elegirConPeso(z.grupos, azar)!.monstruos;
           // El mismo combate empezando con la vida llena, sin tocar la partida.
@@ -245,23 +265,20 @@ export function simular(
               structuredClone(inv),
               grupo,
               crearAzar(s * 131 + g),
-              mundo,
+              mundoZona,
               (recibido[clave] ??= { suma: 0, n: 0 }),
             ),
           );
-          viva = pelear(h, inv, grupo, azar, mundo);
+          viva = pelear(h, inv, grupo, azar, mundoZona);
           contar(reales, clave, viva);
         }
         if (!viva) break;
       }
       if (!viva) break;
-      alExplorar?.(clave, h, inv, mundo, s);
-      if (fuente) {
-        h.pv = h.pvMax;
-        h.pm = h.pmMax;
-      }
+      alExplorar?.(clave, h, inv, mundoZona, s);
+      if (fuente) restaurarFuente(h, modoFuente);
       (niveles[clave] ??= []).push(h.nivel);
-      viva = pelear(h, inv, [z.jefe], azar, mundo);
+      viva = pelear(h, inv, [z.jefe], azar, mundoZona);
       contar(jefes, clave, viva);
       if (!viva) break;
     }
