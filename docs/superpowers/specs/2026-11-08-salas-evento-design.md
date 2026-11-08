@@ -74,4 +74,10 @@ Pedro dijo «sigue» tras publicar el altar; todo lo marcado como *mi apuesta* e
 
 **Equilibrio.** Un desafío sustituye a una sala de combate: da la experiencia de tres grupos (parecida a la de 2-4 de la sala que sustituye) sin las recuperaciones y con un cofre. La política simulada acepta con al menos el 60 % de los PV. El número de combates y la fracción de desafíos son lo que se afina; objetivo, como el altar: ±3 puntos con la probabilidad real.
 
+**Decisiones tomadas al ejecutar la entrega 2c.**
+- *Se reutiliza la plantilla de evento:* el objeto central de `montar` pasa de `altar` a `desafio` (un fotograma nuevo en `comunes`, el modelo 3D con runas rojas y su luz); apagado, el círculo es el `altar_apagado`.
+- *Los combates se encadenan desde el mapa* con `iniciarCombate` y `{ tipo: 'desafio', paso }`; el siguiente se lanza en el fotograma siguiente a ganar (`desafioPendiente`), porque `main.ts` guarda la partida al volver al mapa y ese guardado pisaría el del siguiente combate.
+- *«Sin recuperación» no incluye la subida de nivel:* subir de nivel restaura parte de la vida y los PM, también entre los combates del desafío.
+- *Equilibrio (2400 partidas, ronin / maga, sin eventos → con la mezcla real: probabilidad 0,4 y la mitad desafíos):* Fácil 73,5 / 72,3 → 73,6 / 73,0, Normal 46,3 / 52,6 → 46,0 / 50,2, Difícil 26,1 / 29,8 → 25,0 / 29,2; la peor celda es la maga en Normal (−2,4). Con todos los eventos como desafío (1200 partidas) la peor es −3,5, también la maga en Normal; con el desafío forzado en las cuatro zonas baja de 2 a 7 puntos. La política simulada (acepta con al menos el 60 % de los PV, nunca huye) es mía y sencilla.
+
 **Fuera de esta entrega.** El ermitaño (2b), un premio propio del desafío, desafíos más duros que los combates normales y avisar antes de aceptar de qué grupos se trata.
