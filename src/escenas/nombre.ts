@@ -5,7 +5,7 @@ import { anunciar } from '../render/accesibilidad';
 import { guardarNombre } from '../render/almacen';
 import type { CampoNombre } from '../render/campoNombre';
 import { opcionTocada, type MenuVista } from '../render/combate';
-import { dibujarNombre, LARGO_NOMBRE } from '../render/nombre';
+import { ajustarCampoNombre, dibujarNombre, LARGO_NOMBRE } from '../render/nombre';
 import type { Sprite } from '../render/recursos';
 import { ponerMusica, sonar } from '../render/sonido';
 import type { Escena } from './escena';
@@ -15,6 +15,8 @@ import type { Escena } from './escena';
  * de la rana como sugerencia; vacío, se queda ese.
  */
 export class EscenaNombre implements Escena {
+  readonly alta = true;
+
   private tiempo = 0;
   private hecho = false;
   private ultimoX = 0;
@@ -40,6 +42,7 @@ export class EscenaNombre implements Escena {
     this.hecho = false;
     this.menu.seleccion = 1;
     this.estabaEnCampo = true;
+    ajustarCampoNombre();
     this.campo.mostrar(
       this.heroe.nombre,
       () => this.seguir(),

@@ -1,4 +1,4 @@
-import { area, rellenarArea } from './pantalla';
+import { area, interfaz, rellenarArea } from './pantalla';
 import { escribir, FUENTE, FUENTE_GRANDE } from './texto';
 
 /**
@@ -83,10 +83,11 @@ export function dibujarCabecera(
   texto: string,
   alto = 22,
 ): void {
-  escribir(ctx, texto, 240, y, PALETA.claro, 'center', FUENTE_GRANDE);
+  const centro = interfaz.ancho / 2;
+  escribir(ctx, texto, centro, y, PALETA.claro, 'center', FUENTE_GRANDE);
   ctx.fillStyle = PALETA.filete;
-  ctx.fillRect(160, y + alto, 160, 1);
-  rombo(ctx, 240, y + alto, ROMBO, PALETA.cursor);
+  ctx.fillRect(centro - 80, y + alto, 160, 1);
+  rombo(ctx, centro, y + alto, ROMBO, PALETA.cursor);
 }
 
 /**
