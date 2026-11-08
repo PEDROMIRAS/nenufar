@@ -649,7 +649,8 @@ async function crearZona(
       guardarPartida(guardado(partida, indice, escena.estado(), combate));
       const alTerminar = (resultado: Resultado): void => {
         alTerminarMapa(resultado);
-        guardarPartida(guardado(partida, indice, escena.estado()));
+        // En una cadena del desafío, lo pendiente (el siguiente combate o el premio) va en el guardado.
+        guardarPartida(guardado(partida, indice, escena.estado(), escena.combatePendiente()));
       };
       const jefe = grupo[0];
       if (jefe?.jefe && jefe.oculto) lucharVioleta(partida, jefe, escena.fondoSala, alTerminar);

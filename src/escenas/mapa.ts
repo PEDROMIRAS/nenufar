@@ -503,22 +503,25 @@ export class EscenaMapa implements Escena {
 
   /**
    * Sortea el cofre de la zona para esta sala y guarda lo que sale o enseña la pieza de equipo. `vacio` y `hay`
-   * son el principio del aviso («hay: objeto»); `equipo`, el aviso al salir una pieza (si lo hay).
+   * son el principio del aviso («hay: objeto»); `equipo`, el aviso al salir una pieza (si lo hay); `alFinal`, lo que
+   * pasa cuando ya se ha resuelto (tras decidir sobre la pieza).
    */
-  private sacarBotin(vacio: string, hay: string, equipo = ''): void {
+  private sacarBotin(vacio: string, hay: string, equipo = '', alFinal = (): void => {}): void {
     const { cofre: tabla, luchadora, objetos, inventario, zona } = this.o;
     // Cada cofre sortea con su propio azar (zona y sala): cerrar el navegador y volver no lo cambia.
     const azar = crearAzar(zona.semilla * 1013 + zona.salas.indexOf(this.actual));
     const hallazgo = abrirCofre(tabla, azar, luchadora.heroe, objetos, inventario);
     if (!hallazgo) {
       this.avisar(vacio);
+      alFinal();
     } else if (hallazgo.tipo === 'consumible') {
       this.avisar(
         hallazgo.guardado ? `${hay}: ${hallazgo.nombre}` : `${hallazgo.nombre}: no te caben más`,
       );
+      alFinal();
     } else {
       if (equipo) this.avisar(equipo);
-      this.o.ofrecerEquipo(hallazgo.clave, () => {});
+      this.o.ofrecerEquipo(hallazgo.clave, alFinal);
     }
   }
 
@@ -550,12 +553,29 @@ export class EscenaMapa implements Escena {
     });
   }
 
+  /** Lo que sigue en el desafío ya ganado un combate (el siguiente, o el premio), para guardarlo; null si no hay nada pendiente. */
+  combatePendiente(): CombateGuardado | null {
+    return this.desafioPendiente === null ? null : { tipo: 'desafio', paso: this.desafioPendiente };
+  }
+
+  /** El premio del desafío: un cofre de la zona. Se sortea con el azar de la sala, así que al recuperar sale lo mismo. */
+  private premiarDesafio(): void {
+    const { superado, vacio, hay } = this.o.desafio.avisos;
+    sonar('cofre');
+    // Hasta que el premio se resuelve el guardado dice «premio pendiente»; entonces se guarda sin nada pendiente.
+    this.sacarBotin(`${superado} ${vacio}`, `${superado} ${hay}`, superado, () =>
+      this.o.alEntrarEnSala?.(this.estado()),
+    );
+  }
+
   /**
-   * Combate `paso` (desde 0) del desafío: los grupos salen de la semilla de la zona y la sala, así que son los
-   * mismos si se cierra el navegador y se vuelve. Ganado, sigue el siguiente; el último da el premio; huir lo deja.
+   * Combate `paso` (desde 0) del desafío; con `paso` igual al número de combates, el premio. Los grupos salen de la
+   * semilla de la zona y la sala, así que son los mismos si se cierra el navegador y se vuelve. Ganado, sigue lo
+   * siguiente (que se guarda como pendiente hasta que empieza); huir deja el desafío sin premio.
    */
   private desafiar(paso: number): void {
     const { desafio, zona, grupos } = this.o;
+    if (paso === desafio.combates) return this.premiarDesafio();
     const sala = this.actual;
     const azar = crearAzar(zona.semilla * 1019 + zona.salas.indexOf(sala));
     const grupo = gruposDesafio(grupos, desafio.combates, azar)[paso];
@@ -566,13 +586,10 @@ export class EscenaMapa implements Escena {
         this.invulnerable = this.o.invulnerabilidad;
         if (resultado !== 'victoria') {
           this.avisar(desafio.avisos.huida);
-        } else if (paso + 1 < desafio.combates) {
-          // No se lanza ya: main guarda la partida al volver aquí y pisaría el guardado del siguiente.
+        } else {
+          // No se lanza ya: main guarda la partida al volver aquí (con `combatePendiente`) y pisaría el
+          // guardado del siguiente combate. Con el último, lo pendiente es el premio.
           this.desafioPendiente = paso + 1;
-        } else if (this.actual === sala) {
-          const { superado, vacio, hay } = desafio.avisos;
-          sonar('cofre');
-          this.sacarBotin(`${superado} ${vacio}`, `${superado} ${hay}`, superado);
         }
       },
       null,
@@ -608,7 +625,8 @@ export class EscenaMapa implements Escena {
       const cofre = this.montada.sala.objetos.find((o) => o.inf.name === 'cofre_cerrado');
       if (cofre) this.morder(cofre);
     } else if (c.tipo === 'desafio') {
-      if (this.actual.evento === 'desafio') this.desafiar(c.paso);
+      if (this.actual.evento === 'desafio' && c.paso <= this.o.desafio.combates)
+        this.desafiar(c.paso);
     } else if (c.tipo === 'final') {
       // En la última zona, el portal lleva al jefe final.
       this.o.alUsarPortal?.();
