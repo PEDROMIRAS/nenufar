@@ -23,7 +23,13 @@ import type {
 import { generarZona } from '../src/core/zona';
 import { bestiarioCon, reglasCon } from '../src/core/dificultad';
 import { cuantosGrupos } from '../src/core/monstruos';
-import { cofreCon, dificultadCon, elegirPresagio, restaurarFuente } from '../src/core/presagios';
+import {
+  cofreCon,
+  dificultadCon,
+  elegirPresagio,
+  presagioUtil,
+  restaurarFuente,
+} from '../src/core/presagios';
 import { DIFICULTADES, HEROES, MONSTRUOS, OBJETOS, PRESAGIOS, REGLAS } from '../src/data/datos';
 import zonas from '../src/data/zonas.json';
 
@@ -216,7 +222,11 @@ export function simular(
       const clavePresagio =
         presagios?.forzado ??
         (presagios?.probabilidad
-          ? elegirPresagio({ ...PRESAGIOS, probabilidad: presagios.probabilidad }, zona.semilla)
+          ? elegirPresagio(
+              { ...PRESAGIOS, probabilidad: presagios.probabilidad },
+              zona.semilla,
+              (p) => presagioUtil(p, z.cofre, OBJETOS.armaduras.length),
+            )
           : null);
       const presagio = clavePresagio ? PRESAGIOS.lista[clavePresagio]! : null;
       const mundoZona: Mundo = presagio

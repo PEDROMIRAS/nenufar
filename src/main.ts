@@ -43,7 +43,7 @@ import type {
   ZonaHd2d,
 } from './core/types';
 import { aplicarRecompensa, elegirRecompensa } from './core/recompensas';
-import { cofreCon, dificultadCon, elegirPresagio } from './core/presagios';
+import { cofreCon, dificultadCon, elegirPresagio, presagioUtil } from './core/presagios';
 import { jefeVioleta, modoVioleta } from './core/violetas';
 import { generarZona } from './core/zona';
 import controles from './data/controles.json';
@@ -487,7 +487,11 @@ async function crearZona(
     partida.semilla + indice * 7919,
   );
   console.info(`Zona ${nombre}, semilla ${zona.semilla}`);
-  const clavePresagio = presagioForzado() ?? elegirPresagio(PRESAGIOS, zona.semilla);
+  const clavePresagio =
+    presagioForzado() ??
+    elegirPresagio(PRESAGIOS, zona.semilla, (p) =>
+      presagioUtil(p, datos.cofre, OBJETOS.armaduras.length),
+    );
   fijarPresagio(partida, clavePresagio ? PRESAGIOS.lista[clavePresagio]! : null);
   const presagio = partida.presagio;
   // Lo que se guarda es lo de antes de crear la zona: al recuperarla se vuelve a crear igual.

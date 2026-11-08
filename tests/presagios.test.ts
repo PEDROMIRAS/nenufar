@@ -1,5 +1,11 @@
 import { describe, expect, test } from 'vitest';
-import { cofreCon, dificultadCon, elegirPresagio, restaurarFuente } from '../src/core/presagios';
+import {
+  cofreCon,
+  dificultadCon,
+  elegirPresagio,
+  presagioUtil,
+  restaurarFuente,
+} from '../src/core/presagios';
 import type { BotinJson, PresagioJson } from '../src/core/types';
 import { DIFICULTADES, PRESAGIOS } from '../src/data/datos';
 
@@ -39,6 +45,50 @@ describe('elegirPresagio', () => {
     const vistos = new Set<string | null>();
     for (let s = 0; s < 2000; s++) vistos.add(elegirPresagio(PRESAGIOS, s));
     expect(vistos).toEqual(new Set([...CLAVES, null]));
+  });
+});
+
+describe('elegirPresagio con filtro', () => {
+  test('nunca devuelve un presagio que el filtro rechaza', () => {
+    const sinCoraza = (p: PresagioJson) => p !== PRESAGIOS.lista.coraza;
+    for (let s = 0; s < 1000; s++) {
+      expect(elegirPresagio({ ...PRESAGIOS, probabilidad: 1 }, s, sinCoraza)).not.toBe('coraza');
+    }
+  });
+
+  test('con un filtro que lo admite todo da lo mismo que sin filtro', () => {
+    for (let s = 0; s < 1000; s++) {
+      expect(elegirPresagio(PRESAGIOS, s, () => true)).toBe(elegirPresagio(PRESAGIOS, s));
+    }
+  });
+
+  test('si el filtro lo rechaza todo, no sale ninguno', () => {
+    for (let s = 0; s < 200; s++) {
+      expect(elegirPresagio({ ...PRESAGIOS, probabilidad: 1 }, s, () => false)).toBeNull();
+    }
+  });
+});
+
+describe('presagioUtil', () => {
+  const tope: BotinJson[] = [
+    { objeto: 'arma', nivel: 4, peso: 40 },
+    { objeto: 'armadura', nivel: 4, peso: 30 },
+  ];
+  const bajo: BotinJson[] = [
+    { objeto: 'arma', nivel: 2, peso: 40 },
+    { objeto: 'pocion', peso: 30 },
+  ];
+
+  test('un presagio sin nivel de cofre sirve en cualquier zona', () => {
+    expect(presagioUtil(neutro, tope, 4)).toBe(true);
+  });
+
+  test('con nivel de cofre solo sirve si algún cofre puede subir de nivel', () => {
+    expect(presagioUtil({ ...neutro, nivelCofre: 1 }, bajo, 4)).toBe(true);
+    expect(presagioUtil({ ...neutro, nivelCofre: 1 }, tope, 4)).toBe(false);
+    expect(presagioUtil({ ...neutro, nivelCofre: 1 }, [{ objeto: 'pocion', peso: 1 }], 4)).toBe(
+      false,
+    );
   });
 });
 

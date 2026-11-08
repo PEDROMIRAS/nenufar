@@ -3,13 +3,29 @@ import type { BotinJson, DatosPresagios, DificultadJson, PresagioJson } from './
 
 /**
  * Presagio de una zona (o null), sorteado con un azar propio de la semilla de la zona: así el trazado
- * de las salas no cambia y, al recuperar una partida, vuelve a salir el mismo.
+ * de las salas no cambia y, al recuperar una partida, vuelve a salir el mismo. `permitido` deja fuera
+ * los que no sirven en esa zona (ver `presagioUtil`); sin él, o si lo admite todo, el resultado es el mismo.
  */
-export function elegirPresagio(datos: DatosPresagios, semillaZona: number): string | null {
+export function elegirPresagio(
+  datos: DatosPresagios,
+  semillaZona: number,
+  permitido: (p: PresagioJson) => boolean = () => true,
+): string | null {
   const azar = crearAzar(semillaZona * 17 + 3);
   if (azar() >= datos.probabilidad) return null;
-  const claves = Object.keys(datos.lista);
+  const claves = Object.keys(datos.lista).filter((k) => permitido(datos.lista[k]!));
   return claves[Math.floor(azar() * claves.length)] ?? null;
+}
+
+/** ¿Tiene sentido el presagio en una zona con ese cofre? Uno que sube el nivel del equipo no sirve si todo está ya al tope. */
+export function presagioUtil(
+  p: PresagioJson,
+  tabla: readonly BotinJson[],
+  nivelMaximo: number,
+): boolean {
+  if (p.nivelCofre === 0) return true;
+  const subida = cofreCon(tabla, p, nivelMaximo);
+  return subida.some((e, i) => e.nivel !== tabla[i]!.nivel);
 }
 
 /**
