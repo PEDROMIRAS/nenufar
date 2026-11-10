@@ -52,8 +52,9 @@ const TITULO: Record<Resultado, string> = {
 const PRINCIPAL = ['Atacar', 'Habilidad', 'Objeto', 'Defender', 'Huir'] as const;
 type Modo = 'principal' | 'habilidades' | 'objetos' | 'objetivo';
 
-/** Segundos que se ven los mensajes del registro si no llega otro. */
-const SEGUNDOS_REGISTRO = 3.5;
+/** Cuánto se tarda en leer un mensaje, y cuántos se guardan en el historial (src/data/ritmo.json). */
+const LECTURA = ritmo.lectura;
+const MENSAJES_GUARDADOS = ritmo.historial;
 
 /** Líneas que caben en el panel del registro. */
 const LARGO_LINEA = 57; // deja sitio al botón «i»
@@ -93,8 +94,12 @@ export class EscenaCombate implements Escena {
   /** Quién hizo el último golpe enseñado, para no repetir su animación en un ataque a varios. */
   private ultimoAtacante: Luchador | null = null;
   private readonly pista: string;
-  /** Segundos desde el último mensaje del registro. */
-  private tiempoRegistro = 0;
+  /** Segundos que pide leer lo que se ha registrado con el evento que se está mostrando. */
+  private lectura = 0;
+  /** Lo que se espera es la lectura de un mensaje: un toque o Enter la salta. */
+  private leyendo = false;
+  /** Ha pasado algo desde que se abrió el menú: antes de volver a abrirlo, un respiro para ver el final. */
+  private respiroPendiente = false;
   private readonly ayudaAcciones: readonly (readonly string[])[];
   /** Efecto de la habilidad que se está usando, para sus golpes; null fuera de ella. */
   private efectoHabilidad: string | null = null;
@@ -126,7 +131,7 @@ export class EscenaCombate implements Escena {
       pmHeroina: h.pm,
       textoPm: textoVida(h.pm, h.pmMax),
       estados: new Map(),
-      registro: ['', `¡Aparece ${combate.enemigos.map((e) => e.nombre).join(' y ')}!`],
+      registro: [`¡Aparece ${combate.enemigos.map((e) => e.nombre).join(' y ')}!`],
       menu: null,
       apuntado: null,
       golpeado: null,
@@ -144,12 +149,12 @@ export class EscenaCombate implements Escena {
       defendiendo: false,
       titulo: '',
       pestana: '',
-      aviso: false,
+      aviso: 0,
     };
   }
 
   enter(): void {
-    anunciar(this.v.registro[1]);
+    anunciar(this.v.registro[0]!);
     this.cola.push(...avanzar(this.combate));
   }
 
@@ -160,9 +165,6 @@ export class EscenaCombate implements Escena {
     // Música de combate (de jefe si hay alguno) hasta que se ve el final; luego, silencio para la fanfarria.
     ponerMusica(v.titulo ? null : this.pista);
     v.tiempo += dt;
-    // El registro se limpia si pasa un rato sin mensajes nuevos.
-    this.tiempoRegistro += dt;
-    if (this.tiempoRegistro > SEGUNDOS_REGISTRO) v.registro[0] = v.registro[1] = '';
     v.tiempoAtaque += dt;
     v.tiempoEfecto += dt;
     if (v.tiempoCaida >= 0) v.tiempoCaida += dt;
@@ -171,9 +173,14 @@ export class EscenaCombate implements Escena {
       if (v.tiempoGolpe >= DURACION_GOLPE) v.golpeado = null;
     }
     if (this.espera > 0) {
-      this.espera -= dt;
-      return;
+      // Un toque o Enter salta lo que falta de la lectura de un mensaje.
+      if (this.leyendo && (acciones.confirmar || acciones.toqueX >= 0)) this.espera = 0;
+      else {
+        this.espera -= dt;
+        return;
+      }
     }
+    this.leyendo = false;
     // Antes de enseñar un golpe, el atacante hace su animación (los golpes seguidos del mismo, una vez).
     const siguiente = this.cola[0];
     if (siguiente?.tipo === 'danio' && siguiente.origen !== this.ultimoAtacante) {
@@ -189,14 +196,27 @@ export class EscenaCombate implements Escena {
     const evento = this.cola.shift();
     if (evento) {
       if (evento.tipo !== 'danio') this.ultimoAtacante = null;
+      this.lectura = 0;
       this.mostrar(evento);
-      // Lo bastante para que el efecto que acaba de empezar se vea entero.
-      this.espera = Math.max(DURACION[evento.tipo], v.tiempoEfecto === 0 ? duracionEfecto(v) : 0);
+      this.respiroPendiente = true;
+      // Lo bastante para que el efecto que acaba de empezar se vea entero y para leer lo que cuenta.
+      this.espera = Math.max(
+        DURACION[evento.tipo],
+        v.tiempoEfecto === 0 ? duracionEfecto(v) : 0,
+        this.lectura,
+      );
+      this.leyendo = this.lectura > 0 && this.lectura >= this.espera;
       return;
     }
     const { resultado } = this.combate;
     if (resultado) {
       if (acciones.confirmar || acciones.toqueX >= 0) this.alTerminar(resultado);
+      return;
+    }
+    // Antes de abrir el menú, un respiro: la lista tapa el registro y así se ve cómo acabó la ronda.
+    if (this.combate.esperando && !v.menu && this.respiroPendiente) {
+      this.respiroPendiente = false;
+      this.espera = ritmo.antesDelMenu;
       return;
     }
     if (this.combate.esperando) this.manejarMenu(acciones);
@@ -405,7 +425,7 @@ export class EscenaCombate implements Escena {
   }
 
   private anunciarOpcion(): void {
-    this.v.aviso = false;
+    this.v.aviso = 0;
     const o = this.v.menu?.opciones[this.v.menu.seleccion];
     if (o) anunciar(o.ayuda ? `${o.texto}. ${o.ayuda.join(' ')}` : o.texto);
   }
@@ -417,10 +437,12 @@ export class EscenaCombate implements Escena {
   }
 
   private registrar(texto: string): void {
-    this.tiempoRegistro = 0;
-    this.v.registro[0] = this.v.registro[1];
-    this.v.registro[1] = texto;
-    this.v.aviso = this.v.menu !== null;
+    const v = this.v;
+    v.registro.push(texto);
+    if (v.registro.length > MENSAJES_GUARDADOS) v.registro.shift();
+    // Con el menú abierto es un aviso que se ve en lugar de la descripción; si no, es parte de la ronda.
+    v.aviso = v.menu !== null ? v.aviso + 1 : 0;
+    this.lectura += LECTURA.base + LECTURA.porLetra * texto.length;
     anunciar(texto);
   }
 
@@ -437,7 +459,7 @@ export class EscenaCombate implements Escena {
   private abrir(modo: Modo): void {
     this.modo = modo;
     this.v.pestana = PESTANA[modo];
-    this.v.aviso = false;
+    this.v.aviso = 0;
     const h = this.combate.heroina;
     let menu: MenuVista;
     if (modo === 'principal') {

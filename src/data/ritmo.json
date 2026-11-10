@@ -26,5 +26,8 @@
     "fin": 0
   },
   "golpe": 0.45,
-  "presentacionJefe": 1.6
+  "presentacionJefe": 1.6,
+  "lectura": { "base": 0.25, "porLetra": 0.025 },
+  "antesDelMenu": 0.4,
+  "historial": 10
 }

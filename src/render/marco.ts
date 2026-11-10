@@ -157,6 +157,8 @@ export function dibujarFila(
   texto: string,
   detalle: string,
   estado: 'normal' | 'elegida' | 'apagada' | 'elegidaApagada',
+  /** El detalle va bajo el nombre, no a la derecha: para columnas estrechas (el panel del móvil vertical). */
+  dosLineas = false,
 ): void {
   const elegida = estado === 'elegida' || estado === 'elegidaApagada';
   const apagada = estado === 'apagada' || estado === 'elegidaApagada';
@@ -175,12 +177,13 @@ export function dibujarFila(
     ctx.fillRect(x, y, ancho, alto);
     rombo(ctx, x + 8, y + alto / 2, ROMBO, PALETA.cursor);
   }
-  const yTexto = y + (alto - 12) / 2;
+  const dos = dosLineas && detalle !== '';
+  const yTexto = dos ? y + 3 : y + (alto - 12) / 2;
   const color = apagada ? PALETA.apagada : elegida ? PALETA.elegida : PALETA.texto;
+  const colorDetalle = apagada ? PALETA.apagada : PALETA.pm;
   escribir(ctx, texto, x + 16, yTexto, color);
-  if (detalle) {
-    escribir(ctx, detalle, x + ancho - 8, yTexto, apagada ? PALETA.apagada : PALETA.pm, 'right');
-  }
+  if (dos) escribir(ctx, detalle, x + 16, yTexto + 14, colorDetalle);
+  else if (detalle) escribir(ctx, detalle, x + ancho - 8, yTexto, colorDetalle, 'right');
 }
 
 /** Ancho medido de cada texto de pestaña (medirlo en cada fotograma crearía un objeto cada vez). */
