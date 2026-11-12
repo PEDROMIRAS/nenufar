@@ -84,8 +84,10 @@ interface MonstruoMapa {
 interface SalaMontada {
   sala: Sala;
   /** La sala en 3D y un actor por monstruo de cada grupo; se montan la primera vez que se ve. */
-  vista: { sala: VistaSala; actores: Actor[][] } | null;
+  vista: { sala: VistaSala; actores: Actor[][]; ermitano: Actor | null } | null;
   monstruos: MonstruoMapa[];
+  /** El ermitaño de una sala de evento de ese tipo: pasea cerca de su casa y mira a la heroína al acercarse. */
+  ermitano: Patrulla | null;
   /** Portal de la sala del jefe, guardado fuera de la sala hasta que se vence al jefe. */
   portal: ObjetoSala | null;
 }
@@ -152,6 +154,9 @@ export interface OpcionesMapa {
   /** Los textos del desafío y cuántos combates seguidos son; y la elección encima del mapa (true si se acepta). */
   desafio: DatosEventos['desafio'];
   usarDesafio: (alTerminar: (aceptado: boolean) => void) => void;
+  /** El ermitaño: sus datos y la elección de lo que ofrece (con el azar que sortea las ofertas de esta sala). */
+  ermitano: DatosEventos['ermitano'];
+  usarErmitano: (azar: () => number, alTerminar: (usado: boolean, aviso: string) => void) => void;
   /** Enseña la comparación de una pieza de equipo encontrada y avisa al decidir. */
   ofrecerEquipo: (clave: string, alFinal: () => void) => void;
   /** Abre la pausa (MENU o el botón de la esquina). */
@@ -358,7 +363,37 @@ export class EscenaMapa implements Escena {
           : 'La fuente te restaura los PV y los PM',
       );
     }
-    if (this.actual.tipo === 'evento' && !this.hechas.has(this.actual)) {
+    const ermitano = this.montada.ermitano;
+    if (ermitano) {
+      const { alcance, ...mapa } = this.o.ermitano.mapa;
+      const c = ermitano.cuerpo;
+      const dx = h.cuerpo.x - c.x;
+      const dy = h.cuerpo.y - c.y;
+      if (Math.hypot(dx, dy) > alcance) {
+        this.eventoListo = true;
+        actualizarPatrulla(
+          ermitano,
+          { ...mapa, persecucion: 0, vision: 0 },
+          h.cuerpo.x,
+          h.cuerpo.y,
+          dt,
+          this.montada.sala,
+          tam,
+          this.azarMapa,
+        );
+      } else {
+        // Se para y mira a la heroína; si la sala aún no está hecha, abre la elección (una vez por acercamiento).
+        ermitano.xAnterior = c.x;
+        ermitano.yAnterior = c.y;
+        ermitano.dirX = dx;
+        ermitano.dirY = dy;
+        if (this.eventoListo && !this.hechas.has(this.actual)) {
+          this.eventoListo = false;
+          this.hablarConErmitano();
+          return;
+        }
+      }
+    } else if (this.actual.tipo === 'evento' && !this.hechas.has(this.actual)) {
       const desafio = this.actual.evento === 'desafio';
       const objeto = objetoAlAlcance(
         this.montada.sala,
@@ -428,6 +463,7 @@ export class EscenaMapa implements Escena {
     const { heroina: h, duracionFundido, mundo } = this.o;
     const vista = this.vistaDe(this.montada);
     this.montada.monstruos.forEach((m, i) => this.colocarMonstruos(m, vista.actores[i], alpha));
+    this.colocarErmitano(this.montada.ermitano, vista.ermitano, alpha);
     // Parpadea 3 veces por segundo (tope de WCAG) mientras no se puede empezar otro combate; con menos
     // movimiento, medio transparente.
     let opacidad = 1;
@@ -531,6 +567,18 @@ export class EscenaMapa implements Escena {
     this.o.usarAltar((usado, aviso) => {
       if (usado && this.actual === sala) this.apagarEvento(altar);
       this.avisar(aviso);
+    });
+  }
+
+  /** Abre las ofertas del ermitaño; al llevarse una, la sala queda hecha (él sigue ahí, pero ya no ofrece más). */
+  private hablarConErmitano(): void {
+    const { zona } = this.o;
+    const sala = this.actual;
+    // Las mismas ofertas en cada visita y al recuperar la partida.
+    const azar = crearAzar(zona.semilla * 1021 + zona.salas.indexOf(sala));
+    this.o.usarErmitano(azar, (usado, aviso) => {
+      if (usado && this.actual === sala) this.marcarHecha(sala);
+      if (aviso) this.avisar(aviso);
     });
   }
 
@@ -669,8 +717,27 @@ export class EscenaMapa implements Escena {
     });
   }
 
-  /** La sala en 3D, montada la primera vez que se ve, con un actor por monstruo. */
-  private vistaDe(m: SalaMontada): { sala: VistaSala; actores: Actor[][] } {
+  /** Coloca al ermitaño (si la sala lo tiene) mirando hacia donde se movió por última vez. */
+  private colocarErmitano(p: Patrulla | null, actor: Actor | null, alpha: number): void {
+    if (!p || !actor) return;
+    const { cuerpo: c, xAnterior, yAnterior } = p;
+    const andando = c.x !== xAnterior || c.y !== yAnterior;
+    this.o.mundo.colocarActor(
+      actor,
+      xAnterior + (c.x - xAnterior) * alpha,
+      yAnterior + (c.y - yAnterior) * alpha,
+      andando ? 'walk' : 'idle',
+      direccionDe(p.dirX, p.dirY),
+      this.tiempo,
+    );
+  }
+
+  /** La sala en 3D, montada la primera vez que se ve, con un actor por monstruo (y el del ermitaño, si lo hay). */
+  private vistaDe(m: SalaMontada): {
+    sala: VistaSala;
+    actores: Actor[][];
+    ermitano: Actor | null;
+  } {
     if (m.vista) return m.vista;
     const { mundo, zona, spritesMonstruos } = this.o;
     const sala = mundo.montar(
@@ -684,7 +751,8 @@ export class EscenaMapa implements Escena {
         return sprite ? [mundo.crearActor(sala, sprite)] : [];
       }),
     );
-    m.vista = { sala, actores };
+    const hoja = m.ermitano ? spritesMonstruos.get(this.o.ermitano.sprite) : undefined;
+    m.vista = { sala, actores, ermitano: hoja ? mundo.crearActor(sala, hoja) : null };
     return m.vista;
   }
 
@@ -794,12 +862,12 @@ export class EscenaMapa implements Escena {
     const candidatas = plantillas.plantillas.filter((p) => p.tipo === s.tipo);
     const plantilla = candidatas[Math.floor(azar() * candidatas.length)];
     if (!plantilla) throw new Error(`No hay plantillas de tipo ${s.tipo}`);
-    const sala = construirSala(
-      aplicarPuertas(plantilla.mapa, s.puertas),
-      plantillas,
-      catalogo,
-      azar,
-    );
+    const mapa = aplicarPuertas(plantilla.mapa, s.puertas);
+    // El ermitaño ocupa el sitio del altar (la casilla pasa a suelo) y pasea desde ahí.
+    const fila = s.evento === 'ermitano' ? mapa.findIndex((f) => f.includes('A')) : -1;
+    const columna = fila >= 0 ? mapa[fila]!.indexOf('A') : -1;
+    if (fila >= 0) mapa[fila] = mapa[fila]!.replace('A', '.');
+    const sala = construirSala(mapa, plantillas, catalogo, azar);
     const circulo = catalogo.get('desafio');
     if (s.evento === 'desafio' && circulo) {
       const altar = sala.objetos.find((o) => o.inf.name === 'altar');
@@ -821,6 +889,15 @@ export class EscenaMapa implements Escena {
       vista: null,
       monstruos: this.poblar(s, sala, azar),
       portal,
+      ermitano:
+        fila < 0
+          ? null
+          : crearPatrulla({
+              x: columna * tam + tam / 2,
+              y: fila * tam + (tam + this.o.ermitano.mapa.alto) / 2,
+              ancho: this.o.ermitano.mapa.ancho,
+              alto: this.o.ermitano.mapa.alto,
+            }),
     };
     this.montadas.set(s, montada);
     return montada;

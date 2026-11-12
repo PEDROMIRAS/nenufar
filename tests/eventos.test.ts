@@ -11,9 +11,11 @@ import { crearAzar } from '../src/core/azar';
 import { equipar, inventarioInicial } from '../src/core/equipo';
 import {
   aplicarAltar,
+  aplicarErmitano,
   gruposDesafio,
   opcionesAltar,
   opcionesDesafio,
+  opcionesErmitano,
   reglasDesafio,
 } from '../src/core/eventos';
 import { crearInventario } from '../src/core/inventario';
@@ -207,5 +209,49 @@ describe('desafío', () => {
     expect(una).toHaveLength(desafio.combates);
     expect(gruposDesafio(grupos, desafio.combates, crearAzar(5))).toEqual(una);
     expect(new Set(gruposDesafio(grupos, 200, crearAzar(9)))).toEqual(new Set(['a', 'b', 'c']));
+  });
+});
+
+describe('ermitaño', () => {
+  const ermitano = EVENTOS.ermitano;
+
+  test('ofrece `cuantas` ofertas distintas y marcharse, las mismas con la misma semilla', () => {
+    const o = opcionesErmitano(ermitano, crearAzar(3));
+    expect(o).toHaveLength(ermitano.cuantas + 1);
+    expect(o.at(-1)!.clave).toBe('marcharse');
+    expect(new Set(o.map((x) => x.clave)).size).toBe(o.length);
+    expect(opcionesErmitano(ermitano, crearAzar(3))).toEqual(o);
+    expect(o.every((x) => x.activa)).toBe(true);
+  });
+
+  test('con otras semillas salen todas las ofertas de la lista', () => {
+    const vistas = new Set<string>();
+    for (let s = 0; s < 60; s++)
+      for (const x of opcionesErmitano(ermitano, crearAzar(s))) vistas.add(x.clave);
+    expect(vistas).toEqual(new Set([...ermitano.ofertas.map((x) => x.clave), 'marcharse']));
+  });
+
+  test('aplicarErmitano guarda los consumibles de la oferta', () => {
+    const inv = crearInventario();
+    const aviso = aplicarErmitano(inv, 'pociones', ermitano, objetos);
+    expect(inv.consumibles.pocion).toBe(3);
+    expect(aviso).toBe('El ermitaño te da: Poción ×3');
+  });
+
+  test('con la mochila llena avisa de lo que no cabe', () => {
+    const inv = crearInventario();
+    inv.consumibles.pocion = max;
+    expect(aplicarErmitano(inv, 'pociones', ermitano, objetos)).toContain('no te caben más');
+    expect(inv.consumibles.pocion).toBe(max);
+  });
+
+  test('una oferta que no existe no hace nada', () => {
+    const inv = crearInventario();
+    expect(aplicarErmitano(inv, 'zzz', ermitano, objetos)).toBe('');
+  });
+
+  test('las ofertas piden consumibles que existen', () => {
+    for (const o of ermitano.ofertas)
+      for (const c of o.consumibles) expect(objetos.consumibles[c]).toBeDefined();
   });
 });

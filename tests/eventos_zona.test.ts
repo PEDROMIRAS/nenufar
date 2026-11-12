@@ -72,6 +72,26 @@ describe.each(CLAVES)('zona %s', (clave) => {
     expect(altares).toBeGreaterThan(50);
     expect(desafios).toBeGreaterThan(50);
   });
+
+  test('el ermitaño es la fracción de los no desafíos que dice probabilidadErmitano, sin mover el trazado', () => {
+    const evento = (extra: Partial<AjustesZona>, s: number) =>
+      generarZona(ajustes(clave, { probabilidadEvento: 1, probabilidadDesafio: 0.5, ...extra }), s);
+    const tipos = (z: ReturnType<typeof evento>) => z.salas.map((x) => [x.tipo, x.puertas]);
+    let altares = 0;
+    let ermitanos = 0;
+    for (let s = 0; s < 300; s++) {
+      for (const x of evento({ probabilidadErmitano: 1 }, s).salas) {
+        expect(x.evento).not.toBe('altar');
+      }
+      expect(tipos(evento({ probabilidadErmitano: 1 }, s))).toEqual(tipos(evento({}, s)));
+      for (const x of evento({ probabilidadErmitano: 0.5 }, s).salas) {
+        if (x.evento === 'altar') altares++;
+        if (x.evento === 'ermitano') ermitanos++;
+      }
+    }
+    expect(altares).toBeGreaterThan(20);
+    expect(ermitanos).toBeGreaterThan(20);
+  });
 });
 
 test('la probabilidad de eventos de eventos.json es una probabilidad', () => {

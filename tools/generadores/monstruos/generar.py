@@ -37,6 +37,7 @@ import caballero_maldito  # noqa: E402
 import ojo_flotante  # noqa: E402
 import dragon_negro  # noqa: E402
 import cofre_trampa  # noqa: E402
+import ermitano  # noqa: E402
 
 DIRS = ["down", "left", "right", "up"]
 VISTA = {"down": "frente", "left": "lado", "right": "lado", "up": "espalda"}
@@ -102,6 +103,8 @@ PROPIOS = {
     "ojo_flotante": (48, 48, ojo_flotante),
     "dragon_negro": (64, 48, dragon_negro),
     "cofre_trampa": (32, 32, cofre_trampa),
+    # Personaje de la sala de evento del ermitaño (no es un monstruo: no está en monstruos.json)
+    "ermitano": (32, 32, ermitano),
 }
 
 

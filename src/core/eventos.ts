@@ -7,10 +7,12 @@ import type { DatosEventos, ObjetosJson, ReglasCombate, ReglasProgresion } from 
 
 type Altar = DatosEventos['altar'];
 type Desafio = DatosEventos['desafio'];
+type Ermitano = DatosEventos['ermitano'];
 type Vida = Pick<Luchador, 'pv' | 'pvMax' | 'pm' | 'pmMax' | 'nivel'>;
 
 export interface OpcionEvento {
-  clave: 'vida' | 'magia' | 'aceptar' | 'marcharse';
+  /** 'vida', 'magia', 'aceptar' o 'marcharse'; en el ermitaño, la clave de la oferta. */
+  clave: string;
   texto: string;
   /** Qué hace (o por qué no se puede) con las cifras ya puestas. */
   descripcion: string;
@@ -135,4 +137,35 @@ export function gruposDesafio<G>(
   return Array.from({ length: n }, () => elegirConPeso(grupos, azar)).flatMap((g) =>
     g ? [g.monstruos] : [],
   );
+}
+
+/** Las ofertas del ermitaño de esta sala (`cuantas` distintas de la lista, sorteadas con `azar`) y marcharse. */
+export function opcionesErmitano(e: Ermitano, azar: () => number): OpcionEvento[] {
+  const lista = [...e.ofertas];
+  const ofertas: OpcionEvento[] = [];
+  while (ofertas.length < e.cuantas && lista.length > 0) {
+    const o = lista.splice(Math.floor(azar() * lista.length), 1)[0]!;
+    ofertas.push({ clave: o.clave, texto: o.texto, descripcion: o.descripcion, activa: true });
+  }
+  ofertas.push({ clave: 'marcharse', ...e.marcharse, activa: true });
+  return ofertas;
+}
+
+/** Da lo que ofrece la oferta `clave` y devuelve el aviso (con lo que no cupo, si algo). */
+export function aplicarErmitano(
+  inv: Inventario,
+  clave: string,
+  e: Ermitano,
+  objetos: ObjetosJson,
+): string {
+  const oferta = e.ofertas.find((o) => o.clave === clave);
+  if (!oferta) return '';
+  // «Poción ×2 y Antídoto»: cada consumible una vez, con su cantidad.
+  const cantidades = new Map<string, number>();
+  for (const c of oferta.consumibles) cantidades.set(c, (cantidades.get(c) ?? 0) + 1);
+  const nombres = [...cantidades].map(([c, n]) => {
+    const nombre = objetos.consumibles[c]?.nombre ?? c;
+    return n > 1 ? `${nombre} ×${n}` : nombre;
+  });
+  return `${e.aviso}: ${nombres.join(' y ')}${darConsumibles(inv, oferta.consumibles, objetos.maximoPorTipo)}`;
 }

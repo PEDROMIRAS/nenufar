@@ -4,7 +4,7 @@ import { simular } from './simulador';
 
 const PARTIDAS = 300;
 
-// Guarda contra desvíos grandes: con la probabilidad de eventos de eventos.json y su reparto entre altares y
+// Guarda contra desvíos grandes: con la probabilidad de eventos de eventos.json y su reparto entre altares, ermitaños y
 // desafíos en las cuatro zonas, la victoria de partida completa no se mueve más de 8 puntos respecto a no tener
 // ninguno. Con 300 partidas cada celda baila ±3-4 por el azar, así que esto no comprueba el equilibrado fino:
 // se buscó con 2400 partidas (todas las celdas heroína × dificultad dentro de ±3; la peor, la maga en Normal, −2,4).
@@ -24,6 +24,7 @@ describe('eventos con la probabilidad y el reparto de eventos.json', () => {
           undefined,
           EVENTOS.probabilidad,
           EVENTOS.desafio.fraccion,
+          EVENTOS.ermitano.fraccion,
         ).completas;
         console.log(`eventos · ${dif} · ${nombre}: sin ${sin}% · con ${con}%`);
         expect(Math.abs(con - sin)).toBeLessThanOrEqual(TOLERANCIA);

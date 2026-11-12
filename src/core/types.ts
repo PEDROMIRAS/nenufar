@@ -327,6 +327,21 @@ export interface DatosEventos {
     marcharse: { texto: string; descripcion: string };
     avisos: { superado: string; huida: string; vacio: string; hay: string };
   };
+  ermitano: {
+    /** Fracción de los eventos que no son un desafío que son un ermitaño (el resto, altares). */
+    fraccion: number;
+    nombre: string;
+    descripcion: string;
+    /** Cuántas ofertas distintas hace de la lista (la heroína elige una). */
+    cuantas: number;
+    ofertas: { clave: string; texto: string; descripcion: string; consumibles: string[] }[];
+    marcharse: { texto: string; descripcion: string };
+    /** Cómo se mueve por la sala (píxeles por segundo y radio de paseo) y a cuántos píxeles se le puede hablar. */
+    mapa: { velocidad: number; patrulla: number; alcance: number; ancho: number; alto: number };
+    sprite: string;
+    /** Principio del aviso al recibir lo elegido («El ermitaño te da: …»). */
+    aviso: string;
+  };
 }
 
 /** `src/data/combate.json`: reglas comunes de todos los combates. */
