@@ -119,7 +119,7 @@ describe('guardado de la partida', () => {
   });
 
   test.each<[string, (g: Record<string, unknown> & PartidaGuardada) => void]>([
-    ['otra versión', (g) => ((g as Record<string, unknown>).version = 2)],
+    ['otra versión', (g) => ((g as Record<string, unknown>).version = VERSION_GUARDADO + 1)],
     ['sin mapa', (g) => delete (g as Record<string, unknown>).mapa],
     ['sin campo de combate', (g) => delete (g as Record<string, unknown>).combate],
     [
