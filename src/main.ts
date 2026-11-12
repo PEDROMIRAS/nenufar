@@ -45,7 +45,14 @@ import type {
 import { aplicarRecompensa, elegirRecompensa } from './core/recompensas';
 import { cofreCon, dificultadCon, elegirPresagio, presagioUtil } from './core/presagios';
 import { jefeVioleta, modoVioleta } from './core/violetas';
-import { aplicarAltar, opcionesAltar, opcionesDesafio, reglasDesafio } from './core/eventos';
+import {
+  aplicarAltar,
+  aplicarErmitano,
+  opcionesAltar,
+  opcionesDesafio,
+  opcionesErmitano,
+  reglasDesafio,
+} from './core/eventos';
 import { generarZona, type Zona } from './core/zona';
 import controles from './data/controles.json';
 import {
@@ -279,6 +286,7 @@ async function iniciar(): Promise<void> {
   );
   const hojas = await cargarSprites([
     ...Object.values(MONSTRUOS).map((m) => m.sprite),
+    EVENTOS.ermitano.sprite,
     ...Object.values(HEROES).flatMap((h) => (h.combate.proyectil ? [h.combate.proyectil] : [])),
     'efectos',
   ]);
@@ -514,6 +522,7 @@ async function crearZona(
       probabilidadTrampa: zonas.violetas.probabilidadTrampa,
       probabilidadEvento: probabilidadEvento(),
       probabilidadDesafio: probabilidadDesafio(),
+      probabilidadErmitano: probabilidadErmitano(),
     },
     partida.semilla + indice * 7919,
   );
@@ -581,7 +590,7 @@ async function crearZona(
           );
         },
     entrarDesdeNegro,
-    recuperado: recuperado ?? empezarEnDesafio(zona),
+    recuperado: recuperado ?? empezarEnEvento(zona),
     alEntrarEnSala: (estado) => guardarPartida(guardado(partida, indice, estado)),
     grupos: datos.grupos.map(({ monstruos, peso }) => ({
       peso,
@@ -600,6 +609,8 @@ async function crearZona(
     usarAltar: (alTerminar) => abrirAltar(partida, alTerminar),
     desafio: EVENTOS.desafio,
     usarDesafio: (alTerminar) => abrirDesafio(partida, alTerminar),
+    ermitano: EVENTOS.ermitano,
+    usarErmitano: (azar, alTerminar) => abrirErmitano(partida, azar, alTerminar),
     ofrecerEquipo: (clave, alFinal) => ofrecerEquipo(partida, [clave], alFinal),
     abrirPausa: () => {
       const pausa: EscenaPausa = new EscenaPausa(
@@ -699,11 +710,33 @@ function abrirAltar(partida: Partida, alTerminar: (usado: boolean, aviso: string
   );
 }
 
-/** ?desafio empieza dentro de la sala del desafío de la zona, si la tiene (solo en desarrollo). */
-function empezarEnDesafio(zona: Zona): EstadoMapa | null {
-  // shortcut: solo en desarrollo, para probar el desafío sin recorrer la zona
-  if (!import.meta.env.DEV || !new URLSearchParams(location.search).has('desafio')) return null;
-  const sala = zona.salas.findIndex((s) => s.evento === 'desafio');
+/** La elección del ermitaño encima del mapa: da lo ofrecido que se elija y avisa de lo ocurrido. */
+function abrirErmitano(
+  partida: Partida,
+  azar: () => number,
+  alTerminar: (usado: boolean, aviso: string) => void,
+): void {
+  partida.pila.apilar(
+    new EscenaEvento(
+      EVENTOS.ermitano.nombre,
+      EVENTOS.ermitano.descripcion,
+      opcionesErmitano(EVENTOS.ermitano, azar),
+      (clave) => {
+        partida.pila.desapilar();
+        if (clave === 'marcharse') return alTerminar(false, '');
+        alTerminar(true, aplicarErmitano(partida.inventario, clave, EVENTOS.ermitano, OBJETOS));
+      },
+    ),
+  );
+}
+
+/** ?desafio o ?ermitano empiezan dentro de esa sala de evento de la zona, si la tiene (solo en desarrollo). */
+function empezarEnEvento(zona: Zona): EstadoMapa | null {
+  // shortcut: solo en desarrollo, para probar el desafío o el ermitaño sin recorrer la zona
+  if (!import.meta.env.DEV) return null;
+  const url = new URLSearchParams(location.search);
+  const evento = url.has('desafio') ? 'desafio' : url.has('ermitano') ? 'ermitano' : null;
+  const sala = zona.salas.findIndex((s) => s.evento === evento);
   if (sala < 0) return null;
   return { sala, lado: null, visitadas: [sala], hechas: [], vencidos: {}, fuenteUsada: false };
 }
@@ -728,14 +761,23 @@ function probabilidadEvento(): number {
   // shortcut: solo en desarrollo, para probar los eventos sin buscarlos
   if (!import.meta.env.DEV) return EVENTOS.probabilidad;
   const url = new URLSearchParams(location.search);
-  return url.has('evento') || url.has('desafio') ? 1 : EVENTOS.probabilidad;
+  return url.has('evento') || url.has('desafio') || url.has('ermitano') ? 1 : EVENTOS.probabilidad;
 }
 
 /** La fracción de eventos que son un desafío; con ?desafio, todos (solo en desarrollo). */
 function probabilidadDesafio(): number {
   // shortcut: solo en desarrollo, para probar el desafío sin buscarlo
   if (!import.meta.env.DEV) return EVENTOS.desafio.fraccion;
-  return new URLSearchParams(location.search).has('desafio') ? 1 : EVENTOS.desafio.fraccion;
+  const url = new URLSearchParams(location.search);
+  if (url.has('ermitano')) return 0;
+  return url.has('desafio') ? 1 : EVENTOS.desafio.fraccion;
+}
+
+/** La fracción de los eventos que no son un desafío que son un ermitaño; con ?ermitano, todos (solo en desarrollo). */
+function probabilidadErmitano(): number {
+  // shortcut: solo en desarrollo, para probar al ermitaño sin buscarlo
+  if (!import.meta.env.DEV) return EVENTOS.ermitano.fraccion;
+  return new URLSearchParams(location.search).has('ermitano') ? 1 : EVENTOS.ermitano.fraccion;
 }
 
 /** ?presagio=clave fuerza el presagio de todas las zonas, solo en desarrollo. */

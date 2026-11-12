@@ -81,3 +81,17 @@ Pedro dijo «sigue» tras publicar el altar; todo lo marcado como *mi apuesta* e
 - *Equilibrio (2400 partidas, ronin / maga, sin eventos → con la mezcla real: probabilidad 0,4 y la mitad desafíos):* Fácil 73,5 / 72,3 → 73,6 / 73,0, Normal 46,3 / 52,6 → 46,0 / 50,2, Difícil 26,1 / 29,8 → 25,0 / 29,2; la peor celda es la maga en Normal (−2,4). Con todos los eventos como desafío (1200 partidas) la peor es −3,5, también la maga en Normal; con el desafío forzado en las cuatro zonas baja de 2 a 7 puntos. La política simulada (acepta con al menos el 60 % de los PV, nunca huye) es mía y sencilla.
 
 **Fuera de esta entrega.** El ermitaño (2b), un premio propio del desafío, desafíos más duros que los combates normales y avisar antes de aceptar de qué grupos se trata.
+
+## Entrega 2b: el ermitaño (2026-11-12)
+
+Pedro dijo «sin preguntas, cuando lo tengas me lo muestras»: todo lo que sigue son **decisiones mías**.
+
+**Qué es.** Una sala de evento (`evento: 'ermitano'`) con un personaje que pasea por la sala (el sprite 32×32 aprobado, `ermitano.py`; hoja `monstruos/ermitano`, cargada aparte porque no es un monstruo de `monstruos.json`). Es la plantilla de evento de la zona con el altar convertido en suelo: el ermitaño nace donde estaba el altar y pasea en un radio corto (`mapa.patrulla` de `eventos.json`, con el mismo `actualizarPatrulla` que los monstruos pero sin visión: nunca persigue).
+
+**Interacción.** Al acercarse a `mapa.alcance` píxeles se para, mira a la heroína y se abre `EscenaEvento` con dos ofertas y *Marcharse*. Las ofertas son dos distintas de la lista de `eventos.json` (`ofertas`), sorteadas con la semilla de la zona y la sala (las mismas en cada visita y al recuperar la partida); cada una son consumibles (Dos Pociones, Dos Éteres, Poción y antídoto). Elegir una la guarda en la mochila (con aviso si no cabe) y la sala queda hecha (punto gris en el minimapa); él sigue ahí, pero ya no ofrece más. *Marcharse* (o Cancelar) deja que se vuelva a abrir al apartarse y volver.
+
+**Reparto.** `probabilidadErmitano` (`ermitano.fraccion` de `eventos.json`) es la fracción de los eventos que no son un desafío que son un ermitaño; la tirada solo se hace entonces y es la última, así que ni el trazado ni las huellas cambian. Atajo de desarrollo: `?ermitano` (todas las zonas con callejón libre tienen un ermitaño).
+
+**Lógica pura** en `src/core/eventos.ts` (`opcionesErmitano`, `aplicarErmitano`); el mapa solo lo coloca, lo mueve y abre la escena.
+
+**Fuera de esta entrega.** Diálogo con texto del ermitaño, que venda por algo (monedas no hay), ofertas de equipo y que se despida o desaparezca al acabar.

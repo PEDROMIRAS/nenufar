@@ -11,7 +11,13 @@ import {
   type Luchador,
 } from '../src/core/combate';
 import { abrirCofre, equipar, inventarioInicial } from '../src/core/equipo';
-import { aplicarAltar, gruposDesafio, opcionesAltar, reglasDesafio } from '../src/core/eventos';
+import {
+  aplicarAltar,
+  aplicarErmitano,
+  gruposDesafio,
+  opcionesAltar,
+  reglasDesafio,
+} from '../src/core/eventos';
 import type { Inventario } from '../src/core/inventario';
 import { mejorar } from '../src/core/progresion';
 import type {
@@ -184,6 +190,20 @@ function usarAltar(h: Luchador, inv: Inventario): string {
   return elegida;
 }
 
+/**
+ * La jugadora simulada ante el ermitaño: elige la oferta que más le sirve (la que da lo que más le falta: Poción si va
+ * más corta de PV que de PM, Éter si no) y, a igualdad, la primera.
+ */
+function tratarConErmitano(h: Luchador, inv: Inventario): void {
+  const pideVida = h.pv / h.pvMax <= (h.pmMax > 0 ? h.pm / h.pmMax : 1);
+  const quiere = pideVida ? 'pocion' : 'eter';
+  const ofertas = EVENTOS.ermitano.ofertas;
+  const sirve = (o: (typeof ofertas)[number]): number =>
+    o.consumibles.filter((c) => c === quiere).length;
+  const elegida = ofertas.reduce((a, b) => (sirve(b) > sirve(a) ? b : a));
+  aplicarErmitano(inv, elegida.clave, EVENTOS.ermitano, OBJETOS);
+}
+
 /** Con al menos esta parte de los PV la jugadora simulada acepta el desafío; con menos, se marcha. */
 const VIDA_PARA_DESAFIO = 0.6;
 
@@ -234,6 +254,8 @@ export function simular(
   probabilidadAltar = 0,
   /** Fracción de esos eventos que son un desafío (el resto, altares). */
   fraccionDesafio = 0,
+  /** Fracción de los eventos que no son un desafío que son un ermitaño (el resto, altares). */
+  fraccionErmitano = 0,
 ) {
   const mundo: Mundo = {
     bestiario: bestiarioCon(MONSTRUOS, dificultad),
@@ -270,6 +292,7 @@ export function simular(
           probabilidadTrampa: zonas.violetas.probabilidadTrampa,
           probabilidadEvento: probabilidadAltar,
           probabilidadDesafio: fraccionDesafio,
+          probabilidadErmitano: fraccionErmitano,
         },
         s + i * 7919,
       );
@@ -299,7 +322,8 @@ export function simular(
       for (const sala of zona.salas) {
         if (sala.tipo !== 'combate' && !sala.trampa && sala.evento !== 'desafio') {
           if (sala.tipo === 'tesoro') abrir();
-          if (sala.tipo === 'evento') usarAltar(h, inv);
+          if (sala.evento === 'ermitano') tratarConErmitano(h, inv);
+          else if (sala.tipo === 'evento') usarAltar(h, inv);
           continue;
         }
         // La fuente se guarda para cuando hace falta.

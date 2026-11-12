@@ -44,5 +44,56 @@
       "vacio": "El premio está vacío",
       "hay": "Premio"
     }
+  },
+  "ermitano": {
+    "fraccion": 0.5,
+    "nombre": "Ermitaño",
+    "descripcion": "Un anciano encorvado con un farol tenue. Te ofrece dos cosas, pero solo puedes llevarte una.",
+    "cuantas": 2,
+    "ofertas": [
+      {
+        "clave": "pociones",
+        "texto": "Tres Pociones",
+        "descripcion": "Tres pociones de su cabaña: curan 25 PV cada una.",
+        "consumibles": [
+          "pocion",
+          "pocion",
+          "pocion"
+        ]
+      },
+      {
+        "clave": "eteres",
+        "texto": "Tres Éteres",
+        "descripcion": "Tres frascos de éter: devuelven 10 PM cada uno.",
+        "consumibles": [
+          "eter",
+          "eter",
+          "eter"
+        ]
+      },
+      {
+        "clave": "hierbas",
+        "texto": "Dos Pociones y un antídoto",
+        "descripcion": "Dos pociones (25 PV cada una) y un antídoto contra el veneno.",
+        "consumibles": [
+          "pocion",
+          "pocion",
+          "antidoto"
+        ]
+      }
+    ],
+    "marcharse": {
+      "texto": "Marcharse",
+      "descripcion": "No pasa nada. El ermitaño seguirá aquí."
+    },
+    "mapa": {
+      "velocidad": 10,
+      "patrulla": 24,
+      "alcance": 24,
+      "ancho": 12,
+      "alto": 8
+    },
+    "sprite": "monstruos/ermitano",
+    "aviso": "El ermitaño te da"
   }
 }
