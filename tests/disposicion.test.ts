@@ -71,11 +71,25 @@ describe('disposicionCombate', () => {
     expect(d.escena.alto).toBeGreaterThan(0);
   });
 
-  test('en una tableta (interfaz de 480×640) usa el ancho entero menos los márgenes', () => {
+  test('en una tableta (interfaz de 480×640) las dos columnas llenan el ancho entre márgenes', () => {
     const d = disposicionCombate(480, 640, 4, VERTICAL);
     compruebaOrdenado(d, 480, 640);
-    expect(d.lista.ancho).toBe(480 - 2 * VERTICAL.combate.margen);
+    expect(d.lista.ancho + d.descripcion.ancho).toBe(480 - 2 * VERTICAL.combate.margen);
     expect(d.escena.alto).toBeGreaterThanOrEqual(VERTICAL.escenaMin);
+  });
+
+  test('lista y registro ocupan la misma columna izquierda; descripción y ficha, la derecha', () => {
+    const d = disposicionCombate(320, 692, 5, VERTICAL);
+    expect(d.registro).toEqual(d.lista);
+    expect(d.descripcion.x).toBeCloseTo(d.lista.x + d.lista.ancho);
+    expect(d.ficha.x).toBe(d.descripcion.x);
+    expect(d.ficha.y).toBeCloseTo(d.descripcion.y + d.descripcion.alto);
+    expect(d.ficha.alto).toBe(VERTICAL.combate.alturaFicha);
+  });
+
+  test('con las filas reservadas el panel es bajo: la escena se queda con más de dos tercios', () => {
+    const d = disposicionCombate(320, 692, VERTICAL.combate.filas, VERTICAL);
+    expect(d.escena.alto).toBeGreaterThan(692 * 0.66);
   });
 
   test('si se pasa el objeto de salida, se rellena y se devuelve el mismo', () => {

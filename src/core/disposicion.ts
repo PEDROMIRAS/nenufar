@@ -7,10 +7,15 @@ export interface DisposicionCombate {
   escena: Rect;
   /** Todo el panel de abajo (con el sitio de la pestaña encima de la lista). */
   panel: Rect;
+  /** Columna izquierda: las opciones del menú, de arriba abajo. */
   lista: Rect;
+  /** La misma columna, entera, para el registro mientras se animan los turnos. */
+  registro: Rect;
   /** Alto de cada fila de la lista. */
   fila: number;
+  /** Columna derecha, arriba: qué hace lo elegido. */
   descripcion: Rect;
+  /** Columna derecha, abajo: la ficha de la heroína. */
   ficha: Rect;
 }
 
@@ -31,9 +36,10 @@ export function anchoNombre(separacion: number): number {
 }
 
 /**
- * Reparte la interfaz alta de `ancho`×`alto` para un combate con un menú de `n` opciones: la escena arriba y, en
- * una sola columna pegada abajo, la lista, la descripción de lo elegido y la ficha de la heroína. Las filas se
- * encogen (hasta `filaMin`) para que la escena conserve `escenaMin`; si ni así cabe todo, manda el panel.
+ * Reparte la interfaz alta de `ancho`×`alto` para un combate con un menú de `n` opciones: la escena arriba y,
+ * pegado abajo, un panel bajo de dos columnas, como en horizontal. A la izquierda, la lista (o el registro); a la
+ * derecha, qué hace lo elegido y, debajo, la ficha de la heroína. Las filas se encogen (hasta `filaMin`) para que
+ * la escena conserve `escenaMin`; si ni así cabe todo, manda el panel.
  * Si se pasa `fuera` se rellena y se devuelve (se pide en cada fotograma: sin asignar memoria).
  */
 export function disposicionCombate(
@@ -45,6 +51,7 @@ export function disposicionCombate(
     escena: rect(),
     panel: rect(),
     lista: rect(),
+    registro: rect(),
     fila: 0,
     descripcion: rect(),
     ficha: rect(),
@@ -52,20 +59,22 @@ export function disposicionCombate(
 ): DisposicionCombate {
   const c = d.combate;
   const util = ancho - 2 * c.margen;
-  const fijo = c.alturaPestana + c.alturaDescripcion + c.alturaFicha;
-  const disponible = alto - c.margen - fijo - d.escenaMin;
+  const disponible = alto - c.margen - c.alturaPestana - d.escenaMin;
   const fila = Math.min(c.fila, Math.max(c.filaMin, disponible / Math.max(1, n)));
-  const alturaLista = n * fila;
+  const cuerpo = n * fila;
+  const izquierda = Math.round(util * c.columnaIzquierda);
 
-  const yFicha = alto - c.margen - c.alturaFicha;
-  const yDescripcion = yFicha - c.alturaDescripcion;
-  const yLista = yDescripcion - alturaLista;
-  const yPanel = yLista - c.alturaPestana;
+  const yPanel = alto - c.margen - c.alturaPestana - cuerpo;
+  const yCuerpo = yPanel + c.alturaPestana;
+  const xDerecha = c.margen + izquierda;
+  const anchoDerecha = util - izquierda;
+  const yFicha = yCuerpo + cuerpo - c.alturaFicha;
 
   fuera.fila = fila;
-  poner(fuera.ficha, c.margen, yFicha, util, c.alturaFicha);
-  poner(fuera.descripcion, c.margen, yDescripcion, util, c.alturaDescripcion);
-  poner(fuera.lista, c.margen, yLista, util, alturaLista);
+  poner(fuera.lista, c.margen, yCuerpo, izquierda, cuerpo);
+  poner(fuera.registro, c.margen, yCuerpo, izquierda, cuerpo);
+  poner(fuera.descripcion, xDerecha, yCuerpo, anchoDerecha, Math.max(0, cuerpo - c.alturaFicha));
+  poner(fuera.ficha, xDerecha, yFicha, anchoDerecha, c.alturaFicha);
   poner(fuera.panel, c.margen, yPanel, util, alto - c.margen - yPanel);
   poner(fuera.escena, 0, 0, ancho, Math.max(0, yPanel));
   return fuera;

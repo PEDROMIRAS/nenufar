@@ -10,7 +10,7 @@ export interface DatosVertical {
   escalaMax: number;
   /** Alto lógico mínimo de la escena del combate, sobre el panel. */
   escenaMin: number;
-  /** Medidas del panel apilado del combate vertical, en unidades lógicas. */
+  /** Medidas del panel del combate vertical (dos columnas, como en horizontal), en unidades lógicas. */
   combate: {
     margen: number;
     /** Filas que se reservan en el panel aunque el menú tenga menos, para que la escena no salte de un menú a otro. */
@@ -19,7 +19,9 @@ export interface DatosVertical {
     fila: number;
     /** Lo mínimo a lo que se encoge una fila cuando hay muchas opciones. */
     filaMin: number;
-    alturaDescripcion: number;
+    /** Fracción del ancho del panel que ocupa la columna izquierda (la lista o el registro). */
+    columnaIzquierda: number;
+    /** Alto de la ficha de la heroína, abajo en la columna derecha. */
     alturaFicha: number;
     /** Sitio sobre la lista para la pestaña con el nombre del menú. */
     alturaPestana: number;

@@ -7,9 +7,9 @@
   "combate": {
     "margen": 8,
     "filas": 5,
-    "fila": 36,
-    "filaMin": 28,
-    "alturaDescripcion": 76,
+    "fila": 34,
+    "filaMin": 24,
+    "columnaIzquierda": 0.54,
     "alturaFicha": 44,
     "alturaPestana": 16
   },

@@ -58,7 +58,8 @@ export interface VistaCombate {
   textoPm: string;
   /** Estados activos que se ven, como texto («Veneno · Furia»). */
   estados: Map<Luchador, string>;
-  registro: [string, string];
+  /** Historial de lo que ha pasado, lo último al final: se ve en el panel mientras corren los turnos. */
+  registro: string[];
   /** Menú de la heroína; null mientras no le toca elegir. */
   menu: MenuVista | null;
   /** Enemigo señalado mientras se elige objetivo. */
@@ -87,10 +88,11 @@ export interface VistaCombate {
   /** Nombre del menú abierto, en la pestaña del panel («Acción», «Habilidad»…). */
   pestana: string;
   /**
-   * Hay un aviso dado con el menú abierto («No quedan PM…»): ocupa el sitio de la descripción hasta que
-   * se mueve el cursor o cambia el menú. Lo que pasó en los turnos de antes no la tapa.
+   * Cuántos de los últimos mensajes del registro se dieron con el menú abierto («No quedan PM…»): ocupan el
+   * sitio de la descripción hasta que se mueve el cursor o cambia el menú. 0 si no hay ninguno. Lo que pasó
+   * en los turnos de antes no la tapa.
    */
-  aviso: boolean;
+  aviso: number;
 }
 
 const COLOR = {
@@ -103,7 +105,11 @@ const COLOR = {
   barraFondo: '#3a2a2a',
   aviso: PALETA.elegida,
   estado: '#c89bff',
+  /** Color de cada mensaje del registro según su antigüedad: el último, el anterior y los demás. */
+  registro: [PALETA.texto, '#c4bdd6', PALETA.apagada],
 };
+/** Alto de una línea de texto del panel. */
+const LINEA = 14;
 const ENEMIGO = { y: 128, escala: 2, separacion: 140, alto: 56, topeMinimo: 44 };
 /** Primera línea libre bajo la barra de turnos (su texto empieza en y = 10). */
 const FIN_BARRA_TURNOS = 26;
@@ -578,7 +584,58 @@ function avisoPartido(texto: string, cache = AVISOS, letras = LETRAS_DERECHA): r
   return lineas;
 }
 
-/** Panel de la interfaz alta: pestaña, lista, qué hace lo elegido y la ficha de la heroína, en una columna. */
+/**
+ * Historial del combate: lo último abajo y más claro, lo anterior más tenue. Se llena desde arriba y, cuando
+ * no cabe, se queda con lo más reciente.
+ */
+function dibujarRegistro(
+  ctx: CanvasRenderingContext2D,
+  v: VistaCombate,
+  x: number,
+  y: number,
+  letras: number,
+  maxLineas: number,
+  cache: Map<string, readonly string[]>,
+): void {
+  const reg = v.registro;
+  let usadas = 0;
+  let primero = reg.length;
+  while (primero > 0) {
+    const n = avisoPartido(reg[primero - 1]!, cache, letras).length;
+    if (primero < reg.length && usadas + n > maxLineas) break;
+    usadas += n;
+    primero--;
+    if (usadas >= maxLineas) break;
+  }
+  let linea = 0;
+  for (let r = primero; r < reg.length && linea < maxLineas; r++) {
+    const lineas = avisoPartido(reg[r]!, cache, letras);
+    const color = COLOR.registro[Math.min(reg.length - 1 - r, COLOR.registro.length - 1)]!;
+    for (let i = 0; i < lineas.length && linea < maxLineas; i++, linea++)
+      escribir(ctx, lineas[i]!, x, y + linea * LINEA, color);
+  }
+}
+
+/** Los últimos mensajes dados con el menú abierto (como mucho dos: «No quedan PM…» y su pista). */
+function dibujarAviso(
+  ctx: CanvasRenderingContext2D,
+  v: VistaCombate,
+  x: number,
+  y: number,
+  letras: number,
+  maxLineas: number,
+  cache: Map<string, readonly string[]>,
+): void {
+  const reg = v.registro;
+  let linea = 0;
+  for (let r = Math.max(0, reg.length - Math.min(v.aviso, 2)); r < reg.length; r++) {
+    const lineas = avisoPartido(reg[r]!, cache, letras);
+    for (let i = 0; i < lineas.length && linea < maxLineas; i++, linea++)
+      escribir(ctx, lineas[i]!, x, y + linea * LINEA, COLOR.aviso);
+  }
+}
+
+/** Panel de la interfaz alta: dos columnas como en horizontal, la lista (o el registro) y, a la derecha, qué hace lo elegido y la ficha. */
 function dibujarPanelVertical(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   const menu = v.menu;
   const n = menu?.opciones.length ?? 0;
@@ -591,8 +648,12 @@ function dibujarPanelVertical(ctx: CanvasRenderingContext2D, v: VistaCombate): v
     d.panel.ancho,
     d.panel.alto - c.alturaPestana,
   );
-  const pie = d.descripcion;
-  const letras = Math.floor((pie.ancho - 16) / ANCHO_LETRA);
+  // Raya entre las dos columnas.
+  ctx.fillStyle = PALETA.interior;
+  ctx.fillRect(d.descripcion.x, d.lista.y + 8, 1, d.lista.alto - 16);
+  const der = d.descripcion;
+  const letras = Math.floor((der.ancho - 16) / ANCHO_LETRA);
+  const maxLineas = Math.floor((der.alto - 4) / LINEA);
   if (menu) {
     dibujarPestana(ctx, d.panel.x + 8, d.panel.y + c.alturaPestana - 14, v.pestana);
     for (let i = 0; i < n; i++) {
@@ -605,6 +666,7 @@ function dibujarPanelVertical(ctx: CanvasRenderingContext2D, v: VistaCombate): v
         : elegida
           ? 'elegidaApagada'
           : 'apagada';
+      // El coste va bajo el nombre: en una columna estrecha no cabe al lado de «Tajo de llama morada».
       dibujarFila(
         ctx,
         d.lista.x,
@@ -614,41 +676,42 @@ function dibujarPanelVertical(ctx: CanvasRenderingContext2D, v: VistaCombate): v
         o.texto,
         o.detalle,
         estado,
+        d.fila >= 30,
       );
     }
-    const elegida = menu.opciones[menu.seleccion];
-    if (elegida) dibujarTitulo(ctx, pie.x + 8, pie.y + 2, pie.ancho - 16, elegida.texto);
-    if (v.aviso && v.registro[1]) {
-      let y = pie.y + 26;
-      for (let r = 0; r < v.registro.length; r++) {
-        const lineas = avisoPartido(v.registro[r]!, AVISOS_V, letras);
-        for (let i = 0; i < lineas.length; i++, y += 14)
-          escribir(ctx, lineas[i]!, pie.x + 8, y, COLOR.aviso);
-      }
-    } else if (elegida?.ayuda) {
-      const lineas = ayudaPartida(elegida.ayuda, letras);
-      for (let i = 0; i < lineas.length; i++)
-        escribir(ctx, lineas[i]!, pie.x + 8, pie.y + 26 + i * 14, PALETA.texto);
+    const ayuda = menu.opciones[menu.seleccion]?.ayuda;
+    if (v.aviso > 0) dibujarAviso(ctx, v, der.x + 8, der.y + 4, letras, maxLineas, AVISOS_V);
+    else if (ayuda) {
+      const lineas = ayudaPartida(ayuda, letras);
+      for (let i = 0; i < lineas.length && i < maxLineas; i++)
+        escribir(ctx, lineas[i]!, der.x + 8, der.y + 4 + i * LINEA, PALETA.texto);
     }
   } else {
     // Mientras se animan los turnos, el registro ocupa el sitio de la lista.
-    let y = d.lista.y + 8;
-    for (let r = 0; r < v.registro.length; r++, y += 4) {
-      const lineas = avisoPartido(v.registro[r]!, REGISTRO_V, letras);
-      for (let i = 0; i < lineas.length; i++, y += 14)
-        escribir(ctx, lineas[i]!, d.lista.x + 8, y, r === 0 ? PALETA.claro : PALETA.texto);
-    }
+    const r = d.registro;
+    const letrasRegistro = Math.floor((r.ancho - 16) / ANCHO_LETRA);
+    const lineasRegistro = Math.floor((r.alto - 12) / LINEA);
+    dibujarRegistro(ctx, v, r.x + 8, r.y + 8, letrasRegistro, lineasRegistro, REGISTRO_V);
   }
   const h = v.combate.heroina;
   const f = d.ficha;
   const fx = f.x + 8;
-  const ancho = f.ancho - 16 - 56;
+  const ancho = f.ancho - 16 - 46;
   escribir(ctx, h.nombre, fx, f.y + 2, PALETA.texto);
-  escribir(ctx, v.estados.get(h) ?? '', fx + 100, f.y + 2, COLOR.estado);
+  // Los estados caben en lo que deja el nombre; si no, se cortan.
+  const estados = v.estados.get(h) ?? '';
+  const sitio = Math.floor((f.x + f.ancho - 8 - (fx + 80)) / ANCHO_LETRA);
+  escribir(
+    ctx,
+    estados.length > sitio ? `${estados.slice(0, Math.max(0, sitio - 1))}…` : estados,
+    fx + 80,
+    f.y + 2,
+    COLOR.estado,
+  );
   barra(ctx, fx, f.y + 18, ancho, (v.pv.get(h) ?? h.pv) / h.pvMax, COLOR.pv);
-  escribir(ctx, v.textoPv.get(h) ?? '', fx + ancho + 8, f.y + 14);
+  escribir(ctx, v.textoPv.get(h) ?? '', fx + ancho + 6, f.y + 14);
   barra(ctx, fx, f.y + 32, ancho, v.pmHeroina / Math.max(1, h.pmMax), COLOR.pm);
-  escribir(ctx, v.textoPm, fx + ancho + 8, f.y + 28);
+  escribir(ctx, v.textoPm, fx + ancho + 6, f.y + 28);
 }
 
 function dibujarPanel(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
@@ -672,15 +735,11 @@ function dibujarPanel(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
     }
     const elegida = menu.opciones[menu.seleccion];
     if (elegida) dibujarTitulo(ctx, DERECHA.x, DERECHA.yTitulo, DERECHA.ancho, elegida.texto);
-    if (v.aviso && v.registro[1]) {
+    if (v.aviso > 0) {
       // Un aviso reciente con el menú abierto («No quedan PM…» y la pista que lo sigue) ocupa el
-      // sitio de la descripción hasta que caduca el registro.
-      let y = DERECHA.yTexto;
-      for (let r = 0; r < v.registro.length; r++) {
-        const lineas = avisoPartido(v.registro[r]!);
-        for (let i = 0; i < lineas.length; i++, y += 14)
-          escribir(ctx, lineas[i]!, DERECHA.x, y, COLOR.aviso);
-      }
+      // sitio de la descripción hasta que se mueve el cursor o cambia el menú.
+      const lineas = Math.floor((PANEL.y + PANEL.alto - DERECHA.yTexto) / LINEA);
+      dibujarAviso(ctx, v, DERECHA.x, DERECHA.yTexto, LETRAS_DERECHA, lineas, AVISOS);
     } else if (elegida?.ayuda) {
       const lineas = ayudaPartida(elegida.ayuda);
       for (let i = 0; i < lineas.length; i++)
@@ -689,12 +748,8 @@ function dibujarPanel(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   } else {
     // Mientras se animan los turnos, el panel cuenta lo que pasa en la columna izquierda
     // (la derecha es de la ficha).
-    let y = PANEL.y + 14;
-    for (let r = 0; r < v.registro.length; r++, y += 4) {
-      const lineas = avisoPartido(v.registro[r]!, REGISTRO, LETRAS_IZQUIERDA);
-      for (let i = 0; i < lineas.length; i++, y += 14)
-        escribir(ctx, lineas[i]!, PANEL.x + 14, y, r === 0 ? PALETA.claro : PALETA.texto);
-    }
+    const lineas = Math.floor((PANEL.alto - 22) / LINEA);
+    dibujarRegistro(ctx, v, PANEL.x + 14, PANEL.y + 14, LETRAS_IZQUIERDA, lineas, REGISTRO);
   }
   // La ficha de la heroína, siempre a la vista.
   const h = v.combate.heroina;
