@@ -5,8 +5,10 @@ import type { Recompensa } from './recompensas';
 /**
  * Partida guardada al entrar en cada sala, para recuperarla si se cierra el navegador (no es un
  * sistema de partidas: hay una sola y morir la borra). Se guardan claves, nunca copias de los JSON.
+ * La versión sube cuando una partida guardada dejaría de significar lo mismo (p. ej. al añadir plantillas
+ * de sala: la misma sala saldría distinta) y entonces se descarta.
  */
-export const VERSION_GUARDADO = 1;
+export const VERSION_GUARDADO = 2;
 
 /** Estado del mapa de la zona: lo que no sale de la semilla. Índices de `zona.salas`. */
 export interface EstadoMapa {
