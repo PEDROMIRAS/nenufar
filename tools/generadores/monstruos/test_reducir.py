@@ -94,6 +94,49 @@ def test_imagen_lisa_da_un_error_claro():
         raise AssertionError("debía fallar con una imagen lisa")
 
 
+def test_pose_quita_el_fondo_encerrado():
+    """Un aro rojo sobre azul: el azul de dentro es fondo aunque no toque el borde."""
+    im = Image.new("RGB", (60, 60), AZUL)
+    for y in range(10, 50):
+        for x in range(10, 50):
+            if not (20 <= x < 40 and 20 <= y < 40):
+                im.putpixel((x, y), ROJO)
+    ruta = os.path.join(tempfile.mkdtemp(), "aro.png")
+    im.save(ruta)
+    assert reducir.pose(ruta, 20, colores=4)[10][10] is not None  # sin pedirlo, se queda (como antes)
+    assert reducir.pose(ruta, 20, colores=4, encerrado=100)[10][10] is None
+    assert reducir.pose(ruta, 20, colores=4, encerrado=1000)[10][10] is not None  # 400 px: demasiado pequeño
+
+
+def test_movimiento_es_continuo_y_escala():
+    for anim, n, _, _ in reducir.ANIMS_DOBLE:
+        for i in range(n):
+            p1, t1, e1, dx1, dy1 = reducir.movimiento(anim, i, n, 1)
+            p2, t2, e2, _, _ = reducir.movimiento(anim, i, n, 2)
+            assert set(p1) == {"pierna_a", "pierna_b", "brazo_i", "brazo_d", "cola", "cabeza"}
+            assert all(abs(p2[k][0] - 2 * p1[k][0]) < 1e-9 and abs(p2[k][1] - 2 * p1[k][1]) < 1e-9 for k in p1)
+            assert abs(t2 - 2 * t1) < 1e-9 and e1 == e2 and 0.9 <= e1 <= 1
+    reposo = reducir.movimiento("idle", 0, 8, 2)
+    assert all(v == (0, 0) for v in reposo[0].values()) and reposo[1:] == (0, 1, 0, 0)
+    ataque = [reducir.movimiento("atacar", i, 6, 1)[1] for i in range(6)]
+    assert ataque[0] == 0 and ataque[-1] == 0 and min(ataque) < 0 < max(ataque)  # se echa atrás y se lanza
+
+
+def test_animar_pone_los_pies_en_el_ancla():
+    base = reducir.con_contorno([[ROJO] * 10 for _ in range(20)], CONTORNO)
+    img = reducir.animar(base, [], "idle", 0, 8, 2, 64, 64)
+    opaco = img[:, :, 3] > 0
+    assert img.shape == (64, 64, 4) and opaco[64 - 2 * 2 + 1].any() and not opaco[64 - 2 * 2 + 2:].any()
+    assert reducir.sin_tocar_bordes(img) and reducir.sueltos(img) == 0
+
+
+def test_sueltos_cuenta_las_motas():
+    img = np.zeros((8, 8, 4), dtype=np.uint8)
+    img[2:5, 2:5] = (9, 9, 9, 255)
+    img[7, 7] = (1, 2, 3, 255)
+    assert reducir.sueltos(img) == 1 and reducir.sueltos(img, exentos=[(1, 2, 3)]) == 0
+
+
 if __name__ == "__main__":
     for nombre, f in list(globals().items()):
         if nombre.startswith("test_") and callable(f):
