@@ -42,6 +42,16 @@ def test_las_animaciones_se_mueven():
             assert c[(d, "idle", 0)].tobytes() != c[(d, "idle", 4)].tobytes(), f"{m.__name__} {d}: no respira"
 
 
+def test_tres_vistas_distintas_y_la_izquierda_en_espejo():
+    for m in DOBLES:
+        c = cuadros(m)
+        frente, perfil, espalda, izquierda = (c[(d, "idle", 0)] for d in ("down", "right", "up", "left"))
+        assert frente.tobytes() != perfil.tobytes(), f"{m.__name__}: el perfil es el frente"
+        assert frente.tobytes() != espalda.tobytes(), f"{m.__name__}: la espalda es el frente"
+        assert perfil.tobytes() != espalda.tobytes(), f"{m.__name__}: la espalda es el perfil"
+        assert (izquierda == perfil[:, ::-1]).all(), f"{m.__name__}: la izquierda no es el espejo de la derecha"
+
+
 def test_la_hoja_cabe_en_una_textura():
     for m in DOBLES:
         assert sum(n for _, n, _, _ in m.ANIMS) * m.W <= 4096, m.__name__

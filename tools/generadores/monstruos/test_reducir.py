@@ -121,6 +121,28 @@ def test_pose_quita_las_motas_de_alrededor():
     assert all(k is not None for fila in limpia for k in fila), "el recorte debe ser solo el cuadrado"
 
 
+def test_piezas_para_montar_vistas():
+    a, b = (1, 1, 1), (2, 2, 2)
+    grid = [[a, b, None], [a, b, b]]
+    assert reducir.trozo(grid, 1, 0, 3, 2) == [[b, None], [b, b]]
+    assert reducir.espejo(grid) == [[None, b, a], [b, b, a]]
+    assert reducir.repintar(grid, {a: b}) == [[b, b, None], [b, b, b]]
+    lienzo = reducir.vacia(4, 3)
+    reducir.poner(lienzo, grid, 2, 1)  # lo que se sale se recorta y lo transparente no tapa
+    assert lienzo == [[None] * 4, [None, None, a, b], [None, None, a, b]]
+    assert reducir.ajustar(lienzo) == [[a, b], [a, b]]
+    cuadro = [[a] * 6 for _ in range(6)]
+    pieza, x0, y0 = reducir.recorte(cuadro, [(2, 1), (5, 1), (5, 4), (2, 4)])  # un polígono: solo lo de dentro
+    assert (x0, y0) == (2, 1) and len(pieza) == 3 and len(pieza[0]) == 3 and all(c == a for f in pieza for c in f)
+    triangulo, _, _ = reducir.recorte(cuadro, [(0, 0), (6, 0), (0, 6)])
+    assert triangulo[0][0] == a and triangulo[-1][-1] is None
+    assert reducir.estrechar([[a, a, b, b]], 2) == [[a, b]]
+    fondo = [[a] * 5 for _ in range(5)]
+    reducir.poner(fondo, [[b]], 2, 2, borde=(9, 9, 9))  # con borde, lo de debajo se separa con una línea
+    assert fondo[2][2] == b and fondo[1][2] == fondo[2][1] == fondo[3][2] == fondo[2][3] == (9, 9, 9)
+    assert fondo[1][1] == a
+
+
 def test_movimiento_es_continuo_y_escala():
     for anim, n, _, _ in reducir.ANIMS_DOBLE:
         for i in range(n):
