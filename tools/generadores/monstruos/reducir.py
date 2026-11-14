@@ -91,7 +91,7 @@ def limpiar(grid):
 
 
 def pose(ruta, ancho, colores=14, fondo="auto", umbral=60, contraste=1.35, retoques=(), paleta=None,
-         brillo=1.0, saturacion=1.0, fondos_extra=(), encerrado=None, motas=None):
+         brillo=1.0, saturacion=1.0, fondos_extra=(), encerrado=None, motas=None, recorte=None):
     """La pose reducida a `ancho` píxeles de ancho.
 
     `fondo`: "auto" (el color de las esquinas, quitado desde los bordes) o "negro". Con `paleta` fija
@@ -100,9 +100,12 @@ def pose(ruta, ancho, colores=14, fondo="auto", umbral=60, contraste=1.35, retoq
     reducir. `fondos_extra` son colores RGB que, además del de las esquinas, cuentan como fondo. `retoques` son `(x, y, rgb)` que se aplican al final.
     `encerrado`: con un número, las zonas del color del fondo que no tocan el borde de la imagen y tienen al menos
     esos píxeles (de la imagen original) también se quitan. `motas`: con un número, los trozos de figura sueltos
-    de menos de esos píxeles se quitan (no valen con `fondo="negro"`).
+    de menos de esos píxeles se quitan (no valen con `fondo="negro"`). `recorte`: caja `(x0, y0, x1, y1)` de la
+    imagen que se mira, para dejar fuera una raya de suelo o un rótulo.
     """
     im = Image.open(ruta).convert("RGB")
+    if recorte:
+        im = im.crop(recorte)
     a = np.array(im).astype(int)
     mask = _mascara(a, fondo, umbral, fondos_extra, encerrado, motas)
     ys, xs = np.where(mask)

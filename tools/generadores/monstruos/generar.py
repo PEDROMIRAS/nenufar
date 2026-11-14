@@ -38,6 +38,7 @@ import ojo_flotante  # noqa: E402
 import dragon_negro  # noqa: E402
 import cofre_trampa  # noqa: E402
 import ermitano  # noqa: E402
+import lobo  # noqa: E402
 
 DIRS = ["down", "left", "right", "up"]
 VISTA = {"down": "frente", "left": "lado", "right": "lado", "up": "espalda"}
@@ -70,8 +71,6 @@ MONSTRUOS = {
     "salamandra": (40, paleta(cuerpo=(66, 44, 42), cuerpo_s=(34, 24, 28), cuerpo_l=(108, 72, 60), brasa=(255, 106, 28),
                               brasa_l=(255, 206, 90), diente=(240, 226, 200), boca=(120, 24, 20)),
                    criaturas.salamandra, {}),
-    "lobo": (32, paleta(pelo=(40, 50, 84), pelo_s=(18, 25, 44), pelo_l=(78, 92, 136), rojo=(204, 40, 48),
-                        colmillo=(240, 236, 228), ojo=(255, 84, 84), ojo_nariz=(12, 14, 24)), humanoides.lobo, {}),
     # Ruinas y Cripta: la araña común; la reina, en morados fríos
     "arana": (32, paleta(cuerpo=(122, 59, 59), cuerpo_s=(78, 34, 40), cuerpo_l=(164, 92, 84), cabeza=(98, 46, 48),
                          pata=(58, 30, 34), ojo=(236, 196, 80), marca=(214, 120, 60)), criaturas.arana, {}),
@@ -96,6 +95,7 @@ PROPIOS = {
     "senor_cripta": (48, 48, senor_cripta),
     "espectro": (32, 32, espectro),
     "golem": (96, 96, golem),
+    "lobo": (64, 64, lobo),
     "rey_sin_charca": (64, 48, rey_sin_charca),
     # Jefes violetas y el cofre trampa (que en reposo es el cofre cerrado de comunes)
     "arbol_maldito": (48, 48, arbol_maldito),
@@ -109,7 +109,7 @@ PROPIOS = {
 
 
 # Monstruos cuyos fotogramas no deben tocar el borde del cuadro (el generador avisa si pasa).
-VIGILADOS = {"rey_sin_charca", "senor_cripta", "golem", "jabali", "acolito", "salamandra", "sacerdote", "oni", "dragon_fuego", "rey_limo", "reina_arana"}
+VIGILADOS = {"lobo", "rey_sin_charca", "senor_cripta", "golem", "jabali", "acolito", "salamandra", "sacerdote", "oni", "dragon_fuego", "rey_limo", "reina_arana"}
 
 
 def destello(img, contorno):

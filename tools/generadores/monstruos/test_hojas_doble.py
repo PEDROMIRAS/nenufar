@@ -8,8 +8,9 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import reducir  # noqa: E402
 import golem  # noqa: E402
+import lobo  # noqa: E402
 
-DOBLES = [golem]
+DOBLES = [golem, lobo]
 DIRS = ["down", "left", "right", "up"]
 _CUADROS = {}
 

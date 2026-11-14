@@ -143,6 +143,17 @@ def test_piezas_para_montar_vistas():
     assert fondo[1][1] == a
 
 
+def test_pose_recorta_la_imagen_antes_de_buscar_la_figura():
+    """Una raya de suelo de lado a lado bajo el cuadrado: recortando la imagen por encima, no entra."""
+    im = Image.open(imagen_de_prueba())
+    for x in range(2, 38):
+        im.putpixel((x, 26), ROJO)
+    ruta = os.path.join(tempfile.mkdtemp(), "raya.png")
+    im.save(ruta)
+    grid = reducir.pose(ruta, 10, colores=4, recorte=(0, 0, 40, 24))
+    assert all(k is not None for fila in grid for k in fila), "el recorte debe ser solo el cuadrado"
+
+
 def test_movimiento_es_continuo_y_escala():
     for anim, n, _, _ in reducir.ANIMS_DOBLE:
         for i in range(n):

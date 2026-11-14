@@ -5,6 +5,8 @@ import zonas from '../src/data/zonas.json';
 
 // Monstruos de la entrega 2 (jabalí y cuervo en el Bosque, lobo en la Cripta).
 const NUEVOS = ['jabali', 'cuervo', 'lobo'];
+// El lobo ya va a doble resolución: el formato de su hoja lo comprueba hojas_doble.test.ts.
+const DOBLES = ['lobo'];
 // Lado del cuadro de cada hoja (el jabalí, más grande, va en 40×40).
 const LADO: Record<string, number> = { jabali: 40 };
 
@@ -24,26 +26,29 @@ describe.each(NUEVOS)('%s', (clave) => {
     expect(m!.caja).toBeDefined();
   });
 
-  test('su hoja de sprites está completa: 4 filas de fotogramas cuadrados, ancla en los pies', () => {
-    const archivo = nombre(MONSTRUOS[clave]!.sprite);
-    const meta = HOJAS[`../public/assets/sprites/monstruos/${archivo}.json`]?.default as {
-      frameWidth: number;
-      frameHeight: number;
-      anchor: unknown;
-      directions: Record<string, number>;
-      animations: Record<string, { frames: number }>;
-    };
-    expect(meta, archivo).toBeDefined();
-    const lado = LADO[clave] ?? 32;
-    expect([meta.frameWidth, meta.frameHeight]).toEqual([lado, lado]);
-    expect(meta.anchor).toEqual({ x: lado / 2, y: lado - 2 });
-    expect(Object.keys(meta.directions)).toEqual(['down', 'left', 'right', 'up']);
-    const frames = Object.fromEntries(
-      Object.entries(meta.animations).map(([k, v]) => [k, v.frames]),
-    );
-    expect(frames).toEqual({ idle: 2, walk: 4, atacar: 3, golpe: 1 });
-    expect(Object.keys(PNG)).toContain(`../public/assets/sprites/monstruos/${archivo}.png`);
-  });
+  test.skipIf(DOBLES.includes(clave))(
+    'su hoja de sprites está completa: 4 filas de fotogramas cuadrados, ancla en los pies',
+    () => {
+      const archivo = nombre(MONSTRUOS[clave]!.sprite);
+      const meta = HOJAS[`../public/assets/sprites/monstruos/${archivo}.json`]?.default as {
+        frameWidth: number;
+        frameHeight: number;
+        anchor: unknown;
+        directions: Record<string, number>;
+        animations: Record<string, { frames: number }>;
+      };
+      expect(meta, archivo).toBeDefined();
+      const lado = LADO[clave] ?? 32;
+      expect([meta.frameWidth, meta.frameHeight]).toEqual([lado, lado]);
+      expect(meta.anchor).toEqual({ x: lado / 2, y: lado - 2 });
+      expect(Object.keys(meta.directions)).toEqual(['down', 'left', 'right', 'up']);
+      const frames = Object.fromEntries(
+        Object.entries(meta.animations).map(([k, v]) => [k, v.frames]),
+      );
+      expect(frames).toEqual({ idle: 2, walk: 4, atacar: 3, golpe: 1 });
+      expect(Object.keys(PNG)).toContain(`../public/assets/sprites/monstruos/${archivo}.png`);
+    },
+  );
 });
 
 describe('grupos de las zonas', () => {

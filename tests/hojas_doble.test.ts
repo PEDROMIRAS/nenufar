@@ -2,7 +2,10 @@ import { expect, test } from 'vitest';
 import type { SpriteJson } from '../src/core/types';
 
 // Monstruos a doble resolución: [clave, ancho, alto] en píxeles del juego (lo que medían antes).
-const DOBLES: [string, number, number][] = [['golem', 48, 48]];
+const DOBLES: [string, number, number][] = [
+  ['golem', 48, 48],
+  ['lobo', 32, 32],
+];
 
 const HOJAS = import.meta.glob<{ default: SpriteJson }>(
   '../public/assets/sprites/monstruos/*.json',
