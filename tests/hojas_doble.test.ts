@@ -9,6 +9,10 @@ const DOBLES: [string, number, number][] = [
   ['acolito', 40, 40],
   ['cuervo', 32, 32],
   ['jabali', 40, 40],
+  ['oni', 48, 48],
+  ['rey_limo', 64, 48],
+  ['senor_cripta', 48, 48],
+  ['rey_sin_charca', 64, 48],
 ];
 
 const HOJAS = import.meta.glob<{ default: SpriteJson }>(

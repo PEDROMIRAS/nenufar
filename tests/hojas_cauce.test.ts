@@ -4,7 +4,6 @@ import { describe, expect, test } from 'vitest';
 const HOJAS_ESPERADAS: [string, number, number][] = [
   ['salamandra', 40, 40],
   ['sacerdote', 48, 48],
-  ['oni', 48, 48],
   ['dragon_fuego', 64, 48],
   ['dragon_negro', 64, 48],
 ];

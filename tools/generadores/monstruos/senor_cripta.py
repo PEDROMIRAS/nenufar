@@ -14,12 +14,14 @@ from PIL import Image, ImageDraw, ImageFilter
 
 import reducir
 
-W, H = 48, 48
+W, H = 96, 96
+ESCALA_HOJA = 2  # píxeles de la hoja por píxel del juego
+ANIMS = reducir.ANIMS_DOBLE
 OUT = (10, 8, 12)
 REFERENCIA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "docs", "superpowers",
                           "mockups", "cauce-seco-referencias", "12-senor-cripta-espada.png")
-ANCHO = 42
-COMPRESION = 0.75  # la figura es más alta que ancha: se comprime un poco a lo alto para ganar píxeles de ancho
+ANCHO = 84
+COMPRESION = 0.73  # la figura es más alta que ancha: se comprime un poco a lo alto para ganar píxeles de ancho
 # Zona de la imagen con la figura y los dos contornos (cuerpo y espada), en coordenadas de ese recorte ampliado ×1,5
 CAJA = (130, 100, 650, 700)
 AUMENTO = 1.5
@@ -34,11 +36,9 @@ PALETA = {"negro": (22, 18, 28), "negro_l": (38, 34, 48), "carbon": (56, 52, 68)
           "cuero": (130, 88, 54), "cuero_l": (196, 130, 72)}
 # Los morados del fuego no van en PALETA: con ella se reduce la imagen y el borde de la figura caería en ellos
 MORADO = {"morado_s": (62, 30, 100), "morado": (122, 64, 176), "morado_l": (190, 130, 240)}
-CARA = (22, 2)  # esquina de la cara en la pose reducida; la capucha está centrada en la columna 24
-COLORES_CARA = {"c": "carbon", "n": "negro", "h": "hueso"}
 
-DY = {"idle": [0, 1], "walk": [0, 1, 0, 1], "atacar": [0, 1, 0], "golpe": [0]}
-DX = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [-1, 1, 0], "golpe": [-2]}
+CARA = (44, 4)  # esquina de la cara en la pose reducida; la capucha está centrada en la columna 48
+COLORES_CARA = {"c": "carbon", "n": "negro", "h": "hueso"}
 
 # Partes que se mueven por separado (cajas en fracciones de la figura; ver reducir.partes)
 PARTES = [(0.05, 0.88, 0.5, 1, "pierna_a"), (0.5, 0.88, 1, 1, "pierna_b"), (0, 0.4, 0.4, 0.85, "brazo_i"),
@@ -89,15 +89,17 @@ def _fuego_morado(grid):
     """La hoja de la espada arde en morado y una llama sube de su mano: el poder que luego lo transforma en el Rey."""
     arde = {PALETA["hueso"]: MORADO["morado_l"], PALETA["acero_l"]: MORADO["morado_l"], PALETA["acero"]: MORADO["morado"],
             PALETA["gris"]: MORADO["morado_s"]}
-    for y in range(26, 38):
-        for x in range(6, 28):
-            if abs(x - (y * 1.25 - 19.5)) <= 3 and grid[y][x] in arde:
+    for y in range(52, 76):
+        for x in range(12, 56):
+            if abs(x - (y * 1.25 - 39)) <= 6 and grid[y][x] in arde:
                 grid[y][x] = arde[grid[y][x]]
     llama = {(7, 21): "morado", (8, 21): "morado_l", (7, 20): "morado_l", (8, 20): "morado", (8, 19): "morado",
              (8, 18): "morado_l", (9, 17): "morado"}
     for (x, y), color in llama.items():
-        if grid[y][x] is None:
-            grid[y][x] = MORADO[color]
+        for px in (2 * x, 2 * x + 1):
+            for py in (2 * y, 2 * y + 1):
+                if grid[py][px] is None:
+                    grid[py][px] = MORADO[color]
     return grid
 
 
@@ -108,18 +110,19 @@ def _pose():
             ruta = os.path.join(d, "senor.png")
             _figura().save(ruta)
             grid = reducir.pose(ruta, ANCHO, brillo=2.0, saturacion=1.2, contraste=1.35, umbral=40, paleta=PALETA)
-        # La cara de calavera, dibujada a mano: al reducir la imagen se queda en una mancha gris
+        # La cara de calavera, dibujada a mano (cada punto, un bloque de 2×2): al reducir la imagen se queda en una
+        # mancha blanca sin cuencas
         for y, fila in enumerate(("cnnnc", "nhhhn", "hnhnh", "nhhhn", ".nhn.")):
             for x, c in enumerate(fila):
                 if c != ".":
-                    grid[CARA[1] + y][CARA[0] + x] = PALETA[COLORES_CARA[c]]
+                    for px in (CARA[0] + 2 * x, CARA[0] + 2 * x + 1):
+                        for py in (CARA[1] + 2 * y, CARA[1] + 2 * y + 1):
+                            grid[py][px] = PALETA[COLORES_CARA[c]]
         _BASE = _fuego_morado(reducir.con_contorno(grid, OUT))
     return _BASE
 
 
 def fotograma(direccion, anim, i):
-    lienzo = np.zeros((H, W, 4), dtype=np.uint8)
-    sal = reducir.vida(reducir.partes(_pose(), PARTES, anim, i), anim, i)
-    alto, ancho = len(sal), len(sal[0])
-    reducir.pegar(lienzo, sal, (W - ancho) // 2 + DX[anim][i], 47 - alto + DY[anim][i])
-    return lienzo
+    # Es un jefe: no se mueve por el mapa. La imagen vale para todas las direcciones (la izquierda, en espejo).
+    lienzo = reducir.animar(_pose(), PARTES, anim, i, reducir.N_DOBLE[anim], ESCALA_HOJA, W, H)
+    return lienzo[:, ::-1].copy() if direccion == "left" else lienzo

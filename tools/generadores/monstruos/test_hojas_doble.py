@@ -13,8 +13,12 @@ import acolito  # noqa: E402
 import cuervo  # noqa: E402
 import jabali  # noqa: E402
 import reina_arana  # noqa: E402
+import guardian_bosque  # noqa: E402
+import oni  # noqa: E402
+import rey_sin_charca  # noqa: E402
+import senor_cripta  # noqa: E402
 
-DOBLES = [golem, lobo, reina_arana, acolito, cuervo, jabali]
+DOBLES = [golem, lobo, reina_arana, acolito, cuervo, jabali, oni, guardian_bosque, senor_cripta, rey_sin_charca]
 DIRS = ["down", "left", "right", "up"]
 _CUADROS = {}
 
