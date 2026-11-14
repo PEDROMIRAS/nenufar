@@ -7,6 +7,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { VignetteShader } from 'three/addons/shaders/VignetteShader.js';
 import { crearAzar } from '../../core/azar';
+import { escalaHoja } from '../../core/hoja';
 import type { ObjetoSala, Sala, Salida, Tile } from '../../core/sala';
 import type { Direccion, Hd2dJson, LuzHd2d, ZonaHd2d } from '../../core/types';
 import { N, S } from '../../core/zona';
@@ -515,7 +516,7 @@ export class Mundo {
 
   /** Un sprite de pie con la hoja `sprite`, en la sala `v` (o fuera de las salas, como la heroína). */
   crearActor(v: VistaSala | null, sprite: Sprite): Actor {
-    const tam = TAM;
+    const tam = TAM * escalaHoja(sprite.datos); // píxeles de la hoja por casilla
     const { frameWidth, frameHeight, anchor } = sprite.datos;
     const tex = new THREE.Texture(sprite.imagen as HTMLImageElement);
     ajustarPixelArt(tex);

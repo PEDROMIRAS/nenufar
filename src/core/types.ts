@@ -45,6 +45,11 @@ export interface SpriteJson {
   directions: Record<Direccion, number>;
   animations: Record<string, AnimacionJson>;
   castReleaseFrame?: number;
+  /**
+   * Píxeles de la hoja por píxel del juego (por defecto 1). Las hojas a doble resolución llevan 2: sus
+   * `frameWidth`, `frameHeight` y `anchor` van en píxeles de la hoja y en pantalla ocupan la mitad.
+   */
+  scale?: number;
 }
 
 /** Estadísticas de combate (las seis del documento). */

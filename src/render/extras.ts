@@ -1,4 +1,5 @@
 import { celdasBestiario, filasLista, letrasEnAncho, pestanasExtras } from '../core/disposicion';
+import { escalaHoja } from '../core/hoja';
 import { CASILLAS_BESTIARIO } from '../core/logros';
 import type { Rect } from '../core/menu';
 import { VERTICAL } from '../data/datos';
@@ -176,7 +177,8 @@ function dibujarBestiario(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
     dibujarCaja(ctx, c.x, c.y, c.ancho, c.alto, marcada ? 'elegida' : 'normal');
     // Los jefes tienen fotogramas más grandes: todos caben en la casilla, a escalas de medio en medio
     // para que el pixel art no se deforme (32 px → ×1,5; 48 px → ×1).
-    const escala = Math.max(1, Math.floor((48 / f.sprite.datos.frameHeight) * 2) / 2);
+    const altoJuego = f.sprite.datos.frameHeight / escalaHoja(f.sprite.datos);
+    const escala = Math.max(1, Math.floor((48 / altoJuego) * 2) / 2);
     const pie = c.y + c.alto - 4;
     dibujarFotograma(
       ctx,
