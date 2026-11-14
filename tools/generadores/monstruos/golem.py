@@ -11,6 +11,7 @@ import reducir
 W, H = 96, 96
 ESCALA_HOJA = 2  # píxeles de la hoja por píxel del juego
 ANIMS = reducir.ANIMS_DOBLE
+TRES_VISTAS = True  # frente de la imagen; perfil y espalda recreados
 OUT = (16, 14, 20)
 REFERENCIA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "docs", "superpowers",
                           "mockups", "cauce-seco-referencias", "10-golem.png")
