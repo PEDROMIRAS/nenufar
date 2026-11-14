@@ -21,7 +21,7 @@ PALETA = {"negro": (28, 28, 36), "tela": (62, 52, 48), "piedra_s": (58, 66, 80),
           "oro_l": (246, 214, 116)}
 POLVO = (176, 166, 150)
 EXENTOS = [POLVO]  # el polvo del golpe va suelto a propósito
-GOLPE = 3  # fotograma del ataque en que el puño llega al suelo
+GOLPE = 2  # fotograma del ataque en que el puño llega al suelo
 
 # Partes que se mueven por separado (cajas en fracciones de la figura; ver reducir.partes)
 PARTES_FRENTE = [(0, 0.74, 0.5, 1, "pierna_a"), (0.5, 0.74, 1, 1, "pierna_b"), (0, 0.25, 0.22, 0.75, "brazo_i"),
@@ -107,7 +107,7 @@ def _dibujo_perfil():
 
     def pieza(nombre, dx, ancho=None, sombra=False, borde=n, espejo=False):
         """Pega la pieza desplazada `dx` (y estrechada a `ancho` columnas, centrada donde estaba)."""
-        trozo, x0, y0 = reducir.recorte(b, PIEZAS[nombre])
+        trozo, x0, y0 = reducir.cortar(b, PIEZAS[nombre])
         if espejo:
             trozo = reducir.espejo(trozo)
         if nombre == "cabeza":

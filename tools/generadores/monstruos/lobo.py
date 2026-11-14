@@ -76,7 +76,7 @@ def _pelo(g, puntos, luz=0.0, borde=_P["negro"]):
     lleno = reducir.vacia(ANCHO_FRENTE, ALTO_FRENTE)
     for fila in lleno:
         fila[:] = [_P["pelo"]] * ANCHO_FRENTE
-    pieza, x0, y0 = reducir.recorte(lleno, puntos)
+    pieza, x0, y0 = reducir.cortar(lleno, puntos)
     alto, ancho = len(pieza), len(pieza[0])
     for y, fila in enumerate(pieza):
         for x, c in enumerate(fila):

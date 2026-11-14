@@ -132,9 +132,9 @@ def test_piezas_para_montar_vistas():
     assert lienzo == [[None] * 4, [None, None, a, b], [None, None, a, b]]
     assert reducir.ajustar(lienzo) == [[a, b], [a, b]]
     cuadro = [[a] * 6 for _ in range(6)]
-    pieza, x0, y0 = reducir.recorte(cuadro, [(2, 1), (5, 1), (5, 4), (2, 4)])  # un polígono: solo lo de dentro
+    pieza, x0, y0 = reducir.cortar(cuadro, [(2, 1), (5, 1), (5, 4), (2, 4)])  # un polígono: solo lo de dentro
     assert (x0, y0) == (2, 1) and len(pieza) == 3 and len(pieza[0]) == 3 and all(c == a for f in pieza for c in f)
-    triangulo, _, _ = reducir.recorte(cuadro, [(0, 0), (6, 0), (0, 6)])
+    triangulo, _, _ = reducir.cortar(cuadro, [(0, 0), (6, 0), (0, 6)])
     assert triangulo[0][0] == a and triangulo[-1][-1] is None
     assert reducir.estrechar([[a, a, b, b]], 2) == [[a, b]]
     fondo = [[a] * 5 for _ in range(5)]
@@ -165,7 +165,9 @@ def test_movimiento_es_continuo_y_escala():
     reposo = reducir.movimiento("idle", 0, 8, 2)
     assert all(v == (0, 0) for v in reposo[0].values()) and reposo[1:] == (0, 1, 0, 0)
     ataque = [reducir.movimiento("atacar", i, 6, 1)[1] for i in range(6)]
-    assert ataque[0] == 0 and ataque[-1] == 0 and min(ataque) < 0 < max(ataque)  # se echa atrás y se lanza
+    # El primer fotograma ya es el cuerpo echado atrás: el combate lo enseña quieto mientras el monstruo prepara
+    # su golpe cargado. Después se lanza y vuelve al reposo.
+    assert ataque[0] == min(ataque) < 0 < max(ataque) and ataque[-1] == 0 and ataque.index(max(ataque)) == 2
 
 
 def test_animar_pone_los_pies_en_el_ancla():

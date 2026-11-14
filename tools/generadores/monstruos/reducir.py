@@ -308,15 +308,17 @@ def movimiento(anim, i, n, escala):
         p = {"pierna_a": paso(f), "pierna_b": paso(f + math.pi), "brazo_i": (0, 2 * math.sin(f)),
              "brazo_d": (0, -2 * math.sin(f)), "cola": (2 * math.sin(f), -math.cos(f)), "cabeza": (0, bote)}
         t, e, dx, dy = 2 * math.sin(f), 1 - 0.02 * bote, 0, bote
-    elif anim == "atacar":  # se echa atrás (0,3), se lanza (0,6) y vuelve
+    elif anim == "atacar":
+        # El primer fotograma ya es el cuerpo echado atrás (el combate lo deja quieto ahí mientras el monstruo
+        # prepara un golpe cargado); se lanza en el 40 % y vuelve al reposo.
         u = i / (n - 1)
-        b = _clave(u, [(0, q), (0.3, (0, -3)), (0.6, (1, 3)), (1, q)])
+        b = _clave(u, [(0, (0, -3)), (0.4, (1, 3)), (1, q)])
         p = {"pierna_a": q, "pierna_b": q, "brazo_i": b, "brazo_d": (-b[0], b[1]),
-             "cola": _clave(u, [(0, q), (0.3, (3, 0)), (0.6, (-3, 1)), (1, q)]),
-             "cabeza": _clave(u, [(0, q), (0.3, (0, -2)), (0.6, (0, 2)), (1, q)])}
-        t = _clave(u, [(0, 0), (0.3, -3), (0.6, 5), (0.8, 2), (1, 0)])
-        e = _clave(u, [(0, 1), (0.3, 1), (0.6, 0.95), (1, 1)])
-        dx, dy = _clave(u, [(0, 0), (0.3, -1), (0.6, 2), (1, 0)]), 0
+             "cola": _clave(u, [(0, (3, 0)), (0.4, (-3, 1)), (1, q)]),
+             "cabeza": _clave(u, [(0, (0, -2)), (0.4, (0, 2)), (1, q)])}
+        t = _clave(u, [(0, -3), (0.4, 5), (0.7, 2), (1, 0)])
+        e = _clave(u, [(0, 1), (0.4, 0.95), (1, 1)])
+        dx, dy = _clave(u, [(0, -1), (0.4, 2), (1, 0)]), 0
     else:  # golpe: recula
         p = {"pierna_a": q, "pierna_b": q, "brazo_i": (0, -2), "brazo_d": (0, -2), "cola": (2, 0), "cabeza": (0, -1)}
         t, e, dx, dy = -3, 0.97, -2, 0
@@ -400,7 +402,7 @@ def ajustar(grid):
     return trozo(grid, columnas[0], filas[0], columnas[-1] + 1, filas[-1] + 1)
 
 
-def recorte(grid, puntos):
+def cortar(grid, puntos):
     """La parte de la pose que cae dentro del polígono `puntos` (vértices `(x, y)` en píxeles, el borde derecho y
     el de abajo fuera): `(pieza, x0, y0)`, con la pieza ajustada a la caja del polígono y su esquina en la pose."""
     from PIL import ImageDraw
