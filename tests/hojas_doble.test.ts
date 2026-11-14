@@ -5,6 +5,10 @@ import type { SpriteJson } from '../src/core/types';
 const DOBLES: [string, number, number][] = [
   ['golem', 48, 48],
   ['lobo', 32, 32],
+  ['reina_arana', 64, 48],
+  ['acolito', 40, 40],
+  ['cuervo', 32, 32],
+  ['jabali', 40, 40],
 ];
 
 const HOJAS = import.meta.glob<{ default: SpriteJson }>(

@@ -39,6 +39,7 @@ import dragon_negro  # noqa: E402
 import cofre_trampa  # noqa: E402
 import ermitano  # noqa: E402
 import lobo  # noqa: E402
+import cuervo  # noqa: E402
 
 DIRS = ["down", "left", "right", "up"]
 VISTA = {"down": "frente", "left": "lado", "right": "lado", "up": "espalda"}
@@ -66,8 +67,6 @@ MONSTRUOS = {
     "murcielago": (32, paleta(cuerpo=(112, 86, 132), cuerpo_s=(74, 54, 92), cuerpo_l=(150, 124, 168),
                               ala=(90, 66, 110), ala_s=(58, 40, 74), ojo=(226, 60, 70), diente=(240, 236, 220)),
                    criaturas.murcielago, {}),
-    "cuervo": (32, paleta(cuerpo=(48, 44, 58), cuerpo_s=(33, 31, 45), cuerpo_l=(92, 83, 108), pico=(116, 98, 92),
-                          adorno=(122, 82, 48), ojo=(255, 214, 120), brillo=(255, 248, 214)), criaturas.cuervo, {}),
     "salamandra": (40, paleta(cuerpo=(66, 44, 42), cuerpo_s=(34, 24, 28), cuerpo_l=(108, 72, 60), brasa=(255, 106, 28),
                               brasa_l=(255, 206, 90), diente=(240, 226, 200), boca=(120, 24, 20)),
                    criaturas.salamandra, {}),
@@ -85,17 +84,18 @@ MONSTRUOS = {
 # Monstruos dibujados con su propio módulo (más detalle que el Lienzo): (ancho, alto, módulo).
 # Cada módulo da `fotograma(direccion, anim, i)` como array RGBA con los pies en (ancho/2, alto-2).
 PROPIOS = {
-    "jabali": (40, 40, jabali),
-    "acolito": (40, 40, acolito),
+    "jabali": (80, 80, jabali),
+    "acolito": (80, 80, acolito),
     "sacerdote": (48, 48, sacerdote),
     "oni": (48, 48, oni),
     "dragon_fuego": (64, 48, dragon_fuego),
     "rey_limo": (64, 48, guardian_bosque),
-    "reina_arana": (64, 48, reina_arana),
+    "reina_arana": (128, 96, reina_arana),
     "senor_cripta": (48, 48, senor_cripta),
     "espectro": (32, 32, espectro),
     "golem": (96, 96, golem),
     "lobo": (64, 64, lobo),
+    "cuervo": (64, 64, cuervo),
     "rey_sin_charca": (64, 48, rey_sin_charca),
     # Jefes violetas y el cofre trampa (que en reposo es el cofre cerrado de comunes)
     "arbol_maldito": (48, 48, arbol_maldito),
@@ -109,7 +109,7 @@ PROPIOS = {
 
 
 # Monstruos cuyos fotogramas no deben tocar el borde del cuadro (el generador avisa si pasa).
-VIGILADOS = {"lobo", "rey_sin_charca", "senor_cripta", "golem", "jabali", "acolito", "salamandra", "sacerdote", "oni", "dragon_fuego", "rey_limo", "reina_arana"}
+VIGILADOS = {"lobo", "cuervo", "rey_sin_charca", "senor_cripta", "golem", "jabali", "acolito", "salamandra", "sacerdote", "oni", "dragon_fuego", "rey_limo", "reina_arana"}
 
 
 def destello(img, contorno):

@@ -9,8 +9,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import reducir  # noqa: E402
 import golem  # noqa: E402
 import lobo  # noqa: E402
+import acolito  # noqa: E402
+import cuervo  # noqa: E402
+import jabali  # noqa: E402
+import reina_arana  # noqa: E402
 
-DOBLES = [golem, lobo]
+DOBLES = [golem, lobo, reina_arana, acolito, cuervo, jabali]
 DIRS = ["down", "left", "right", "up"]
 _CUADROS = {}
 

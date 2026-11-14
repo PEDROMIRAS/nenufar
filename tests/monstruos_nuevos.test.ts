@@ -5,8 +5,8 @@ import zonas from '../src/data/zonas.json';
 
 // Monstruos de la entrega 2 (jabalí y cuervo en el Bosque, lobo en la Cripta).
 const NUEVOS = ['jabali', 'cuervo', 'lobo'];
-// El lobo ya va a doble resolución: el formato de su hoja lo comprueba hojas_doble.test.ts.
-const DOBLES = ['lobo'];
+// Estos ya van a doble resolución: el formato de sus hojas lo comprueba hojas_doble.test.ts.
+const DOBLES = ['lobo', 'cuervo', 'jabali'];
 // Lado del cuadro de cada hoja (el jabalí, más grande, va en 40×40).
 const LADO: Record<string, number> = { jabali: 40 };
 

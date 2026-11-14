@@ -273,6 +273,7 @@ def partes(grid, lista, anim, i, borde=0.14, patrones=None):
 # ---------------------------------------------------------------- hojas a doble resolución
 # (nombre, fotogramas, fps, en bucle): duran lo mismo que las de 2, 4 y 3 fotogramas, con más pasos.
 ANIMS_DOBLE = [("idle", 8, 12, True), ("walk", 8, 16, True), ("atacar", 6, 20, False), ("golpe", 1, 1, False)]
+N_DOBLE = {nombre: n for nombre, n, _, _ in ANIMS_DOBLE}  # fotogramas de cada animación
 
 
 def _clave(u, puntos):
