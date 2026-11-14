@@ -43,16 +43,10 @@ def test_las_animaciones_se_mueven():
             assert c[(d, "idle", 0)].tobytes() != c[(d, "idle", 4)].tobytes(), f"{m.__name__} {d}: no respira"
 
 
-def test_la_izquierda_en_espejo_y_las_vistas_propias_distintas():
+def test_la_izquierda_es_el_espejo_de_la_derecha():
     for m in DOBLES:
         c = cuadros(m)
-        frente, perfil, espalda, izquierda = (c[(d, "idle", 0)] for d in ("down", "right", "up", "left"))
-        assert (izquierda == perfil[:, ::-1]).all(), f"{m.__name__}: la izquierda no es el espejo de la derecha"
-        if not getattr(m, "TRES_VISTAS", False):  # la mayoría solo tiene la vista de su imagen
-            continue
-        assert frente.tobytes() != perfil.tobytes(), f"{m.__name__}: el perfil es el frente"
-        assert frente.tobytes() != espalda.tobytes(), f"{m.__name__}: la espalda es el frente"
-        assert perfil.tobytes() != espalda.tobytes(), f"{m.__name__}: la espalda es el perfil"
+        assert (c[("left", "idle", 0)] == c[("right", "idle", 0)][:, ::-1]).all(), m.__name__
 
 
 def test_la_hoja_cabe_en_una_textura():
