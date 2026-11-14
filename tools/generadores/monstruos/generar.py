@@ -95,7 +95,7 @@ PROPIOS = {
     "reina_arana": (64, 48, reina_arana),
     "senor_cripta": (48, 48, senor_cripta),
     "espectro": (32, 32, espectro),
-    "golem": (48, 48, golem),
+    "golem": (96, 96, golem),
     "rey_sin_charca": (64, 48, rey_sin_charca),
     # Jefes violetas y el cofre trampa (que en reposo es el cofre cerrado de comunes)
     "arbol_maldito": (48, 48, arbol_maldito),

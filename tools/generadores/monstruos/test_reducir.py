@@ -108,6 +108,19 @@ def test_pose_quita_el_fondo_encerrado():
     assert reducir.pose(ruta, 20, colores=4, encerrado=1000)[10][10] is not None  # 400 px: demasiado pequeño
 
 
+def test_pose_quita_las_motas_de_alrededor():
+    """Un cuadrado rojo y, lejos, una mota roja de 2×2 (un resto del suelo de la imagen)."""
+    im = Image.open(imagen_de_prueba())
+    for x, y in ((36, 26), (37, 26), (36, 27), (37, 27)):
+        im.putpixel((x, y), ROJO)
+    ruta = os.path.join(tempfile.mkdtemp(), "mota.png")
+    im.save(ruta)
+    con_mota = reducir.pose(ruta, 10, colores=4)
+    assert any(k is None for fila in con_mota for k in fila), "sin pedirlo, la mota ensancha el recorte (como antes)"
+    limpia = reducir.pose(ruta, 10, colores=4, motas=10)
+    assert all(k is not None for fila in limpia for k in fila), "el recorte debe ser solo el cuadrado"
+
+
 def test_movimiento_es_continuo_y_escala():
     for anim, n, _, _ in reducir.ANIMS_DOBLE:
         for i in range(n):

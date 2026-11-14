@@ -39,7 +39,7 @@ def _grupos(marca):
     return grupos
 
 
-def _mascara(a, fondo, umbral, fondos_extra=(), encerrado=None):
+def _mascara(a, fondo, umbral, fondos_extra=(), encerrado=None, motas=None):
     """Matriz booleana: `True` donde hay figura."""
     if fondo == "negro":
         return a.sum(axis=2) > NEGRO
@@ -60,6 +60,12 @@ def _mascara(a, fondo, umbral, fondos_extra=(), encerrado=None):
         # torso). Solo los trozos grandes: los pequeños son brillos de la figura que se parecen al fondo.
         for grupo in _grupos(cercano & ~fondo_m):
             if len(grupo) >= encerrado:
+                for x, y in grupo:
+                    fondo_m[y, x] = True
+    if motas is not None:
+        # Motas: trozos pequeños separados de la figura (restos del suelo, salpicaduras de la imagen).
+        for grupo in _grupos(~fondo_m):
+            if len(grupo) < motas:
                 for x, y in grupo:
                     fondo_m[y, x] = True
     return ~fondo_m
@@ -85,7 +91,7 @@ def limpiar(grid):
 
 
 def pose(ruta, ancho, colores=14, fondo="auto", umbral=60, contraste=1.35, retoques=(), paleta=None,
-         brillo=1.0, saturacion=1.0, fondos_extra=(), encerrado=None):
+         brillo=1.0, saturacion=1.0, fondos_extra=(), encerrado=None, motas=None):
     """La pose reducida a `ancho` píxeles de ancho.
 
     `fondo`: "auto" (el color de las esquinas, quitado desde los bordes) o "negro". Con `paleta` fija
@@ -93,11 +99,12 @@ def pose(ruta, ancho, colores=14, fondo="auto", umbral=60, contraste=1.35, retoq
     cuantiza a `colores` colores. `brillo` y `saturacion` (1 = sin cambio) levantan las figuras oscuras antes de
     reducir. `fondos_extra` son colores RGB que, además del de las esquinas, cuentan como fondo. `retoques` son `(x, y, rgb)` que se aplican al final.
     `encerrado`: con un número, las zonas del color del fondo que no tocan el borde de la imagen y tienen al menos
-    esos píxeles (de la imagen original) también se quitan.
+    esos píxeles (de la imagen original) también se quitan. `motas`: con un número, los trozos de figura sueltos
+    de menos de esos píxeles se quitan (no valen con `fondo="negro"`).
     """
     im = Image.open(ruta).convert("RGB")
     a = np.array(im).astype(int)
-    mask = _mascara(a, fondo, umbral, fondos_extra, encerrado)
+    mask = _mascara(a, fondo, umbral, fondos_extra, encerrado, motas)
     ys, xs = np.where(mask)
     assert mask.any(), f"{ruta}: no se encontró ninguna figura (¿umbral demasiado alto o imagen lisa?)"
     caja = (xs.min(), ys.min(), xs.max() + 1, ys.max() + 1)
