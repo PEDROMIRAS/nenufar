@@ -125,19 +125,29 @@ def destello(img, contorno):
 
 
 def hoja_propia(clave, ancho, alto, modulo):
-    columnas = sum(n for _, n, _, _ in ANIMS)
+    """La hoja de un módulo propio. El módulo puede declarar `ESCALA_HOJA` (píxeles de la hoja por píxel del juego: 2 en
+    las hojas a doble resolución), `ANIMS` (sus fotogramas y fps, como la lista global) y `EXENTOS` (colores que
+    pueden ir sueltos, como el polvo de un golpe)."""
+    anims = getattr(modulo, "ANIMS", ANIMS)
+    escala = getattr(modulo, "ESCALA_HOJA", 1)
+    columnas = sum(n for _, n, _, _ in anims)
     sheet = Image.new("RGBA", (columnas * ancho, len(DIRS) * alto), (0, 0, 0, 0))
-    meta = {"frameWidth": ancho, "frameHeight": alto, "anchor": {"x": ancho // 2, "y": alto - 2},
+    meta = {"frameWidth": ancho, "frameHeight": alto, "anchor": {"x": ancho // 2, "y": alto - 2 * escala},
             "directions": {}, "animations": {}}
+    if escala > 1:
+        meta["scale"] = escala
     for fila, d in enumerate(DIRS):
         meta["directions"][d] = fila
         col = 0
-        for nombre, n, fps, bucle in ANIMS:
+        for nombre, n, fps, bucle in anims:
             meta["animations"][nombre] = {"startColumn": col, "frames": n, "fps": fps, "loop": bucle}
             for i in range(n):
                 arr = modulo.fotograma(d, nombre, i)
                 if clave in VIGILADOS and not reducir.sin_tocar_bordes(arr):
                     print(f"AVISO: {clave} {d} {nombre} {i} toca el borde del cuadro")
+                motas = reducir.sueltos(arr, getattr(modulo, "EXENTOS", ())) if escala > 1 else 0
+                if motas:
+                    print(f"AVISO: {clave} {d} {nombre} {i} tiene {motas} grupos sueltos")
                 img = Image.fromarray(arr, "RGBA")
                 if nombre == "golpe":
                     img = destello(img, modulo.OUT)
