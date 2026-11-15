@@ -7,17 +7,18 @@ más de ~42 px sobre ellos: por encima van su nombre y la barra de turnos.
 Hoja del repo: idle (2: respira), walk (4: se mece), atacar (3: se echa atrás, se lanza y vuelve) y golpe (1)."""
 import os
 
-import numpy as np
 from PIL import Image, ImageFilter
 import tempfile
 
 import reducir
 
-W, H = 64, 48
+W, H = 128, 96
+ESCALA_HOJA = 2  # píxeles de la hoja por píxel del juego
+ANIMS = reducir.ANIMS_DOBLE
 OUT = (8, 6, 12)
 REFERENCIA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "docs", "superpowers",
                           "mockups", "cauce-seco-referencias", "13-rey-sin-charca.png")
-ANCHO = 40
+ANCHO = 80
 COMPRESION = 0.75  # la figura es más alta que ancha: se comprime a lo alto para ganar píxeles de ancho
 SOMBRAS = [(184, 177, 169), (177, 170, 164)]  # la sombra del suelo de la imagen, que cuenta como fondo
 # Paleta fija: la imagen es casi toda negra, y sin ella los pliegues de la armadura se hunden en un negro liso
@@ -25,12 +26,7 @@ PALETA = {"negro": (18, 16, 22), "negro_l": (34, 32, 42), "carbon": (54, 52, 64)
           "gris": (104, 102, 116), "gris_l": (150, 148, 158), "hueso": (206, 204, 210), "rojo": (226, 36, 48), "rojo_l": (255, 120, 108), "morado_s": (62, 30, 88),
           "morado": (116, 58, 156), "morado_l": (172, 108, 208)}
 
-OJOS_Y = 10  # fila de los ojos en la pose reducida; la cabeza está centrada entre las columnas 19 y 22
-
 FORRO = (110, 24, 36)  # rojo oscuro del forro de la capa; no va en PALETA para que no lo elija la reducción
-
-DY = {"idle": [0, 1], "walk": [0, 1, 0, 1], "atacar": [0, 1, 0], "golpe": [0]}
-DX = {"idle": [0, 0], "walk": [0, 0, 0, 0], "atacar": [-2, 2, 0], "golpe": [-2]}
 
 # Partes que se mueven por separado (cajas en fracciones de la figura; ver reducir.partes)
 PARTES = [(0, 0.85, 0.5, 1, "pierna_a"), (0.5, 0.85, 1, 1, "pierna_b"), (0, 0.1, 0.3, 0.4, "brazo_i"),
@@ -53,7 +49,7 @@ def _pose():
                                 fondos_extra=SOMBRAS)
         # El borde de la imagen mezcla el beige del fondo con el negro: se pelan los grises claros que dan al vacío
         claros = {PALETA["gris_l"], PALETA["hueso"]}
-        for _ in range(2):
+        for _ in range(4):
             quitar = [(x, y) for y, fila in enumerate(grid) for x, c in enumerate(fila)
                       if c in claros and any(
                           not (0 <= y + dy < len(grid) and 0 <= x + dx < len(fila)) or grid[y + dy][x + dx] is None
@@ -68,24 +64,19 @@ def _pose():
         # Restos de la sombra del suelo en el bajo de la capa: salen blancos y se pasan a gris oscuro
         for y in range(round(len(grid) * 0.65), len(grid)):
             grid[y] = [PALETA["carbon"] if c in claros else c for c in grid[y]]
-        # Los ojos, dibujados a mano: al reducir la imagen se juntan en una sola mancha roja
-        for x, color in ((19, "rojo"), (20, "negro"), (21, "negro"), (22, "rojo")):
-            grid[OJOS_Y][x] = PALETA[color]
         # El forro rojo de la capa, como el del Señor de la Cripta: una cuña que se abre hacia el bajo
         oscuros = {PALETA["negro"], PALETA["negro_l"], PALETA["carbon"]}
         alto, ancho = len(grid), len(grid[0])
         for y in range(round(alto * 0.62), alto - 1):
-            medio = 1 + (y - round(alto * 0.62)) // 4
+            medio = 2 + (y - round(alto * 0.62)) // 4
             for x in range(int(ancho / 2 - medio), int(ancho / 2 + medio) + 1):
                 if grid[y][x] in oscuros:
-                    grid[y][x] = PALETA["rojo"] if x % 2 == 0 and y % 3 else FORRO
+                    grid[y][x] = PALETA["rojo"] if (x + 2 * y) % 7 == 0 else FORRO
         _BASE = reducir.con_contorno(grid, OUT)
     return _BASE
 
 
 def fotograma(direccion, anim, i):
-    lienzo = np.zeros((H, W, 4), dtype=np.uint8)
-    sal = reducir.vida(reducir.partes(_pose(), PARTES, anim, i), anim, i)
-    alto, ancho = len(sal), len(sal[0])
-    reducir.pegar(lienzo, sal, (W - ancho) // 2 + DX[anim][i], 47 - alto + DY[anim][i])
-    return lienzo
+    # Es un jefe: no se mueve por el mapa. La imagen vale para todas las direcciones (la izquierda, en espejo).
+    lienzo = reducir.animar(_pose(), PARTES, anim, i, reducir.N_DOBLE[anim], ESCALA_HOJA, W, H)
+    return lienzo[:, ::-1].copy() if direccion == "left" else lienzo

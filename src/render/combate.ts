@@ -1,4 +1,5 @@
 import type { Combate, Luchador } from '../core/combate';
+import { escalaHoja } from '../core/hoja';
 import { partirTexto } from '../core/texto';
 import {
   anchoNombre,
@@ -166,7 +167,7 @@ function colocar(v: VistaCombate): void {
   let ancho = 1;
   for (const en of v.enemigos) {
     const hoja = en.monstruo && v.hojas.get(en.monstruo.sprite);
-    if (hoja) ancho = Math.max(ancho, hoja.datos.frameWidth);
+    if (hoja) ancho = Math.max(ancho, hoja.datos.frameWidth / escalaHoja(hoja.datos));
   }
   G.escala = Math.min(ENEMIGO.escala, (G.separacion - 8) / ancho);
 }
@@ -430,7 +431,9 @@ function parpadea(v: VistaCombate, l: Luchador): boolean {
 function topeEnemigo(v: VistaCombate, e: Luchador): number {
   const sprite = e.monstruo && v.hojas.get(e.monstruo.sprite);
   // Los fotogramas dejan unos píxeles libres por arriba; los jefes grandes no deben pisar la barra de turnos.
-  const alto = sprite ? (sprite.datos.frameHeight - 6) * G.escala : ENEMIGO.alto;
+  const alto = sprite
+    ? (sprite.datos.frameHeight / escalaHoja(sprite.datos) - 6) * G.escala
+    : ENEMIGO.alto;
   return Math.max(ENEMIGO.topeMinimo, G.enemigoY - alto);
 }
 

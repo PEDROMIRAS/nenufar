@@ -1,3 +1,4 @@
+import { escalaHoja } from '../core/hoja';
 import type { Direccion, SpriteJson, TilesetJson } from '../core/types';
 import { aPixel } from './pantalla';
 
@@ -66,15 +67,16 @@ export function dibujarFotograma(
   const columna = anim.startColumn + (anim.loop ? n % anim.frames : Math.min(n, anim.frames - 1));
   const w = datos.frameWidth;
   const a = datos.frameHeight;
+  const k = escala / escalaHoja(datos);
   ctx.drawImage(
     imagen,
     columna * w,
     datos.directions[direccion] * a,
     w,
     a,
-    aPixel(x - datos.anchor.x * escala),
-    aPixel(y - datos.anchor.y * escala),
-    w * escala,
-    a * escala,
+    aPixel(x - datos.anchor.x * k),
+    aPixel(y - datos.anchor.y * k),
+    w * k,
+    a * k,
   );
 }

@@ -1,9 +1,9 @@
 {
-  "frameWidth": 64,
-  "frameHeight": 48,
+  "frameWidth": 128,
+  "frameHeight": 96,
   "anchor": {
-    "x": 32,
-    "y": 46
+    "x": 64,
+    "y": 92
   },
   "directions": {
     "down": 0,
@@ -14,27 +14,28 @@
   "animations": {
     "idle": {
       "startColumn": 0,
-      "frames": 2,
-      "fps": 3,
+      "frames": 8,
+      "fps": 12,
       "loop": true
     },
     "walk": {
-      "startColumn": 2,
-      "frames": 4,
-      "fps": 8,
+      "startColumn": 8,
+      "frames": 8,
+      "fps": 16,
       "loop": true
     },
     "atacar": {
-      "startColumn": 6,
-      "frames": 3,
-      "fps": 10,
+      "startColumn": 16,
+      "frames": 6,
+      "fps": 20,
       "loop": false
     },
     "golpe": {
-      "startColumn": 9,
+      "startColumn": 22,
       "frames": 1,
       "fps": 1,
       "loop": false
     }
-  }
+  },
+  "scale": 2
 }

@@ -19,7 +19,6 @@ PREVIEWS = os.path.join(REPO, "docs", "previews")
 
 from lienzo import Lienzo  # noqa: E402
 import criaturas  # noqa: E402
-import humanoides  # noqa: E402
 import espectro  # noqa: E402
 import jabali  # noqa: E402
 import acolito  # noqa: E402
@@ -38,6 +37,14 @@ import ojo_flotante  # noqa: E402
 import dragon_negro  # noqa: E402
 import cofre_trampa  # noqa: E402
 import ermitano  # noqa: E402
+import lobo  # noqa: E402
+import cuervo  # noqa: E402
+import limo  # noqa: E402
+import limo_grande  # noqa: E402
+import arana  # noqa: E402
+import esqueleto  # noqa: E402
+import caballero  # noqa: E402
+import salamandra  # noqa: E402
 
 DIRS = ["down", "left", "right", "up"]
 VISTA = {"down": "frente", "left": "lado", "right": "lado", "up": "espalda"}
@@ -54,53 +61,39 @@ def paleta(**colores):
     return p
 
 
-HUESO = dict(hueso=(216, 210, 191), hueso_s=(160, 152, 134), hueso_l=(240, 236, 222), cuenca=(36, 28, 38))
-METAL = dict(metal=(170, 178, 190), metal_l=(226, 232, 240))
-VERDE = dict(cuerpo=(127, 196, 106), cuerpo_s=(78, 146, 72), cuerpo_l=(186, 232, 150), boca=(40, 70, 40))
 MONSTRUOS = {
-    # Bosque: verdes y tierras
-    "limo": (32, paleta(**VERDE), criaturas.limo, {}),
-    "limo_grande": (32, paleta(cuerpo=(104, 186, 120), cuerpo_s=(62, 132, 84), cuerpo_l=(168, 226, 168),
-                               boca=(34, 66, 44)), criaturas.limo, {}),
     "murcielago": (32, paleta(cuerpo=(112, 86, 132), cuerpo_s=(74, 54, 92), cuerpo_l=(150, 124, 168),
                               ala=(90, 66, 110), ala_s=(58, 40, 74), ojo=(226, 60, 70), diente=(240, 236, 220)),
                    criaturas.murcielago, {}),
-    "cuervo": (32, paleta(cuerpo=(48, 44, 58), cuerpo_s=(33, 31, 45), cuerpo_l=(92, 83, 108), pico=(116, 98, 92),
-                          adorno=(122, 82, 48), ojo=(255, 214, 120), brillo=(255, 248, 214)), criaturas.cuervo, {}),
-    "salamandra": (40, paleta(cuerpo=(66, 44, 42), cuerpo_s=(34, 24, 28), cuerpo_l=(108, 72, 60), brasa=(255, 106, 28),
-                              brasa_l=(255, 206, 90), diente=(240, 226, 200), boca=(120, 24, 20)),
-                   criaturas.salamandra, {}),
-    "lobo": (32, paleta(pelo=(40, 50, 84), pelo_s=(18, 25, 44), pelo_l=(78, 92, 136), rojo=(204, 40, 48),
-                        colmillo=(240, 236, 228), ojo=(255, 84, 84), ojo_nariz=(12, 14, 24)), humanoides.lobo, {}),
-    # Ruinas y Cripta: la araña común; la reina, en morados fríos
-    "arana": (32, paleta(cuerpo=(122, 59, 59), cuerpo_s=(78, 34, 40), cuerpo_l=(164, 92, 84), cabeza=(98, 46, 48),
-                         pata=(58, 30, 34), ojo=(236, 196, 80), marca=(214, 120, 60)), criaturas.arana, {}),
-    # Humanoides de las Ruinas y la Cripta
-    "esqueleto": (32, paleta(**HUESO, **METAL, ojo=(232, 70, 70), cuero=(110, 72, 48)), humanoides.esqueleto, {}),
-    "caballero": (32, paleta(**METAL, armadura=(59, 69, 96), armadura_s=(36, 42, 62), armadura_l=(100, 114, 150),
-                             visor=(16, 14, 20), ojo=(236, 84, 84), capa=(116, 38, 50), pluma=(176, 50, 62),
-                             cuero=(96, 64, 44)), humanoides.caballero, {}),
 }
 
 
 # Monstruos dibujados con su propio módulo (más detalle que el Lienzo): (ancho, alto, módulo).
 # Cada módulo da `fotograma(direccion, anim, i)` como array RGBA con los pies en (ancho/2, alto-2).
 PROPIOS = {
-    "jabali": (40, 40, jabali),
-    "acolito": (40, 40, acolito),
+    "jabali": (80, 80, jabali),
+    "acolito": (80, 80, acolito),
     "sacerdote": (48, 48, sacerdote),
-    "oni": (48, 48, oni),
+    "oni": (96, 96, oni),
     "dragon_fuego": (64, 48, dragon_fuego),
-    "rey_limo": (64, 48, guardian_bosque),
-    "reina_arana": (64, 48, reina_arana),
-    "senor_cripta": (48, 48, senor_cripta),
-    "espectro": (32, 32, espectro),
-    "golem": (48, 48, golem),
-    "rey_sin_charca": (64, 48, rey_sin_charca),
+    "rey_limo": (128, 96, guardian_bosque),
+    "reina_arana": (128, 96, reina_arana),
+    "senor_cripta": (96, 96, senor_cripta),
+    "espectro": (64, 64, espectro),
+    "limo": (64, 64, limo),
+    "limo_grande": (64, 64, limo_grande),
+    "arana": (64, 64, arana),
+    "esqueleto": (64, 64, esqueleto),
+    "caballero": (64, 64, caballero),
+    "salamandra": (80, 80, salamandra),
+    "golem": (96, 96, golem),
+    "lobo": (64, 64, lobo),
+    "cuervo": (64, 64, cuervo),
+    "rey_sin_charca": (128, 96, rey_sin_charca),
     # Jefes violetas y el cofre trampa (que en reposo es el cofre cerrado de comunes)
-    "arbol_maldito": (48, 48, arbol_maldito),
-    "caballero_maldito": (48, 48, caballero_maldito),
-    "ojo_flotante": (48, 48, ojo_flotante),
+    "arbol_maldito": (96, 96, arbol_maldito),
+    "caballero_maldito": (96, 96, caballero_maldito),
+    "ojo_flotante": (96, 96, ojo_flotante),
     "dragon_negro": (64, 48, dragon_negro),
     "cofre_trampa": (32, 32, cofre_trampa),
     # Personaje de la sala de evento del ermitaño (no es un monstruo: no está en monstruos.json)
@@ -109,7 +102,9 @@ PROPIOS = {
 
 
 # Monstruos cuyos fotogramas no deben tocar el borde del cuadro (el generador avisa si pasa).
-VIGILADOS = {"rey_sin_charca", "senor_cripta", "golem", "jabali", "acolito", "salamandra", "sacerdote", "oni", "dragon_fuego", "rey_limo", "reina_arana"}
+VIGILADOS = {"lobo", "cuervo", "rey_sin_charca", "senor_cripta", "golem", "jabali", "acolito", "salamandra", "sacerdote",
+             "oni", "dragon_fuego", "rey_limo", "reina_arana", "limo", "limo_grande", "arana", "esqueleto", "caballero",
+             "espectro", "arbol_maldito", "caballero_maldito", "ojo_flotante"}
 
 
 def destello(img, contorno):
@@ -125,19 +120,29 @@ def destello(img, contorno):
 
 
 def hoja_propia(clave, ancho, alto, modulo):
-    columnas = sum(n for _, n, _, _ in ANIMS)
+    """La hoja de un módulo propio. El módulo puede declarar `ESCALA_HOJA` (píxeles de la hoja por píxel del juego: 2 en
+    las hojas a doble resolución), `ANIMS` (sus fotogramas y fps, como la lista global) y `EXENTOS` (colores que
+    pueden ir sueltos, como el polvo de un golpe)."""
+    anims = getattr(modulo, "ANIMS", ANIMS)
+    escala = getattr(modulo, "ESCALA_HOJA", 1)
+    columnas = sum(n for _, n, _, _ in anims)
     sheet = Image.new("RGBA", (columnas * ancho, len(DIRS) * alto), (0, 0, 0, 0))
-    meta = {"frameWidth": ancho, "frameHeight": alto, "anchor": {"x": ancho // 2, "y": alto - 2},
+    meta = {"frameWidth": ancho, "frameHeight": alto, "anchor": {"x": ancho // 2, "y": alto - 2 * escala},
             "directions": {}, "animations": {}}
+    if escala > 1:
+        meta["scale"] = escala
     for fila, d in enumerate(DIRS):
         meta["directions"][d] = fila
         col = 0
-        for nombre, n, fps, bucle in ANIMS:
+        for nombre, n, fps, bucle in anims:
             meta["animations"][nombre] = {"startColumn": col, "frames": n, "fps": fps, "loop": bucle}
             for i in range(n):
                 arr = modulo.fotograma(d, nombre, i)
                 if clave in VIGILADOS and not reducir.sin_tocar_bordes(arr):
                     print(f"AVISO: {clave} {d} {nombre} {i} toca el borde del cuadro")
+                motas = reducir.sueltos(arr, getattr(modulo, "EXENTOS", ())) if escala > 1 else 0
+                if motas:
+                    print(f"AVISO: {clave} {d} {nombre} {i} tiene {motas} grupos sueltos")
                 img = Image.fromarray(arr, "RGBA")
                 if nombre == "golpe":
                     img = destello(img, modulo.OUT)

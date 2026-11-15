@@ -1,28 +1,21 @@
-"""Acólito (40x40): encapuchado de túnica oscura con un báculo de calavera y una llama en la mano, uno de los
-sacerdotes de la Orden que encendieron la luna falsa del Cauce Seco. Su pose sale de la imagen de referencia
-(`reducir.py`); aquí se anima: respira, se balancea al andar, se echa encima al atacar, y la llama parpadea.
+"""Acólito: encapuchado de túnica oscura con un báculo de calavera y una llama en la mano, uno de los sacerdotes
+de la Orden que encendieron la luna falsa del Cauce Seco.
 
-Contrato de los monstruos con módulo propio: `fotograma(direccion, anim, i)` da un array RGBA de 40×40 con los
-pies en (20, 38); `OUT` es el color del contorno (el golpe lo deja casi blanco).
-"""
+Hoja a doble resolución (80×80 píxeles de hoja, 40×40 de juego): su pose sale de la imagen de referencia (la 4)
+con `reducir.py` y se anima con las curvas de `reducir.movimiento`; la llama parpadea. La imagen vale para todas
+las direcciones (la izquierda, en espejo)."""
 import os
-
-import numpy as np
 
 import reducir
 
+W = H = 80
+ESCALA_HOJA = 2  # píxeles de la hoja por píxel del juego
+ANIMS = reducir.ANIMS_DOBLE
 OUT = (30, 24, 32)
 REFERENCIA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "docs", "superpowers",
                           "mockups", "cauce-seco-referencias", "4-acolito-calavera.jpg")
-ANCHO = 29
-W = H = 40
-LLAMA = [(214, 52, 30), (255, 150, 40)]  # los dos tonos que alterna la llama
-TUNICA = (62, 58, 66)
-
-DY = {"idle": [0, -1], "walk": [0, -1, 0, -1], "atacar": [-1, 1, 0], "golpe": [0]}
-DX = {"idle": [0, 0], "walk": [0, 1, 0, -1], "atacar": [0, 0, 0], "golpe": [-2]}
-# Qué tono de llama toca en cada fotograma (el último del ataque es el más vivo).
-TONO = {"idle": [0, 1], "walk": [0, 1, 0, 1], "atacar": [1, 1, 1], "golpe": [0]}
+ANCHO = 58
+LLAMA = [(255, 150, 40), (255, 214, 96)]  # el corazón de la llama: su tono y el del parpadeo
 
 # Partes que se mueven por separado (cajas en fracciones de la figura; ver reducir.partes)
 PARTES = [(0.2, 0.85, 0.55, 1, "pierna_a"), (0.55, 0.85, 0.9, 1, "pierna_b"), (0, 0, 0.22, 1, "brazo_i"),
@@ -40,35 +33,34 @@ def _es_llama(rgb, x, ancho):
 def _pose():
     global _BASE
     if _BASE is None:
-        grid = reducir.pose(REFERENCIA, ANCHO, colores=18, brillo=2.0, saturacion=1.5, contraste=1.3)
+        grid = reducir.pose(REFERENCIA, ANCHO, colores=18, brillo=2.0, saturacion=1.5, contraste=1.3, encerrado=400,
+                            motas=1500)
+        alto, ancho = len(grid), len(grid[0])
+
+        def vecinos(x, y):
+            return [grid[ny][nx] if 0 <= ny < alto and 0 <= nx < ancho else None
+                    for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))]
+
+        # El fondo blanco de la imagen deja un filo claro en el borde de la túnica: se pela (la calavera del báculo,
+        # arriba a la izquierda, sí es blanca)
+        for _ in range(2):
+            filo = [(x, y) for y in range(alto) for x in range(ancho)
+                    if grid[y][x] is not None and min(grid[y][x]) > 170 and not (x < 0.3 * ancho and y < 0.3 * alto)
+                    and None in vecinos(x, y)]
+            for x, y in filo:
+                grid[y][x] = None
+        # La llama de la mano sale de un rojo liso: su corazón (lo que no toca el borde de la llama) va más claro
+        llama = {(x, y) for y in range(alto) for x in range(ancho) if grid[y][x] is not None and _es_llama(grid[y][x], x, ancho)}
+        for x, y in llama:
+            if all((nx, ny) in llama for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))):
+                grid[y][x] = LLAMA[0]
         _BASE = reducir.con_contorno(grid, OUT)
     return _BASE
 
 
-def _con_llama(sal, tono):
-    """La pose con la llama pintada en uno de sus dos tonos."""
-    ancho = len(sal[0])
-    return [[LLAMA[tono] if (c is not None and c != OUT and _es_llama(c, x, ancho)) else c
-             for x, c in enumerate(fila)] for fila in sal]
-
-
-def _de_espaldas(sal):
-    """De espaldas no se ven ni los ojos ni la cara: los píxeles rojos de la capucha pasan a túnica."""
-    alto = len(sal)
-    return [[TUNICA if (c is not None and c != OUT and y < alto * 0.35 and c[0] > 120 and c[0] > c[1] * 1.7) else c
-             for c in fila] for y, fila in enumerate(sal)]
-
-
 def fotograma(direccion, anim, i):
-    lienzo = np.zeros((H, W, 4), dtype=np.uint8)
-    sal = _con_llama(reducir.vida(reducir.partes(_pose(), PARTES, anim, i), anim, i, fuerza=0.5), TONO[anim][i])
-    if direccion == "up":
-        sal = _de_espaldas(sal)
-    if direccion == "left":
-        sal = [fila[::-1] for fila in sal]
-    alto, ancho = len(sal), len(sal[0])
-    # Los pies (la última fila de la túnica) tocan la fila del ancla (H - 2).
-    x0 = (W - ancho) // 2 + DX[anim][i]
-    y0 = (H - 1) - alto + DY[anim][i]
-    reducir.pegar(lienzo, sal, x0, y0)
-    return lienzo
+    pose = _pose()
+    if anim == "atacar" or i % 4 >= 2:  # la llama parpadea: dos fotogramas de cada cuatro, y viva al atacar
+        pose = [[LLAMA[1] if c == LLAMA[0] else c for c in fila] for fila in pose]
+    lienzo = reducir.animar(pose, PARTES, anim, i, reducir.N_DOBLE[anim], ESCALA_HOJA, W, H)
+    return lienzo[:, ::-1].copy() if direccion == "left" else lienzo
