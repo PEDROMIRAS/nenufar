@@ -27,11 +27,10 @@ import salamandra  # noqa: E402
 import arbol_maldito  # noqa: E402
 import caballero_maldito  # noqa: E402
 import ojo_flotante  # noqa: E402
-import dragon_negro  # noqa: E402
 
 DOBLES = [golem, lobo, reina_arana, acolito, cuervo, jabali, oni, guardian_bosque, senor_cripta, rey_sin_charca,
           limo, limo_grande, arana, esqueleto, caballero, espectro,
-          salamandra, arbol_maldito, caballero_maldito, ojo_flotante, dragon_negro]
+          salamandra, arbol_maldito, caballero_maldito, ojo_flotante]
 DIRS = ["down", "left", "right", "up"]
 _CUADROS = {}
 

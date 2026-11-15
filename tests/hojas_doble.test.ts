@@ -23,7 +23,6 @@ const DOBLES: [string, number, number][] = [
   ['arbol_maldito', 48, 48],
   ['caballero_maldito', 48, 48],
   ['ojo_flotante', 48, 48],
-  ['dragon_negro', 64, 48],
 ];
 
 const HOJAS = import.meta.glob<{ default: SpriteJson }>(

@@ -94,7 +94,7 @@ PROPIOS = {
     "arbol_maldito": (96, 96, arbol_maldito),
     "caballero_maldito": (96, 96, caballero_maldito),
     "ojo_flotante": (96, 96, ojo_flotante),
-    "dragon_negro": (128, 96, dragon_negro),
+    "dragon_negro": (64, 48, dragon_negro),
     "cofre_trampa": (32, 32, cofre_trampa),
     # Personaje de la sala de evento del ermitaño (no es un monstruo: no está en monstruos.json)
     "ermitano": (32, 32, ermitano),
@@ -104,7 +104,7 @@ PROPIOS = {
 # Monstruos cuyos fotogramas no deben tocar el borde del cuadro (el generador avisa si pasa).
 VIGILADOS = {"lobo", "cuervo", "rey_sin_charca", "senor_cripta", "golem", "jabali", "acolito", "salamandra", "sacerdote",
              "oni", "dragon_fuego", "rey_limo", "reina_arana", "limo", "limo_grande", "arana", "esqueleto", "caballero",
-             "espectro", "arbol_maldito", "caballero_maldito", "ojo_flotante", "dragon_negro"}
+             "espectro", "arbol_maldito", "caballero_maldito", "ojo_flotante"}
 
 
 def destello(img, contorno):

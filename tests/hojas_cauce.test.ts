@@ -1,10 +1,11 @@
 import { describe, expect, test } from 'vitest';
 
 // Hojas de sprites del Cauce Seco (entrega 3a) que siguen a resolución sencilla: [clave, ancho, alto] de cada
-// fotograma. La salamandra y el Dragón negro están en hojas_doble.test.ts.
+// fotograma. La salamandra está en hojas_doble.test.ts.
 const HOJAS_ESPERADAS: [string, number, number][] = [
   ['sacerdote', 48, 48],
   ['dragon_fuego', 64, 48],
+  ['dragon_negro', 64, 48],
 ];
 
 const JSON_HOJAS = import.meta.glob<{ default: Record<string, unknown> }>(

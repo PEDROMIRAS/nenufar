@@ -103,8 +103,7 @@ def pose(ruta, ancho, colores=14, fondo="auto", umbral=60, contraste=1.35, retoq
     de menos de esos píxeles se quitan (no valen con `fondo="negro"`). `recorte`: caja `(x0, y0, x1, y1)` de la
     imagen que se mira, para dejar fuera una raya de suelo o un rótulo.
     """
-    # `ruta` puede ser una imagen ya abierta (y retocada: bocetos de alrededor tapados, por ejemplo)
-    im = (ruta if isinstance(ruta, Image.Image) else Image.open(ruta)).convert("RGB")
+    im = Image.open(ruta).convert("RGB")
     if recorte:
         im = im.crop(recorte)
     a = np.array(im).astype(int)
