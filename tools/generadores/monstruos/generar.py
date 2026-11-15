@@ -19,7 +19,6 @@ PREVIEWS = os.path.join(REPO, "docs", "previews")
 
 from lienzo import Lienzo  # noqa: E402
 import criaturas  # noqa: E402
-import humanoides  # noqa: E402
 import espectro  # noqa: E402
 import jabali  # noqa: E402
 import acolito  # noqa: E402
@@ -40,6 +39,12 @@ import cofre_trampa  # noqa: E402
 import ermitano  # noqa: E402
 import lobo  # noqa: E402
 import cuervo  # noqa: E402
+import limo  # noqa: E402
+import limo_grande  # noqa: E402
+import arana  # noqa: E402
+import esqueleto  # noqa: E402
+import caballero  # noqa: E402
+import salamandra  # noqa: E402
 
 DIRS = ["down", "left", "right", "up"]
 VISTA = {"down": "frente", "left": "lado", "right": "lado", "up": "espalda"}
@@ -56,28 +61,10 @@ def paleta(**colores):
     return p
 
 
-HUESO = dict(hueso=(216, 210, 191), hueso_s=(160, 152, 134), hueso_l=(240, 236, 222), cuenca=(36, 28, 38))
-METAL = dict(metal=(170, 178, 190), metal_l=(226, 232, 240))
-VERDE = dict(cuerpo=(127, 196, 106), cuerpo_s=(78, 146, 72), cuerpo_l=(186, 232, 150), boca=(40, 70, 40))
 MONSTRUOS = {
-    # Bosque: verdes y tierras
-    "limo": (32, paleta(**VERDE), criaturas.limo, {}),
-    "limo_grande": (32, paleta(cuerpo=(104, 186, 120), cuerpo_s=(62, 132, 84), cuerpo_l=(168, 226, 168),
-                               boca=(34, 66, 44)), criaturas.limo, {}),
     "murcielago": (32, paleta(cuerpo=(112, 86, 132), cuerpo_s=(74, 54, 92), cuerpo_l=(150, 124, 168),
                               ala=(90, 66, 110), ala_s=(58, 40, 74), ojo=(226, 60, 70), diente=(240, 236, 220)),
                    criaturas.murcielago, {}),
-    "salamandra": (40, paleta(cuerpo=(66, 44, 42), cuerpo_s=(34, 24, 28), cuerpo_l=(108, 72, 60), brasa=(255, 106, 28),
-                              brasa_l=(255, 206, 90), diente=(240, 226, 200), boca=(120, 24, 20)),
-                   criaturas.salamandra, {}),
-    # Ruinas y Cripta: la araña común; la reina, en morados fríos
-    "arana": (32, paleta(cuerpo=(122, 59, 59), cuerpo_s=(78, 34, 40), cuerpo_l=(164, 92, 84), cabeza=(98, 46, 48),
-                         pata=(58, 30, 34), ojo=(236, 196, 80), marca=(214, 120, 60)), criaturas.arana, {}),
-    # Humanoides de las Ruinas y la Cripta
-    "esqueleto": (32, paleta(**HUESO, **METAL, ojo=(232, 70, 70), cuero=(110, 72, 48)), humanoides.esqueleto, {}),
-    "caballero": (32, paleta(**METAL, armadura=(59, 69, 96), armadura_s=(36, 42, 62), armadura_l=(100, 114, 150),
-                             visor=(16, 14, 20), ojo=(236, 84, 84), capa=(116, 38, 50), pluma=(176, 50, 62),
-                             cuero=(96, 64, 44)), humanoides.caballero, {}),
 }
 
 
@@ -92,16 +79,22 @@ PROPIOS = {
     "rey_limo": (128, 96, guardian_bosque),
     "reina_arana": (128, 96, reina_arana),
     "senor_cripta": (96, 96, senor_cripta),
-    "espectro": (32, 32, espectro),
+    "espectro": (64, 64, espectro),
+    "limo": (64, 64, limo),
+    "limo_grande": (64, 64, limo_grande),
+    "arana": (64, 64, arana),
+    "esqueleto": (64, 64, esqueleto),
+    "caballero": (64, 64, caballero),
+    "salamandra": (80, 80, salamandra),
     "golem": (96, 96, golem),
     "lobo": (64, 64, lobo),
     "cuervo": (64, 64, cuervo),
     "rey_sin_charca": (128, 96, rey_sin_charca),
     # Jefes violetas y el cofre trampa (que en reposo es el cofre cerrado de comunes)
-    "arbol_maldito": (48, 48, arbol_maldito),
-    "caballero_maldito": (48, 48, caballero_maldito),
-    "ojo_flotante": (48, 48, ojo_flotante),
-    "dragon_negro": (64, 48, dragon_negro),
+    "arbol_maldito": (96, 96, arbol_maldito),
+    "caballero_maldito": (96, 96, caballero_maldito),
+    "ojo_flotante": (96, 96, ojo_flotante),
+    "dragon_negro": (128, 96, dragon_negro),
     "cofre_trampa": (32, 32, cofre_trampa),
     # Personaje de la sala de evento del ermitaño (no es un monstruo: no está en monstruos.json)
     "ermitano": (32, 32, ermitano),
@@ -109,7 +102,9 @@ PROPIOS = {
 
 
 # Monstruos cuyos fotogramas no deben tocar el borde del cuadro (el generador avisa si pasa).
-VIGILADOS = {"lobo", "cuervo", "rey_sin_charca", "senor_cripta", "golem", "jabali", "acolito", "salamandra", "sacerdote", "oni", "dragon_fuego", "rey_limo", "reina_arana"}
+VIGILADOS = {"lobo", "cuervo", "rey_sin_charca", "senor_cripta", "golem", "jabali", "acolito", "salamandra", "sacerdote",
+             "oni", "dragon_fuego", "rey_limo", "reina_arana", "limo", "limo_grande", "arana", "esqueleto", "caballero",
+             "espectro", "arbol_maldito", "caballero_maldito", "ojo_flotante", "dragon_negro"}
 
 
 def destello(img, contorno):

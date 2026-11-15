@@ -17,8 +17,21 @@ import guardian_bosque  # noqa: E402
 import oni  # noqa: E402
 import rey_sin_charca  # noqa: E402
 import senor_cripta  # noqa: E402
+import limo  # noqa: E402
+import limo_grande  # noqa: E402
+import arana  # noqa: E402
+import esqueleto  # noqa: E402
+import caballero  # noqa: E402
+import espectro  # noqa: E402
+import salamandra  # noqa: E402
+import arbol_maldito  # noqa: E402
+import caballero_maldito  # noqa: E402
+import ojo_flotante  # noqa: E402
+import dragon_negro  # noqa: E402
 
-DOBLES = [golem, lobo, reina_arana, acolito, cuervo, jabali, oni, guardian_bosque, senor_cripta, rey_sin_charca]
+DOBLES = [golem, lobo, reina_arana, acolito, cuervo, jabali, oni, guardian_bosque, senor_cripta, rey_sin_charca,
+          limo, limo_grande, arana, esqueleto, caballero, espectro,
+          salamandra, arbol_maldito, caballero_maldito, ojo_flotante, dragon_negro]
 DIRS = ["down", "left", "right", "up"]
 _CUADROS = {}
 
