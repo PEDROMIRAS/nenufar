@@ -17,6 +17,7 @@ ANCHO = 60
 SUELO = 800  # por debajo solo queda la sombra del suelo
 # El fondo es gris con los bordes más oscuros: sus tonos, del borde al centro
 FONDOS = [(92, 91, 98), (100, 100, 106), (110, 112, 118), (122, 122, 130), (132, 132, 138)]
+FLOTA = 2  # píxeles de juego sobre el suelo: no pisa
 
 # Partes que se mueven por separado (cajas en fracciones de la figura; ver reducir.partes)
 PARTES = [(0, 0, 1, 0.3, "cabeza"), (0, 0.3, 0.25, 0.8, "brazo_i"), (0.75, 0.3, 1, 0.8, "brazo_d"),
@@ -36,5 +37,5 @@ def _pose():
 
 def fotograma(direccion, anim, i):
     # La imagen vale para todas las direcciones (la izquierda, en espejo)
-    lienzo = reducir.animar(_pose(), PARTES, anim, i, reducir.N_DOBLE[anim], ESCALA_HOJA, W, H)
+    lienzo = reducir.animar(_pose(), PARTES, anim, i, reducir.N_DOBLE[anim], ESCALA_HOJA, W, H, flota=FLOTA)
     return lienzo[:, ::-1].copy() if direccion == "left" else lienzo

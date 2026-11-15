@@ -15,6 +15,7 @@ OUT = (14, 6, 10)
 REFERENCIA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "docs", "superpowers",
                           "mockups", "referencias-monstruos", "espectro.jpg")
 ANCHO = 34
+FLOTA = 2  # píxeles de juego sobre el suelo: no pisa
 
 # Partes que se mueven por separado (cajas en fracciones de la figura; ver reducir.partes)
 PARTES = [(0, 0, 0.35, 0.6, "brazo_i"), (0.65, 0.5, 1, 0.82, "brazo_d"), (0.3, 0.78, 0.8, 1, "cola")]
@@ -32,5 +33,5 @@ def _pose():
 
 def fotograma(direccion, anim, i):
     # La imagen vale para todas las direcciones (la izquierda, en espejo)
-    lienzo = reducir.animar(_pose(), PARTES, anim, i, reducir.N_DOBLE[anim], ESCALA_HOJA, W, H)
+    lienzo = reducir.animar(_pose(), PARTES, anim, i, reducir.N_DOBLE[anim], ESCALA_HOJA, W, H, flota=FLOTA)
     return lienzo[:, ::-1].copy() if direccion == "left" else lienzo

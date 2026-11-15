@@ -327,14 +327,17 @@ def movimiento(anim, i, n, escala):
             round(dy * escala))
 
 
-def animar(base, lista, anim, i, n, escala, ancho, alto, adelante=-1):
+def animar(base, lista, anim, i, n, escala, ancho, alto, adelante=-1, flota=0):
     """El fotograma `i` de `n` de la pose `base` (con su contorno) como array RGBA de `alto`×`ancho`: las partes
     de `lista` y el cuerpo se mueven con `movimiento`, la figura va centrada y sus pies caen en el ancla
-    (`alto - 2 * escala`)."""
+    (`alto - 2 * escala`). Con `flota` (píxeles de juego) va a esa altura sobre el suelo, meciéndose en reposo y al
+    andar (los que no pisan: espectros, ojos)."""
     patrones, torcer, estirar, dx, dy = movimiento(anim, i, n, escala)
     g = vida(partes(base, lista, anim, i, patrones=patrones), anim, i, adelante=adelante, valores=(torcer, estirar))
     lienzo = np.zeros((alto, ancho, 4), dtype=np.uint8)
-    pegar(lienzo, g, (ancho - len(g[0])) // 2 + dx * adelante, alto - 2 * escala + 2 + dy - len(g))
+    mece = math.sin(2 * math.pi * i / n) if anim in ("idle", "walk") else 0
+    sube = round(escala * (flota + mece)) if flota else 0
+    pegar(lienzo, g, (ancho - len(g[0])) // 2 + dx * adelante, alto - 2 * escala + 2 + dy - sube - len(g))
     return lienzo
 
 
