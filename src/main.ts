@@ -99,7 +99,7 @@ import { crearCasilla, crearDeslizador, type Casilla, type Deslizador } from './
 import { crearCampoNombre } from './render/campoNombre';
 import { LARGO_NOMBRE, RECT_CAMPO } from './render/nombre';
 import { RECT_CALIDAD, RECT_EFECTOS, RECT_MUSICA, RECT_SONIDO } from './render/pausa';
-import { prepararSonido } from './render/sonido';
+import { prepararSonido, sonar } from './render/sonido';
 import { vestirHoja } from './render/tinte';
 import { Mundo, type FondoSala } from './render/mundo/mundo';
 import { crearPortada, type Portada3d } from './render/mundo/portada';
@@ -696,6 +696,7 @@ function abrirAltar(partida: Partida, alTerminar: (usado: boolean, aviso: string
       opcionesAltar(partida.luchadora, EVENTOS.altar, REGLAS.experiencia),
       (clave) => {
         partida.pila.desapilar();
+        const nivel = partida.luchadora.nivel;
         const aviso = aplicarAltar(
           partida.luchadora,
           partida.inventario,
@@ -704,6 +705,8 @@ function abrirAltar(partida: Partida, alTerminar: (usado: boolean, aviso: string
           OBJETOS,
           REGLAS.experiencia,
         );
+        // Subir de nivel en el altar suena como en el combate.
+        if (partida.luchadora.nivel > nivel) sonar('nivel');
         alTerminar(clave !== 'marcharse', aviso);
       },
     ),

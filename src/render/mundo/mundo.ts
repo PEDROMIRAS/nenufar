@@ -136,8 +136,13 @@ export class Mundo {
   private alta: boolean | null = null;
   /** Luz del proyectil de la maga sobre la sala de fondo del combate; apagada el resto del tiempo. */
   private readonly luzCombate = new THREE.PointLight(0xffffff, 0, 1, 1.5);
-  /** Dónde cae el canvas 2D (la sala) dentro de la ventana, en píxeles CSS. */
+  /** Dónde cae la sala en la ventana, en píxeles CSS (copia de `rectSala` del último `encuadrar`). */
   private sala2d = { x: 0, y: 0, ancho: SALA_ANCHO, alto: SALA_ALTO };
+  /**
+   * Materiales de las chispas de la zona (tamaño fijo en píxeles): `encuadrar` los pone al día, porque la sala
+   * no se ve igual de grande en el mapa que en el fondo del combate (en vertical, casi el doble).
+   */
+  private readonly puntos: THREE.PointsMaterial[] = [];
 
   constructor(
     private readonly lienzo: HTMLCanvasElement,
@@ -227,6 +232,8 @@ export class Mundo {
     const densidad = this.renderer.domElement.width / innerWidth;
     uniformesTransparencia.uRadioPx.value =
       (this.a.transparencia.radio * ancho * densidad) / (SALA_ANCHO / 32);
+    const tam = this.tamPunto();
+    for (let i = 0; i < this.puntos.length; i++) this.puntos[i]!.size = tam;
   }
 
   private ajustarTamano(): void {
@@ -294,6 +301,7 @@ export class Mundo {
     }
     this.zona = null;
     this.vista = null;
+    this.puntos.length = 0;
   }
 
   /** Monta una sala en 3D. `semilla` fija el azar de su decorado; `encuadre`, si no se ve entera. */
@@ -505,6 +513,14 @@ export class Mundo {
     }
     v.objetos.set(o, obj);
     v.grupo.add(obj);
+    obj.traverse((m) => {
+      if (
+        m instanceof THREE.Points &&
+        m.material instanceof THREE.PointsMaterial &&
+        !m.material.sizeAttenuation
+      )
+        this.puntos.push(m.material);
+    });
     const luz = this.a.luces[nombre];
     v.luces = v.luces.filter((l) => l.x !== o.x + 0.5 || l.z !== o.y + 0.6);
     if (luz) {
