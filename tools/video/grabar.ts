@@ -130,6 +130,8 @@ export async function grabarPlano(nombre: string, o: OpcionesPlano): Promise<str
 
   if (marcas.length < 2) throw new Error(`${nombre}: no llegaron fotogramas`);
   // Cada fotograma dura hasta el siguiente (el screencast no tiene ritmo fijo); ffmpeg lo pasa a 60 fps.
+  // A veces llegan desordenados: se ordenan por su marca de tiempo.
+  marcas.sort((a, b) => a.t - b.t);
   const lista = marcas.map((m, i) => {
     const dur = i + 1 < marcas.length ? marcas[i + 1]!.t - m.t : 1 / FPS;
     return `file '${m.archivo}'\nduration ${dur.toFixed(4)}`;
