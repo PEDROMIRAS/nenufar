@@ -26,10 +26,14 @@ export const esTactil = (): boolean => TACTIL.matches;
 
 /**
  * El canvas 2D cubre la ventana entera. Hay dos formas de colocar lo que se dibuja encima:
- * - «ventana» (el mapa): coordenadas lógicas con el origen en la esquina de la ventana, a la escala que hace
- *   caber la sala entera; el HUD se ancla a los lados con `vista`.
- * - «menú» (todo lo demás): la interfaz de 480×352 centrada, a la mayor escala que cabe; `area` es la ventana
- *   entera en esas coordenadas, para los fondos que llenan lo que sobra.
+ * - «ventana» (el mapa): coordenadas lógicas con el origen en la esquina de la ventana, a la escala de la sala
+ *   (entera en horizontal; en vertical, sus 13 filas y parte de las columnas); el HUD se ancla a los lados con
+ *   `vista`.
+ * - «menú» (todo lo demás): la interfaz de 480×352 centrada, a la mayor escala que cabe (o la interfaz alta, en
+ *   vertical); `area` es la ventana entera en esas coordenadas, para los fondos que llenan lo que sobra.
+ *
+ * `vista` da, en unidades lógicas del mapa, el ancho y el alto de la ventana, `hud` (unidades por unidad del HUD)
+ * y `salaY`, dónde empieza la sala (en vertical, bajo la franja del HUD).
  */
 export const vista = { ancho: SALA_ANCHO, alto: SALA_ALTO, hud: 1, salaY: 0 };
 /**

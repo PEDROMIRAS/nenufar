@@ -539,8 +539,8 @@ export class EscenaMapa implements Escena {
 
   /**
    * Sortea el cofre de la zona para esta sala y guarda lo que sale o enseña la pieza de equipo. `vacio` y `hay`
-   * son el principio del aviso («hay: objeto»); `equipo`, el aviso al salir una pieza (si lo hay); `alFinal`, lo que
-   * pasa cuando ya se ha resuelto (tras decidir sobre la pieza).
+   * son el principio del aviso («hay: objeto»); `equipo`, el aviso al salir una pieza o un consumible que no cabe
+   * (si lo hay); `alFinal`, lo que pasa cuando ya se ha resuelto (tras decidir sobre la pieza).
    */
   private sacarBotin(vacio: string, hay: string, equipo = '', alFinal = (): void => {}): void {
     const { cofre: tabla, luchadora, objetos, inventario, zona } = this.o;
@@ -552,7 +552,9 @@ export class EscenaMapa implements Escena {
       alFinal();
     } else if (hallazgo.tipo === 'consumible') {
       this.avisar(
-        hallazgo.guardado ? `${hay}: ${hallazgo.nombre}` : `${hallazgo.nombre}: no te caben más`,
+        hallazgo.guardado
+          ? `${hay}: ${hallazgo.nombre}`
+          : `${equipo ? `${equipo} ` : ''}${hallazgo.nombre}: no te caben más`,
       );
       alFinal();
     } else {
