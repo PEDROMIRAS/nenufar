@@ -391,6 +391,18 @@ async function iniciar(): Promise<void> {
           : null;
         const grupo = claves?.split(',').flatMap((c) => (MONSTRUOS[c] ? [MONSTRUOS[c]] : [])) ?? [];
         if (grupo.length > 0) {
+          // shortcut: solo en desarrollo; con ?presentar y un solo monstruo, antes sale su presentación de
+          // jefe (para grabar el vídeo de demo).
+          const jefe = grupo[0]!;
+          if (grupo.length === 1 && new URLSearchParams(location.search).has('presentar')) {
+            partida.pila.apilar(
+              new EscenaPresentacion(zona.fondoSala, jefe.nombre, ritmo.presentacionJefe, () => {
+                partida.pila.desapilar();
+                luchar(partida, grupo, zona.fondoSala, () => {});
+              }),
+            );
+            return;
+          }
           luchar(partida, grupo, zona.fondoSala, () => {});
           return;
         }
