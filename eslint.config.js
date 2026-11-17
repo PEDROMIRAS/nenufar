@@ -3,7 +3,7 @@ import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
-  { ignores: ['dist', 'tools', '.agents', '.claude', 'graphify-out'] },
+  { ignores: ['dist', 'tools', '.agents', '.claude', 'graphify-out', 'node_modules.nosync'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   prettier,
