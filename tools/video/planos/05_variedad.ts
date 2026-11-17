@@ -17,7 +17,8 @@ console.log(
 console.log(
   await grabarPlano('05b_altar', {
     url: 'semilla=7&altar',
-    preparar: (p) => empezarPartida(p, 'ronin', false),
+    // ?altar abre su elección nada más elegir la dificultad: sin páginas de historia.
+    preparar: (p) => empezarPartida(p, 'ronin', { pistas: false, paginas: 0 }),
     coreografia: async (p) => {
       await esperar(1.5);
       await pulsar(p, 'ArrowDown', 1.5);
@@ -25,16 +26,33 @@ console.log(
     },
   }),
 );
-for (const evento of ['desafio', 'ermitano']) {
-  console.log(
-    await grabarPlano(`05${evento === 'desafio' ? 'c' : 'd'}_${evento}`, {
-      url: `semilla=7&${evento}`,
-      preparar: (p) => empezarPartida(p, 'ronin'),
-      coreografia: async (p) => {
-        await mantener(p, 'ArrowUp', 1.2);
-        await mantener(p, 'ArrowRight', 1.2);
-        await esperar(1.5);
-      },
-    }),
-  );
-}
+console.log(
+  await grabarPlano('05c_desafio', {
+    url: 'semilla=7&desafio',
+    preparar: (p) => empezarPartida(p, 'ronin'),
+    coreografia: async (p) => {
+      // Empieza justo encima del círculo: lo rodea por la derecha sin tocarlo (tocarlo abriría su elección).
+      await mantener(p, 'ArrowRight', 1);
+      await mantener(p, 'ArrowDown', 1.3);
+      await mantener(p, 'ArrowLeft', 1);
+      await esperar(0.5);
+    },
+  }),
+);
+// La partida empieza junto al ermitaño y su elección se abre sola: se cierra (Escape = marcharse) para verlo
+// en su sala, la heroína se aparta y vuelve a él.
+console.log(
+  await grabarPlano('05d_ermitano', {
+    url: 'semilla=7&ermitano',
+    preparar: async (p) => {
+      await empezarPartida(p, 'ronin');
+      await pulsar(p, 'Escape', 0.5);
+      await mantener(p, 'ArrowDown', 1);
+    },
+    coreografia: async (p) => {
+      await esperar(1.5);
+      await mantener(p, 'ArrowUp', 1.2);
+      await esperar(2);
+    },
+  }),
+);

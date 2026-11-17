@@ -171,21 +171,34 @@ export async function mantener(pagina: Page, tecla: string, s: number): Promise<
   await pagina.keyboard.up(tecla);
 }
 
-/** Pulsa una tecla y deja `s` segundos de respiro. */
+/**
+ * Pulsa una tecla y deja `s` segundos de respiro. La mantiene 80 ms: el juego lee las flechas como teclas
+ * sostenidas en cada paso de lógica, y una pulsación instantánea se soltaba antes del siguiente paso.
+ */
 export async function pulsar(pagina: Page, tecla: string, s = 0.4): Promise<void> {
-  await pagina.keyboard.press(tecla);
+  await pagina.keyboard.press(tecla, { delay: 80 });
   await esperar(s);
 }
 
 /**
- * De la portada al mapa de la primera zona: portada, heroína, nombre, dificultad (Normal), los cuatro textos
- * de la historia y el cartel de la zona. Con `pistas`, espera a que pasen las tres pistas de controles (4 s cada una).
+ * De la portada al mapa de la primera zona: portada, heroína, nombre, dificultad (Normal) y `paginas` páginas
+ * de texto (por defecto 5: los cuatro textos de la historia y el cartel de la zona; una más si sale un presagio;
+ * 0 con ?combate o ?altar, que se abren nada más elegir la dificultad y no cuentan la historia: una pulsación
+ * de más jugaría el combate). Con `pistas`, espera a que pasen las tres pistas de controles (4 s cada una).
  */
-export async function empezarPartida(pagina: Page, rana: 'ronin' | 'maga', pistas = true): Promise<void> {
+export async function empezarPartida(
+  pagina: Page,
+  rana: 'ronin' | 'maga',
+  { pistas = true, paginas = 5 }: { pistas?: boolean; paginas?: number } = {},
+): Promise<void> {
   await pulsar(pagina, 'Enter', 0.8);
   if (rana === 'maga') await pulsar(pagina, 'ArrowRight', 0.5);
-  for (let i = 0; i < 7; i++) await pulsar(pagina, 'Enter', 0.8);
-  await esperar(1);
-  await pulsar(pagina, 'Enter', 1.5);
+  for (let i = 0; i < 3; i++) await pulsar(pagina, 'Enter', 0.8);
+  for (let i = 0; i < paginas; i++) {
+    // La última página (el cartel de la zona, o el presagio) tarda algo más en aparecer.
+    if (i === paginas - 1) await esperar(1);
+    await pulsar(pagina, 'Enter', i === paginas - 1 ? 1.5 : 0.8);
+  }
+  if (paginas === 0) await esperar(1.5);
   if (pistas) await esperar(12.5);
 }
