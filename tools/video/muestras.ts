@@ -1,17 +1,12 @@
-/** Muestras de la frase 1 con varias voces graves, para que Pedro elija (Task 2 del plan). */
+/** Muestras de las frases 1 y 6 con las dos voces masculinas españolas de Kokoro, para que Pedro elija (Task 2). */
 import { join } from 'node:path';
 import { GUION } from './guion.ts';
 import { SALIDA } from './rutas.ts';
-import { generarVoz, type Voz } from './voz.ts';
+import { generarVoz } from './voz.ts';
 
-const VOCES: Record<string, Voz> = {
-  a_madura_grave: { atributos: 'male, middle-aged, low pitch', velocidad: 0.92 },
-  b_anciano_muy_grave: { atributos: 'male, elderly, very low pitch', velocidad: 0.9 },
-  c_madura_muy_grave: { atributos: 'male, middle-aged, very low pitch', velocidad: 0.95 },
-};
-
-for (const [nombre, voz] of Object.entries(VOCES)) {
-  const t0 = Date.now();
-  const s = await generarVoz(GUION[0]!.voz, voz, join(SALIDA, 'muestras', `${nombre}.wav`));
-  console.log(nombre, `${s.toFixed(1)} s de voz`, `${((Date.now() - t0) / 1000).toFixed(0)} s en generar`);
+for (const voz of ['em_alex', 'em_santa']) {
+  for (const i of [0, 5]) {
+    const s = await generarVoz(GUION[i]!.voz, voz, join(SALIDA, 'muestras', `${voz}_frase${i + 1}.wav`));
+    console.log(voz, `frase ${i + 1}`, `${s.toFixed(1)} s`);
+  }
 }

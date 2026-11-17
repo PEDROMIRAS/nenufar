@@ -8,9 +8,6 @@ export interface Plano {
   rotulo?: string;
 }
 
-/** Voz de VoiceStudio para las siete frases (la elige Pedro escuchando las muestras). */
-export const VOZ = '';
-
 export const GUION: readonly Plano[] = [
   {
     id: '01_portada',
