@@ -39,6 +39,50 @@ describe('patrulla', () => {
   });
 });
 
+describe('avisos de la patrulla', () => {
+  test('al verla avisa, la mira y se queda quieto la pausa', () => {
+    const p = crearPatrulla(cuerpo(240, 180));
+    const azar = crearAzar(1);
+    actualizarPatrulla(p, mov, 300, 180, 1 / 60, abierta, T, azar, 0.3);
+    expect(p.cambio).toBe(1);
+    expect(p.alerta).toBeGreaterThan(0.28);
+    expect([p.dirX, p.dirY]).toEqual([1, 0]);
+    expect(p.cuerpo.x).toBe(240);
+    for (let i = 0; i < 17; i++)
+      actualizarPatrulla(p, mov, 300, 180, 1 / 60, abierta, T, azar, 0.3);
+    expect(p.cuerpo.x).toBeLessThanOrEqual(241);
+    for (let i = 0; i < 30; i++)
+      actualizarPatrulla(p, mov, 300, 180, 1 / 60, abierta, T, azar, 0.3);
+    expect(p.cuerpo.x).toBeGreaterThan(250);
+  });
+
+  test('cambio vuelve a 0', () => {
+    const p = crearPatrulla(cuerpo(240, 180));
+    actualizarPatrulla(p, mov, 300, 180, 1 / 60, abierta, T, crearAzar(1), 0.3);
+    expect(p.cambio).toBe(1);
+    actualizarPatrulla(p, mov, 300, 180, 1 / 60, abierta, T, crearAzar(1), 0.3);
+    expect(p.cambio).toBe(0);
+  });
+
+  test('al perderla avisa con -1', () => {
+    const p = crearPatrulla(cuerpo(240, 180));
+    p.persiguiendo = true;
+    actualizarPatrulla(p, mov, 240 + 121, 180, 1 / 60, abierta, T, crearAzar(1), 0.3);
+    expect(p.cambio).toBe(-1);
+  });
+
+  test('histéresis: entre la visión y el olvido no cambia nada', () => {
+    const p = crearPatrulla(cuerpo(240, 180));
+    p.persiguiendo = true;
+    const azar = crearAzar(1);
+    for (let i = 0; i < 60; i++) {
+      // La heroína se aparta a la vez que la sigue: siempre a 100 px.
+      actualizarPatrulla(p, mov, p.cuerpo.x + 100, 180, 1 / 60, abierta, T, azar, 0.3);
+      expect(p.cambio).toBe(0);
+    }
+  });
+});
+
 describe('iniciativa', () => {
   const monstruo = { x: 100, y: 100, dirX: 1, dirY: 0 }; // mira a la derecha
 
