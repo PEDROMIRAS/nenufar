@@ -117,7 +117,8 @@ export function ponerVolumenEfectos(v: number): void {
   guardarAjustes({ efectos: v });
 }
 
-export function sonar(nombre: string): void {
+/** Hace sonar el efecto `nombre`; `volumen` multiplica el de cada capa (los pasos al correr suenan más). */
+export function sonar(nombre: string, volumen = 1): void {
   if (!audio || !efectos || silenciado) return;
   const t0 = audio.currentTime;
   const variacion = VARIACION[nombre] ?? 0;
@@ -125,7 +126,7 @@ export function sonar(nombre: string): void {
   for (const c of EFECTOS[nombre] ?? []) {
     const t = t0 + (c.retardo ?? 0);
     const g = audio.createGain();
-    g.gain.setValueAtTime(c.volumen ?? 1, t);
+    g.gain.setValueAtTime((c.volumen ?? 1) * volumen, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + c.duracion);
     g.connect(efectos);
     let fuente: AudioScheduledSourceNode;

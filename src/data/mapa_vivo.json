@@ -1,0 +1,11 @@
+{
+  "alerta": { "pausa": 0.3, "duracion": 0.9, "aparicion": 0.12, "crecer": 1.35, "sonido": "alerta" },
+  "perdido": { "duracion": 1.1, "aparicion": 0.15, "crecer": 1.2, "sonido": null },
+  "pasos": { "pisadas": [0, 2], "corriendo": 1.4 },
+  "polvo": {
+    "cada": 0.12,
+    "vida": 0.45,
+    "cantidad": 12,
+    "colores": { "bosque": "#6b5a3e", "ruinas": "#8a8478", "cripta": "#6f6a73", "cauce": "#7a5a44" }
+  }
+}

@@ -1,6 +1,7 @@
 // Los JSON de datos con sus tipos: TypeScript infiere "uno" como string y no como 'uno' | 'todos' | 'propio'.
 import type { DatosVertical } from '../core/encuadre';
 import type { ImpactoJson } from '../core/impacto';
+import type { MapaVivoJson } from '../core/senales';
 import type {
   DatosEventos,
   DatosPresagios,
@@ -16,6 +17,7 @@ import dificultadesJson from './dificultades.json';
 import eventosJson from './eventos.json';
 import hd2dJson from './hd2d.json';
 import impactoJson from './impacto.json';
+import mapaVivoJson from './mapa_vivo.json';
 import heroesJson from './heroes.json';
 import monstruosJson from './monstruos.json';
 import objetosJson from './objetos.json';
@@ -33,3 +35,4 @@ export const PRESAGIOS = presagiosJson as DatosPresagios;
 export const HD2D = hd2dJson as Hd2dJson;
 export const VERTICAL: DatosVertical = verticalJson;
 export const IMPACTO = impactoJson as ImpactoJson;
+export const MAPA_VIVO = mapaVivoJson as MapaVivoJson;
