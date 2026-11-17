@@ -1,7 +1,7 @@
 import { letrasEnAncho } from '../core/disposicion';
 import { partirTexto } from '../core/texto';
-import { VERTICAL } from '../data/datos';
-import { anunciar, movimientoReducido } from '../render/accesibilidad';
+import { IMPACTO, VERTICAL } from '../data/datos';
+import { anunciar, temblorEfectivo } from '../render/accesibilidad';
 import { PALETA } from '../render/marco';
 import { interfaz, rellenarArea } from '../render/pantalla';
 import { sonar } from '../render/sonido';
@@ -58,8 +58,8 @@ export class EscenaPresentacion implements Escena {
 
   draw(ctx: CanvasRenderingContext2D): void {
     const queda = Math.max(0, 1 - this.t / TEMBLOR);
-    const dx = movimientoReducido() ? 0 : Math.round(Math.sin(this.t * 60) * 4 * queda);
-    this.fondo(this.t, dx, null);
+    const dx = Math.round(Math.sin(this.t * 60) * 4 * queda * temblorEfectivo());
+    this.fondo(this.t, dx, 0, null);
     ctx.fillStyle = 'rgba(8, 4, 12, 0.6)';
     rellenarArea(ctx);
     ctx.globalAlpha = Math.min(1, this.t / APARICION);
@@ -93,6 +93,10 @@ export class EscenaPresentacion implements Escena {
         PALETA.texto,
         'center',
       );
+    // Viene de la entrada al combate: aparece desde negro.
+    ctx.fillStyle = '#000';
+    ctx.globalAlpha = Math.max(0, 1 - this.t / IMPACTO.entrada.aparicion);
+    rellenarArea(ctx);
     ctx.globalAlpha = 1;
   }
 }

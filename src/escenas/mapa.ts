@@ -53,9 +53,12 @@ import { crearLluvia, dibujarLluvia, moverLluvia, type Lluvia } from '../render/
 import { direccionDe } from '../render/monstruo';
 import type { Actor, FondoSala, Mundo, VistaSala } from '../render/mundo/mundo';
 import type { Sprite } from '../render/recursos';
-import { anunciar, movimientoReducido } from '../render/accesibilidad';
+import { anunciar, movimientoReducido, temblorEfectivo } from '../render/accesibilidad';
 import { ponerMusica, sonar } from '../render/sonido';
 import { dentro, SALA_ANCHO, seguir, vista as ventana } from '../render/pantalla';
+import { factorDestello, faseEntrada, type FaseEntrada } from '../core/impacto';
+import { IMPACTO } from '../data/datos';
+import { dibujarEntrada } from '../render/entrada';
 import type { Escena } from './escena';
 
 /** Vector hacia el que mira la heroína según su dirección. */
@@ -190,6 +193,10 @@ export class EscenaMapa implements Escena {
   private tiempo = 0;
   /** Segundos que lleva el fundido (0 = sin fundido) y qué pasa a mitad: cruzar un lado o usar el portal. */
   private fundido = 0;
+  /** Combate que empieza cuando acabe la entrada (destello y franjas), y segundos que lleva la entrada. */
+  private combateEntrante: (() => void) | null = null;
+  private entrada = 0;
+  private readonly fase: FaseEntrada = { destello: 0, barrido: 0, terminada: false };
   private pendiente: number | 'portal' | null = null;
   private portalUsado = false;
   /** Segundos que quedan sin poder empezar otro combate. */
@@ -304,6 +311,18 @@ export class EscenaMapa implements Escena {
     const { heroina: h, tam, duracionFundido } = this.o;
     ponerMusica(this.o.musica);
     this.tiempo += dt;
+    if (this.combateEntrante) {
+      // Entrada al combate: la heroína espera; al acabar, con la pantalla en negro, empieza el combate.
+      h.xAnterior = h.cuerpo.x;
+      h.yAnterior = h.cuerpo.y;
+      this.entrada += dt;
+      if (faseEntrada(this.entrada, IMPACTO, this.fase).terminada) {
+        const lanzar = this.combateEntrante;
+        this.combateEntrante = null;
+        lanzar();
+      }
+      return;
+    }
     if (this.fundido > 0) {
       // Durante el fundido la heroína espera; a mitad, con la pantalla en negro, pasa lo pendiente.
       h.xAnterior = h.cuerpo.x;
@@ -517,6 +536,39 @@ export class EscenaMapa implements Escena {
     ctx.drawImage(this.minimapa, BOTON_MENU.x - MARGEN_HUD - mw * k, MARGEN_HUD, mw * k, mh * k);
     dibujarBotonMenu(ctx, this.o.luchadora.puntos > 0);
     ctx.restore();
+    if (this.combateEntrante) {
+      const fase = faseEntrada(this.entrada, IMPACTO, this.fase);
+      fase.destello *= factorDestello(temblorEfectivo());
+      dibujarEntrada(ctx, fase, IMPACTO.entrada.franjas, ventana.ancho, ventana.alto);
+    }
+  }
+
+  /** La entrada al combate (destello, franjas y sonido) y, en negro, el combate; al volver, el mapa sale de negro. */
+  private entrarEnCombate(lanzar: () => void): void {
+    this.combateEntrante = lanzar;
+    this.entrada = 0;
+    sonar('encuentro');
+  }
+
+  /** `iniciarCombate` pasando antes por la entrada al combate. */
+  private lanzarCombate(
+    grupo: MonstruoJson[],
+    alTerminar: (r: Resultado) => void,
+    quien: 'heroina' | 'monstruos' | null,
+    combate: CombateGuardado,
+  ): void {
+    this.entrarEnCombate(() =>
+      this.o.iniciarCombate(
+        grupo,
+        (r) => {
+          alTerminar(r);
+          // El combate acabó fundido a negro: el mapa sale de negro (la mitad de un fundido de salas).
+          this.fundido = this.o.duracionFundido / 2;
+        },
+        quien,
+        combate,
+      ),
+    );
   }
 
   private avisar(texto: string, segundos = DURACION_AVISO): void {
@@ -630,7 +682,7 @@ export class EscenaMapa implements Escena {
     const azar = crearAzar(zona.semilla * 1019 + zona.salas.indexOf(sala));
     const grupo = gruposDesafio(grupos, desafio.combates, azar)[paso];
     if (!grupo) return;
-    this.o.iniciarCombate(
+    this.lanzarCombate(
       grupo,
       (resultado) => {
         this.invulnerable = this.o.invulnerabilidad;
@@ -651,7 +703,7 @@ export class EscenaMapa implements Escena {
   private morder(cofre: ObjetoSala): void {
     const sala = this.actual;
     sonar('cofre');
-    this.o.iniciarCombate(
+    this.lanzarCombate(
       [this.o.cofreTrampa],
       (resultado) => {
         this.invulnerable = this.o.invulnerabilidad;
@@ -759,8 +811,8 @@ export class EscenaMapa implements Escena {
   }
 
   /** La sala actual en 3D, de decorado del combate y de la presentación de los jefes. */
-  readonly fondoSala: FondoSala = (tiempo, temblor, luz) =>
-    this.o.mundo.dibujarFondo(this.vistaDe(this.montada).sala, tiempo, temblor, luz);
+  readonly fondoSala: FondoSala = (tiempo, temblorX, temblorY, luz) =>
+    this.o.mundo.dibujarFondo(this.vistaDe(this.montada).sala, tiempo, temblorX, temblorY, luz);
 
   /** Empieza el combate contra el grupo `m`; `forzada` es la iniciativa de un combate reanudado. */
   private luchar(m: MonstruoMapa, forzada?: 'heroina' | 'monstruos' | null): void {
@@ -778,7 +830,7 @@ export class EscenaMapa implements Escena {
               { x: m.p.cuerpo.x, y: m.p.cuerpo.y, dirX: m.p.dirX, dirY: m.p.dirY },
             )
           : null;
-    this.o.iniciarCombate(
+    this.lanzarCombate(
       m.grupo,
       (resultado) => {
         if (resultado === 'victoria') {

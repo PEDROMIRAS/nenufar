@@ -1,3 +1,6 @@
+import { factorTemblor } from '../core/impacto';
+import { cargarAjustes, guardarAjustes } from './almacen';
+
 // El canvas no se puede leer: lo importante se repite como texto en una región aria-live oculta
 // (#anuncios, en index.html) para los lectores de pantalla.
 
@@ -15,4 +18,22 @@ const MENOS_MOVIMIENTO = window.matchMedia('(prefers-reduced-motion: reduce)');
 /** Quien pide menos movimiento no ve parpadeos rápidos: los destellos quedan fijos. */
 export function movimientoReducido(): boolean {
   return MENOS_MOVIMIENTO.matches;
+}
+
+let temblor = cargarAjustes().temblor;
+
+/** Temblor elegido en Ajustes (de 0 a 1). */
+export function leerTemblor(): number {
+  return temblor;
+}
+
+/** Cambia el temblor de la pantalla y lo recuerda para la próxima vez. */
+export function ponerTemblor(v: number): void {
+  temblor = v;
+  guardarAjustes({ temblor: v });
+}
+
+/** Lo que tiembla de verdad: el ajuste, y nada si el sistema pide menos movimiento. */
+export function temblorEfectivo(): number {
+  return factorTemblor(temblor, MENOS_MOVIMIENTO.matches);
 }

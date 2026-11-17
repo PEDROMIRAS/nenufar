@@ -237,7 +237,7 @@ export function seccionTocadaAlta(
 export function disposicionAjustes(
   c: Rect,
   d: DatosVertical,
-): { sonido: Rect; calidad: Rect; musica: Rect; efectos: Rect; controlesY: number } {
+): { sonido: Rect; calidad: Rect; musica: Rect; efectos: Rect; temblor: Rect; controlesY: number } {
   const sangria = d.menu.margen + 4;
   const x = c.x + sangria;
   const ancho = c.ancho - 2 * sangria;
@@ -246,7 +246,8 @@ export function disposicionAjustes(
   const calidad = r(x, sonido.y + control + 4, control, control);
   const musica = r(x, calidad.y + control + 22, ancho, control);
   const efectos = r(x, musica.y + control + 22, ancho, control);
-  return { sonido, calidad, musica, efectos, controlesY: efectos.y + control + 14 };
+  const temblor = r(x, efectos.y + control + 22, ancho, control);
+  return { sonido, calidad, musica, efectos, temblor, controlesY: temblor.y + control + 14 };
 }
 
 /** Índice de la tarjeta (o botón, o casilla) de `rects` bajo el toque (x, y); -1 si ninguna. */

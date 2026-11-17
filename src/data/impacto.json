@@ -1,0 +1,24 @@
+{
+  "pesos": {
+    "leve": { "trauma": 0.25, "pausa": 0.04, "destello": 0, "numero": 1, "sonido": null },
+    "fuerte": { "trauma": 0.5, "pausa": 0.08, "destello": 0.12, "numero": 1.4, "sonido": "impacto" },
+    "maximo": {
+      "trauma": 0.85,
+      "pausa": 0.12,
+      "destello": 0.22,
+      "numero": 1.7,
+      "sonido": "impacto_fuerte"
+    }
+  },
+  "temblor": { "maxX": 6, "maxY": 4, "decaimiento": 1.6, "frecuencias": [13, 17] },
+  "destello": { "duracion": 0.1 },
+  "numero": { "asentar": 0.15 },
+  "entrada": {
+    "duracion": 0.5,
+    "destello": 0.08,
+    "opacidadDestello": 0.7,
+    "franjas": 7,
+    "aparicion": 0.3,
+    "salida": 0.25
+  }
+}

@@ -29,7 +29,16 @@ import {
 } from '../core/descripciones';
 import { haceAlgo } from '../core/inventario';
 import { efectoToque, filaTocada } from '../core/menu';
-import { anunciar } from '../render/accesibilidad';
+import {
+  decaerTrauma,
+  desplazamiento,
+  factorDestello,
+  juntarPausa,
+  pesoDe,
+  sumarTrauma,
+} from '../core/impacto';
+import { anunciar, temblorEfectivo } from '../render/accesibilidad';
+import { IMPACTO } from '../data/datos';
 import type { Sprite } from '../render/recursos';
 import { ponerMusica, sonar } from '../render/sonido';
 import ritmo from '../data/ritmo.json';
@@ -105,6 +114,11 @@ export class EscenaCombate implements Escena {
   private efectoHabilidad: string | null = null;
   /** Se está usando una habilidad: su sonido sustituye al del ataque normal. */
   private enHabilidad = false;
+  /** Trauma del temblor (de 0 a 1) y segundos que quedan de pausa de impacto. */
+  private trauma = 0;
+  private pausa = 0;
+  /** Segundos de la salida a negro tras confirmar el resultado; −1 mientras no se sale. */
+  private saliendo = -1;
 
   constructor(
     private readonly combate: Combate,
@@ -150,6 +164,12 @@ export class EscenaCombate implements Escena {
       titulo: '',
       pestana: '',
       aviso: 0,
+      tiempoReal: 0,
+      temblor: { x: 0, y: 0 },
+      destello: 0,
+      tiempoDestello: 0,
+      escalaNumero: 1,
+      negro: 1,
     };
   }
 
@@ -164,6 +184,26 @@ export class EscenaCombate implements Escena {
     const v = this.v;
     // Música de combate (de jefe si hay alguno) hasta que se ve el final; luego, silencio para la fanfarria.
     ponerMusica(v.titulo ? null : this.pista);
+    // El temblor, el destello y la entrada desde negro siguen en tiempo real, también durante la pausa de impacto.
+    v.tiempoReal += dt;
+    v.tiempoDestello += dt;
+    this.trauma = decaerTrauma(this.trauma, dt, IMPACTO);
+    desplazamiento(this.trauma, v.tiempoReal, temblorEfectivo(), IMPACTO, v.temblor);
+    if (this.saliendo >= 0) {
+      this.saliendo += dt;
+      v.negro = Math.min(1, this.saliendo / IMPACTO.entrada.salida);
+      if (v.negro >= 1 && this.combate.resultado) {
+        this.saliendo = -1;
+        this.alTerminar(this.combate.resultado);
+      }
+      return;
+    }
+    if (v.negro > 0) v.negro = Math.max(0, v.negro - dt / IMPACTO.entrada.aparicion);
+    if (this.pausa > 0) {
+      // Pausa de impacto: el combate se detiene un instante (un toque no la salta).
+      this.pausa -= dt;
+      return;
+    }
     v.tiempo += dt;
     v.tiempoAtaque += dt;
     v.tiempoEfecto += dt;
@@ -210,7 +250,8 @@ export class EscenaCombate implements Escena {
     }
     const { resultado } = this.combate;
     if (resultado) {
-      if (acciones.confirmar || acciones.toqueX >= 0) this.alTerminar(resultado);
+      // Se sale fundiendo a negro; al llegar a negro se avisa una sola vez (ver arriba).
+      if (acciones.confirmar || acciones.toqueX >= 0) this.saliendo = 0;
       return;
     }
     // Antes de abrir el menú, un respiro: la lista tapa el registro y así se ve cómo acabó la ronda.
@@ -229,6 +270,7 @@ export class EscenaCombate implements Escena {
   /** Aplica a la vista lo que cuenta un evento: vida, aviso, registro... */
   private mostrar(e: Evento): void {
     const v = this.v;
+    this.pesar(e);
     switch (e.tipo) {
       case 'turno':
         // La defensa dura hasta el comienzo de su propio turno.
@@ -410,6 +452,23 @@ export class EscenaCombate implements Escena {
         v.menu = null;
         break;
     }
+  }
+
+  /** El peso del golpe o la muerte: temblor, pausa de impacto, destello, tamaño del número y sonido grave. */
+  private pesar(e: Evento): void {
+    const v = this.v;
+    const nombre = pesoDe(e);
+    if (!nombre) {
+      if (e.tipo === 'danioEstado' || e.tipo === 'cura') v.escalaNumero = 1;
+      return;
+    }
+    const peso = IMPACTO.pesos[nombre];
+    this.trauma = sumarTrauma(this.trauma, peso);
+    this.pausa = juntarPausa(this.pausa, peso.pausa);
+    v.destello = peso.destello * factorDestello(temblorEfectivo());
+    v.tiempoDestello = 0;
+    if (e.tipo === 'danio') v.escalaNumero = peso.numero;
+    if (peso.sonido) sonar(peso.sonido);
   }
 
   /** Cambia la vida que se ve y hace flotar el número (rojo/blanco si es daño, verde si es cura). */
