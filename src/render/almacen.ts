@@ -32,6 +32,8 @@ export interface Ajustes {
   pistasVistas: boolean;
   /** Calidad baja del mapa en 3D: sin desenfoque ni sombras, para móviles que no llegan a 60 fps. */
   calidadBaja: boolean;
+  /** Cuánto tiembla la pantalla con los golpes, de 0 a 1 (con «menos movimiento» del sistema, nada). */
+  temblor: number;
 }
 
 /** Ajustes guardados; si faltan o están dañados, los de por defecto (nada de lo leído se da por bueno sin comprobarlo). */
@@ -49,6 +51,7 @@ export function cargarAjustes(): Ajustes {
       senora: typeof a?.senora === 'string' ? a.senora : '',
       pistasVistas: a?.pistasVistas === true,
       calidadBaja: a?.calidadBaja === true,
+      temblor: typeof a?.temblor === 'number' && a.temblor >= 0 && a.temblor <= 1 ? a.temblor : 1,
     };
   } catch {
     return {
@@ -59,6 +62,7 @@ export function cargarAjustes(): Ajustes {
       senora: '',
       pistasVistas: false,
       calidadBaja: false,
+      temblor: 1,
     };
   }
 }

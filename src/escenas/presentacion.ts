@@ -1,7 +1,7 @@
 import { letrasEnAncho } from '../core/disposicion';
 import { partirTexto } from '../core/texto';
 import { VERTICAL } from '../data/datos';
-import { anunciar, movimientoReducido } from '../render/accesibilidad';
+import { anunciar, temblorEfectivo } from '../render/accesibilidad';
 import { PALETA } from '../render/marco';
 import { interfaz, rellenarArea } from '../render/pantalla';
 import { sonar } from '../render/sonido';
@@ -58,7 +58,7 @@ export class EscenaPresentacion implements Escena {
 
   draw(ctx: CanvasRenderingContext2D): void {
     const queda = Math.max(0, 1 - this.t / TEMBLOR);
-    const dx = movimientoReducido() ? 0 : Math.round(Math.sin(this.t * 60) * 4 * queda);
+    const dx = Math.round(Math.sin(this.t * 60) * 4 * queda * temblorEfectivo());
     this.fondo(this.t, dx, null);
     ctx.fillStyle = 'rgba(8, 4, 12, 0.6)';
     rellenarArea(ctx);

@@ -43,7 +43,7 @@ import {
   silenciar,
   sonar,
 } from '../render/sonido';
-import { anunciar } from '../render/accesibilidad';
+import { anunciar, leerTemblor, ponerTemblor } from '../render/accesibilidad';
 import type { Escena } from './escena';
 
 /**
@@ -88,6 +88,7 @@ export class EscenaPausa implements Escena {
       calidad: Casilla;
       musica: Deslizador;
       efectos: Deslizador;
+      temblor: Deslizador;
     },
     /** Abre la pantalla de Equipo para cambiar arma y armadura. */
     private readonly alEquipo: () => void,
@@ -338,6 +339,7 @@ export class EscenaPausa implements Escena {
     this.controles.calidad.mostrar(esCalidadAlta(), ponerCalidadAlta);
     this.controles.musica.mostrar(leerVolumenMusica(), ponerVolumenMusica);
     this.controles.efectos.mostrar(leerVolumenEfectos(), ponerVolumenEfectos);
+    this.controles.temblor.mostrar(leerTemblor(), ponerTemblor);
   }
 
   private ocultarControles(): void {
@@ -345,6 +347,7 @@ export class EscenaPausa implements Escena {
     this.controles.calidad.ocultar();
     this.controles.musica.ocultar();
     this.controles.efectos.ocultar();
+    this.controles.temblor.ocultar();
   }
 
   /** Equipo y Mejorar se apilan encima sin cerrar esta: los controles HTML no deben quedarse a la vista. */

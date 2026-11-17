@@ -98,7 +98,7 @@ import { colocarContexto, esTactil, fijarModo, prepararPantalla } from './render
 import { crearCasilla, crearDeslizador, type Casilla, type Deslizador } from './render/deslizador';
 import { crearCampoNombre } from './render/campoNombre';
 import { LARGO_NOMBRE, RECT_CAMPO } from './render/nombre';
-import { RECT_CALIDAD, RECT_EFECTOS, RECT_MUSICA, RECT_SONIDO } from './render/pausa';
+import { RECT_CALIDAD, RECT_EFECTOS, RECT_MUSICA, RECT_SONIDO, RECT_TEMBLOR } from './render/pausa';
 import { prepararSonido, sonar } from './render/sonido';
 import { vestirHoja } from './render/tinte';
 import { Mundo, type FondoSala } from './render/mundo/mundo';
@@ -163,7 +163,13 @@ interface Partida {
   bestiario: Record<string, MonstruoJson>;
   reglas: ReglasCombate;
   /** Volumen de música y efectos y sonido sí o no en el inventario (controles HTML, uno por partida). */
-  controles: { musica: Deslizador; efectos: Deslizador; sonido: Casilla; calidad: Casilla };
+  controles: {
+    musica: Deslizador;
+    efectos: Deslizador;
+    temblor: Deslizador;
+    sonido: Casilla;
+    calidad: Casilla;
+  };
   /** Nombre del jefe final: lleva el de la última heroína que lo venció, si la hubo. */
   rival: string;
   /** Salas violetas que han salido en las zonas ya creadas, y si una de ellas era del dragón negro. */
@@ -304,6 +310,7 @@ async function iniciar(): Promise<void> {
     calidad: crearCasilla(canvas, RECT_CALIDAD, 'Calidad alta: desenfoque y sombras'),
     musica: crearDeslizador(canvas, RECT_MUSICA, 'Volumen de la música'),
     efectos: crearDeslizador(canvas, RECT_EFECTOS, 'Volumen de los efectos'),
+    temblor: crearDeslizador(canvas, RECT_TEMBLOR, 'Temblor de la pantalla'),
   };
   const seleccion: EscenaSeleccion = new EscenaSeleccion(opciones, ({ heroe, sprite }) => {
     const pedirNombre: EscenaNombre = new EscenaNombre(

@@ -10,6 +10,7 @@ import {
   NOMBRE_SECCION,
   RECT_CALIDAD,
   RECT_EFECTOS,
+  RECT_TEMBLOR,
   RECT_MUSICA,
   RECT_SONIDO,
   SECCIONES,
@@ -194,7 +195,8 @@ function dibujarAjustes(ctx: CanvasRenderingContext2D, c: Rect): void {
   );
   escribir(ctx, 'Música', RECT_MUSICA.x, RECT_MUSICA.y - 16, COLOR.etiqueta);
   escribir(ctx, 'Efectos', RECT_EFECTOS.x, RECT_EFECTOS.y - 16, COLOR.etiqueta);
-  const y = RECT_EFECTOS.y + RECT_EFECTOS.alto + 14;
+  escribir(ctx, 'Temblor', RECT_TEMBLOR.x, RECT_TEMBLOR.y - 16, COLOR.etiqueta);
+  const y = RECT_TEMBLOR.y + RECT_TEMBLOR.alto + 14;
   dibujarTitulo(ctx, x0, y, ancho, 'Controles');
   dibujarControles(ctx, x0, y + 24);
 }

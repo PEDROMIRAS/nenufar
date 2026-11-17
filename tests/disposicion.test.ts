@@ -244,6 +244,14 @@ describe('pausa en vertical: toque y ajustes', () => {
     expect(a.controlesY).toBeGreaterThan(a.efectos.y + a.efectos.alto);
     expect(a.sonido.alto).toBeGreaterThanOrEqual(40);
   });
+
+  test('disposicionAjustes: el deslizador de temblor va bajo el de efectos, antes de los controles', () => {
+    const c = disposicionPausa(320, 569, VERTICAL).contenido;
+    const a = disposicionAjustes(c, VERTICAL);
+    expect(a.temblor.ancho).toBe(a.efectos.ancho);
+    expect(a.temblor.y).toBeGreaterThan(a.efectos.y + a.efectos.alto);
+    expect(a.controlesY).toBeGreaterThan(a.temblor.y + a.temblor.alto);
+  });
 });
 
 describe('elegir rana y dificultad en vertical', () => {
