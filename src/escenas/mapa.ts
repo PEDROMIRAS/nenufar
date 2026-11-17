@@ -759,8 +759,8 @@ export class EscenaMapa implements Escena {
   }
 
   /** La sala actual en 3D, de decorado del combate y de la presentación de los jefes. */
-  readonly fondoSala: FondoSala = (tiempo, temblor, luz) =>
-    this.o.mundo.dibujarFondo(this.vistaDe(this.montada).sala, tiempo, temblor, luz);
+  readonly fondoSala: FondoSala = (tiempo, temblorX, temblorY, luz) =>
+    this.o.mundo.dibujarFondo(this.vistaDe(this.montada).sala, tiempo, temblorX, temblorY, luz);
 
   /** Empieza el combate contra el grupo `m`; `forzada` es la iniciativa de un combate reanudado. */
   private luchar(m: MonstruoMapa, forzada?: 'heroina' | 'monstruos' | null): void {

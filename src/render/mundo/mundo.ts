@@ -50,7 +50,8 @@ const TAM = 32;
 /** Dibuja la sala de fondo del combate: tiempo de sus animaciones, temblor en píxeles y luz de un proyectil. */
 export type FondoSala = (
   tiempo: number,
-  temblor: number,
+  temblorX: number,
+  temblorY: number,
   luz: { nombre: string; x: number; y: number } | null,
 ) => void;
 
@@ -132,6 +133,11 @@ export class Mundo {
   private desenfoqueV = 0;
   /** X de la cámara en la sala que se ve, para volver a ella tras el temblor. */
   private camaraX = 0;
+  /** Altura y fondo de la cámara en la sala que se ve, y su vector «arriba» (y, z): el temblor vertical la mueve por él. */
+  private camaraY = 0;
+  private camaraZ = 0;
+  private arribaY = 1;
+  private arribaZ = 0;
   /** Calidad aplicada ahora mismo (null = aún ninguna). */
   private alta: boolean | null = null;
   /** Luz del proyectil de la maga sobre la sala de fondo del combate; apagada el resto del tiempo. */
@@ -607,7 +613,7 @@ export class Mundo {
     for (const b of v.barreras) b.obj.visible = (cerradas & b.lado) !== 0;
     this.animar(v, tiempo);
     this.luzCombate.intensity = 0;
-    this.camara.position.x = this.camaraX;
+    this.camara.position.set(this.camaraX, this.camaraY, this.camaraZ);
 
     // La franja enfocada y el hueco de transparencia siguen a la heroína.
     const u = uniformesTransparencia;
@@ -624,13 +630,14 @@ export class Mundo {
 
   /**
    * Dibuja la sala `v` de fondo del combate o de la presentación de un jefe: sin la heroína ni los monstruos
-   * del mapa, más desenfocada y, si se pide, temblando `temblor` píxeles a los lados y con la luz de un
+   * del mapa, más desenfocada y, si se pide, temblando (`temblorX`, `temblorY`) píxeles lógicos y con la luz de un
    * proyectil (de `luces`) en el punto (x, y) de la pantalla.
    */
   dibujarFondo(
     v: VistaSala,
     tiempo: number,
-    temblor: number,
+    temblorX: number,
+    temblorY: number,
     luz: { nombre: string; x: number; y: number } | null,
   ): void {
     this.aplicarCalidad();
@@ -639,7 +646,13 @@ export class Mundo {
     if (this.heroe) this.heroe.malla.visible = false;
     for (const a of v.actores) a.malla.visible = false;
     this.animar(v, tiempo);
-    this.camara.position.x = this.camaraX + (temblor / SALA_ANCHO) * v.encuadre.ancho;
+    // Píxeles lógicos a unidades del mundo; bajar la imagen es subir la cámara por su «arriba».
+    const unidad = v.encuadre.ancho / SALA_ANCHO;
+    this.camara.position.set(
+      this.camaraX + temblorX * unidad,
+      this.camaraY + temblorY * unidad * this.arribaY,
+      this.camaraZ + temblorY * unidad * this.arribaZ,
+    );
     const datos = luz ? this.a.luces[luz.nombre] : undefined;
     if (luz && datos) {
       // El punto del canvas 2D, llevado a la ventana y de ahí al mundo a la altura de la luz.
@@ -757,6 +770,10 @@ export class Mundo {
     );
     this.camara.lookAt(centro);
     this.camaraX = this.camara.position.x;
+    this.camaraY = this.camara.position.y;
+    this.camaraZ = this.camara.position.z;
+    this.arribaY = Math.cos(angulo);
+    this.arribaZ = -Math.sin(angulo);
     // La luz principal, desde arriba a la izquierda y del lado de la cámara, como la luz pintada en el arte:
     // desde detrás dejaba a oscuras la cara de los sprites.
     this.principal.position.set(centro.x - 6, 12, centro.z + 5);

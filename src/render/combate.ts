@@ -7,8 +7,8 @@ import {
   disposicionCombate,
   type DisposicionCombate,
 } from '../core/disposicion';
-import { VERTICAL } from '../data/datos';
-import { ANCHO, aPixel, dentro, interfaz, rellenarArea } from './pantalla';
+import { IMPACTO, VERTICAL } from '../data/datos';
+import { ANCHO, aPixel, area, dentro, interfaz, rellenarArea } from './pantalla';
 import { movimientoReducido } from './accesibilidad';
 import { dibujarFotograma, type Sprite } from './recursos';
 import type { FondoSala } from './mundo/mundo';
@@ -94,6 +94,17 @@ export interface VistaCombate {
    * en los turnos de antes no la tapa.
    */
   aviso: number;
+  /** Segundos desde que empezó el combate, también durante la pausa de impacto (mueve el ruido del temblor). */
+  tiempoReal: number;
+  /** Cuánto se desplaza la escena en este fotograma (píxeles lógicos); el panel no se mueve. */
+  temblor: { x: number; y: number };
+  /** Opacidad con que empezó el último destello del impacto y segundos desde entonces. */
+  destello: number;
+  tiempoDestello: number;
+  /** Tamaño del número que flota, según el peso del golpe (1 = normal). */
+  escalaNumero: number;
+  /** Velo negro de la entrada y la salida del combate (0 = nada, 1 = negro). */
+  negro: number;
 }
 
 const COLOR = {
@@ -251,11 +262,15 @@ export function opcionTocada(x: number, y: number, n: number): number {
 
 export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   colocar(v);
-  v.fondo(v.tiempo, 0, posicionProyectil(v));
+  const { x: tx, y: ty } = v.temblor;
+  v.fondo(v.tiempo, tx, ty, posicionProyectil(v));
   // El canvas 2D queda transparente encima de la sala en 3D.
   ctx.fillStyle = COLOR.velo;
   rellenarArea(ctx);
 
+  // La escena tiembla con la sala de fondo; el panel, no.
+  ctx.save();
+  ctx.translate(Math.round(tx), Math.round(ty));
   dibujarOrden(ctx, v);
   for (let i = 0; i < v.enemigos.length; i++)
     dibujarEnemigo(ctx, v, v.enemigos[i]!, xEnemigo(i, v.enemigos.length));
@@ -263,6 +278,8 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   dibujarProyectil(ctx, v);
   dibujarEfecto(ctx, v);
   dibujarFlotante(ctx, v);
+  ctx.restore();
+  dibujarDestello(ctx, v);
 
   if (interfaz.alta) dibujarPanelVertical(ctx, v);
   else {
@@ -290,6 +307,26 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
       'center',
     );
   }
+  if (v.negro > 0) {
+    ctx.fillStyle = '#000';
+    ctx.globalAlpha = Math.min(1, v.negro);
+    rellenarArea(ctx);
+    ctx.globalAlpha = 1;
+  }
+}
+
+/** Destello blanco del impacto sobre la escena (no sobre el panel), que se apaga enseguida. */
+function dibujarDestello(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
+  const opacidad = v.destello * Math.max(0, 1 - v.tiempoDestello / IMPACTO.destello.duracion);
+  if (opacidad <= 0) return;
+  // Hasta donde empieza el panel: en vertical, el borde de arriba del panel apilado; si no, la pestaña del panel.
+  const abajo = interfaz.alta
+    ? ((e) => e.y + e.alto)(disposicion(v.menu?.opciones.length ?? 0).escena)
+    : PANEL.y - 14;
+  ctx.fillStyle = '#fff';
+  ctx.globalAlpha = opacidad;
+  ctx.fillRect(area.x, area.y, area.ancho, abajo - area.y);
+  ctx.globalAlpha = 1;
 }
 
 // Ancho de una letra de la fuente normal y de la de los botones (monoespaciadas, 0,6 de su tamaño) y
@@ -807,17 +844,30 @@ function dibujarEfecto(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   dibujarFotograma(ctx, hoja, v.efecto, 'down', v.tiempoEfecto, centroX(v, l), centroY(l), 2);
 }
 
+/** Letras del número que flota, de 0 a 64 px, hechas una vez (no se crea un texto nuevo en cada fotograma). */
+const FUENTES_NUMERO = Array.from({ length: 65 }, (_, px) => `bold ${px}px monospace`);
+const TAMANO_NUMERO = 24;
+
+/** Letra del número que flota: aparece un poco más grande y se asienta en su tamaño, sin rebote. */
+function fuenteNumero(v: VistaCombate): string {
+  const p = Math.min(1, v.tiempoGolpe / IMPACTO.numero.asentar);
+  const asentado = 1 - (1 - p) * (1 - p);
+  const escala = v.escalaNumero * (1.15 - 0.15 * asentado);
+  return FUENTES_NUMERO[Math.min(64, Math.round(TAMANO_NUMERO * escala))]!;
+}
+
 function dibujarFlotante(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   const g = v.golpeado;
   if (!g || !v.flotante) return;
+  const fuente = fuenteNumero(v);
   const sube = Math.round(v.tiempoGolpe * 30);
   const enemigos = v.enemigos;
   const color = v.flotanteCura ? COLOR.cura : g.esHeroina ? COLOR.pv : '#ffffff';
   if (g.esHeroina) {
-    escribir(ctx, v.flotante, G.heroinaX, G.heroinaY - 80 - sube, color, 'center', FUENTE_GRANDE);
+    escribir(ctx, v.flotante, G.heroinaX, G.heroinaY - 80 - sube, color, 'center', fuente);
     return;
   }
   // A la derecha del nombre (que ocupa unos 36 px a cada lado), para no taparlo mientras sube.
   const x = xEnemigo(enemigos.indexOf(g), enemigos.length) + 42;
-  escribir(ctx, v.flotante, x, topeEnemigo(v, g) - 30 - sube, color, 'left', FUENTE_GRANDE);
+  escribir(ctx, v.flotante, x, topeEnemigo(v, g) - 30 - sube, color, 'left', fuente);
 }
