@@ -179,3 +179,16 @@
 - [ ] **Step 3: Documentar.** En `CLAUDE.md`, una viñeta de estado (rama, qué se hizo, números en `impacto.json`, sin probar en el móvil, que el peso lo juzga Pedro jugando) y actualizar «Próximos pasos». En el plan, una sección «Resultado» con lo que cambió respecto al plan.
 
 - [ ] **Step 4: Commit** — `git commit -m "CLAUDE.md y plan: peso de los golpes hecho, pendiente de probar jugando"`
+
+## Resultado (2026-11-17)
+
+Hecho en la rama `peso-golpes`, ejecutado en línea (sin subagentes). Suite completa (584 tests), lint y build pasan; los tests de equilibrado no cambian.
+
+**Cambios respecto al plan:**
+- En horizontal, los tres deslizadores (Música, Efectos, Temblor) van en una fila de 90 px cada uno: no cabía una fila más sin mover la lista de controles. En vertical, uno bajo otro.
+- El temblor vertical del fondo 3D mueve la cámara por su vector «arriba» con la misma escala que el horizontal (aproximación con la cámara inclinada).
+- Las tres llamadas del mapa pasan por un `lanzarCombate` privado que envuelve `iniciarCombate` con la entrada y pone el fundido de vuelta.
+
+**Visto con Chrome sin cabeza** (Playwright de `tools/video`): el deslizador de temblor en 1000×640 y 390×844; un golpe cargado del gólem (número ×1,7 y destello); la entrada desde el mapa a 1000×640 y 390×844 (`docs/previews/entrada_combate.png` y `entrada_combate_vertical.png`); huir (salida a negro, vuelta al mapa y nueva entrada al volver a tocar al monstruo); recargar a mitad de combate (aviso «Combate interrumpido» y el combate aparece desde negro).
+
+**Sin ver:** el temblor en movimiento (las capturas no lo muestran bien), la cadena del desafío (la elección no se abrió desde la posición de `?desafio` con las capturas), el cofre trampa, la derrota hasta la pantalla final, «menos movimiento» del sistema, los sonidos nuevos y nada en un móvil real. **El peso solo se juzga jugando:** los números están en `src/data/impacto.json`.
