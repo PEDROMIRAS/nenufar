@@ -113,7 +113,7 @@
 - Task 5: este ffmpeg no tiene `drawtext`: los rótulos se dibujan como PNG con Chrome (`rotulos.ts`, monoespaciada en negrita como el juego) y se superponen al montaje. El del combate va a la derecha, sobre el panel de acciones, para no taparlo.
 
 **Pendiente / ideas:**
-- Fusionar la rama `video-demo` en `main`.
-- Enlazar el vídeo desde el README y desde el portafolio (hace falta saber dónde está el portafolio).
+- Fusionada en `main` el 2026-11-17.
+- Enlazar el vídeo desde el portafolio: **todavía no** (Pedro, 2026-11-17); desde el README, cuando Pedro lo pida.
 - En el plano 6 cada jefe sale ~1,7 s y del gólem y el sacerdote solo se ve el cartel con su nombre: si se quiere más combate, enseñar menos jefes o alargar el plano.
 - Una versión vertical (9:16) para redes, con las tomas del móvil.
