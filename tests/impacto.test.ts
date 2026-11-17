@@ -13,6 +13,7 @@ import {
 } from '../src/core/impacto';
 import type { MonstruoJson } from '../src/core/types';
 import { IMPACTO } from '../src/data/datos';
+import sonido from '../src/data/sonido.json';
 
 const heroina = { nombre: 'Rana', esHeroina: true, monstruo: null } as unknown as Luchador;
 const limo = {
@@ -135,5 +136,23 @@ describe('entrada al combate', () => {
     expect(franja(0, 7, 0.5)).toBe(1);
     expect(franja(6, 7, 0.5)).toBe(0);
     expect(franja(6, 7, 1)).toBe(1);
+  });
+});
+
+describe('sonidos del impacto', () => {
+  test('todo sonido de un peso existe', () => {
+    const nombres = Object.values(IMPACTO.pesos)
+      .map((p) => p.sonido)
+      .filter((s): s is string => s !== null);
+    for (const n of [...nombres, 'encuentro']) expect(sonido.efectos).toHaveProperty(n);
+  });
+  test('toda variación nombra un efecto', () => {
+    const variacion = (sonido as { variacion?: Record<string, number> }).variacion;
+    expect(variacion).toBeDefined();
+    for (const [n, v] of Object.entries(variacion ?? {})) {
+      expect(sonido.efectos).toHaveProperty(n);
+      expect(v).toBeGreaterThan(0);
+      expect(v).toBeLessThanOrEqual(0.1);
+    }
   });
 });

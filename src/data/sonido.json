@@ -480,7 +480,65 @@
         "volumen": 0.3,
         "retardo": 0.1
       }
+    ],
+    "impacto": [
+      {
+        "onda": "sine",
+        "desde": 90,
+        "hasta": 40,
+        "duracion": 0.15,
+        "volumen": 0.9
+      },
+      {
+        "onda": "ruido",
+        "duracion": 0.06,
+        "volumen": 0.3
+      }
+    ],
+    "impacto_fuerte": [
+      {
+        "onda": "sine",
+        "desde": 70,
+        "hasta": 30,
+        "duracion": 0.28,
+        "volumen": 1
+      },
+      {
+        "onda": "ruido",
+        "duracion": 0.1,
+        "volumen": 0.45
+      }
+    ],
+    "encuentro": [
+      {
+        "onda": "ruido",
+        "duracion": 0.25,
+        "volumen": 0.5
+      },
+      {
+        "onda": "square",
+        "desde": 220,
+        "hasta": 55,
+        "duracion": 0.3,
+        "volumen": 0.5
+      },
+      {
+        "onda": "sine",
+        "desde": 60,
+        "duracion": 0.35,
+        "retardo": 0.05
+      }
     ]
+  },
+  "variacion": {
+    "golpe": 0.04,
+    "critico": 0.04,
+    "corte": 0.04,
+    "corte_doble": 0.04,
+    "acero": 0.04,
+    "iaido": 0.04,
+    "impacto": 0.04,
+    "impacto_fuerte": 0.04
   },
   "musica": {
     "bosque": {

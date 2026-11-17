@@ -23,6 +23,10 @@ interface Pista {
 }
 
 const EFECTOS: Record<string, Capa[]> = datos.efectos;
+/** Cuánto puede cambiar el tono de cada efecto en cada vez que suena (0,04 = ±4 %), para que no suene siempre igual. */
+const VARIACION: Record<string, number> = datos.variacion;
+/** Azar propio del sonido: es solo estética y no toca el de la partida. */
+const azarTono = crearAzar(2);
 /** Las pistas avanzan en corcheas: dos pasos por pulso. */
 const PISTAS: Record<string, Pista> = Object.fromEntries(
   Object.entries(datos.musica).map(([nombre, p]) => {
@@ -116,6 +120,8 @@ export function ponerVolumenEfectos(v: number): void {
 export function sonar(nombre: string): void {
   if (!audio || !efectos || silenciado) return;
   const t0 = audio.currentTime;
+  const variacion = VARIACION[nombre] ?? 0;
+  const tono = variacion === 0 ? 1 : 1 + (azarTono() * 2 - 1) * variacion;
   for (const c of EFECTOS[nombre] ?? []) {
     const t = t0 + (c.retardo ?? 0);
     const g = audio.createGain();
@@ -130,8 +136,8 @@ export function sonar(nombre: string): void {
     } else {
       const o = audio.createOscillator();
       o.type = c.onda as OscillatorType;
-      o.frequency.setValueAtTime(c.desde ?? 440, t);
-      if (c.hasta) o.frequency.exponentialRampToValueAtTime(c.hasta, t + c.duracion);
+      o.frequency.setValueAtTime((c.desde ?? 440) * tono, t);
+      if (c.hasta) o.frequency.exponentialRampToValueAtTime(c.hasta * tono, t + c.duracion);
       fuente = o;
     }
     fuente.connect(g);
