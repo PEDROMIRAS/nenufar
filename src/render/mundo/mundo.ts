@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { desplazamientoCamara } from '../../core/impacto';
+import { crearAnillo, progresoNube, soltarNube, vaciarAnillo } from '../../core/polvo';
 import { MAPA_VIVO } from '../../data/datos';
 import { crearDesenfoque } from './desenfoque';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -65,12 +66,6 @@ export interface Actor {
   filas: number;
   /** El «¡!» o el «?» sobre la cabeza (hijo de la malla); null si este actor no lleva signos. */
   signo: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial> | null;
-}
-
-/** Una nube de polvo de los pasos: un plano reutilizado y el instante en que salió (−1 = libre). */
-interface Nube {
-  malla: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
-  nacimiento: number;
 }
 
 /** Lado del signo, en casillas, y cuánto queda por encima de la cabeza. */
@@ -141,9 +136,9 @@ export class Mundo {
   private readonly giro: number;
   /** Texturas del «¡!» y el «?», hechas una vez y compartidas por todos los signos. */
   private readonly texturasSigno: { alerta: THREE.Texture; perdido: THREE.Texture };
-  /** Nubes de polvo de los pasos, en anillo: la siguiente que sale es la más vieja. */
-  private readonly nubes: Nube[] = [];
-  private siguienteNube = 0;
+  /** Nubes de polvo de los pasos: un plano por hueco del anillo (la siguiente que sale es la más vieja). */
+  private readonly nubes: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>[] = [];
+  private readonly anillo = crearAnillo(MAPA_VIVO.polvo.cantidad);
   private readonly estirar: number;
   /** Vectores de trabajo para proyectar a pantalla y al revés (sin crear nada en el bucle). */
   private readonly pantalla = new THREE.Vector3();
@@ -203,7 +198,7 @@ export class Mundo {
       );
       malla.rotation.x = -this.giro;
       malla.visible = false;
-      this.nubes.push({ malla, nacimiento: -1 });
+      this.nubes.push(malla);
     }
 
     this.cielo = new THREE.HemisphereLight();
@@ -328,6 +323,7 @@ export class Mundo {
 
   /** Suelta todo lo de la zona anterior (geometrías, materiales y texturas). */
   vaciar(): void {
+    this.vaciarPolvo();
     if (!this.zona) return;
     for (const v of this.zona.vistas) {
       if (v.grupo.parent) v.grupo.parent.remove(v.grupo);
@@ -635,31 +631,34 @@ export class Mundo {
 
   /** Color del polvo de los pasos (el del suelo de la zona). */
   ponerColorPolvo(hex: string): void {
-    for (const n of this.nubes) n.malla.material.color.set(hex);
+    for (const n of this.nubes) n.material.color.set(hex);
   }
 
   /** Suelta una nube de polvo en los pies, en (x, y) píxeles del juego; reutiliza la más vieja. */
   soltarPolvo(x: number, y: number, tiempo: number): void {
-    const n = this.nubes[this.siguienteNube]!;
-    this.siguienteNube = (this.siguienteNube + 1) % this.nubes.length;
-    n.nacimiento = tiempo;
-    n.malla.position.set(x / TAM, NUBE.lado / 2, y / TAM);
-    if (n.malla.parent !== this.escena) this.escena.add(n.malla);
+    const n = this.nubes[soltarNube(this.anillo, tiempo)]!;
+    n.position.set(x / TAM, NUBE.lado / 2, y / TAM);
+    if (n.parent !== this.escena) this.escena.add(n);
+  }
+
+  /** Quita todo el polvo (al cambiar de sala o de zona, cuando el reloj de la escena cambia). */
+  vaciarPolvo(): void {
+    vaciarAnillo(this.anillo);
+    for (const n of this.nubes) n.visible = false;
   }
 
   /** Las nubes suben un poco, crecen y se desvanecen; `visibles` = false las esconde (fondo del combate). */
   private animarPolvo(tiempo: number, visibles: boolean): void {
     const vida = MAPA_VIVO.polvo.vida;
-    for (const n of this.nubes) {
-      const edad = tiempo - n.nacimiento;
-      const viva = visibles && n.nacimiento >= 0 && edad >= 0 && edad < vida;
-      n.malla.visible = viva;
-      if (!viva) continue;
-      const p = edad / vida;
-      n.malla.position.y = NUBE.lado / 2 + NUBE.sube * p;
+    for (let i = 0; i < this.nubes.length; i++) {
+      const n = this.nubes[i]!;
+      const p = visibles ? progresoNube(this.anillo, i, tiempo, vida) : -1;
+      n.visible = p >= 0;
+      if (p < 0) continue;
+      n.position.y = NUBE.lado / 2 + NUBE.sube * p;
       const e = 1 + NUBE.crece * p;
-      n.malla.scale.set(e, e, 1);
-      n.malla.material.opacity = NUBE.opacidad * (1 - p);
+      n.scale.set(e, e, 1);
+      n.material.opacity = NUBE.opacidad * (1 - p);
     }
   }
 

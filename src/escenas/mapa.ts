@@ -308,6 +308,7 @@ export class EscenaMapa implements Escena {
   enter(): void {
     const { mundo, aspecto, imagenes, catalogo, tam } = this.o;
     mundo.prepararZona(aspecto, imagenes, catalogo, tam);
+    mundo.vaciarPolvo();
     mundo.ponerColorPolvo(MAPA_VIVO.polvo.colores[this.o.musica] ?? '#777777');
   }
 
@@ -932,6 +933,7 @@ export class EscenaMapa implements Escena {
     this.actual = vecina;
     this.montada = this.montar(vecina);
     this.borrarSignos();
+    this.o.mundo.vaciarPolvo();
     this.minimapa = this.visitar(vecina);
     this.colocar(posicionEntrada(entrada, this.o.tam, this.o.heroina.cuerpo.alto));
     this.ladoEntrada = entrada.lado;
