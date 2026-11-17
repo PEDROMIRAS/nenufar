@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { desplazamientoCamara } from '../../core/impacto';
 import { crearDesenfoque } from './desenfoque';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
@@ -138,6 +139,7 @@ export class Mundo {
   private camaraZ = 0;
   private arribaY = 1;
   private arribaZ = 0;
+  private readonly temblorCamara = { x: 0, y: 0, z: 0 };
   /** Calidad aplicada ahora mismo (null = aún ninguna). */
   private alta: boolean | null = null;
   /** Luz del proyectil de la maga sobre la sala de fondo del combate; apagada el resto del tiempo. */
@@ -646,13 +648,16 @@ export class Mundo {
     if (this.heroe) this.heroe.malla.visible = false;
     for (const a of v.actores) a.malla.visible = false;
     this.animar(v, tiempo);
-    // Píxeles lógicos a unidades del mundo; bajar la imagen es subir la cámara por su «arriba».
-    const unidad = v.encuadre.ancho / SALA_ANCHO;
-    this.camara.position.set(
-      this.camaraX + temblorX * unidad,
-      this.camaraY + temblorY * unidad * this.arribaY,
-      this.camaraZ + temblorY * unidad * this.arribaZ,
+    // Píxeles lógicos a unidades del mundo, en el sentido en que la sala acompaña a los sprites.
+    const d = desplazamientoCamara(
+      temblorX,
+      temblorY,
+      v.encuadre.ancho / SALA_ANCHO,
+      this.arribaY,
+      this.arribaZ,
+      this.temblorCamara,
     );
+    this.camara.position.set(this.camaraX + d.x, this.camaraY + d.y, this.camaraZ + d.z);
     const datos = luz ? this.a.luces[luz.nombre] : undefined;
     if (luz && datos) {
       // El punto del canvas 2D, llevado a la ventana y de ahí al mundo a la altura de la luz.

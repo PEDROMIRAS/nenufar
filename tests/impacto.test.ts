@@ -2,6 +2,8 @@ import { describe, expect, test } from 'vitest';
 import type { Evento, Luchador } from '../src/core/combate';
 import {
   decaerTrauma,
+  desplazamientoCamara,
+  factorDestello,
   desplazamiento,
   factorTemblor,
   faseEntrada,
@@ -154,5 +156,21 @@ describe('sonidos del impacto', () => {
       expect(v).toBeGreaterThan(0);
       expect(v).toBeLessThanOrEqual(0.1);
     }
+  });
+});
+
+describe('revisión final', () => {
+  test('la cámara se mueve al revés que el temblor en x, para que la sala vaya con los sprites', () => {
+    const s = { x: 0, y: 0, z: 0 };
+    desplazamientoCamara(3, 0, 2, 0.8, -0.6, s);
+    expect(s.x).toBe(-6);
+    desplazamientoCamara(0, 2, 1, 0.8, -0.6, s);
+    expect(s.x).toBe(0);
+    expect(s.y).toBeCloseTo(1.6);
+    expect(s.z).toBeCloseTo(-1.2);
+  });
+  test('sin temblor tampoco hay destellos', () => {
+    expect(factorDestello(0)).toBe(0);
+    expect(factorDestello(0.3)).toBe(1);
   });
 });

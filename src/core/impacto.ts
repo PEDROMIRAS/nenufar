@@ -108,3 +108,27 @@ export function franja(i: number, n: number, barrido: number): number {
   const empieza = n > 1 ? (i / (n - 1)) * 0.5 : 0;
   return Math.min(1, Math.max(0, (barrido - empieza) / 0.5));
 }
+
+/**
+ * Cuánto se mueve la cámara 3D del fondo (en unidades del mundo) para un temblor (`temblorX`, `temblorY`) de la capa
+ * 2D: al revés en x (la cámara a la izquierda = la sala a la derecha, con los sprites) y por su «arriba» en y
+ * (subir la cámara = bajar la imagen). `unidad` = unidades del mundo por píxel lógico. Escribe en `salida`.
+ */
+export function desplazamientoCamara(
+  temblorX: number,
+  temblorY: number,
+  unidad: number,
+  arribaY: number,
+  arribaZ: number,
+  salida: { x: number; y: number; z: number },
+): { x: number; y: number; z: number } {
+  salida.x = temblorX === 0 ? 0 : -temblorX * unidad;
+  salida.y = temblorY * unidad * arribaY;
+  salida.z = temblorY * unidad * arribaZ;
+  return salida;
+}
+
+/** Los destellos salen solo si la pantalla puede temblar: con el temblor a 0 (ajuste o «menos movimiento»), nada. */
+export function factorDestello(temblor: number): number {
+  return temblor > 0 ? 1 : 0;
+}

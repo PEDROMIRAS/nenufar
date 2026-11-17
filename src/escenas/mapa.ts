@@ -53,10 +53,10 @@ import { crearLluvia, dibujarLluvia, moverLluvia, type Lluvia } from '../render/
 import { direccionDe } from '../render/monstruo';
 import type { Actor, FondoSala, Mundo, VistaSala } from '../render/mundo/mundo';
 import type { Sprite } from '../render/recursos';
-import { anunciar, movimientoReducido } from '../render/accesibilidad';
+import { anunciar, movimientoReducido, temblorEfectivo } from '../render/accesibilidad';
 import { ponerMusica, sonar } from '../render/sonido';
 import { dentro, SALA_ANCHO, seguir, vista as ventana } from '../render/pantalla';
-import { faseEntrada, type FaseEntrada } from '../core/impacto';
+import { factorDestello, faseEntrada, type FaseEntrada } from '../core/impacto';
 import { IMPACTO } from '../data/datos';
 import { dibujarEntrada } from '../render/entrada';
 import type { Escena } from './escena';
@@ -538,7 +538,7 @@ export class EscenaMapa implements Escena {
     ctx.restore();
     if (this.combateEntrante) {
       const fase = faseEntrada(this.entrada, IMPACTO, this.fase);
-      if (movimientoReducido()) fase.destello = 0;
+      fase.destello *= factorDestello(temblorEfectivo());
       dibujarEntrada(ctx, fase, IMPACTO.entrada.franjas, ventana.ancho, ventana.alto);
     }
   }

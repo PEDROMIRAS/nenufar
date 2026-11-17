@@ -29,8 +29,15 @@ import {
 } from '../core/descripciones';
 import { haceAlgo } from '../core/inventario';
 import { efectoToque, filaTocada } from '../core/menu';
-import { decaerTrauma, desplazamiento, juntarPausa, pesoDe, sumarTrauma } from '../core/impacto';
-import { anunciar, movimientoReducido, temblorEfectivo } from '../render/accesibilidad';
+import {
+  decaerTrauma,
+  desplazamiento,
+  factorDestello,
+  juntarPausa,
+  pesoDe,
+  sumarTrauma,
+} from '../core/impacto';
+import { anunciar, temblorEfectivo } from '../render/accesibilidad';
 import { IMPACTO } from '../data/datos';
 import type { Sprite } from '../render/recursos';
 import { ponerMusica, sonar } from '../render/sonido';
@@ -458,7 +465,7 @@ export class EscenaCombate implements Escena {
     const peso = IMPACTO.pesos[nombre];
     this.trauma = sumarTrauma(this.trauma, peso);
     this.pausa = juntarPausa(this.pausa, peso.pausa);
-    v.destello = movimientoReducido() ? 0 : peso.destello;
+    v.destello = peso.destello * factorDestello(temblorEfectivo());
     v.tiempoDestello = 0;
     if (e.tipo === 'danio') v.escalaNumero = peso.numero;
     if (peso.sonido) sonar(peso.sonido);
