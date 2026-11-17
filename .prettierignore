@@ -11,3 +11,4 @@ package-lock.json
 .claude
 graphify-out
 skills-lock.json
+node_modules.nosync

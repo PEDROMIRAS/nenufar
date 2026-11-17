@@ -1,0 +1,15 @@
+{
+  "name": "nenufar-video",
+  "private": true,
+  "type": "module",
+  "description": "Grabación y montaje del vídeo de demo de Nenúfar (fuera del juego).",
+  "scripts": {
+    "test": "tsx --test tiempos.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "playwright": "^1.65.1",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
