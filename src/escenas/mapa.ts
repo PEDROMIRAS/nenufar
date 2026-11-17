@@ -57,7 +57,8 @@ import { anunciar, movimientoReducido, temblorEfectivo } from '../render/accesib
 import { ponerMusica, sonar } from '../render/sonido';
 import { dentro, SALA_ANCHO, seguir, vista as ventana } from '../render/pantalla';
 import { factorDestello, faseEntrada, type FaseEntrada } from '../core/impacto';
-import { IMPACTO } from '../data/datos';
+import { escalaSigno, opacidadSigno, pisada } from '../core/senales';
+import { IMPACTO, MAPA_VIVO } from '../data/datos';
 import { dibujarEntrada } from '../render/entrada';
 import type { Escena } from './escena';
 
@@ -82,6 +83,9 @@ interface MonstruoMapa {
   p: Patrulla;
   grupo: MonstruoJson[];
   vivo: boolean;
+  /** Signo sobre su cabeza («¡!» al ver a la heroína, «?» al perderla) y segundos desde que salió. */
+  signo: 'alerta' | 'perdido' | null;
+  tiempoSigno: number;
 }
 
 interface SalaMontada {
@@ -195,6 +199,9 @@ export class EscenaMapa implements Escena {
   private fundido = 0;
   /** Combate que empieza cuando acabe la entrada (destello y franjas), y segundos que lleva la entrada. */
   private combateEntrante: (() => void) | null = null;
+  /** Sonido de los pasos en esta zona (`paso_bosque`…) y segundos que lleva corriendo desde la última nube de polvo. */
+  private readonly sonidoPaso: string;
+  private polvoPendiente = 0;
   private entrada = 0;
   private readonly fase: FaseEntrada = { destello: 0, barrido: 0, terminada: false };
   private pendiente: number | 'portal' | null = null;
@@ -225,6 +232,7 @@ export class EscenaMapa implements Escena {
   private hudFirma = -1;
 
   constructor(private readonly o: OpcionesMapa) {
+    this.sonidoPaso = `paso_${o.musica}`;
     const inicio = o.zona.salas.find((s) => s.tipo === 'inicio');
     if (!inicio) throw new Error('La zona no tiene sala de inicio');
     this.azarMapa = crearAzar(o.zona.semilla * 7 + 3);
@@ -300,6 +308,8 @@ export class EscenaMapa implements Escena {
   enter(): void {
     const { mundo, aspecto, imagenes, catalogo, tam } = this.o;
     mundo.prepararZona(aspecto, imagenes, catalogo, tam);
+    mundo.vaciarPolvo();
+    mundo.ponerColorPolvo(MAPA_VIVO.polvo.colores[this.o.musica] ?? '#777777');
   }
 
   exit(): void {
@@ -357,7 +367,9 @@ export class EscenaMapa implements Escena {
       this.o.abrirPausa();
       return;
     }
+    const animacionAntes = h.tiempoAnimacion;
     actualizarHeroina(h, acciones, dt, this.montada.sala, tam, acciones.correr);
+    this.pisar(animacionAntes, acciones.correr, dt);
     this.tiempoAviso = Math.max(0, this.tiempoAviso - dt);
     if (this.tiempoAviso === 0 && this.pista < this.o.pistas.length) {
       this.avisar(this.o.pistas[this.pista++]!, this.o.segundosPista);
@@ -450,7 +462,9 @@ export class EscenaMapa implements Escena {
           this.montada.sala,
           tam,
           this.azarMapa,
+          MAPA_VIVO.alerta.pausa,
         );
+        this.avisarSigno(m, dt);
       }
     }
     if (this.invulnerable > 0) {
@@ -543,6 +557,49 @@ export class EscenaMapa implements Escena {
     }
   }
 
+  /** Pone el «¡!» o el «?» del monstruo `m` si acaba de ver o perder a la heroína, y lo apaga al acabar. */
+  private avisarSigno(m: MonstruoMapa, dt: number): void {
+    if (m.p.cambio !== 0) {
+      m.signo = m.p.cambio === 1 ? 'alerta' : 'perdido';
+      m.tiempoSigno = 0;
+      const sonido = (m.signo === 'alerta' ? MAPA_VIVO.alerta : MAPA_VIVO.perdido).sonido;
+      if (sonido) sonar(sonido);
+      return;
+    }
+    if (!m.signo) return;
+    m.tiempoSigno += dt;
+    const datos = m.signo === 'alerta' ? MAPA_VIVO.alerta : MAPA_VIVO.perdido;
+    if (m.tiempoSigno >= datos.duracion) m.signo = null;
+  }
+
+  /** Sin signos en la sala actual (al entrar en ella o al volver de un combate). */
+  private borrarSignos(): void {
+    for (const m of this.montada.monstruos) m.signo = null;
+  }
+
+  /**
+   * Pasos y polvo: si la heroína se ha movido de verdad (andar contra un muro no cuenta), suena una pisada en los
+   * fotogramas de apoyo de su animación y, corriendo, va soltando polvo.
+   */
+  private pisar(animacionAntes: number, corriendo: boolean, dt: number): void {
+    const h = this.o.heroina;
+    const movida = h.cuerpo.x !== h.xAnterior || h.cuerpo.y !== h.yAnterior;
+    if (!movida || h.animacion !== 'walk') {
+      this.polvoPendiente = 0;
+      return;
+    }
+    const anim = this.o.sprite.datos.animations.walk;
+    const { pasos, polvo } = MAPA_VIVO;
+    if (anim && pisada(animacionAntes, h.tiempoAnimacion, anim.fps, anim.frames, pasos.pisadas))
+      sonar(this.sonidoPaso, corriendo ? pasos.corriendo : 1);
+    if (!corriendo) return;
+    this.polvoPendiente += dt;
+    if (this.polvoPendiente >= polvo.cada) {
+      this.polvoPendiente -= polvo.cada;
+      this.o.mundo.soltarPolvo(h.cuerpo.x, h.cuerpo.y + h.cuerpo.alto / 2, this.tiempo);
+    }
+  }
+
   /** La entrada al combate (destello, franjas y sonido) y, en negro, el combate; al volver, el mapa sale de negro. */
   private entrarEnCombate(lanzar: () => void): void {
     this.combateEntrante = lanzar;
@@ -562,6 +619,7 @@ export class EscenaMapa implements Escena {
         grupo,
         (r) => {
           alTerminar(r);
+          this.borrarSignos();
           // El combate acabó fundido a negro: el mapa sale de negro (la mitad de un fundido de salas).
           this.fundido = this.o.duracionFundido / 2;
         },
@@ -755,6 +813,16 @@ export class EscenaMapa implements Escena {
     const y = yAnterior + (c.y - yAnterior) * alpha;
     const andando = c.x !== xAnterior || c.y !== yAnterior;
     const direccion = direccionDe(m.p.dirX, m.p.dirY);
+    const lider = actores[0];
+    if (lider) {
+      const datos = m.signo === 'perdido' ? MAPA_VIVO.perdido : MAPA_VIVO.alerta;
+      this.o.mundo.colocarSigno(
+        lider,
+        m.vivo ? m.signo : null,
+        escalaSigno(m.tiempoSigno, datos, movimientoReducido()),
+        opacidadSigno(m.tiempoSigno, datos),
+      );
+    }
     actores.forEach((a, i) => {
       a.malla.visible = m.vivo;
       if (!m.vivo) return;
@@ -805,6 +873,11 @@ export class EscenaMapa implements Escena {
         return sprite ? [mundo.crearActor(sala, sprite)] : [];
       }),
     );
+    // Solo los que se mueven ven a la heroína: el primero de cada grupo lleva el «¡!» y el «?».
+    m.monstruos.forEach((g, i) => {
+      const lider = actores[i]?.[0];
+      if (g.grupo[0]?.mapa && lider) mundo.crearSigno(lider);
+    });
     const hoja = m.ermitano ? spritesMonstruos.get(this.o.ermitano.sprite) : undefined;
     m.vista = { sala, actores, ermitano: hoja ? mundo.crearActor(sala, hoja) : null };
     return m.vista;
@@ -859,6 +932,8 @@ export class EscenaMapa implements Escena {
     this.soltarCierre();
     this.actual = vecina;
     this.montada = this.montar(vecina);
+    this.borrarSignos();
+    this.o.mundo.vaciarPolvo();
     this.minimapa = this.visitar(vecina);
     this.colocar(posicionEntrada(entrada, this.o.tam, this.o.heroina.cuerpo.alto));
     this.ladoEntrada = entrada.lado;
@@ -976,7 +1051,15 @@ export class EscenaMapa implements Escena {
       const { ancho, alto } = central.caja;
       const x = Math.floor(sala.ancho / 2) * tam + tam / 2;
       const y = Math.floor(sala.alto / 2) * tam + (tam + alto) / 2;
-      return [{ p: crearPatrulla({ x, y, ancho, alto }), grupo: [central], vivo: true }];
+      return [
+        {
+          p: crearPatrulla({ x, y, ancho, alto }),
+          grupo: [central],
+          vivo: true,
+          signo: null,
+          tiempoSigno: 0,
+        },
+      ];
     }
     if (s.tipo !== 'combate' || grupos.length === 0) return [];
     const cuantos = cuantosGrupos(gruposPorSala, this.o.gruposExtra, azar);
@@ -991,6 +1074,8 @@ export class EscenaMapa implements Escena {
             p: crearPatrulla({ x: c * tam + tam / 2, y: f * tam + (tam + alto) / 2, ancho, alto }),
             grupo,
             vivo: true,
+            signo: null,
+            tiempoSigno: 0,
           },
         ];
       },

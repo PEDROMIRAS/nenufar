@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { desplazamientoCamara } from '../../core/impacto';
+import { crearAnillo, progresoNube, soltarNube, vaciarAnillo } from '../../core/polvo';
+import { MAPA_VIVO } from '../../data/datos';
 import { crearDesenfoque } from './desenfoque';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
@@ -62,7 +64,14 @@ export interface Actor {
   sprite: Sprite;
   columnas: number;
   filas: number;
+  /** El «¡!» o el «?» sobre la cabeza (hijo de la malla); null si este actor no lleva signos. */
+  signo: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial> | null;
 }
+
+/** Lado del signo, en casillas, y cuánto queda por encima de la cabeza. */
+const SIGNO = { lado: 0.5, sobre: 0.15 };
+/** Lado de una nube de polvo en casillas, cuánto sube y cuánto crece al deshacerse, y su opacidad al salir. */
+const NUBE = { lado: 0.28, sube: 0.15, crece: 1, opacidad: 0.55 };
 
 /** Tiles de un objeto apilados de arriba abajo en una textura, que se repinta al cambiar de fotograma. */
 interface Pieza {
@@ -125,6 +134,11 @@ export class Mundo {
   private zona: ZonaMontada | null = null;
   private vista: VistaSala | null = null;
   private readonly giro: number;
+  /** Texturas del «¡!» y el «?», hechas una vez y compartidas por todos los signos. */
+  private readonly texturasSigno: { alerta: THREE.Texture; perdido: THREE.Texture };
+  /** Nubes de polvo de los pasos: un plano por hueco del anillo (la siguiente que sale es la más vieja). */
+  private readonly nubes: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>[] = [];
+  private readonly anillo = crearAnillo(MAPA_VIVO.polvo.cantidad);
   private readonly estirar: number;
   /** Vectores de trabajo para proyectar a pantalla y al revés (sin crear nada en el bucle). */
   private readonly pantalla = new THREE.Vector3();
@@ -172,6 +186,20 @@ export class Mundo {
     // se estiran para que, vistos desde la cámara, conserven su alto.
     this.giro = angulo * a.inclinacionSprites;
     this.estirar = 1 / Math.cos(angulo - this.giro);
+    this.texturasSigno = {
+      alerta: texturaSigno('¡!', '#d8584a'),
+      perdido: texturaSigno('?', '#c9b6ff'),
+    };
+    const textNube = texturaNube();
+    for (let i = 0; i < MAPA_VIVO.polvo.cantidad; i++) {
+      const malla = new THREE.Mesh(
+        new THREE.PlaneGeometry(NUBE.lado, NUBE.lado),
+        new THREE.MeshBasicMaterial({ map: textNube, transparent: true, depthWrite: false }),
+      );
+      malla.rotation.x = -this.giro;
+      malla.visible = false;
+      this.nubes.push(malla);
+    }
 
     this.cielo = new THREE.HemisphereLight();
     this.principal = new THREE.DirectionalLight();
@@ -295,6 +323,7 @@ export class Mundo {
 
   /** Suelta todo lo de la zona anterior (geometrías, materiales y texturas). */
   vaciar(): void {
+    this.vaciarPolvo();
     if (!this.zona) return;
     for (const v of this.zona.vistas) {
       if (v.grupo.parent) v.grupo.parent.remove(v.grupo);
@@ -558,9 +587,79 @@ export class Mundo {
     malla.rotation.x = -this.giro;
     malla.scale.y = this.estirar;
     (v?.grupo ?? this.escena).add(malla);
-    const actor = { malla, tex, sprite, columnas, filas };
+    const actor: Actor = { malla, tex, sprite, columnas, filas, signo: null };
     v?.actores.push(actor);
     return actor;
+  }
+
+  /** Da al actor un signo («¡!» o «?») sobre la cabeza, oculto hasta que se pida con `colocarSigno`. */
+  crearSigno(a: Actor): void {
+    if (a.signo) return;
+    const { anchor } = a.sprite.datos;
+    const tam = TAM * escalaHoja(a.sprite.datos);
+    const signo = new THREE.Mesh(
+      new THREE.PlaneGeometry(SIGNO.lado, SIGNO.lado),
+      new THREE.MeshBasicMaterial({
+        map: this.texturasSigno.alerta,
+        transparent: true,
+        depthWrite: false,
+      }),
+    );
+    // La malla del actor tiene el origen en los pies: la cabeza queda `anchor.y` píxeles de hoja más arriba.
+    signo.position.y = anchor.y / tam + SIGNO.sobre + SIGNO.lado / 2;
+    signo.visible = false;
+    a.malla.add(signo);
+    a.signo = signo;
+  }
+
+  /** Enseña (o esconde, con `tipo` null) el signo del actor con ese tamaño y opacidad. */
+  colocarSigno(
+    a: Actor,
+    tipo: 'alerta' | 'perdido' | null,
+    escala: number,
+    opacidad: number,
+  ): void {
+    const s = a.signo;
+    if (!s) return;
+    s.visible = tipo !== null && opacidad > 0;
+    if (!tipo || !s.visible) return;
+    const tex = this.texturasSigno[tipo];
+    if (s.material.map !== tex) s.material.map = tex;
+    s.material.opacity = opacidad;
+    s.scale.set(escala, escala, 1);
+  }
+
+  /** Color del polvo de los pasos (el del suelo de la zona). */
+  ponerColorPolvo(hex: string): void {
+    for (const n of this.nubes) n.material.color.set(hex);
+  }
+
+  /** Suelta una nube de polvo en los pies, en (x, y) píxeles del juego; reutiliza la más vieja. */
+  soltarPolvo(x: number, y: number, tiempo: number): void {
+    const n = this.nubes[soltarNube(this.anillo, tiempo)]!;
+    n.position.set(x / TAM, NUBE.lado / 2, y / TAM);
+    if (n.parent !== this.escena) this.escena.add(n);
+  }
+
+  /** Quita todo el polvo (al cambiar de sala o de zona, cuando el reloj de la escena cambia). */
+  vaciarPolvo(): void {
+    vaciarAnillo(this.anillo);
+    for (const n of this.nubes) n.visible = false;
+  }
+
+  /** Las nubes suben un poco, crecen y se desvanecen; `visibles` = false las esconde (fondo del combate). */
+  private animarPolvo(tiempo: number, visibles: boolean): void {
+    const vida = MAPA_VIVO.polvo.vida;
+    for (let i = 0; i < this.nubes.length; i++) {
+      const n = this.nubes[i]!;
+      const p = visibles ? progresoNube(this.anillo, i, tiempo, vida) : -1;
+      n.visible = p >= 0;
+      if (p < 0) continue;
+      n.position.y = NUBE.lado / 2 + NUBE.sube * p;
+      const e = 1 + NUBE.crece * p;
+      n.scale.set(e, e, 1);
+      n.material.opacity = NUBE.opacidad * (1 - p);
+    }
   }
 
   /** Coloca un actor con los pies en (x, y) píxeles del juego y el fotograma de `animacion` a los `tiempo` segundos. */
@@ -614,6 +713,7 @@ export class Mundo {
     h.malla.material.opacity = opacidad;
     for (const b of v.barreras) b.obj.visible = (cerradas & b.lado) !== 0;
     this.animar(v, tiempo);
+    this.animarPolvo(tiempo, true);
     this.luzCombate.intensity = 0;
     this.camara.position.set(this.camaraX, this.camaraY, this.camaraZ);
 
@@ -647,6 +747,7 @@ export class Mundo {
     if (v !== this.vista) this.mostrar(v);
     if (this.heroe) this.heroe.malla.visible = false;
     for (const a of v.actores) a.malla.visible = false;
+    this.animarPolvo(tiempo, false);
     this.animar(v, tiempo);
     // Píxeles lógicos a unidades del mundo, en el sentido en que la sala acompaña a los sprites.
     const d = desplazamientoCamara(
@@ -866,4 +967,37 @@ function pintarPieza(
     dibujarTile(p.ctx, imagenes, t, tam, 0, fila * tam, t.frames ? frame % t.frames : 0),
   );
   p.tex.needsUpdate = true;
+}
+
+/** Textura de un signo («¡!» o «?»): letra gruesa del color pedido con contorno oscuro, en píxeles nítidos. */
+function texturaSigno(texto: string, color: string): THREE.Texture {
+  const lienzo = document.createElement('canvas');
+  lienzo.width = 32;
+  lienzo.height = 32;
+  const ctx = lienzo.getContext('2d')!;
+  ctx.font = 'bold 26px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = '#08040c';
+  ctx.strokeText(texto, 16, 17);
+  ctx.fillStyle = color;
+  ctx.fillText(texto, 16, 17);
+  const tex = new THREE.CanvasTexture(lienzo);
+  ajustarPixelArt(tex);
+  return tex;
+}
+
+/** Textura de una nube de polvo: un círculo blanco de borde suave (el color lo pone el material). */
+function texturaNube(): THREE.Texture {
+  const lienzo = document.createElement('canvas');
+  lienzo.width = 16;
+  lienzo.height = 16;
+  const ctx = lienzo.getContext('2d')!;
+  const g = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 16, 16);
+  return new THREE.CanvasTexture(lienzo);
 }

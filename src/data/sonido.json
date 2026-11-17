@@ -528,6 +528,70 @@
         "duracion": 0.35,
         "retardo": 0.05
       }
+    ],
+    "alerta": [
+      {
+        "onda": "square",
+        "desde": 660,
+        "duracion": 0.06,
+        "volumen": 0.35
+      },
+      {
+        "onda": "square",
+        "desde": 880,
+        "duracion": 0.08,
+        "retardo": 0.06,
+        "volumen": 0.35
+      }
+    ],
+    "paso_bosque": [
+      {
+        "onda": "ruido",
+        "duracion": 0.04,
+        "volumen": 0.12
+      },
+      {
+        "onda": "sine",
+        "desde": 120,
+        "hasta": 80,
+        "duracion": 0.04,
+        "volumen": 0.1
+      }
+    ],
+    "paso_ruinas": [
+      {
+        "onda": "ruido",
+        "duracion": 0.03,
+        "volumen": 0.15
+      },
+      {
+        "onda": "square",
+        "desde": 300,
+        "hasta": 200,
+        "duracion": 0.02,
+        "volumen": 0.05
+      }
+    ],
+    "paso_cripta": [
+      {
+        "onda": "ruido",
+        "duracion": 0.035,
+        "volumen": 0.13
+      },
+      {
+        "onda": "triangle",
+        "desde": 220,
+        "hasta": 140,
+        "duracion": 0.03,
+        "volumen": 0.08
+      }
+    ],
+    "paso_cauce": [
+      {
+        "onda": "ruido",
+        "duracion": 0.05,
+        "volumen": 0.14
+      }
     ]
   },
   "variacion": {
@@ -538,7 +602,11 @@
     "acero": 0.04,
     "iaido": 0.04,
     "impacto": 0.04,
-    "impacto_fuerte": 0.04
+    "impacto_fuerte": 0.04,
+    "paso_bosque": 0.07,
+    "paso_ruinas": 0.07,
+    "paso_cripta": 0.07,
+    "paso_cauce": 0.07
   },
   "musica": {
     "bosque": {

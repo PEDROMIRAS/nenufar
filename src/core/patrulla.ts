@@ -16,6 +16,10 @@ export interface Patrulla {
   dirX: number;
   dirY: number;
   persiguiendo: boolean;
+  /** Segundos que le quedan quieto tras ver a la heroína (el «¡!»), antes de lanzarse. */
+  alerta: number;
+  /** Qué pasó en el último paso: 1 = acaba de verla, −1 = acaba de perderla, 0 = nada. */
+  cambio: -1 | 0 | 1;
 }
 
 /** La persecución se abandona cuando la heroína se aleja más que la visión × este factor. */
@@ -36,10 +40,15 @@ export function crearPatrulla(cuerpo: Cuerpo): Patrulla {
     dirX: 0,
     dirY: 1,
     persiguiendo: false,
+    alerta: 0,
+    cambio: 0,
   };
 }
 
-/** Un paso lógico de patrulla o persecución. No crea objetos: se llama en cada paso del bucle. */
+/**
+ * Un paso lógico de patrulla o persecución. No crea objetos: se llama en cada paso del bucle. Al ver a la heroína,
+ * la mira y se queda quieto `pausa` segundos antes de perseguirla (el «¡!»); `cambio` cuenta si la vio o la perdió.
+ */
 export function actualizarPatrulla(
   p: Patrulla,
   mov: MovimientoMapaJson,
@@ -49,13 +58,31 @@ export function actualizarPatrulla(
   rejilla: Rejilla,
   tam: number,
   azar: () => number,
+  pausa = 0,
 ): void {
   const c = p.cuerpo;
   p.xAnterior = c.x;
   p.yAnterior = c.y;
+  p.cambio = 0;
+  const antes = p.persiguiendo;
   const aHeroe = Math.hypot(heroeX - c.x, heroeY - c.y);
   if (aHeroe < mov.vision) p.persiguiendo = true;
   else if (aHeroe > mov.vision * OLVIDO) p.persiguiendo = false;
+  if (!antes && p.persiguiendo) {
+    p.cambio = 1;
+    p.alerta = pausa;
+    if (aHeroe > 0) {
+      p.dirX = (heroeX - c.x) / aHeroe;
+      p.dirY = (heroeY - c.y) / aHeroe;
+    }
+  } else if (antes && !p.persiguiendo) {
+    p.cambio = -1;
+    p.alerta = 0;
+  }
+  if (p.persiguiendo && p.alerta > 0) {
+    p.alerta -= dt;
+    return;
+  }
 
   let tx = heroeX;
   let ty = heroeY;
