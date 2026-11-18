@@ -37,48 +37,48 @@
     },
     "candelabro": {
       "color": "#ffb46a",
-      "intensidad": 6,
-      "alcance": 4.5,
+      "intensidad": 8.4,
+      "alcance": 6.5,
       "alto": 0.9,
       "parpadeo": 0.12,
       "sombra": false
     },
     "fuego_morado": {
       "color": "#b46cff",
-      "intensidad": 10,
-      "alcance": 5,
+      "intensidad": 14,
+      "alcance": 7,
       "alto": 0.6,
       "parpadeo": 0,
       "sombra": false
     },
     "portal": {
       "color": "#a864ff",
-      "intensidad": 9,
-      "alcance": 4.5,
+      "intensidad": 12.6,
+      "alcance": 6.5,
       "alto": 0.6,
       "parpadeo": 0.08,
       "sombra": false
     },
     "altar": {
       "color": "#b46cff",
-      "intensidad": 5,
-      "alcance": 3.5,
+      "intensidad": 7,
+      "alcance": 5.5,
       "alto": 0.7,
       "parpadeo": 0.1,
       "sombra": false
     },
     "desafio": {
       "color": "#ff5a3c",
-      "intensidad": 5,
-      "alcance": 3.5,
+      "intensidad": 7,
+      "alcance": 5.5,
       "alto": 0.7,
       "parpadeo": 0.1,
       "sombra": false
     },
     "brasero": {
       "color": "#ff8a3a",
-      "intensidad": 6.5,
-      "alcance": 5,
+      "intensidad": 9.1,
+      "alcance": 7,
       "alto": 0.7,
       "parpadeo": 0.14,
       "sombra": false
@@ -118,8 +118,9 @@
     "ruinas": {
       "fondo": "#121410",
       "modelos": true,
-      "cielo": { "arriba": "#ffe9c8", "abajo": "#4a4636", "intensidad": 1.5 },
-      "principal": { "color": "#fff1d6", "intensidad": 1.4 },
+      "niebla": 0.012,
+      "cielo": { "arriba": "#ffe9c8", "abajo": "#4a4636", "intensidad": 0.9 },
+      "principal": { "color": "#fff1d6", "intensidad": 1.6 },
       "borde": {
         "tipo": "sillares",
         "alto": 1.0,
@@ -138,8 +139,9 @@
     "cripta": {
       "fondo": "#07060b",
       "modelos": true,
-      "cielo": { "arriba": "#8f7ad0", "abajo": "#2a2238", "intensidad": 2.6 },
-      "principal": { "color": "#c9b8ff", "intensidad": 1.2 },
+      "niebla": 0.012,
+      "cielo": { "arriba": "#8f7ad0", "abajo": "#2a2238", "intensidad": 1.2 },
+      "principal": { "color": "#c9b8ff", "intensidad": 1.0 },
       "borde": {
         "tipo": "sillares",
         "alto": 1.15,
@@ -158,7 +160,8 @@
     "cauce": {
       "fondo": "#0a0508",
       "modelos": false,
-      "cielo": { "arriba": "#8a7498", "abajo": "#2a1c22", "intensidad": 2.7 },
+      "niebla": 0.012,
+      "cielo": { "arriba": "#8a7498", "abajo": "#2a1c22", "intensidad": 1.2 },
       "principal": { "color": "#ffb888", "intensidad": 1.2 },
       "borde": {
         "tipo": "sillares",
