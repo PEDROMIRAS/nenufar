@@ -14,6 +14,7 @@ import { escalaHoja } from '../../core/hoja';
 import type { ObjetoSala, Sala, Salida, Tile } from '../../core/sala';
 import type { Direccion, Hd2dJson, LuzHd2d, ZonaHd2d } from '../../core/types';
 import { N, S } from '../../core/zona';
+import { PALETA } from '../marco';
 import { cargarAjustes, guardarAjustes } from '../almacen';
 import { alRedimensionar, aVentana, rectSala, SALA_ALTO, SALA_ANCHO } from '../pantalla';
 import type { Sprite } from '../recursos';
@@ -187,8 +188,8 @@ export class Mundo {
     this.giro = angulo * a.inclinacionSprites;
     this.estirar = 1 / Math.cos(angulo - this.giro);
     this.texturasSigno = {
-      alerta: texturaSigno('¡!', '#d8584a'),
-      perdido: texturaSigno('?', '#c9b6ff'),
+      alerta: texturaSigno('¡!', PALETA.peligro),
+      perdido: texturaSigno('?', PALETA.claro),
     };
     const textNube = texturaNube();
     for (let i = 0; i < MAPA_VIVO.polvo.cantidad; i++) {
@@ -331,7 +332,10 @@ export class Mundo {
         if (!(o instanceof THREE.Mesh || o instanceof THREE.Points)) return;
         o.geometry.dispose();
         for (const m of [o.material as THREE.Material | THREE.Material[]].flat()) {
-          (m as THREE.MeshLambertMaterial).map?.dispose();
+          const map = (m as THREE.MeshLambertMaterial).map;
+          // Las texturas del «¡!» y el «?» son de todas las zonas: no se sueltan.
+          if (map && map !== this.texturasSigno.alerta && map !== this.texturasSigno.perdido)
+            map.dispose();
           m.dispose();
         }
       });

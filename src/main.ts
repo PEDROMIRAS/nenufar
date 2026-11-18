@@ -1267,7 +1267,13 @@ function terminarPartida(partida: Partida, victoria: boolean): void {
     partida.pila.cambiar(
       victoria
         ? new EscenaMensaje('¡Victoria!', PALETA.elegida, lineas, VOLVER_AL_TITULO, empezarOtra)
-        : new EscenaMensaje('Fin de la partida', '#d8584a', lineas, VOLVER_AL_TITULO, empezarOtra),
+        : new EscenaMensaje(
+            'Fin de la partida',
+            PALETA.peligro,
+            lineas,
+            VOLVER_AL_TITULO,
+            empezarOtra,
+          ),
     ),
   );
 }

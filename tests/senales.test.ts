@@ -38,8 +38,10 @@ describe('pisada', () => {
     expect(p(0.1, 0.3)).toBe(true);
     expect(p(0.26, 0.49)).toBe(false);
   });
-  test('si la animación se reinicia, no suena', () => {
-    expect(p(0.5, 0.01)).toBe(false);
+  test('al echar a andar (la animación se reinicia) suena el primer apoyo, el fotograma 0', () => {
+    expect(p(0.5, 0.01)).toBe(true);
+    // Si el primer fotograma no es de apoyo, no.
+    expect(pisada(0.5, 0.01, 8, 4, [1, 3])).toBe(false);
   });
 });
 
