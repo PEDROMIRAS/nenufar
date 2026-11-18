@@ -458,8 +458,9 @@ export class Mundo {
     );
     // El suelo toma relieve de su propio dibujo (lo claro sube): la luz rasante de una hoguera lo marca.
     if (this.a.relieve) {
-      plano.material.bumpMap = plano.material.map;
+      plano.material.userData.relieve = plano.material.map;
       plano.material.bumpScale = this.a.relieve.suelo;
+      ponerRelieve(plano.material, calidadAlta);
     }
     plano.rotation.x = -Math.PI / 2;
     plano.position.copy(centro);
@@ -606,8 +607,9 @@ export class Mundo {
       side: THREE.DoubleSide,
     });
     if (normales && rel) {
-      material.normalMap = normales;
+      material.userData.relieve = normales;
       material.normalScale.set(rel.escala, rel.escala);
+      ponerRelieve(material, calidadAlta);
     }
     const malla = carton(
       material,
@@ -823,6 +825,16 @@ export class Mundo {
     this.alta = calidadAlta;
     this.tiltH.enabled = this.tiltV.enabled = calidadAlta;
     this.principal.castShadow = calidadAlta;
+    // En baja, sin relieve en los sprites ni en el suelo (todas las salas montadas y la heroína).
+    this.escena.traverse((o) => {
+      if (o instanceof THREE.Mesh && o.material instanceof THREE.MeshLambertMaterial)
+        ponerRelieve(o.material, calidadAlta);
+    });
+    for (const vista of this.zona?.vistas ?? [])
+      vista.grupo.traverse((o) => {
+        if (o instanceof THREE.Mesh && o.material instanceof THREE.MeshLambertMaterial)
+          ponerRelieve(o.material, calidadAlta);
+      });
     const v = this.vista;
     this.vista = null;
     if (v) this.mostrar(v);
@@ -1033,4 +1045,20 @@ function texturaNube(): THREE.Texture {
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, 16, 16);
   return new THREE.CanvasTexture(lienzo);
+}
+
+/**
+ * Pone o quita el relieve guardado en `userData.relieve` (mapa de normales de un sprite o bump del suelo, según el
+ * material lo tenga como normal o como bump). Sin relieve guardado, nada.
+ */
+function ponerRelieve(m: THREE.MeshLambertMaterial, alta: boolean): void {
+  const relieve = m.userData.relieve as THREE.Texture | undefined;
+  if (!relieve) return;
+  const esSuelo = relieve === m.map;
+  const actual = esSuelo ? m.bumpMap : m.normalMap;
+  const nuevo = alta ? relieve : null;
+  if (actual === nuevo) return;
+  if (esSuelo) m.bumpMap = nuevo;
+  else m.normalMap = nuevo;
+  m.needsUpdate = true;
 }
