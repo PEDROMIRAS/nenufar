@@ -31,6 +31,9 @@ import {
 } from './core/reto';
 import { EscenaFinReto } from './escenas/finReto';
 import RETO from './data/reto.json';
+import JUGADORA from './data/jugadora.json';
+import { elegirDia } from './core/diaJusto';
+import { gruposDeZona } from './core/montaje';
 import {
   actualizarRecords,
   anotarLogros,
@@ -41,7 +44,7 @@ import {
 } from './core/records';
 import { logrosNuevos, monstruosDelMundo, type Logro } from './core/logros';
 import logrosJson from './data/logros.json';
-import { construirSala, crearCatalogo } from './core/sala';
+import { construirSala, crearCatalogo, type Tile } from './core/sala';
 import { bestiarioCon, monstruoCon, reglasCon } from './core/dificultad';
 import type {
   DificultadJson,
@@ -635,11 +638,9 @@ async function crearZona(
   const reto = partida.reto;
   // Cada zona con su propia semilla, derivada de la de la partida. El reto: la zona corta, con la semilla del día
   // tal cual y sin sala violeta, trampa, eventos ni presagio (como la juega el simulador).
+  const catalogo = crearCatalogo(tilesets);
   const zona = reto
-    ? generarZona(
-        { ...zonas.generacion, salas: RETO.salas, tesoros: RETO.tesoros },
-        partida.semilla,
-      )
+    ? diaDelReto(partida, datos, catalogo)
     : generarZona(
         {
           ...zonas.generacion,
@@ -687,7 +688,7 @@ async function crearZona(
     aspecto: aspecto(nombre),
     fuente: HD2D.fuente,
     plantillas: PLANTILLAS[nombre],
-    catalogo: crearCatalogo(tilesets),
+    catalogo,
     imagenes,
     tam: tilesets[0]?.tileSize ?? 32,
     heroina: partida.heroina,
@@ -822,6 +823,56 @@ async function crearZona(
   });
   if (reto) reto.progreso = () => progresoReto(zona.salas, escena.estado().visitadas);
   return escena;
+}
+
+/**
+ * La zona del reto del día: la de la semilla de la fecha si es justa para todas las ranas (la jugadora simulada la
+ * juega antes); si no, la siguiente. Es determinista: el mismo día para todo el mundo. Fija la semilla de la partida
+ * a la de la zona elegida (los combates sacan su azar de ella).
+ */
+function diaDelReto(
+  partida: Partida,
+  datos: (typeof zonas.zonas)[NombreZona],
+  catalogo: ReadonlyMap<string, Tile>,
+): Zona {
+  const nombre = RETO.zona as NombreZona;
+  const inicio = performance.now();
+  const zona = elegirDia(
+    partida.semilla,
+    (s) => generarZona({ ...zonas.generacion, salas: RETO.salas, tesoros: RETO.tesoros }, s),
+    (z) =>
+      new Map(
+        [
+          ...gruposDeZona(
+            z,
+            PLANTILLAS[nombre],
+            catalogo,
+            RETO.gruposPorSala,
+            zonas.monstruos.distanciaEntradas,
+            datos.grupos,
+          ),
+        ].map(([sala, grupos]) => [sala, grupos.map((g) => g.monstruos)]),
+      ),
+    {
+      heroes: Object.values(HEROES),
+      nivel: RETO.nivel,
+      cofre: datos.cofre,
+      jefe: datos.jefe,
+      mundo: {
+        bestiario: partida.bestiario,
+        reglas: partida.reglas,
+        objetos: OBJETOS,
+        experiencia: REGLAS.experiencia,
+        politica: JUGADORA,
+      },
+      comprobacion: RETO.comprobacion,
+    },
+  );
+  partida.semilla = zona.semilla;
+  console.info(
+    `Reto del día: semilla ${zona.semilla}, comprobada en ${Math.round(performance.now() - inicio)} ms`,
+  );
+  return zona;
 }
 
 /** Pone (o quita) el presagio de la zona y recalcula lo que depende de él: la dificultad, los monstruos y las reglas. */

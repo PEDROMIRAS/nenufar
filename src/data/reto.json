@@ -14,5 +14,11 @@
     "vida": 1.4,
     "recuperacion": 0.6,
     "violetas": 1
+  },
+  "comprobacion": {
+    "intentos": 100,
+    "minimo": 55,
+    "maximo": 75,
+    "semillas": 40
   }
 }

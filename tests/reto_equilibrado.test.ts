@@ -28,9 +28,7 @@ test('reto del día: 60-70 % con cada heroína, a menos de 5 puntos, y ningún d
   for (const nombre of Object.keys(HEROES)) {
     const r = simularReto(nombre, semillas, INTENTOS);
     const peor = Math.min(...r.porFecha);
-    console.log(
-      `reto · ${nombre}: ${r.total}% · peor día ${peor}% · combates por intento ${r.combates} · jefe ${r.jefe}% · nivel ante el jefe ${r.nivel}`,
-    );
+    console.log(`reto · ${nombre}: ${r.total}% · peor día ${peor}%`);
     totales.push(r.total);
     expect(r.total).toBeGreaterThanOrEqual(60);
     expect(r.total).toBeLessThanOrEqual(70);

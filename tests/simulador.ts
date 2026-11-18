@@ -1,16 +1,12 @@
 import { crearAzar, elegirConPeso } from '../src/core/azar';
 import {
-  actuar,
-  avanzar,
-  crearCombate,
-  habilidadesDisponibles,
-  luchadorDeHeroe,
-  luchadoresDeGrupo,
-  type AccionHeroina,
-  type Combate,
-  type Luchador,
-} from '../src/core/combate';
-import { abrirCofre, equipar, inventarioInicial } from '../src/core/equipo';
+  pelear as pelearJugadora,
+  quizaEquipar as quizaEquiparJugadora,
+  type MundoJugadora,
+} from '../src/core/jugadora';
+import JUGADORA from '../src/data/jugadora.json';
+import { luchadorDeHeroe, type Luchador } from '../src/core/combate';
+import { abrirCofre, inventarioInicial } from '../src/core/equipo';
 import {
   aplicarAltar,
   aplicarErmitano,
@@ -19,9 +15,8 @@ import {
   reglasDesafio,
 } from '../src/core/eventos';
 import type { Inventario } from '../src/core/inventario';
-import { empezarEnNivel, repartirPuntos } from '../src/core/progresion';
-import type { DificultadJson, EquipoJson, MonstruoJson, ReglasCombate } from '../src/core/types';
-import { generarZona } from '../src/core/zona';
+import type { DificultadJson, MonstruoJson, ReglasCombate } from '../src/core/types';
+import { generarZona, type Zona } from '../src/core/zona';
 import { bestiarioCon, reglasCon } from '../src/core/dificultad';
 import { cuantosGrupos } from '../src/core/monstruos';
 import {
@@ -42,69 +37,16 @@ import {
 } from '../src/data/datos';
 import reto from '../src/data/reto.json';
 import zonas from '../src/data/zonas.json';
+import { gruposDeZona } from '../src/core/montaje';
+import { elegirDia, jugarReto, type DatosDia, type GruposDeZona } from '../src/core/diaJusto';
+import { crearCatalogo } from '../src/core/sala';
+import type { PlantillasJson, TilesetJson } from '../src/core/types';
+import plantillasBosque from '../src/data/salas/plantillas_bosque.json';
+import bosqueAuto from '../public/assets/tilesets/bosque_autotiles.json';
+import bosqueTiles from '../public/assets/tilesets/bosque.json';
+import comunes from '../public/assets/tilesets/comunes.json';
 
 /** Simulador de partidas enteras jugadas con una política razonable (para el equilibrado). */
-
-/**
- * Probabilidad de que la jugadora se defienda de un golpe cargado anunciado. Los probadores no
- * siempre lo hacían (el golem los mataba de un golpe en Normal): la simulada tampoco.
- */
-const DEFIENDE_CARGADO = 0.5;
-
-/** Jugadora razonable: se cura con poca vida, a veces defiende el golpe cargado y usa lo más fuerte que tenga. */
-function decidir(c: Combate, azar: () => number): AccionHeroina {
-  const h = c.heroina;
-  const vivos = c.enemigos.filter((e) => e.pv > 0).sort((a, b) => a.pv - b.pv);
-  const objetivo = vivos[0]!;
-  const habs = habilidadesDisponibles(h).filter((x) => x.pm <= h.pm);
-  if (h.pv < h.pvMax * 0.35) {
-    const cura = habs.find((x) => x.cura);
-    if (cura) return { tipo: 'habilidad', habilidad: cura, objetivo: null };
-    if ((c.inventario?.consumibles.pocion ?? 0) > 0) return { tipo: 'objeto', clave: 'pocion' };
-  }
-  const golpe = Math.max(h.ataque, h.magia) * 1.2;
-  if (
-    vivos.some((e) => e.cargando) &&
-    !(vivos.length === 1 && objetivo.pv <= golpe) &&
-    azar() < DEFIENDE_CARGADO
-  ) {
-    return { tipo: 'defender' };
-  }
-  const area = habs.find((x) => x.objetivo === 'todos' && x.danio);
-  if (area && vivos.length > 1) return { tipo: 'habilidad', habilidad: area, objetivo: null };
-  const porPoder = habilidadesDisponibles(h)
-    .filter((x) => x.objetivo === 'uno' && x.danio)
-    .sort((a, b) => b.danio!.poder - a.danio!.poder);
-  // Contra un jefe bebe éter si no le llega para su golpe más fuerte, como haría una persona.
-  if (
-    porPoder[0] &&
-    porPoder[0].pm > h.pm &&
-    vivos.some((e) => e.monstruo?.jefe) &&
-    (c.inventario?.consumibles.eter ?? 0) > 0
-  ) {
-    return { tipo: 'objeto', clave: 'eter' };
-  }
-  const uno = porPoder.find((x) => x.pm <= h.pm);
-  if (uno) return { tipo: 'habilidad', habilidad: uno, objetivo };
-  return { tipo: 'atacar', objetivo };
-}
-
-const valor = (p: EquipoJson | undefined): number =>
-  p ? Object.values(p.bonos).reduce((a, b) => a + (b ?? 0), 0) : 0;
-
-/** Se pone la pieza si suma más que la que lleva en ese hueco. */
-function quizaEquipar(h: Luchador, inv: Inventario, clave: string): void {
-  const nueva = OBJETOS.equipo[clave];
-  const actual = nueva && inv[nueva.hueco];
-  if (nueva && valor(nueva) > valor(actual ? OBJETOS.equipo[actual] : undefined)) {
-    equipar(h, inv, OBJETOS, clave);
-  }
-}
-
-/** Reparto de los puntos de mejora de cada rana, con el plan de heroes.json. */
-function gastarPuntos(h: Luchador): void {
-  repartirPuntos(h, h.heroe?.planPuntos ?? [], REGLAS.experiencia);
-}
 
 /** Monstruos y reglas con la dificultad de la partida ya aplicada. */
 export interface Mundo {
@@ -112,41 +54,28 @@ export interface Mundo {
   reglas: ReglasCombate;
 }
 
+/** La jugadora del juego (src/core/jugadora.ts) con los objetos, la experiencia y la política de los datos. */
+const conDatos = (m: Mundo): MundoJugadora => ({
+  ...m,
+  objetos: OBJETOS,
+  experiencia: REGLAS.experiencia,
+  politica: JUGADORA,
+});
+
 export function pelear(
   h: Luchador,
   inv: Inventario,
-  grupo: string[],
+  grupo: readonly string[],
   azar: () => number,
-  { bestiario, reglas }: Mundo,
+  m: Mundo,
   /** Si se pasa, suma el daño que recibe la heroína, en fracción de su vida máxima. */
   recibido?: Media,
 ): boolean {
-  const c = crearCombate(
-    h,
-    luchadoresDeGrupo(grupo.map((k) => bestiario[k]!)),
-    reglas,
-    azar,
-    bestiario,
-  );
-  c.inventario = inv;
-  c.objetos = OBJETOS;
-  let danio = 0;
-  const sumar = (eventos: ReturnType<typeof avanzar>): void => {
-    for (const e of eventos) if (e.tipo === 'danio' && e.objetivo === h) danio += e.cantidad;
-  };
-  sumar(avanzar(c));
-  // Las decisiones de la jugadora, con su propio azar: no cambian las tiradas del combate.
-  const jugadora = crearAzar(Math.floor(azar() * 2 ** 31));
-  for (let vueltas = 0; !c.resultado && vueltas < 300; vueltas++)
-    sumar(actuar(c, decidir(c, jugadora)));
-  if (recibido) {
-    recibido.suma += Math.min(1, danio / h.pvMax);
-    recibido.n++;
-  }
-  for (const pieza of c.equipoEncontrado) quizaEquipar(h, inv, pieza);
-  gastarPuntos(h);
-  return c.resultado === 'victoria';
+  return pelearJugadora(h, inv, grupo, azar, conDatos(m), recibido);
 }
+
+const quizaEquipar = (h: Luchador, inv: Inventario, clave: string): void =>
+  quizaEquiparJugadora(h, inv, OBJETOS, clave);
 
 export interface Cuenta {
   ganados: number;
@@ -379,77 +308,94 @@ export function simular(
   };
 }
 
+/** Los datos del reto como los usa el juego para comprobar el día. */
+export function datosReto(): DatosDia {
+  const dificultad = reto.dificultad as DificultadJson;
+  const z = zonas.zonas[reto.zona as keyof typeof zonas.zonas];
+  return {
+    heroes: Object.values(HEROES),
+    nivel: reto.nivel,
+    cofre: z.cofre,
+    jefe: z.jefe,
+    mundo: conDatos({
+      bestiario: bestiarioCon(MONSTRUOS, dificultad),
+      reglas: reglasCon(REGLAS, dificultad),
+    }),
+    comprobacion: reto.comprobacion,
+  };
+}
+
+/** Las plantillas y el catálogo del Bosque, como los carga el juego (los JSON traen `layer` como string). */
+const PLANTILLAS_BOSQUE = plantillasBosque as unknown as PlantillasJson;
+const CATALOGO_BOSQUE = crearCatalogo([
+  bosqueTiles as unknown as TilesetJson,
+  comunes as unknown as TilesetJson,
+  bosqueAuto as unknown as TilesetJson,
+]);
+
+export const generarZonaReto = (semilla: number): Zona =>
+  generarZona({ ...zonas.generacion, salas: reto.salas, tesoros: reto.tesoros }, semilla);
+
+/** La zona del reto de `semilla` (la de la fecha), ya comprobada como la elige el juego. */
+const diasElegidos = new Map<number, Zona>();
+export function zonaDelReto(semilla: number): Zona {
+  let zona = diasElegidos.get(semilla);
+  if (!zona) {
+    zona = elegirDia(semilla, generarZonaReto, gruposDelMapaReto, datosReto());
+    diasElegidos.set(semilla, zona);
+  }
+  return zona;
+}
+
+export function gruposDelMapaReto(zona: Zona): GruposDeZona {
+  const z = zonas.zonas[reto.zona as keyof typeof zonas.zonas];
+  const porSala = gruposDeZona(
+    zona,
+    PLANTILLAS_BOSQUE,
+    CATALOGO_BOSQUE,
+    reto.gruposPorSala,
+    zonas.monstruos.distanciaEntradas,
+    z.grupos,
+  );
+  return new Map([...porSala].map(([s, gs]) => [s, gs.map((g) => g.monstruos)]));
+}
+
+/** Los grupos de cada sala de combate del reto de `semilla` (ya comprobado), en el orden de las salas. */
+export function gruposDelReto(semilla: number): string[][] {
+  return [...gruposDelMapaReto(zonaDelReto(semilla)).values()].flat().map((g) => [...g]);
+}
+
 /**
- * Reto del día: por cada semilla (una por fecha), la zona corta de reto.json y `intentos` partidas con distinto azar
- * de combate (como distintas personas jugando el mismo mapa). Devuelve el porcentaje de victorias total y el de cada
- * fecha, y los combates medios por intento.
+ * Reto del día: por cada semilla de fecha, el mapa que elige el juego y `intentos` partidas de cada rana con azares que
+ * no son los de la comprobación (como otras personas jugando ese mapa). Devuelve el porcentaje total y el de cada
+ * fecha.
  */
 export function simularReto(
   nombre: string,
   semillas: readonly number[],
   intentos: number,
-): { total: number; porFecha: number[]; combates: number; jefe: number; nivel: number } {
-  const dificultad = reto.dificultad as DificultadJson;
-  const mundo: Mundo = {
-    bestiario: bestiarioCon(MONSTRUOS, dificultad),
-    reglas: reglasCon(REGLAS, dificultad),
-  };
+  /** Si se pasa, apunta por cada intento los grupos que luchó (sin el jefe), en orden. */
+  registro?: string[][][],
+): { total: number; porFecha: number[] } {
+  const d = datosReto();
   const heroe = HEROES[nombre as keyof typeof HEROES];
-  const z = zonas.zonas[reto.zona as keyof typeof zonas.zonas];
   const porFecha: number[] = [];
   let ganadas = 0;
-  let combates = 0;
-  const jefe: Cuenta = { ganados: 0, jugados: 0 };
-  let niveles = 0;
   for (const semilla of semillas) {
-    const zona = generarZona(
-      { ...zonas.generacion, salas: reto.salas, tesoros: reto.tesoros },
-      semilla,
-    );
+    const zona = zonaDelReto(semilla);
+    const grupos = gruposDelMapaReto(zona);
     let ganadasFecha = 0;
     for (let k = 0; k < intentos; k++) {
-      const azar = crearAzar(semilla * 97 + k);
-      const h = luchadorDeHeroe(heroe);
-      const inv = inventarioInicial(h, heroe, OBJETOS);
-      empezarEnNivel(h, reto.nivel, REGLAS.experiencia);
-      let fuente = zona.salas.some((x) => x.tipo === 'descanso');
-      let viva = true;
-      for (const sala of zona.salas) {
-        if (sala.tipo === 'tesoro') {
-          const hallazgo = abrirCofre(z.cofre, azar, heroe, OBJETOS, inv);
-          if (hallazgo?.tipo === 'equipo') quizaEquipar(h, inv, hallazgo.clave);
-        }
-        if (sala.tipo !== 'combate') continue;
-        if (fuente && h.pv < h.pvMax * 0.5) {
-          fuente = false;
-          restaurarFuente(h, 'todo');
-        }
-        const n = cuantosGrupos(reto.gruposPorSala, 0, azar);
-        for (let g = 0; g < n && viva; g++) {
-          combates++;
-          viva = pelear(h, inv, elegirConPeso(z.grupos, azar)!.monstruos, azar, mundo);
-        }
-        if (!viva) break;
-      }
-      if (viva) {
-        if (fuente) restaurarFuente(h, 'todo');
-        combates++;
-        niveles += h.nivel;
-        viva = pelear(h, inv, [z.jefe], azar, mundo);
-        jefe.jugados++;
-        if (viva) jefe.ganados++;
-      }
-      if (viva) ganadasFecha++;
+      const luchados: string[][] = [];
+      registro?.push(luchados);
+      if (jugarReto(zona, grupos, heroe, d, crearAzar(zona.semilla * 97 + 100_000 + k), luchados))
+        ganadasFecha++;
     }
     ganadas += ganadasFecha;
     porFecha.push(Math.round((ganadasFecha / intentos) * 1000) / 10);
   }
-  const total = semillas.length * intentos;
   return {
-    total: Math.round((ganadas / total) * 1000) / 10,
+    total: Math.round((ganadas / (semillas.length * intentos)) * 1000) / 10,
     porFecha,
-    combates: Math.round((combates / total) * 10) / 10,
-    jefe: pct(jefe),
-    nivel: jefe.jugados ? Math.round((niveles / jefe.jugados) * 10) / 10 : 0,
   };
 }
