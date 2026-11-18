@@ -6,8 +6,10 @@ import {
   ganarExperiencia,
   instantanea,
   mejorar,
+  empezarEnNivel,
+  repartirPuntos,
 } from '../src/core/progresion';
-import type { ReglasProgresion } from '../src/core/types';
+import type { Mejora, ReglasProgresion } from '../src/core/types';
 import { HEROES as heroes, REGLAS as reglas } from '../src/data/datos';
 
 const r: ReglasProgresion = reglas.experiencia;
@@ -99,4 +101,42 @@ describe('mejorar', () => {
     expect(mejorar(h, 'ataque', r)).toBe(false);
     expect(instantanea(h)).toEqual(antes);
   });
+});
+
+describe('repartirPuntos', () => {
+  test('gasta todos los puntos en el orden del plan, empezando por el del nivel', () => {
+    const h = ronin();
+    h.nivel = 3;
+    h.puntos = 2;
+    const antes = { ataque: h.ataque, pvMax: h.pvMax, defensa: h.defensa };
+    const plan = heroes.ronin.planPuntos as Mejora[];
+    repartirPuntos(h, plan, r);
+    expect(h.puntos).toBe(0);
+    // En el nivel 3 se empieza por plan[3 % 3] y se sigue con el siguiente.
+    const esperadas = [plan[3 % plan.length]!, plan[4 % plan.length]!];
+    const subio = (m: string): boolean =>
+      m === 'pv'
+        ? h.pvMax > antes.pvMax
+        : h[m as 'ataque' | 'defensa'] > antes[m as 'ataque' | 'defensa'];
+    for (const m of esperadas) expect(subio(m)).toBe(true);
+  });
+
+  test('con plan vacío no gasta nada', () => {
+    const h = ronin();
+    h.puntos = 3;
+    repartirPuntos(h, [], r);
+    expect(h.puntos).toBe(3);
+  });
+});
+
+test('empezarEnNivel sube como si lo hubiera ganado, reparte los puntos y deja la vida llena', () => {
+  const h = ronin();
+  const base = { pvMax: h.pvMax, ataque: h.ataque };
+  empezarEnNivel(h, 3, r);
+  expect(h.nivel).toBe(3);
+  expect(h.experiencia).toBe(0);
+  expect(h.puntos).toBe(0);
+  expect(h.pvMax).toBeGreaterThan(base.pvMax);
+  expect(h.ataque).toBeGreaterThan(base.ataque + 2 * heroes.ronin.porNivel.ataque - 1);
+  expect([h.pv, h.pm]).toEqual([h.pvMax, h.pmMax]);
 });

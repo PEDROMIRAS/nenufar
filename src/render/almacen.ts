@@ -1,7 +1,8 @@
 import { leerRecords, type Records } from '../core/records';
 import { leerGuardado, type Conocido, type PartidaGuardada } from '../core/guardado';
+import { leerReto, type EstadoReto } from '../core/reto';
 
-// localStorage solo para ajustes, récords y la partida en curso (decisión fija del proyecto).
+// localStorage solo para ajustes, récords, la partida en curso y el récord del reto del día (decisión fija del proyecto).
 const CLAVE = 'nenufar.records';
 
 /** Récords guardados; vacíos si el navegador no deja leer (modo privado, almacenamiento bloqueado…). */
@@ -113,5 +114,24 @@ export function borrarPartida(): void {
     localStorage.removeItem(CLAVE_PARTIDA);
   } catch {
     // Nada que borrar si no hay almacenamiento.
+  }
+}
+
+const CLAVE_RETO = 'nenufar.reto';
+
+/** El reto del día guardado (fecha, mejores de cada rana y días jugados); vacío si no se puede leer. */
+export function cargarReto(): EstadoReto {
+  try {
+    return leerReto(localStorage.getItem(CLAVE_RETO));
+  } catch {
+    return leerReto(null);
+  }
+}
+
+export function guardarReto(e: EstadoReto): void {
+  try {
+    localStorage.setItem(CLAVE_RETO, JSON.stringify(e));
+  } catch {
+    // Sin almacenamiento el reto se juega igual, sin récord.
   }
 }

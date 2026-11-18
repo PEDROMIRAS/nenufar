@@ -33,6 +33,11 @@ export class PilaEscenas {
     this.escenas[this.escenas.length - 1]?.update(dt, acciones);
   }
 
+  /** La escena de arriba (la que recibe la entrada). */
+  get arriba(): Escena | undefined {
+    return this.escenas[this.escenas.length - 1];
+  }
+
   /** ¿La escena de arriba usa el mapa 3D? */
   get conMundo(): boolean {
     return this.escenas[this.escenas.length - 1]?.conMundo === true;

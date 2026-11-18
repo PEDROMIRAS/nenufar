@@ -56,6 +56,7 @@
       "defensa": 2,
       "velocidad": 1
     },
+    "planPuntos": ["ataque", "pv", "defensa"],
     "armaInicial": "katana_gastada",
     "armas": [
       "katana_madera",
@@ -186,6 +187,7 @@
       "defensa": 0,
       "velocidad": 1
     },
+    "planPuntos": ["magia", "pv", "pm"],
     "armaInicial": "baston_rama",
     "armas": [
       "baston_aprendiz",

@@ -1,0 +1,24 @@
+{
+  "zona": "bosque",
+  "salas": 8,
+  "tesoros": 1,
+  "nivel": 3,
+  "gruposPorSala": {
+    "min": 1,
+    "max": 2
+  },
+  "dificultad": {
+    "nombre": "Reto del día",
+    "descripcion": "El Bosque en pequeño, con el mapa del día.",
+    "ataque": 1.9,
+    "vida": 1.4,
+    "recuperacion": 0.6,
+    "violetas": 1
+  },
+  "comprobacion": {
+    "intentos": 100,
+    "minimo": 55,
+    "maximo": 75,
+    "semillas": 40
+  }
+}

@@ -20,14 +20,26 @@ const AVISO = 'Pulsa o toca para empezar';
 const BOTON_EXTRAS = { x: ANCHO - 112, y: 6, ancho: 106, alto: 40 };
 /** Botón de los controles, arriba a la izquierda (simétrico al de extras). */
 const BOTON_CONTROLES = { x: 6, y: 6, ancho: 106, alto: 40 };
+/** Botón del reto del día: en horizontal, centrado sobre el aviso; en vertical, sobre los otros dos botones. */
+const BOTON_RETO = { x: ANCHO / 2 - 80, y: ALTO - 98, ancho: 160, alto: 30 };
+const TEXTO_RETO = 'Reto del día';
 /** Medidas de la disposición vertical: margen, alto de los botones y alto de una línea de récords. */
 const VERTICAL = { margen: 8, botones: 44, linea: 14 };
 /** Ancho de una letra de la fuente normal. */
 const ANCHO_LETRA = 7.2;
 
-/** Dónde están las flechas: de izquierda a derecha, controles, empezar y extras. */
-const FOCOS = ['controles', 'empezar', 'extras'] as const;
-const ANUNCIO = { controles: 'Controles', empezar: AVISO, extras: 'Bestiario y logros' };
+/**
+ * Dónde están las flechas: de izquierda a derecha, controles, empezar y extras (← y → los recorren); el reto va
+ * aparte, encima de empezar (↑ desde empezar).
+ */
+const FOCOS = ['controles', 'empezar', 'extras', 'reto'] as const;
+const RETO = 3;
+const ANUNCIO = {
+  controles: 'Controles',
+  empezar: AVISO,
+  extras: 'Bestiario y logros',
+  reto: `${TEXTO_RETO}: una partida corta con el mapa de hoy`,
+};
 
 /** Portada: la sala de descanso del Bosque con las ranas junto a la fuente, el logo y los récords. */
 /** Segunda línea del botón de extras; con teclado o mando dice también su botón. */
@@ -67,6 +79,7 @@ export class EscenaTitulo implements Escena {
     private readonly alEmpezar: () => void,
     private readonly alExtras: () => void,
     private readonly alControles: () => void,
+    private readonly alReto: () => void,
   ) {
     const partes =
       records.partidas === 0
@@ -96,13 +109,16 @@ export class EscenaTitulo implements Escena {
     ponerMusica(null);
     this.disponer();
     this.tiempo += dt;
-    // ← y → recorren controles, empezar y extras; ↑ desde empezar lleva a extras y ↓ vuelve a empezar.
+    // ← y → recorren controles, empezar y extras; ↑ desde empezar lleva al reto y desde el reto a extras, y ↓
+    // vuelve a empezar.
     const dx = Math.sign(acciones.moverX);
     const dy = Math.sign(acciones.moverY);
     let foco = this.foco;
-    if (dx !== 0 && dx !== this.ultimoX) foco = Math.min(2, Math.max(0, foco + dx));
+    if (dx !== 0 && dx !== this.ultimoX)
+      foco = foco === RETO ? (dx < 0 ? 0 : 2) : Math.min(2, Math.max(0, foco + dx));
     else if (dy > 0 && dy !== this.ultimoY) foco = 1;
-    else if (dy < 0 && dy !== this.ultimoY && foco === 1) foco = 2;
+    else if (dy < 0 && dy !== this.ultimoY && foco === 1) foco = RETO;
+    else if (dy < 0 && dy !== this.ultimoY && foco === RETO) foco = 2;
     this.ultimoX = dx;
     this.ultimoY = dy;
     if (foco !== this.foco) {
@@ -113,11 +129,13 @@ export class EscenaTitulo implements Escena {
     const { toqueX: x, toqueY: y } = acciones;
     if (acciones.info || dentro(x, y, BOTON_EXTRAS)) this.alExtras();
     else if (dentro(x, y, BOTON_CONTROLES)) this.alControles();
+    else if (dentro(x, y, BOTON_RETO)) this.alReto();
     else if (x >= 0) this.alEmpezar();
     else if (acciones.confirmar) {
       const elegido = FOCOS[this.foco];
       if (elegido === 'extras') this.alExtras();
       else if (elegido === 'controles') this.alControles();
+      else if (elegido === 'reto') this.alReto();
       else this.alEmpezar();
     }
   }
@@ -138,7 +156,11 @@ export class EscenaTitulo implements Escena {
       BOTON_CONTROLES.ancho = 106;
       BOTON_CONTROLES.alto = 40;
       this.avisoY = ALTO - 58;
-      this.bandaY = ALTO - 72;
+      BOTON_RETO.x = ANCHO / 2 - 80;
+      BOTON_RETO.y = ALTO - 98;
+      BOTON_RETO.ancho = 160;
+      BOTON_RETO.alto = 30;
+      this.bandaY = BOTON_RETO.y - VERTICAL.margen;
       return;
     }
     const letras = Math.floor((interfaz.ancho - 2 * VERTICAL.margen) / ANCHO_LETRA);
@@ -158,7 +180,11 @@ export class EscenaTitulo implements Escena {
     BOTON_CONTROLES.y = BOTON_EXTRAS.y = y;
     BOTON_CONTROLES.ancho = BOTON_EXTRAS.ancho = ancho;
     BOTON_CONTROLES.alto = BOTON_EXTRAS.alto = VERTICAL.botones;
-    this.bandaY = y - VERTICAL.margen;
+    BOTON_RETO.x = VERTICAL.margen;
+    BOTON_RETO.ancho = interfaz.ancho - 2 * VERTICAL.margen;
+    BOTON_RETO.alto = VERTICAL.botones;
+    BOTON_RETO.y = y - VERTICAL.margen - VERTICAL.botones;
+    this.bandaY = BOTON_RETO.y - VERTICAL.margen;
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
@@ -169,7 +195,7 @@ export class EscenaTitulo implements Escena {
     // Bandas más oscuras arriba y abajo, para que el logo y los textos se lean sobre la sala.
     ctx.fillStyle = 'rgba(10, 12, 16, 0.55)';
     ctx.fillRect(area.x, 0, area.ancho, 112);
-    ctx.fillRect(area.x, this.bandaY, area.ancho, interfaz.alta ? area.alto - this.bandaY : 72);
+    ctx.fillRect(area.x, this.bandaY, area.ancho, (interfaz.alta ? area.alto : ALTO) - this.bandaY);
 
     const centro = interfaz.ancho / 2;
     escribir(ctx, 'Nenúfar', centro, 18, '#c89bff', 'center', FUENTE_LOGO);
@@ -184,6 +210,7 @@ export class EscenaTitulo implements Escena {
       FOCOS[this.foco] === 'extras',
     );
     this.boton(ctx, BOTON_CONTROLES, 'Controles', '', FOCOS[this.foco] === 'controles');
+    this.boton(ctx, BOTON_RETO, TEXTO_RETO, '', FOCOS[this.foco] === 'reto');
 
     // El aviso pulsa de opacidad en vez de desaparecer (y se queda fijo con menos movimiento).
     ctx.globalAlpha = movimientoReducido() ? 1 : 0.6 + 0.4 * Math.abs(Math.sin(t * 2.5));

@@ -1,7 +1,7 @@
 import { vibrar } from '../input/mando';
 import type { Acciones } from '../core/acciones';
 import type { Luchador, Resultado } from '../core/combate';
-import { crearAzar, elegirConPeso } from '../core/azar';
+import { crearAzar } from '../core/azar';
 import { actualizarHeroina, type Heroina } from '../core/heroina';
 import {
   abrirSalidas,
@@ -13,14 +13,13 @@ import {
   salaVecina,
   salidaPisada,
 } from '../core/mapa';
-import { colocarMonstruos, cuantosGrupos, seTocan } from '../core/monstruos';
+import { cuantosGrupos, seTocan } from '../core/monstruos';
+import { azarCofre, montarSalaZona, sortearGrupos } from '../core/montaje';
 import { restaurarFuente } from '../core/presagios';
 import { actualizarPatrulla, crearPatrulla, iniciativa, type Patrulla } from '../core/patrulla';
 import { buscarInicio } from '../core/movimiento';
 import {
-  aplicarPuertas,
   chocarConElipse,
-  construirSala,
   salidas,
   type Sala,
   type ObjetoSala,
@@ -657,7 +656,7 @@ export class EscenaMapa implements Escena {
   private sacarBotin(vacio: string, hay: string, equipo = '', alFinal = (): void => {}): void {
     const { cofre: tabla, luchadora, objetos, inventario, zona } = this.o;
     // Cada cofre sortea con su propio azar (zona y sala): cerrar el navegador y volver no lo cambia.
-    const azar = crearAzar(zona.semilla * 1013 + zona.salas.indexOf(this.actual));
+    const azar = azarCofre(zona, this.actual);
     const hallazgo = abrirCofre(tabla, azar, luchadora.heroe, objetos, inventario);
     if (!hallazgo) {
       this.avisar(vacio);
@@ -988,17 +987,8 @@ export class EscenaMapa implements Escena {
     const hecha = this.montadas.get(s);
     if (hecha) return hecha;
     const { zona, plantillas, catalogo, tam } = this.o;
-    // Semilla propia por sala: la misma zona da siempre las mismas salas, se visiten en el orden que sea.
-    const azar = crearAzar(zona.semilla * 1009 + zona.salas.indexOf(s));
-    const candidatas = plantillas.plantillas.filter((p) => p.tipo === s.tipo);
-    const plantilla = candidatas[Math.floor(azar() * candidatas.length)];
-    if (!plantilla) throw new Error(`No hay plantillas de tipo ${s.tipo}`);
-    const mapa = aplicarPuertas(plantilla.mapa, s.puertas);
-    // El ermitaño ocupa el sitio del altar (la casilla pasa a suelo) y pasea desde ahí.
-    const fila = s.evento === 'ermitano' ? mapa.findIndex((f) => f.includes('A')) : -1;
-    const columna = fila >= 0 ? mapa[fila]!.indexOf('A') : -1;
-    if (fila >= 0) mapa[fila] = mapa[fila]!.replace('A', '.');
-    const sala = construirSala(mapa, plantillas, catalogo, azar);
+    // Semilla propia por sala (la misma zona da siempre las mismas salas); el ermitaño ocupa el sitio del altar.
+    const { sala, azar, ermitano } = montarSalaZona(zona, s, plantillas, catalogo);
     const circulo = catalogo.get('desafio');
     if (s.evento === 'desafio' && circulo) {
       const altar = sala.objetos.find((o) => o.inf.name === 'altar');
@@ -1020,15 +1010,14 @@ export class EscenaMapa implements Escena {
       vista: null,
       monstruos: this.poblar(s, sala, azar),
       portal,
-      ermitano:
-        fila < 0
-          ? null
-          : crearPatrulla({
-              x: columna * tam + tam / 2,
-              y: fila * tam + (tam + this.o.ermitano.mapa.alto) / 2,
-              ancho: this.o.ermitano.mapa.ancho,
-              alto: this.o.ermitano.mapa.alto,
-            }),
+      ermitano: !ermitano
+        ? null
+        : crearPatrulla({
+            x: ermitano.columna * tam + tam / 2,
+            y: ermitano.fila * tam + (tam + this.o.ermitano.mapa.alto) / 2,
+            ancho: this.o.ermitano.mapa.ancho,
+            alto: this.o.ermitano.mapa.alto,
+          }),
     };
     this.montadas.set(s, montada);
     return montada;
@@ -1065,11 +1054,11 @@ export class EscenaMapa implements Escena {
     }
     if (s.tipo !== 'combate' || grupos.length === 0) return [];
     const cuantos = cuantosGrupos(gruposPorSala, this.o.gruposExtra, azar);
-    return colocarMonstruos(sala, this.salidas, cuantos, distanciaMonstruos, azar).flatMap(
-      ([c, f]) => {
-        const grupo = elegirConPeso(grupos, azar)?.monstruos;
-        const primero = grupo?.[0];
-        if (!grupo || !primero) return [];
+    // Las mismas tiradas que la comprobación del reto del día (`gruposDeZona`).
+    return sortearGrupos(sala, this.salidas, cuantos, distanciaMonstruos, grupos, azar).flatMap(
+      ({ c, f, grupo: { monstruos: grupo } }) => {
+        const primero = grupo[0];
+        if (!primero) return [];
         const { ancho, alto } = primero.caja;
         return [
           {
