@@ -52,3 +52,10 @@ describe('reiniciarCartel', () => {
     expect(reiniciarCartel(0.1, d)).toBe(0.1);
   });
 });
+
+it('reiniciarCartel durante el fundido de salida sigue desde la misma opacidad, subiendo', () => {
+  const t = d.segundos - d.fundido / 2; // a media salida: opacidad 0,5
+  const nuevo = reiniciarCartel(t, d);
+  expect(opacidadCartel(nuevo, d, false)).toBeCloseTo(opacidadCartel(t, d, false));
+  expect(opacidadCartel(nuevo + 0.01, d, false)).toBeGreaterThan(opacidadCartel(nuevo, d, false));
+});

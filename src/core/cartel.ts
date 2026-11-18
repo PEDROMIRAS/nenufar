@@ -35,5 +35,8 @@ export function avisoNuevo(estado: EstadoCartel, conexiones: number): boolean {
  * parpadear.
  */
 export function reiniciarCartel(t: number, d: { segundos: number; fundido: number }): number {
-  return t >= 0 && t < d.segundos ? Math.min(t, d.fundido) : 0;
+  if (!(t >= 0 && t < d.segundos)) return 0;
+  // En el fundido de salida, el punto de la entrada con la misma opacidad: sigue desde ahí, subiendo.
+  if (t > d.segundos - d.fundido) return d.segundos - t;
+  return Math.min(t, d.fundido);
 }

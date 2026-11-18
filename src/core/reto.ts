@@ -100,7 +100,7 @@ export function leerReto(texto: string | null): EstadoReto {
       if (r && clave !== '__proto__') mejores[clave] = r;
     }
     return {
-      fecha: typeof d?.fecha === 'string' ? d.fecha : '',
+      fecha: typeof d?.fecha === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d.fecha) ? d.fecha : '',
       dias: Number.isInteger(d?.dias) && (d!.dias as number) >= 0 ? (d!.dias as number) : 0,
       mejores,
     };

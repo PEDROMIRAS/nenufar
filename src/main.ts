@@ -1207,8 +1207,9 @@ function terminarReto(partida: Partida, victoria: boolean): void {
   const fecha = textoFecha(reto.fecha);
   const { estado, nuevo } = anotarReto(cargarReto(), fecha, clave, resultado);
   guardarReto(estado);
-  // Si otra pestaña ya jugó el día siguiente, el intento no se apunta: su mejor es él mismo.
-  const mejor = (estado.fecha === fecha ? estado.mejores[clave] : null) ?? resultado;
+  // Si otra pestaña ya jugó un día más reciente, el intento no se apunta y la tarjeta lo dice.
+  const apuntado = estado.fecha === fecha;
+  const mejor = (apuntado ? estado.mejores[clave] : null) ?? resultado;
   partida.pila.cambiar(
     new EscenaFinReto(
       {
@@ -1216,7 +1217,9 @@ function terminarReto(partida: Partida, victoria: boolean): void {
         resultado: victoria
           ? `Tiempo: ${formatearTiempo(resultado.segundos)}`
           : `Caíste en la sala ${resultado.sala} de ${resultado.de}`,
-        mejor: `Tu mejor de hoy con la ${heroe.nombre.replace(/^Rana /, 'rana ')}`,
+        mejor: apuntado
+          ? `Tu mejor de hoy con la ${heroe.nombre.replace(/^Rana /, 'rana ')}`
+          : 'No cuenta: ya jugaste un día más reciente',
         mejorValor: mejor.victoria
           ? `Victoria en ${formatearTiempo(mejor.segundos)}`
           : `Sala ${mejor.sala} de ${mejor.de}`,

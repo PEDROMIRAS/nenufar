@@ -107,3 +107,8 @@ test('leerReto no deja que «__proto__» cambie el prototipo de los mejores', ()
   expect(Object.getPrototypeOf(r.mejores)).toBe(Object.prototype);
   expect(Object.keys(r.mejores)).toEqual([]);
 });
+
+test('leerReto descarta una fecha que no es AAAA-MM-DD', () => {
+  expect(leerReto('{"fecha":"mañana","dias":3,"mejores":{}}').fecha).toBe('');
+  expect(leerReto('{"fecha":"2026-11-18","dias":3,"mejores":{}}').fecha).toBe('2026-11-18');
+});
