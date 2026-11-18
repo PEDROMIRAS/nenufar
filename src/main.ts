@@ -91,7 +91,10 @@ import { leerFuentes } from './input/fuente';
 import { crearJoystick } from './input/joystick';
 import { crearTeclado } from './input/teclado';
 import { dispositivo, fijarDispositivo, usarDispositivo } from './input/dispositivo';
-import { crearMando } from './input/mando';
+import { conexionesMando, crearMando } from './input/mando';
+import { opacidadCartel } from './core/cartel';
+import { dibujarCartel } from './render/cartel';
+import { anunciar, movimientoReducido } from './render/accesibilidad';
 import { crearToque } from './input/toque';
 import { iniciarBucle } from './render/bucle';
 import { PALETA } from './render/marco';
@@ -256,6 +259,9 @@ function contar(pila: PilaEscenas, paginas: readonly Pagina[], alFinal: () => vo
 /** Páginas sin título, una por texto. */
 const paginas = (textos: readonly string[]): Pagina[] =>
   textos.map((texto) => ({ titulo: '', texto }));
+
+/** Lo que dice el cartel al detectar un mando. */
+const CARTEL_MANDO = 'Mando conectado';
 
 async function iniciar(): Promise<void> {
   const canvas = document.querySelector<HTMLCanvasElement>('#juego');
@@ -513,15 +519,27 @@ async function iniciar(): Promise<void> {
     );
   }
 
+  // Cartel «Mando conectado»: segundos desde la última conexión (Infinity = no se ve).
+  let conexiones = conexionesMando();
+  let tiempoCartel = Infinity;
+  // shortcut: solo en desarrollo, con ?mando el cartel sale al empezar para verlo sin mando
+  if (import.meta.env.DEV && new URLSearchParams(location.search).has('mando')) tiempoCartel = 0;
   iniciarBucle(
     (dt) => {
       leerFuentes(fuentes, acciones);
       pila.update(dt, acciones);
+      if (conexionesMando() !== conexiones) {
+        conexiones = conexionesMando();
+        tiempoCartel = 0;
+        anunciar(CARTEL_MANDO);
+      } else tiempoCartel += dt;
     },
     (alpha) => {
       mundo.verLienzo(pila.conMundo);
       colocarContexto(ctx);
       pila.draw(ctx, alpha);
+      const opacidad = opacidadCartel(tiempoCartel, controles.mando.aviso, movimientoReducido());
+      if (opacidad > 0) dibujarCartel(ctx, CARTEL_MANDO, opacidad);
     },
   );
 }

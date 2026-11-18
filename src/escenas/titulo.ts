@@ -8,6 +8,7 @@ import { ALTO, ANCHO, area, dentro, interfaz } from '../render/pantalla';
 import type { Portada3d } from '../render/mundo/portada';
 import { ponerMusica, sonar } from '../render/sonido';
 import { escribir, FUENTE, FUENTE_LOGO } from '../render/texto';
+import controles from '../data/controles.json';
 import type { Escena } from './escena';
 
 const AVISO = 'Pulsa o toca para empezar';
@@ -167,12 +168,14 @@ export class EscenaTitulo implements Escena {
     // El canvas 2D queda transparente encima de la sala en 3D, solo con el logo y los textos.
     // Bandas más oscuras arriba y abajo, para que el logo y los textos se lean sobre la sala.
     ctx.fillStyle = 'rgba(10, 12, 16, 0.55)';
-    ctx.fillRect(area.x, 0, area.ancho, 104);
+    ctx.fillRect(area.x, 0, area.ancho, 112);
     ctx.fillRect(area.x, this.bandaY, area.ancho, interfaz.alta ? area.alto - this.bandaY : 72);
 
     const centro = interfaz.ancho / 2;
     escribir(ctx, 'Nenúfar', centro, 18, '#c89bff', 'center', FUENTE_LOGO);
     escribir(ctx, 'Un dungeon crawler de ranas', centro, 74, PALETA.texto, 'center');
+    // Para quien llega sin saberlo (desde el portafolio): también se juega con mando.
+    escribir(ctx, controles.mando.texto, centro, 94, PALETA.claro, 'center', FUENTE);
     this.boton(
       ctx,
       BOTON_EXTRAS,

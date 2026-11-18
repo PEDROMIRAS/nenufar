@@ -49,3 +49,12 @@ export function vibrar(v: Vibracion, temblor: number): void {
     })
     .catch(() => {});
 }
+
+/** Cuántas veces ha avisado el navegador de un mando nuevo (tras pulsar su primer botón en la página). */
+let conexiones = 0;
+if (typeof addEventListener === 'function')
+  addEventListener('gamepadconnected', () => conexiones++);
+
+export function conexionesMando(): number {
+  return conexiones;
+}

@@ -43,6 +43,11 @@ export const vista = { ancho: SALA_ANCHO, alto: SALA_ALTO, hud: 1, salaY: 0 };
 const HUD_CSS = { divisor: 400, min: 0.9, max: 2 };
 export const area = { x: 0, y: 0, ancho: ANCHO, alto: ALTO };
 /**
+ * Forma de los carteles que salen encima de cualquier escena («Mando conectado»): unidades del HUD (crecen con
+ * el lado corto de la ventana) con el origen en la esquina; `ancho` y `alto` son la ventana en esas unidades.
+ */
+export const cartel = { escala: 1, ancho: ANCHO, alto: ALTO };
+/**
  * Tamaño lógico de la interfaz que se está usando: 480×352 (centrada) o, con la ventana vertical y una escena
  * adaptada (`alta`), de ancho fijo (~320) y el alto que dé la ventana. Las escenas adaptadas se reparten con él.
  */
@@ -214,6 +219,9 @@ export function prepararPantalla(canvas: HTMLCanvasElement): CanvasRenderingCont
     vista.alto = real.alto / sala;
     vista.salaY = mapa.y / sala;
     vista.hud = (hudCss * dpr) / sala;
+    cartel.escala = hudCss * dpr;
+    cartel.ancho = real.ancho / cartel.escala;
+    cartel.alto = real.alto / cartel.escala;
     modos.menu = {
       escala: menu,
       x: (real.ancho - ANCHO * menu) / 2,
@@ -272,4 +280,9 @@ export function colocarSobre(
   el.style.width = `${r.ancho * escala}px`;
   el.style.height = `${r.alto * escala}px`;
   return escala;
+}
+
+/** Coloca el contexto en la forma de los carteles (`cartel`), sea cual sea la escena de debajo. */
+export function colocarCartel(ctx: CanvasRenderingContext2D): void {
+  ctx.setTransform(cartel.escala, 0, 0, cartel.escala, 0, 0);
 }

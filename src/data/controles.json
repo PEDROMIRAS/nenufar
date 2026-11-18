@@ -95,8 +95,10 @@
     ]
   },
   "mando": {
+    "texto": "Juega con teclado, dedo o mando",
     "zonaMuerta": 0.35,
     "gatillo": 0.5,
+    "aviso": { "segundos": 2.5, "fundido": 0.3 },
     "botones": {
       "confirmar": 0,
       "cancelar": 1,
