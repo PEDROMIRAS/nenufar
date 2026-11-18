@@ -9,6 +9,7 @@
   "resolucionMaxima": 2,
   "desenfoque": 2.4,
   "combate": { "desenfoque": 3, "foco": 0.5 },
+  "relieve": { "radio": 5, "detalle": 0.35, "fuerza": 2.5, "escala": 1.5, "suelo": 0.6 },
   "bordes": { "muro": 1, "alto": 1, "fuerza": 6 },
   "bloom": { "fuerza": 0.55, "radio": 0.5, "umbral": 0.72 },
   "vineta": { "offset": 1.0, "oscuridad": 1.15 },
@@ -26,58 +27,90 @@
     "limo": [500, 278]
   },
   "luces": {
+    "luciernagas": {
+      "color": "#c8ff6a",
+      "intensidad": 3.5,
+      "alcance": 4.5,
+      "alto": 0.6,
+      "parpadeo": 0.25,
+      "sombra": false
+    },
+    "haz": {
+      "color": "#ffe0a0",
+      "intensidad": 9,
+      "alcance": 5,
+      "alto": 2,
+      "parpadeo": 0.03,
+      "sombra": false
+    },
+    "fuego_fatuo": {
+      "color": "#b48cff",
+      "intensidad": 7,
+      "alcance": 5,
+      "alto": 0.7,
+      "parpadeo": 0.15,
+      "sombra": false
+    },
+    "grieta": {
+      "color": "#ff6a2a",
+      "intensidad": 7,
+      "alcance": 4.5,
+      "alto": 0.2,
+      "parpadeo": 0.2,
+      "sombra": false
+    },
     "hoguera": {
       "color": "#ff9a4a",
-      "intensidad": 14,
-      "alcance": 6,
+      "intensidad": 20,
+      "alcance": 8,
       "alto": 0.55,
       "parpadeo": 0.18,
       "sombra": true
     },
     "candelabro": {
       "color": "#ffb46a",
-      "intensidad": 6,
-      "alcance": 4.5,
+      "intensidad": 8.4,
+      "alcance": 6.5,
       "alto": 0.9,
       "parpadeo": 0.12,
       "sombra": false
     },
     "fuego_morado": {
       "color": "#b46cff",
-      "intensidad": 10,
-      "alcance": 5,
+      "intensidad": 14,
+      "alcance": 7,
       "alto": 0.6,
       "parpadeo": 0,
       "sombra": false
     },
     "portal": {
       "color": "#a864ff",
-      "intensidad": 9,
-      "alcance": 4.5,
+      "intensidad": 12.6,
+      "alcance": 6.5,
       "alto": 0.6,
       "parpadeo": 0.08,
       "sombra": false
     },
     "altar": {
       "color": "#b46cff",
-      "intensidad": 5,
-      "alcance": 3.5,
+      "intensidad": 7,
+      "alcance": 5.5,
       "alto": 0.7,
       "parpadeo": 0.1,
       "sombra": false
     },
     "desafio": {
       "color": "#ff5a3c",
-      "intensidad": 5,
-      "alcance": 3.5,
+      "intensidad": 7,
+      "alcance": 5.5,
       "alto": 0.7,
       "parpadeo": 0.1,
       "sombra": false
     },
     "brasero": {
       "color": "#ff8a3a",
-      "intensidad": 6.5,
-      "alcance": 5,
+      "intensidad": 9.1,
+      "alcance": 7,
       "alto": 0.7,
       "parpadeo": 0.14,
       "sombra": false
@@ -87,7 +120,9 @@
     "bosque": {
       "fondo": "#0b120e",
       "modelos": true,
-      "cielo": { "arriba": "#9fb4ff", "abajo": "#2a3a24", "intensidad": 1.6 },
+      "niebla": 0.012,
+      "ambiente": { "tipo": "luciernagas", "min": 1, "max": 2, "distancia": 3 },
+      "cielo": { "arriba": "#9fb4ff", "abajo": "#2a3a24", "intensidad": 0.85 },
       "principal": { "color": "#c8d6ff", "intensidad": 0.9 },
       "borde": {
         "tipo": "arboles",
@@ -116,8 +151,10 @@
     "ruinas": {
       "fondo": "#121410",
       "modelos": true,
-      "cielo": { "arriba": "#ffe9c8", "abajo": "#4a4636", "intensidad": 1.5 },
-      "principal": { "color": "#fff1d6", "intensidad": 1.4 },
+      "niebla": 0.012,
+      "ambiente": { "tipo": "haz", "min": 1, "max": 1, "distancia": 3 },
+      "cielo": { "arriba": "#ffe9c8", "abajo": "#4a4636", "intensidad": 0.9 },
+      "principal": { "color": "#fff1d6", "intensidad": 1.6 },
       "borde": {
         "tipo": "sillares",
         "alto": 1.0,
@@ -136,8 +173,10 @@
     "cripta": {
       "fondo": "#07060b",
       "modelos": true,
-      "cielo": { "arriba": "#8f7ad0", "abajo": "#2a2238", "intensidad": 2.6 },
-      "principal": { "color": "#c9b8ff", "intensidad": 1.2 },
+      "niebla": 0.012,
+      "ambiente": { "tipo": "fuego_fatuo", "min": 1, "max": 2, "distancia": 3 },
+      "cielo": { "arriba": "#8f7ad0", "abajo": "#2a2238", "intensidad": 1.4 },
+      "principal": { "color": "#c9b8ff", "intensidad": 1.0 },
       "borde": {
         "tipo": "sillares",
         "alto": 1.15,
@@ -156,7 +195,9 @@
     "cauce": {
       "fondo": "#0a0508",
       "modelos": false,
-      "cielo": { "arriba": "#8a7498", "abajo": "#2a1c22", "intensidad": 2.7 },
+      "niebla": 0.012,
+      "ambiente": { "tipo": "grieta", "min": 1, "max": 2, "distancia": 3 },
+      "cielo": { "arriba": "#8a7498", "abajo": "#2a1c22", "intensidad": 1.6 },
       "principal": { "color": "#ffb888", "intensidad": 1.2 },
       "borde": {
         "tipo": "sillares",

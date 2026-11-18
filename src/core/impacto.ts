@@ -1,5 +1,6 @@
 // Peso de los golpes del combate: cuánto tiembla la escena, cuánto se detiene en el impacto y cómo se entra en
 // combate. Lógica pura; los números salen de src/data/impacto.json.
+import type { CamaraCombateJson } from './camaraCombate';
 import type { Evento, Luchador } from './combate';
 
 export type Peso = 'leve' | 'fuerte' | 'maximo';
@@ -29,6 +30,8 @@ export interface PesoJson {
 
 export interface ImpactoJson {
   pesos: Record<Peso, PesoJson>;
+  /** Cámara del combate durante los ataques (ver `zoomAtaque`); sin el campo, quieta. */
+  camara?: CamaraCombateJson;
   temblor: { maxX: number; maxY: number; decaimiento: number; frecuencias: [number, number] };
   destello: { duracion: number };
   numero: { asentar: number };

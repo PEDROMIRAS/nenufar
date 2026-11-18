@@ -29,9 +29,18 @@ import {
 import { crearElemento } from './elementos';
 import { crearFuente } from './fuente';
 import { crearHundidos } from './hundidos';
-import { compararLuces } from '../../core/luces';
+import { compararLuces, lugaresDeLuz } from '../../core/luces';
+import { crearAmbiente } from './ambiente';
 import { crearArco, crearBarrera, crearModelo } from './modelos';
-import { ajustarPixelArt, cuentaColores, materialRuido, paleta, pintar, textura } from './texturas';
+import {
+  ajustarPixelArt,
+  cuentaColores,
+  materialRuido,
+  paleta,
+  pintar,
+  textura,
+  texturaNormales,
+} from './texturas';
 import { transparentar, uniformesTransparencia } from './transparencia';
 
 // Calidad elegida en la pausa (como el sonido): el mundo la aplica al dibujar el siguiente fotograma.
@@ -93,6 +102,8 @@ export interface VistaSala {
   /** Animación de cada objeto 3D que se mueve (la hoguera, el portal). */
   animados: Map<ObjetoSala, (tiempo: number) => void>;
   hundidos: { actualizar: (tiempo: number) => void } | null;
+  /** Animación de las fuentes de luz de ambiente (sin objeto al que colgarla). */
+  ambiente: ((tiempo: number) => void)[];
   /** Luces puntuales de sus objetos (hoguera, candelabros, portal) y dónde están. */
   luces: { luz: LuzHd2d; x: number; z: number; fase: number }[];
   /** Barrera de cada salida, que se ve mientras está cerrada. */
@@ -295,6 +306,7 @@ export class Mundo {
   ): void {
     this.vaciar();
     this.escena.background = new THREE.Color(aspecto.fondo);
+    this.escena.fog = aspecto.niebla ? new THREE.FogExp2(aspecto.fondo, aspecto.niebla) : null;
     this.cielo.color.set(aspecto.cielo.arriba);
     this.cielo.groundColor.set(aspecto.cielo.abajo);
     this.cielo.intensity = aspecto.cielo.intensidad;
@@ -329,6 +341,12 @@ export class Mundo {
     for (const v of this.zona.vistas) {
       if (v.grupo.parent) v.grupo.parent.remove(v.grupo);
       v.grupo.traverse((o) => {
+        // Los sprites (el halo del fuego fatuo) comparten la geometría de three: solo su material y su textura.
+        if (o instanceof THREE.Sprite) {
+          o.material.map?.dispose();
+          o.material.dispose();
+          return;
+        }
         if (!(o instanceof THREE.Mesh || o instanceof THREE.Points)) return;
         o.geometry.dispose();
         for (const m of [o.material as THREE.Material | THREE.Material[]].flat()) {
@@ -336,6 +354,7 @@ export class Mundo {
           // Las texturas del «¡!» y el «?» son de todas las zonas: no se sueltan.
           if (map && map !== this.texturasSigno.alerta && map !== this.texturasSigno.perdido)
             map.dispose();
+          if (m instanceof THREE.MeshLambertMaterial) quitarRelieve(m);
           m.dispose();
         }
       });
@@ -366,6 +385,7 @@ export class Mundo {
       animados: new Map(),
       hundidos: null,
       luces: [],
+      ambiente: [],
       barreras: [],
       azar,
       encuadre,
@@ -445,6 +465,12 @@ export class Mundo {
       new THREE.PlaneGeometry(sala.ancho, sala.alto),
       new THREE.MeshLambertMaterial({ map: textura(lienzo), alphaTest: 0.5 }),
     );
+    // El suelo toma relieve de su propio dibujo (lo claro sube): la luz rasante de una hoguera lo marca.
+    if (this.a.relieve) {
+      plano.material.userData.relieve = plano.material.map;
+      plano.material.bumpScale = this.a.relieve.suelo;
+      ponerRelieve(plano.material, calidadAlta);
+    }
     plano.rotation.x = -Math.PI / 2;
     plano.position.copy(centro);
     plano.receiveShadow = true;
@@ -484,8 +510,31 @@ export class Mundo {
       if (o instanceof THREE.Mesh)
         [o.material as THREE.Material | THREE.Material[]].flat().forEach(transparentar);
     });
+    this.ponerAmbiente(v, salidas);
     z.vistas.push(v);
     return v;
+  }
+
+  /**
+   * En una sala sin luces propias, las fuentes de luz de ambiente de la zona (luciérnagas, haz, fuego fatuo, grieta):
+   * su modelo animado y su luz puntual, en casillas libres lejos de las salidas.
+   */
+  private ponerAmbiente(v: VistaSala, salidas: readonly Salida[]): void {
+    const amb = this.zona?.aspecto.ambiente;
+    const luz = amb ? this.a.luces[amb.tipo] : undefined;
+    if (!amb || !luz || v.luces.length > 0) return;
+    const cuantos = amb.min + Math.floor(v.azar() * (amb.max - amb.min + 1));
+    for (const [x, y] of lugaresDeLuz(v.sala, salidas, cuantos, amb.distancia, v.azar)) {
+      const e = crearAmbiente(amb.tipo, v.azar, this.tamPunto());
+      e.grupo.position.set(x + 0.5, 0, y + 0.5);
+      v.grupo.add(e.grupo);
+      if (e.actualizar) v.ambiente.push(e.actualizar);
+      e.grupo.traverse((m) => {
+        if (m instanceof THREE.Points && !m.material.sizeAttenuation) this.puntos.push(m.material);
+      });
+      v.luces.push({ luz, x: x + 0.5, z: y + 0.5, fase: v.azar() * 10 });
+    }
+    v.luces.sort((p, q) => compararLuces(p.luz, q.luz));
   }
 
   /** Rehace lo que se ve de un objeto (el cofre al abrirse) o lo añade (el portal al vencer al jefe). */
@@ -581,8 +630,25 @@ export class Mundo {
     const columnas = (img.naturalWidth || img.width) / frameWidth;
     const filas = (img.naturalHeight || img.height) / frameHeight;
     tex.repeat.set(1 / columnas, 1 / filas);
+    const rel = this.a.relieve;
+    const material = new THREE.MeshLambertMaterial({
+      map: tex,
+      alphaTest: 0.5,
+      side: THREE.DoubleSide,
+    });
+    if (rel) {
+      // El mapa de normales se calcula solo cuando hace falta (en calidad baja, nunca) y de la hoja que lleve el
+      // actor en ese momento (la heroína cambia de hoja al vestirse).
+      material.userData.hacerRelieve = (): THREE.Texture => {
+        const normales = texturaNormales(sprite.imagen as HTMLImageElement, rel);
+        normales.repeat.set(1 / columnas, 1 / filas);
+        return normales;
+      };
+      material.normalScale.set(rel.escala, rel.escala);
+      ponerRelieve(material, calidadAlta);
+    }
     const malla = carton(
-      new THREE.MeshLambertMaterial({ map: tex, alphaTest: 0.5, side: THREE.DoubleSide }),
+      material,
       frameWidth / tam,
       frameHeight / tam,
       (frameHeight - anchor.y) / tam,
@@ -684,6 +750,7 @@ export class Mundo {
       columna / a.columnas,
       1 - (a.sprite.datos.directions[direccion] + 1) / a.filas,
     );
+    a.malla.material.normalMap?.offset.copy(a.tex.offset);
   }
 
   /**
@@ -711,6 +778,9 @@ export class Mundo {
     if (h.tex.image !== h.sprite.imagen) {
       h.tex.image = h.sprite.imagen;
       h.tex.needsUpdate = true;
+      // Su relieve también: el equipo cambia la silueta.
+      quitarRelieve(h.malla.material);
+      ponerRelieve(h.malla.material, calidadAlta);
     }
     this.colocarActor(h, x, y, animacion, direccion, tiempoAnimacion);
     h.malla.visible = opacidad > 0;
@@ -794,6 +864,13 @@ export class Mundo {
     this.alta = calidadAlta;
     this.tiltH.enabled = this.tiltV.enabled = calidadAlta;
     this.principal.castShadow = calidadAlta;
+    // En baja, sin relieve en los sprites ni en el suelo (todas las salas montadas y la heroína).
+    if (this.heroe) ponerRelieve(this.heroe.malla.material, calidadAlta);
+    for (const vista of this.zona?.vistas ?? [])
+      vista.grupo.traverse((o) => {
+        if (o instanceof THREE.Mesh && o.material instanceof THREE.MeshLambertMaterial)
+          ponerRelieve(o.material, calidadAlta);
+      });
     const v = this.vista;
     this.vista = null;
     if (v) this.mostrar(v);
@@ -805,6 +882,7 @@ export class Mundo {
     if (z) for (const p of v.piezas.values()) pintarPieza(p, z.imagenes, z.tam, tiempo);
     v.fuente?.actualizar(tiempo);
     for (const actualizar of v.animados.values()) actualizar(tiempo);
+    for (let i = 0; i < v.ambiente.length; i++) v.ambiente[i]!(tiempo);
     v.hundidos?.actualizar(tiempo);
     for (let i = 0; i < this.puntuales.length; i++) {
       const luz = this.puntuales[i]!;
@@ -904,6 +982,7 @@ export class Mundo {
     if (this.heroe) {
       this.escena.remove(this.heroe.malla);
       this.heroe.malla.geometry.dispose();
+      quitarRelieve(this.heroe.malla.material);
       this.heroe.malla.material.dispose();
       this.heroe.tex.dispose();
     }
@@ -1004,4 +1083,34 @@ function texturaNube(): THREE.Texture {
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, 16, 16);
   return new THREE.CanvasTexture(lienzo);
+}
+
+/**
+ * Pone o quita el relieve de un material: el bump del suelo (`userData.relieve`, su propio dibujo) o el mapa de
+ * normales de un sprite, que se calcula la primera vez que se pone (`userData.hacerRelieve`). Sin ninguno, nada.
+ */
+function ponerRelieve(m: THREE.MeshLambertMaterial, alta: boolean): void {
+  let relieve = m.userData.relieve as THREE.Texture | undefined;
+  const hacer = m.userData.hacerRelieve as (() => THREE.Texture) | undefined;
+  if (!relieve && alta && hacer) relieve = m.userData.relieve = hacer();
+  if (!relieve) return;
+  const esSuelo = relieve === m.map;
+  const actual = esSuelo ? m.bumpMap : m.normalMap;
+  const nuevo = alta ? relieve : null;
+  if (actual === nuevo) return;
+  if (esSuelo) m.bumpMap = nuevo;
+  else m.normalMap = nuevo;
+  m.needsUpdate = true;
+}
+
+/** Suelta el mapa de normales calculado de un sprite (se rehará si hace falta); el bump del suelo es su dibujo. */
+function quitarRelieve(m: THREE.MeshLambertMaterial): void {
+  const relieve = m.userData.relieve as THREE.Texture | undefined;
+  if (!relieve || relieve === m.map) return;
+  relieve.dispose();
+  delete m.userData.relieve;
+  if (m.normalMap) {
+    m.normalMap = null;
+    m.needsUpdate = true;
+  }
 }

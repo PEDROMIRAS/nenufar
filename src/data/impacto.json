@@ -64,5 +64,6 @@
       "fuerte": 0.3,
       "debil": 0.4
     }
-  }
+  },
+  "camara": { "zoom": 0.12, "entrada": 0.22, "mantener": 0.35, "salida": 0.45, "fuerte": 1.6 }
 }

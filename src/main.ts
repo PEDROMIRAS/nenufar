@@ -17,7 +17,7 @@ import {
   type PartidaGuardada,
 } from './core/guardado';
 import { crearHeroina, type Heroina } from './core/heroina';
-import { capasDeEquipo, coloresDeEquipo, inventarioInicial } from './core/equipo';
+import { capasDeEquipo, coloresDeEquipo, equipar, inventarioInicial } from './core/equipo';
 import type { Inventario } from './core/inventario';
 import { limpiarNombre } from './core/nombre';
 import { cambiosDeNivel, empezarEnNivel, instantanea, repartirPuntos } from './core/progresion';
@@ -427,6 +427,9 @@ async function iniciar(): Promise<void> {
     if (import.meta.env.DEV)
       luchadora.puntos = Number(new URLSearchParams(location.search).get('puntos')) || 0;
     const inventario = inventarioInicial(luchadora, heroe, OBJETOS);
+    // ?equipo=clave se pone esa pieza al empezar (solo en desarrollo): para ver cómo se viste la heroína.
+    const pieza = import.meta.env.DEV ? new URLSearchParams(location.search).get('equipo') : null;
+    if (pieza && OBJETOS.equipo[pieza]) equipar(luchadora, inventario, OBJETOS, pieza);
     const partida = crearPartida(heroe, sprite, dificultad, luchadora, inventario, semilla);
     crearZona(partida, zonaInicial, true)
       .then((zona) => {

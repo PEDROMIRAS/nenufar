@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { compararLuces } from '../src/core/luces';
+import { crearAzar } from '../src/core/azar';
+import { compararLuces, lugaresDeLuz } from '../src/core/luces';
 import { HD2D } from '../src/data/datos';
 
 describe('orden de las luces de una sala', () => {
@@ -22,5 +23,36 @@ describe('orden de las luces de una sala', () => {
 
   it('con la misma fuerza se respeta el orden en que se añadieron', () => {
     expect(ordenar(['candelabro', 'candelabro'])).toEqual(['candelabro', 'candelabro']);
+  });
+});
+
+describe('lugaresDeLuz', () => {
+  const sala = (solida = false) => ({
+    ancho: 21,
+    alto: 13,
+    solido: new Array<boolean>(21 * 13).fill(solida),
+    objetos: [{ x: 4, y: 4 }],
+  });
+  const salidas = [{ entrada: [10, 1] as const }];
+  const lejos = (a: readonly [number, number], b: readonly [number, number], d: number): boolean =>
+    Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1])) >= d;
+
+  it('da casillas libres, lejos de las entradas y entre sí', () => {
+    const lugares = lugaresDeLuz(sala(), salidas, 2, 3, crearAzar(1));
+    expect(lugares).toHaveLength(2);
+    const [a, b] = lugares as [[number, number], [number, number]];
+    expect(lejos(a, [10, 1], 3) && lejos(b, [10, 1], 3)).toBe(true);
+    expect(lejos(a, b, 3)).toBe(true);
+    for (const l of lugares) expect(l).not.toEqual([4, 4]);
+  });
+
+  it('en una sala toda sólida, ninguna', () => {
+    expect(lugaresDeLuz(sala(true), salidas, 2, 3, crearAzar(1))).toEqual([]);
+  });
+
+  it('con el mismo azar, las mismas', () => {
+    expect(lugaresDeLuz(sala(), salidas, 2, 3, crearAzar(7))).toEqual(
+      lugaresDeLuz(sala(), salidas, 2, 3, crearAzar(7)),
+    );
   });
 });
