@@ -75,7 +75,7 @@ Hecho desde la lista anterior: el ermitaño (PR #30), las plantillas nuevas (PR 
 2. **Monstruos sin imagen válida** (siguen a resolución sencilla): dragón negro, murciélago, sacerdote y cofre trampa. **Necesitan una imagen de Pedro**; el criterio es la vista de la imagen en las cuatro direcciones, nada recreado.
 3. **Las ranas a doble resolución** (proyecto aparte, con su spec).
 4. **Bloque 3 de la variedad: monstruos nuevos**, con arte que apruebe Pedro (spec, plan, ejecución).
-5. **Documento de desarrollo al día:** faltan las salas de evento (altar, desafío, ermitaño), los presagios, las plantillas nuevas y los monstruos a doble resolución; sus tablas de monstruos, jefes y objetos siguen siendo las de la versión 1.
+5. **Documento de desarrollo: al día (2026-11-18).** Tablas de monstruos, jefes y objetos de la pestaña principal rehechas con los datos actuales y pestaña nueva «Versión 2: lo nuevo» (registro de lo hecho desde noviembre, reto del día, presagios y salas de evento, con su equilibrado). Las demás secciones de la pestaña principal (exploración, controles, pantallas, plan de hitos) no se han repasado.
 6. **Enlace desde el portafolio (versión final):** hace falta saber dónde está el portafolio antes de tocar nada; se pide permiso antes de subirlo. El vídeo de demo (`docs/video/nenufar_demo.mp4`) **no va todavía al portafolio** (Pedro, 2026-11-17).
 7. **Vídeo de demo (fusionado):** quedan solo ideas, en la sección «Resultado» de su plan (plano de jefes más largo, versión vertical para redes).
 
