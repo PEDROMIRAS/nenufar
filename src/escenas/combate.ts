@@ -166,6 +166,7 @@ export class EscenaCombate implements Escena {
       atacante: null,
       tiempoAtaque: 0,
       objetivoAtaque: null,
+      ataqueFuerte: false,
       efecto: '',
       efectoEn: null,
       tiempoEfecto: 0,
@@ -242,6 +243,10 @@ export class EscenaCombate implements Escena {
       this.ultimoAtacante = siguiente.origen;
       v.atacante = siguiente.origen;
       v.objetivoAtaque = siguiente.objetivo;
+      v.ataqueFuerte =
+        siguiente.critico ||
+        siguiente.cargado ||
+        this.combate.enemigos.some((e) => e.monstruo?.jefe === true);
       v.tiempoAtaque = 0;
       const sonido = this.enHabilidad ? undefined : siguiente.origen.heroe?.combate.sonido;
       if (sonido) sonar(sonido);

@@ -17,3 +17,11 @@ test('sin zoom o con tiempos raros, 1', () => {
   expect(zoomAtaque(-1, 0.5, d)).toBe(1);
   expect(zoomAtaque(Number.NaN, 0.5, d)).toBe(1);
 });
+
+test('en un golpe fuerte se acerca más (zoom × fuerte); sin él, igual que antes', () => {
+  const f = { ...d, fuerte: 1.6 };
+  expect(zoomAtaque(0.5, 0.5, f, true)).toBeCloseTo(1 + 0.1 * 1.6);
+  expect(zoomAtaque(0.5, 0.5, f, false)).toBeCloseTo(1.1);
+  // Sin el campo, el fuerte no cambia nada.
+  expect(zoomAtaque(0.5, 0.5, d, true)).toBeCloseTo(1.1);
+});

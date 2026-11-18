@@ -76,6 +76,8 @@ export interface VistaCombate {
   tiempoAtaque: number;
   /** Hacia quién va ese ataque (allí vuela el proyectil, si lo hay). */
   objetivoAtaque: Luchador | null;
+  /** El ataque en curso es un golpe fuerte (crítico, cargado o en un combate contra un jefe): la cámara se acerca más. */
+  ataqueFuerte: boolean;
   /** Efecto que se ve sobre quien recibe un golpe («corte», «impacto»…) y desde cuándo. */
   efecto: string;
   efectoEn: Luchador | null;
@@ -816,7 +818,7 @@ function acercarAlAtaque(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   const o = v.objetivoAtaque;
   const camara = IMPACTO.camara;
   if (!a || !o || !camara) return;
-  const z = zoomAtaque(v.tiempoAtaque, anticipoAtaque(v, a), camara);
+  const z = zoomAtaque(v.tiempoAtaque, anticipoAtaque(v, a), camara, v.ataqueFuerte);
   if (z === 1) return;
   const fx = (centroX(v, a) + centroX(v, o)) / 2;
   const fy = (centroY(a) + centroY(o)) / 2;
