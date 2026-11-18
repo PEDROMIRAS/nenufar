@@ -8,13 +8,14 @@ import { interfaz } from './pantalla';
 import type { Sprite } from './recursos';
 import { escribir } from './texto';
 
-/** Tarjetas de las heroínas, en píxeles lógicos (una por heroína, de izquierda a derecha). */
+/** Pista del pie según el último dispositivo usado. */
 const PISTA: Record<Dispositivo, string> = {
   teclado: '← → elegir · Enter seguir',
   tactil: 'Toca una rana para elegirla',
   mando: 'Cruceta elegir · A seguir',
 };
 
+/** Tarjetas de las heroínas, en píxeles lógicos (una por heroína, de izquierda a derecha). */
 export const TARJETAS = [
   { x: 40, y: 56, ancho: 184, alto: 236 },
   { x: 256, y: 56, ancho: 184, alto: 236 },

@@ -1,3 +1,4 @@
+import { dispositivo, type Dispositivo } from '../input/dispositivo';
 import type { Acciones } from '../core/acciones';
 import { limpiarNombre } from '../core/nombre';
 import type { HeroeJson } from '../core/types';
@@ -9,6 +10,13 @@ import { ajustarCampoNombre, dibujarNombre, LARGO_NOMBRE } from '../render/nombr
 import type { Sprite } from '../render/recursos';
 import { ponerMusica, sonar } from '../render/sonido';
 import type { Escena } from './escena';
+
+/** Cómo se acepta el nombre, para el lector de pantalla, según el último dispositivo usado. */
+const ACEPTAR: Record<Dispositivo, string> = {
+  teclado: 'pulsa Enter',
+  tactil: 'toca Seguir',
+  mando: 'pulsa A',
+};
 
 /**
  * Nombre de la rana, después de elegirla y antes de la dificultad. Se pide siempre, con el nombre
@@ -49,7 +57,7 @@ export class EscenaNombre implements Escena {
       () => this.volver(),
     );
     anunciar(
-      `¿Cómo se llama tu rana? Escribe un nombre y pulsa Enter. Si lo dejas vacío será ${this.heroe.nombre}.`,
+      `¿Cómo se llama tu rana? Escribe un nombre y ${ACEPTAR[dispositivo()]}. Si lo dejas vacío será ${this.heroe.nombre}.`,
     );
   }
 

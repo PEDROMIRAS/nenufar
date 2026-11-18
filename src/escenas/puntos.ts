@@ -16,6 +16,14 @@ import {
 import { sonar } from '../render/sonido';
 import type { Escena } from './escena';
 
+/** Lo que dice el lector de pantalla al abrir la pantalla, según el último dispositivo usado. */
+const COMO_SE_USA: Record<Dispositivo, string> = {
+  teclado:
+    'Flechas arriba y abajo para elegir, izquierda y derecha para quitar o poner, Enter para terminar.',
+  tactil: 'Toca menos o más en cada fila y Listo para terminar.',
+  mando:
+    'Cruceta arriba y abajo para elegir, izquierda y derecha para quitar o poner, A para terminar.',
+};
 const PISTA: Record<Dispositivo, string> = {
   teclado: '↑↓ elegir · ← → quitar o poner · Enter listo',
   tactil: 'Toca − o + para quitar o poner puntos',
@@ -75,9 +83,7 @@ export class EscenaPuntos implements Escena {
   }
 
   enter(): void {
-    anunciar(
-      `Puntos de mejora. ${this.libres}. Flechas arriba y abajo para elegir, izquierda y derecha para quitar o poner, Enter para terminar.`,
-    );
+    anunciar(`Puntos de mejora. ${this.libres}. ${COMO_SE_USA[dispositivo()]}`);
   }
   exit(): void {}
 

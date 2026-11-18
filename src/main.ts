@@ -96,6 +96,7 @@ import { EscenaMensaje } from './escenas/mensaje';
 import { EscenaMapa } from './escenas/mapa';
 import { PilaEscenas } from './escenas/pila';
 import { EscenaPausa } from './escenas/pausa';
+import type { Escena } from './escenas/escena';
 import { EscenaPresentacion } from './escenas/presentacion';
 import { EscenaPuntos } from './escenas/puntos';
 import { EscenaSeleccion } from './escenas/seleccion';
@@ -105,7 +106,7 @@ import { crearJoystick } from './input/joystick';
 import { crearTeclado } from './input/teclado';
 import { dispositivo, fijarDispositivo, usarDispositivo } from './input/dispositivo';
 import { conexionesMando, crearMando } from './input/mando';
-import { avisoNuevo, crearEstadoCartel, opacidadCartel } from './core/cartel';
+import { avisoNuevo, crearEstadoCartel, opacidadCartel, reiniciarCartel } from './core/cartel';
 import { dibujarCartel } from './render/cartel';
 import { anunciar, movimientoReducido } from './render/accesibilidad';
 import { crearToque } from './input/toque';
@@ -206,6 +207,8 @@ interface Partida {
    */
   reto: { fecha: Fecha; segundos: number; progreso: () => { sala: number; de: number } } | null;
 }
+
+const esPausa = (e: Escena): boolean => e instanceof EscenaPausa;
 
 /** El reto del día que se está jugando, para contar su tiempo en el bucle (null si no hay). */
 let retoEnJuego: Partida | null = null;
@@ -605,11 +608,10 @@ async function iniciar(): Promise<void> {
     (dt) => {
       leerFuentes(fuentes, acciones);
       pila.update(dt, acciones);
-      // El tiempo del reto no cuenta la pausa.
-      if (retoEnJuego?.reto && !(pila.arriba instanceof EscenaPausa))
-        retoEnJuego.reto.segundos += dt;
+      // El tiempo del reto no cuenta la pausa (ni Equipo o Puntos abiertos desde ella).
+      if (retoEnJuego?.reto && !pila.alguna(esPausa)) retoEnJuego.reto.segundos += dt;
       if (avisoNuevo(estadoCartel, conexionesMando())) {
-        tiempoCartel = 0;
+        tiempoCartel = reiniciarCartel(tiempoCartel, controles.mando.aviso);
         anunciar(CARTEL_MANDO);
       } else tiempoCartel += dt;
     },
@@ -1202,9 +1204,11 @@ function terminarReto(partida: Partida, victoria: boolean): void {
   retoEnJuego = null;
   const resultado: ResultadoReto = { victoria, segundos: reto.segundos, ...reto.progreso() };
   const clave = claveDe(HEROES, heroe);
-  const { estado, nuevo } = anotarReto(cargarReto(), textoFecha(reto.fecha), clave, resultado);
+  const fecha = textoFecha(reto.fecha);
+  const { estado, nuevo } = anotarReto(cargarReto(), fecha, clave, resultado);
   guardarReto(estado);
-  const mejor = estado.mejores[clave] ?? resultado;
+  // Si otra pestaña ya jugó el día siguiente, el intento no se apunta: su mejor es él mismo.
+  const mejor = (estado.fecha === fecha ? estado.mejores[clave] : null) ?? resultado;
   partida.pila.cambiar(
     new EscenaFinReto(
       {

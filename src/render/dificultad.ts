@@ -6,13 +6,14 @@ import { dibujarCabecera, dibujarFondo, dibujarMarco, PALETA } from './marco';
 import { ANCHO, interfaz } from './pantalla';
 import { escribir, FUENTE_GRANDE } from './texto';
 
-/** Lo que se cuenta de cada dificultad, ya en líneas. */
+/** Pista del pie según el último dispositivo usado. */
 const PISTA: Record<Dispositivo, string> = {
   teclado: '← → elegir · Enter empezar · Esc volver',
   tactil: 'Toca una dificultad para empezar',
   mando: 'Cruceta elegir · A empezar · B volver',
 };
 
+/** Lo que se cuenta de cada dificultad, ya en líneas. */
 export interface FichaDificultad {
   nombre: string;
   lineas: string[];

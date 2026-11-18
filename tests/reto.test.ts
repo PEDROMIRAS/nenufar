@@ -90,3 +90,20 @@ test('leerReto tolera basura', () => {
     leerReto('{"fecha":"2026-11-18","dias":1,"mejores":{"ronin":{"victoria":"si"}}}').mejores,
   ).toEqual({});
 });
+
+test('un intento de una fecha anterior a la guardada no reinicia el récord ni suma días', () => {
+  const hoy = anotarReto(RETO_VACIO, '2026-11-19', 'ronin', pierde(4)).estado;
+  const ayer = anotarReto(hoy, '2026-11-18', 'ronin', pierde(5));
+  expect(ayer.nuevo).toBe(false);
+  expect(ayer.estado).toEqual(hoy);
+  // Al revés sigue siendo un día nuevo.
+  expect(anotarReto(hoy, '2026-11-20', 'ronin', pierde(1)).estado.dias).toBe(2);
+});
+
+test('leerReto no deja que «__proto__» cambie el prototipo de los mejores', () => {
+  const r = leerReto(
+    '{"fecha":"2026-11-18","dias":1,"mejores":{"__proto__":{"victoria":true,"segundos":9,"sala":1,"de":1}}}',
+  );
+  expect(Object.getPrototypeOf(r.mejores)).toBe(Object.prototype);
+  expect(Object.keys(r.mejores)).toEqual([]);
+});

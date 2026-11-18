@@ -28,3 +28,12 @@ export function avisoNuevo(estado: EstadoCartel, conexiones: number): boolean {
   estado.avisadas = conexiones;
   return true;
 }
+
+/**
+ * El tiempo del cartel cuando llega otro aviso igual: si no se ve, desde 0 (con su fundido de entrada); si ya se ve,
+ * sin volver a fundir (como mucho, al final del fundido de entrada), así que dura otra vez lo de siempre sin
+ * parpadear.
+ */
+export function reiniciarCartel(t: number, d: { segundos: number; fundido: number }): number {
+  return t >= 0 && t < d.segundos ? Math.min(t, d.fundido) : 0;
+}

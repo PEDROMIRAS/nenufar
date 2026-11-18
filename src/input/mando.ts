@@ -6,15 +6,19 @@ import type { FuenteEntrada } from './fuente';
 /** Botones que se recuerdan del paso anterior (la asignación estándar tiene 17). */
 const BOTONES = 20;
 
-/** El primer mando conectado, o null. Recorre la lista del navegador sin copiarla. */
+/** El mando conectado (mejor uno con la disposición estándar), o null. Recorre la lista del navegador sin copiarla. */
 export function mandoActual(): Gamepad | null {
   if (typeof navigator === 'undefined' || !navigator.getGamepads) return null;
   const lista = navigator.getGamepads();
+  // Mejor uno con la disposición estándar (la que entiende `leerMando`); si no hay, el primero conectado.
+  let primero: Gamepad | null = null;
   for (let i = 0; i < lista.length; i++) {
     const m = lista[i];
-    if (m && m.connected) return m;
+    if (!m || !m.connected) continue;
+    if (m.mapping === 'standard') return m;
+    primero ??= m;
   }
-  return null;
+  return primero;
 }
 
 /** Fuente de entrada del mando: lee la API Gamepad en cada paso lógico. */

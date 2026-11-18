@@ -81,7 +81,6 @@ const ayuda = (texto: string): string[] => partirEnLineas(texto, LARGO_LINEA);
 
 const textoVida = (pv: number, max: number): string => `${pv}/${max}`;
 
-/** Pantalla de combate: anima los eventos de `core/combate` uno a uno y recoge la acción de la heroína. */
 /** Lo que dice el lector de pantalla al final del combate. */
 const CONTINUAR: Record<Dispositivo, string> = {
   teclado: 'Pulsa Enter para continuar.',
@@ -89,6 +88,7 @@ const CONTINUAR: Record<Dispositivo, string> = {
   mando: 'Pulsa A para continuar.',
 };
 
+/** Pantalla de combate: anima los eventos de `core/combate` uno a uno y recoge la acción de la heroína. */
 export class EscenaCombate implements Escena {
   readonly conMundo = true;
   readonly alta = true;

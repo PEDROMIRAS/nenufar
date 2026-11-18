@@ -1,5 +1,7 @@
 import { dispositivo, type Dispositivo } from '../input/dispositivo';
 import type { Acciones } from '../core/acciones';
+import { letrasEnAncho } from '../core/disposicion';
+import { focoPortada } from '../core/menu';
 import { formatearTiempo, textoPorDificultad, type Records } from '../core/records';
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
 import { dibujarCaja, PALETA } from '../render/marco';
@@ -25,15 +27,12 @@ const BOTON_RETO = { x: ANCHO / 2 - 80, y: ALTO - 98, ancho: 160, alto: 30 };
 const TEXTO_RETO = 'Reto del día';
 /** Medidas de la disposición vertical: margen, alto de los botones y alto de una línea de récords. */
 const VERTICAL = { margen: 8, botones: 44, linea: 14 };
-/** Ancho de una letra de la fuente normal. */
-const ANCHO_LETRA = 7.2;
 
 /**
  * Dónde están las flechas: de izquierda a derecha, controles, empezar y extras (← y → los recorren); el reto va
  * aparte, encima de empezar (↑ desde empezar).
  */
 const FOCOS = ['controles', 'empezar', 'extras', 'reto'] as const;
-const RETO = 3;
 const ANUNCIO = {
   controles: 'Controles',
   empezar: AVISO,
@@ -41,7 +40,6 @@ const ANUNCIO = {
   reto: `${TEXTO_RETO}: una partida corta con el mapa de hoy`,
 };
 
-/** Portada: la sala de descanso del Bosque con las ranas junto a la fuente, el logo y los récords. */
 /** Segunda línea del botón de extras; con teclado o mando dice también su botón. */
 const TEXTO_EXTRAS: Record<Dispositivo, string> = {
   teclado: 'logros (I)',
@@ -49,6 +47,7 @@ const TEXTO_EXTRAS: Record<Dispositivo, string> = {
   mando: 'logros (Y)',
 };
 
+/** Portada: la sala de descanso del Bosque con las ranas junto a la fuente, el logo y los récords. */
 export class EscenaTitulo implements Escena {
   readonly conMundo = true;
   readonly alta = true;
@@ -109,16 +108,12 @@ export class EscenaTitulo implements Escena {
     ponerMusica(null);
     this.disponer();
     this.tiempo += dt;
-    // ← y → recorren controles, empezar y extras; ↑ desde empezar lleva al reto y desde el reto a extras, y ↓
-    // vuelve a empezar.
+    // Las flechas siguen el orden de los botones en la pantalla (ver `focoPortada`).
     const dx = Math.sign(acciones.moverX);
     const dy = Math.sign(acciones.moverY);
     let foco = this.foco;
-    if (dx !== 0 && dx !== this.ultimoX)
-      foco = foco === RETO ? (dx < 0 ? 0 : 2) : Math.min(2, Math.max(0, foco + dx));
-    else if (dy > 0 && dy !== this.ultimoY) foco = 1;
-    else if (dy < 0 && dy !== this.ultimoY && foco === 1) foco = RETO;
-    else if (dy < 0 && dy !== this.ultimoY && foco === RETO) foco = 2;
+    if (dx !== 0 && dx !== this.ultimoX) foco = focoPortada(foco, dx, 0, interfaz.alta);
+    else if (dy !== 0 && dy !== this.ultimoY) foco = focoPortada(foco, 0, dy, interfaz.alta);
     this.ultimoX = dx;
     this.ultimoY = dy;
     if (foco !== this.foco) {
@@ -163,7 +158,7 @@ export class EscenaTitulo implements Escena {
       this.bandaY = BOTON_RETO.y - VERTICAL.margen;
       return;
     }
-    const letras = Math.floor((interfaz.ancho - 2 * VERTICAL.margen) / ANCHO_LETRA);
+    const letras = letrasEnAncho(interfaz.ancho - 2 * VERTICAL.margen);
     if (letras !== this.letrasRecords) {
       this.letrasRecords = letras;
       this.lineasRecords = [

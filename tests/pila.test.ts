@@ -47,3 +47,15 @@ test('la pila avisa de si la escena de arriba dibuja en la ventana y si pide la 
     [true, false],
   ]);
 });
+
+test('alguna dice si hay una escena así en cualquier nivel de la pila, no solo arriba', () => {
+  const pila = new PilaEscenas();
+  const pausa = escena('pausa');
+  pila.apilar(escena('mapa'));
+  pila.apilar(pausa);
+  pila.apilar(escena('equipo'));
+  expect(pila.alguna((e) => e === pausa)).toBe(true);
+  pila.desapilar();
+  pila.desapilar();
+  expect(pila.alguna((e) => e === pausa)).toBe(false);
+});
