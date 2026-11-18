@@ -20,7 +20,9 @@ import { crearHeroina, type Heroina } from './core/heroina';
 import { capasDeEquipo, coloresDeEquipo, inventarioInicial } from './core/equipo';
 import type { Inventario } from './core/inventario';
 import { limpiarNombre } from './core/nombre';
-import { cambiosDeNivel, instantanea } from './core/progresion';
+import { cambiosDeNivel, empezarEnNivel, instantanea, repartirPuntos } from './core/progresion';
+import { progresoReto, semillaDelDia, type Fecha } from './core/reto';
+import RETO from './data/reto.json';
 import {
   actualizarRecords,
   anotarLogros,
@@ -185,7 +187,15 @@ interface Partida {
   dragonAntes: boolean;
   /** El mapa en 3D (uno para todas las partidas: cada WebGLRenderer es un contexto del navegador). */
   mundo: Mundo;
+  /**
+   * En el reto del día: su fecha, los segundos jugados (sin contar la pausa) y hasta qué sala se ha llegado. Null en
+   * la partida normal. El reto no se guarda ni toca los récords, los logros ni el bestiario.
+   */
+  reto: { fecha: Fecha; segundos: number; progreso: () => { sala: number; de: number } } | null;
 }
+
+/** El reto del día que se está jugando, para contar su tiempo en el bucle (null si no hay). */
+let retoEnJuego: Partida | null = null;
 
 /** Lo que existe en el juego, para descartar una partida guardada que nombre algo que ya no está. */
 const CONOCIDO: Conocido = {
@@ -382,6 +392,7 @@ async function iniciar(): Promise<void> {
       violetasAntes: 0,
       dragonAntes: false,
       mundo,
+      reto: null,
     };
     vestir(partida); // con el arma y la armadura que lleve
     enCurso = true;
@@ -445,6 +456,47 @@ async function iniciar(): Promise<void> {
       })
       .catch(mostrarError);
   };
+
+  /**
+   * Empieza el reto del día con la rana elegida: el Bosque corto de reto.json con la semilla de `fecha`, la rana ya en
+   * el nivel del reto y sin guardar nada. «Otra vez» lo vuelve a llamar con la misma rana y la misma fecha.
+   */
+  const empezarReto = (heroe: HeroeJson, sprite: Sprite, fecha: Fecha): void => {
+    const luchadora = luchadorDeHeroe(heroe);
+    const inventario = inventarioInicial(luchadora, heroe, OBJETOS);
+    empezarEnNivel(luchadora, RETO.nivel, REGLAS.experiencia);
+    const partida = crearPartida(
+      heroe,
+      sprite,
+      RETO.dificultad,
+      luchadora,
+      inventario,
+      semillaDelDia(fecha),
+    );
+    enCurso = false; // el reto dura minutos: cerrar la pestaña no pregunta
+    partida.reto = { fecha, segundos: 0, progreso: () => ({ sala: 1, de: 1 }) };
+    retoEnJuego = partida;
+    crearZona(partida, ORDEN.indexOf(RETO.zona as NombreZona), true)
+      .then((zona) => {
+        pila.cambiar(zona);
+        guardarAjustes({ pistasVistas: true }); // las pistas, si tocaban, ya van en esta zona
+        contar(
+          pila,
+          [
+            {
+              titulo: `Reto del día · ${fecha.dia}/${fecha.mes}/${fecha.anio}`,
+              texto: 'Llega al Guardián del Bosque',
+            },
+          ],
+          () => {},
+        );
+      })
+      .catch(mostrarError);
+  };
+  reiniciarReto = empezarReto;
+  const seleccionReto = new EscenaSeleccion(opciones, ({ heroe, sprite }) =>
+    empezarReto(heroe, sprite, hoy()),
+  );
 
   // Una partida a medias (se cerró el navegador): se vuelve a la sala donde se guardó, sin portada.
   const guardada = cargarPartida(CONOCIDO);
@@ -515,6 +567,7 @@ async function iniciar(): Promise<void> {
             new EscenaExtras(cargarRecords(), MONSTRUOS, hojas, LOGROS, () => pila.desapilar()),
           ),
         () => pila.apilar(new EscenaControles(() => pila.desapilar())),
+        () => pila.cambiar(seleccionReto),
       ),
     );
   }
@@ -528,6 +581,9 @@ async function iniciar(): Promise<void> {
     (dt) => {
       leerFuentes(fuentes, acciones);
       pila.update(dt, acciones);
+      // El tiempo del reto no cuenta la pausa.
+      if (retoEnJuego?.reto && !(pila.arriba instanceof EscenaPausa))
+        retoEnJuego.reto.segundos += dt;
       if (avisoNuevo(estadoCartel, conexionesMando())) {
         tiempoCartel = 0;
         anunciar(CARTEL_MANDO);
@@ -555,26 +611,34 @@ async function crearZona(
   if (!nombre) throw new Error(`No hay zona número ${indice}`);
   const { tilesets, imagenes } = await cargarTilesets(nombre);
   const datos = zonas.zonas[nombre];
-  // Cada zona con su propia semilla, derivada de la de la partida.
-  const zona = generarZona(
-    {
-      ...zonas.generacion,
-      salas: datos.salas,
-      violeta: modoVioleta(indice, ORDEN.length, partida.violetas),
-      probabilidadVioleta: zonas.violetas.probabilidad,
-      probabilidadTrampa: zonas.violetas.probabilidadTrampa,
-      probabilidadEvento: probabilidadEvento(),
-      probabilidadDesafio: probabilidadDesafio(),
-      probabilidadErmitano: probabilidadErmitano(),
-    },
-    partida.semilla + indice * 7919,
-  );
+  const reto = partida.reto;
+  // Cada zona con su propia semilla, derivada de la de la partida. El reto: la zona corta, con la semilla del día
+  // tal cual y sin sala violeta, trampa, eventos ni presagio (como la juega el simulador).
+  const zona = reto
+    ? generarZona(
+        { ...zonas.generacion, salas: RETO.salas, tesoros: RETO.tesoros },
+        partida.semilla,
+      )
+    : generarZona(
+        {
+          ...zonas.generacion,
+          salas: datos.salas,
+          violeta: modoVioleta(indice, ORDEN.length, partida.violetas),
+          probabilidadVioleta: zonas.violetas.probabilidad,
+          probabilidadTrampa: zonas.violetas.probabilidadTrampa,
+          probabilidadEvento: probabilidadEvento(),
+          probabilidadDesafio: probabilidadDesafio(),
+          probabilidadErmitano: probabilidadErmitano(),
+        },
+        partida.semilla + indice * 7919,
+      );
   console.info(`Zona ${nombre}, semilla ${zona.semilla}`);
-  const clavePresagio =
-    presagioForzado() ??
-    elegirPresagio(PRESAGIOS, zona.semilla, (p) =>
-      presagioUtil(p, datos.cofre, OBJETOS.armaduras.length),
-    );
+  const clavePresagio = reto
+    ? null
+    : (presagioForzado() ??
+      elegirPresagio(PRESAGIOS, zona.semilla, (p) =>
+        presagioUtil(p, datos.cofre, OBJETOS.armaduras.length),
+      ));
   fijarPresagio(partida, clavePresagio ? PRESAGIOS.lista[clavePresagio]! : null);
   const presagio = partida.presagio;
   // Lo que se guarda es lo de antes de crear la zona: al recuperarla se vuelve a crear igual.
@@ -611,35 +675,41 @@ async function crearZona(
     spritesMonstruos: partida.hojas,
     duracionFundido: zonas.transicionSalas,
     rejilla: zonas.generacion.rejilla,
-    // El portal de la última zona lleva al jefe final; vencerlo es ganar la partida.
-    alUsarPortal: hayOtra
-      ? () => {
-          crearZona(partida, indice + 1, true)
-            .then((siguiente) => {
-              partida.pila.cambiar(siguiente);
-              contar(partida.pila, [cartel(indice + 1), ...paginaPresagio(partida)], () => {});
-            })
-            .catch(mostrarError);
-        }
-      : () => {
-          guardarPartida(guardado(partida, indice, escena.estado(), { tipo: 'final' }));
-          fijarPresagio(partida, null); // el jefe final se lucha sin presagio
-          lucharJefe(
-            partida,
-            { ...monstruo(zonas.jefeFinal), nombre: partida.rival },
-            historia.jefeFinal,
-            escena.fondoSala,
-            () => terminarPartida(partida, true),
-          );
-        },
+    // El portal de la última zona lleva al jefe final; vencerlo es ganar la partida. En el reto no hay portal que
+    // usar: vencer al Guardián lo acaba.
+    alUsarPortal: reto
+      ? () => {}
+      : hayOtra
+        ? () => {
+            crearZona(partida, indice + 1, true)
+              .then((siguiente) => {
+                partida.pila.cambiar(siguiente);
+                contar(partida.pila, [cartel(indice + 1), ...paginaPresagio(partida)], () => {});
+              })
+              .catch(mostrarError);
+          }
+        : () => {
+            guardarPartida(guardado(partida, indice, escena.estado(), { tipo: 'final' }));
+            fijarPresagio(partida, null); // el jefe final se lucha sin presagio
+            lucharJefe(
+              partida,
+              { ...monstruo(zonas.jefeFinal), nombre: partida.rival },
+              historia.jefeFinal,
+              escena.fondoSala,
+              () => terminarPartida(partida, true),
+            );
+          },
     entrarDesdeNegro,
-    recuperado: recuperado ?? empezarEnEvento(zona),
-    alEntrarEnSala: (estado) => guardarPartida(guardado(partida, indice, estado)),
+    recuperado: recuperado ?? (reto ? null : empezarEnEvento(zona)),
+    // El reto no se guarda: si se cierra, se pierde (y la portada vuelve a salir al abrir).
+    alEntrarEnSala: (estado) => {
+      if (!reto) guardarPartida(guardado(partida, indice, estado));
+    },
     grupos: datos.grupos.map(({ monstruos, peso }) => ({
       peso,
       monstruos: monstruos.map(monstruo),
     })),
-    gruposPorSala: zonas.monstruos.gruposPorSala,
+    gruposPorSala: reto ? RETO.gruposPorSala : zonas.monstruos.gruposPorSala,
     gruposExtra: presagio?.gruposExtra ?? 0,
     modoFuente: presagio?.fuente ?? 'todo',
     presagio: presagio?.nombre ?? null,
@@ -681,7 +751,7 @@ async function crearZona(
             }),
           ),
         () => partida.pila.desapilar(),
-        empezarOtra,
+        reto ? volverAPortada : empezarOtra,
       );
       partida.pila.apilar(pausa);
     },
@@ -700,6 +770,16 @@ async function crearZona(
       // Se guarda al empezar, con el combate: si se cierra a mitad, al volver se repite desde el
       // principio (cerrar no salva de un combate). Al acabarlo (ganado o huyendo) se guarda tal cual,
       // para que tampoco se pueda repetir uno ya ganado.
+      if (reto) {
+        // En el reto, vencer al Guardián lo acaba (tras su frase y la subida de nivel, si la hay).
+        const jefe = grupo[0];
+        if (jefe?.jefe)
+          lucharJefe(partida, jefe, historia.zonas[nombre].jefe, escena.fondoSala, (resultado) =>
+            resultado === 'victoria' ? terminarReto(partida, true) : alTerminarMapa(resultado),
+          );
+        else luchar(partida, grupo, escena.fondoSala, alTerminarMapa, quien);
+        return;
+      }
       guardarPartida(guardado(partida, indice, escena.estado(), combate));
       const alTerminar = (resultado: Resultado): void => {
         alTerminarMapa(resultado);
@@ -719,6 +799,7 @@ async function crearZona(
       }
     },
   });
+  if (reto) reto.progreso = () => progresoReto(zona.salas, escena.estado().visitadas);
   return escena;
 }
 
@@ -1016,6 +1097,34 @@ const empezarOtra = (): void => {
   location.assign(location.pathname);
 };
 
+/** Vuelve a la portada sin tocar la partida guardada (desde el reto del día, que no guarda nada). */
+const volverAPortada = (): void => {
+  enCurso = false;
+  location.assign(location.pathname);
+};
+
+/** Empieza otra vez el reto con la misma rana y la misma fecha (lo pone `iniciar`, que tiene las hojas cargadas). */
+let reiniciarReto: (heroe: HeroeJson, sprite: Sprite, fecha: Fecha) => void = () => {};
+
+/** La fecha de hoy en el navegador; en desarrollo, `?fecha=AAAA-MM-DD` la fuerza. */
+function hoy(): Fecha {
+  const pedida = import.meta.env.DEV
+    ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(new URLSearchParams(location.search).get('fecha') ?? '')
+    : null;
+  if (pedida) return { anio: Number(pedida[1]), mes: Number(pedida[2]), dia: Number(pedida[3]) };
+  const d = new Date();
+  return { anio: d.getFullYear(), mes: d.getMonth() + 1, dia: d.getDate() };
+}
+
+/** Fin del reto del día (stub hasta la tarjeta final): vuelve a la portada. */
+function terminarReto(partida: Partida, victoria: boolean): void {
+  retoEnJuego = null;
+  void partida;
+  void victoria;
+  void reiniciarReto;
+  volverAPortada();
+}
+
 /** Fin de la partida: guarda los récords y enseña el resumen. */
 function terminarPartida(partida: Partida, victoria: boolean): void {
   // Morir o ganar acaba la partida: no hay nada que recuperar.
@@ -1090,11 +1199,11 @@ function luchar(
       pila.desapilar();
       if (resultado === 'victoria') {
         partida.vencidos += combate.enemigos.length;
-        // Al bestiario en cuanto se vencen: no se pierden aunque se abandone la partida.
+        // Al bestiario en cuanto se vencen: no se pierden aunque se abandone la partida (el reto no lo toca).
         const claves = combate.enemigos.flatMap((e) =>
           e.monstruo?.clave ? [e.monstruo.clave] : [],
         );
-        guardarRecords(anotarVencidos(cargarRecords(), claves));
+        if (!partida.reto) guardarRecords(anotarVencidos(cargarRecords(), claves));
       }
       if (resultado !== 'derrota') {
         const seguir = (): void =>
@@ -1102,6 +1211,23 @@ function luchar(
         const subir = (): void => {
           if (luchadora.nivel <= antes.nivel) {
             seguir();
+            return;
+          }
+          // En el reto los puntos se reparten solos y no se para en un menú.
+          if (partida.reto) {
+            repartirPuntos(luchadora, luchadora.heroe?.planPuntos ?? [], REGLAS.experiencia);
+            pila.apilar(
+              new EscenaMensaje(
+                `¡Nivel ${luchadora.nivel}!`,
+                PALETA.elegida,
+                cambiosDeNivel(antes, luchadora),
+                SEGUIR,
+                () => {
+                  pila.desapilar();
+                  seguir();
+                },
+              ),
+            );
             return;
           }
           pila.apilar(
@@ -1126,6 +1252,8 @@ function luchar(
         // Primero lo que dice el jefe al caer, luego la subida de nivel, el equipo encontrado y de vuelta al mapa.
         if (caida && resultado === 'victoria') contar(pila, [caida], subir);
         else subir();
+      } else if (partida.reto) {
+        terminarReto(partida, false);
       } else {
         terminarPartida(partida, false);
       }
