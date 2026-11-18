@@ -1,3 +1,4 @@
+import { dispositivo, type Dispositivo } from '../input/dispositivo';
 import type { Acciones } from '../core/acciones';
 import { tarjetaTocada } from '../core/disposicion';
 import { entradasBestiario, type Logro } from '../core/logros';
@@ -17,20 +18,24 @@ import {
   type LogroVisto,
   type VistaExtras,
 } from '../render/extras';
-import { esTactil } from '../render/pantalla';
 import type { Sprite } from '../render/recursos';
 import { sonar } from '../render/sonido';
 import type { Escena } from './escena';
 
-const PISTA = esTactil()
-  ? {
-      bestiario: 'Toca un monstruo para ver su ficha',
-      logros: 'Los conseguidos salen en dorado',
-    }
-  : {
-      bestiario: 'Flechas elegir · ↑ pestañas · I volver',
-      logros: '← → pestaña · I volver',
-    };
+const PISTA: Record<Dispositivo, { bestiario: string; logros: string }> = {
+  teclado: {
+    bestiario: 'Flechas elegir · ↑ pestañas · I volver',
+    logros: '← → pestaña · I volver',
+  },
+  tactil: {
+    bestiario: 'Toca un monstruo para ver su ficha',
+    logros: 'Los conseguidos salen en dorado',
+  },
+  mando: {
+    bestiario: 'Cruceta elegir · ↑ pestañas · B volver',
+    logros: '← → pestaña · B volver',
+  },
+};
 
 /** Dónde están las flechas: las pestañas de arriba, la rejilla del bestiario o «Volver» abajo. */
 type Foco = 'pestanas' | 'rejilla' | 'volver';
@@ -106,7 +111,7 @@ export class EscenaExtras implements Escena {
       pagina: this.pagina,
       focoPestanas: false,
       subtitulo: this.vistos,
-      pista: PISTA.bestiario,
+      pista: PISTA[dispositivo()].bestiario,
       fichas: this.fichas,
       elegido: 0,
       logros: this.logros,
@@ -128,7 +133,7 @@ export class EscenaExtras implements Escena {
   }
 
   enter(): void {
-    anunciar(`Bestiario. ${this.vistos}. ${PISTA.bestiario}`);
+    anunciar(`Bestiario. ${this.vistos}. ${PISTA[dispositivo()].bestiario}`);
   }
   exit(): void {}
 
@@ -174,7 +179,7 @@ export class EscenaExtras implements Escena {
     v.pagina = this.pagina;
     v.focoPestanas = this.foco === 'pestanas';
     v.subtitulo = this.pagina === 'bestiario' ? this.vistos : this.conseguidos;
-    v.pista = PISTA[this.pagina];
+    v.pista = PISTA[dispositivo()][this.pagina];
     v.elegido = this.elegido;
     v.tiempo = this.tiempo;
     dibujarExtras(ctx, v);

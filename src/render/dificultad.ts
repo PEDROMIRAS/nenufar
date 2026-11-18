@@ -1,11 +1,18 @@
+import { dispositivo, type Dispositivo } from '../input/dispositivo';
 import { botonesAltosCacheados, letrasEnAncho } from '../core/disposicion';
 import { VERTICAL } from '../data/datos';
 import { dibujarMenu, type MenuVista } from './combate';
 import { dibujarCabecera, dibujarFondo, dibujarMarco, PALETA } from './marco';
-import { ANCHO, esTactil, interfaz } from './pantalla';
+import { ANCHO, interfaz } from './pantalla';
 import { escribir, FUENTE_GRANDE } from './texto';
 
 /** Lo que se cuenta de cada dificultad, ya en líneas. */
+const PISTA: Record<Dispositivo, string> = {
+  teclado: '← → elegir · Enter empezar · Esc volver',
+  tactil: 'Toca una dificultad para empezar',
+  mando: 'Cruceta elegir · A empezar · B volver',
+};
+
 export interface FichaDificultad {
   nombre: string;
   lineas: string[];
@@ -40,13 +47,6 @@ export function dibujarDificultad(
   const yBotones = alta
     ? botonesAltosCacheados(menu.opciones.length, interfaz.ancho, interfaz.alto, VERTICAL)[0]!.y
     : 0;
-  escribir(
-    ctx,
-    esTactil() ? 'Toca una dificultad para empezar' : '← → elegir · Enter empezar · Esc volver',
-    centro,
-    alta ? yBotones - 22 : 256,
-    PALETA.apagada,
-    'center',
-  );
+  escribir(ctx, PISTA[dispositivo()], centro, alta ? yBotones - 22 : 256, PALETA.apagada, 'center');
   dibujarMenu(ctx, menu);
 }

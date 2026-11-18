@@ -1,4 +1,5 @@
 import { fijarDireccion } from '../core/direccion';
+import { usarDispositivo } from './dispositivo';
 import type { FuenteEntrada } from './fuente';
 
 // `event.code` es la tecla física: WASD funciona igual en QWERTY y AZERTY.
@@ -41,6 +42,7 @@ export function crearTeclado(): FuenteEntrada {
     const control = (t instanceof HTMLInputElement && !texto) || t instanceof HTMLButtonElement;
     if (!PROPIAS.has(e.code) || texto || (control && !SALEN_DE_CONTROLES.has(e.code))) return;
     e.preventDefault(); // que flechas y espacio no desplacen la página
+    usarDispositivo('teclado');
     sostenidas.add(e.code);
     if (!e.repeat) nuevas.add(e.code);
   });

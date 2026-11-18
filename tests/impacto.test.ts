@@ -174,3 +174,24 @@ describe('revisión final', () => {
     expect(factorDestello(0.3)).toBe(1);
   });
 });
+
+describe('vibración', () => {
+  test('cada peso vibra entre 0 y 1', () => {
+    const todas = [
+      ...Object.values(IMPACTO.pesos).map((p) => p.vibracion),
+      IMPACTO.entrada.vibracion,
+    ];
+    for (const v of todas) {
+      expect(v.duracion).toBeGreaterThan(0);
+      expect(v.duracion).toBeLessThanOrEqual(0.3);
+      for (const m of [v.fuerte, v.debil]) {
+        expect(m).toBeGreaterThanOrEqual(0);
+        expect(m).toBeLessThanOrEqual(1);
+      }
+    }
+    const fuerza = (p: 'leve' | 'fuerte' | 'maximo'): number =>
+      IMPACTO.pesos[p].vibracion.fuerte + IMPACTO.pesos[p].vibracion.debil;
+    expect(fuerza('maximo')).toBeGreaterThan(fuerza('fuerte'));
+    expect(fuerza('fuerte')).toBeGreaterThan(fuerza('leve'));
+  });
+});

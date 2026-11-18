@@ -1,4 +1,5 @@
 import { aLogico } from '../render/pantalla';
+import { usarDispositivo } from './dispositivo';
 import type { FuenteEntrada } from './fuente';
 
 /** Píxeles lógicos que puede moverse el dedo entre apoyarse y levantarse para que cuente como toque. */
@@ -18,6 +19,8 @@ export function crearToque(canvas: HTMLCanvasElement): FuenteEntrada {
   const logico = (e: PointerEvent): [number, number] => aLogico(e.clientX, e.clientY);
   canvas.addEventListener('pointerdown', (e) => {
     dedo = e.pointerId;
+    // Un clic de ratón no cambia los textos: quien juega con teclado también usa el ratón.
+    if (e.pointerType !== 'mouse') usarDispositivo('tactil');
     [desdeX, desdeY] = logico(e);
   });
   // En la ventana: el joystick captura el dedo en el body y el pointerup no llega al canvas.

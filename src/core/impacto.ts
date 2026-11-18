@@ -4,6 +4,15 @@ import type { Evento, Luchador } from './combate';
 
 export type Peso = 'leve' | 'fuerte' | 'maximo';
 
+/** Vibración del mando: segundos y fuerza de los dos motores (de 0 a 1). */
+export interface Vibracion {
+  duracion: number;
+  /** Motor grande, de baja frecuencia. */
+  fuerte: number;
+  /** Motor pequeño, de alta frecuencia. */
+  debil: number;
+}
+
 export interface PesoJson {
   /** Trauma que suma el impacto (de 0 a 1); el temblor crece con su cuadrado. */
   trauma: number;
@@ -15,6 +24,7 @@ export interface PesoJson {
   numero: number;
   /** Sonido grave que suena además del golpe. */
   sonido: string | null;
+  vibracion: Vibracion;
 }
 
 export interface ImpactoJson {
@@ -29,6 +39,7 @@ export interface ImpactoJson {
     franjas: number;
     aparicion: number;
     salida: number;
+    vibracion: Vibracion;
   };
 }
 

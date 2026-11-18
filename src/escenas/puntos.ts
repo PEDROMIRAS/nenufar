@@ -1,3 +1,4 @@
+import { dispositivo, type Dispositivo } from '../input/dispositivo';
 import type { Acciones } from '../core/acciones';
 import { toquePuntos } from '../core/disposicion';
 import type { Luchador } from '../core/combate';
@@ -5,7 +6,6 @@ import { mejorar } from '../core/progresion';
 import type { Mejora, ReglasCombate } from '../core/types';
 import { anunciar } from '../render/accesibilidad';
 import { opcionTocada, type MenuVista } from '../render/combate';
-import { esTactil } from '../render/pantalla';
 import {
   dibujarPuntos,
   filasPuntos,
@@ -16,9 +16,11 @@ import {
 import { sonar } from '../render/sonido';
 import type { Escena } from './escena';
 
-const PISTA = esTactil()
-  ? 'Toca − o + para quitar o poner puntos'
-  : '↑↓ elegir · ← → quitar o poner · Enter listo';
+const PISTA: Record<Dispositivo, string> = {
+  teclado: '↑↓ elegir · ← → quitar o poner · Enter listo',
+  tactil: 'Toca − o + para quitar o poner puntos',
+  mando: 'Cruceta ↑↓ elegir · ← → quitar o poner · A listo',
+};
 /** Lo que se toca de más alrededor de − y + (con el dedo, el botón dibujado se queda corto). */
 const HOLGURA = 22;
 
@@ -66,7 +68,7 @@ export class EscenaPuntos implements Escena {
     this.vista = {
       titulo: 'Puntos de mejora',
       libres: this.libres,
-      pista: PISTA,
+      pista: PISTA[dispositivo()],
       filas: this.filas,
       menu: this.menu,
     };
@@ -116,6 +118,7 @@ export class EscenaPuntos implements Escena {
   draw(ctx: CanvasRenderingContext2D): void {
     // La misma vista en cada fotograma, puesta al día (crear una nueva sería memoria en el bucle).
     this.vista.libres = this.libres;
+    this.vista.pista = PISTA[dispositivo()];
     this.vista.filas = this.filas;
     dibujarPuntos(ctx, this.vista);
   }

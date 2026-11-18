@@ -1,3 +1,4 @@
+import { vibrar } from '../input/mando';
 import type { Acciones } from '../core/acciones';
 import type { Luchador, Resultado } from '../core/combate';
 import { crearAzar, elegirConPeso } from '../core/azar';
@@ -605,6 +606,7 @@ export class EscenaMapa implements Escena {
     this.combateEntrante = lanzar;
     this.entrada = 0;
     sonar('encuentro');
+    vibrar(IMPACTO.entrada.vibracion, temblorEfectivo());
   }
 
   /** `iniciarCombate` pasando antes por la entrada al combate. */

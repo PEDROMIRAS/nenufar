@@ -6,18 +6,74 @@
   },
   "ayuda": {
     "teclado": [
-      ["Moverse", "Flechas/WASD"],
-      ["Correr", "Mayúsculas"],
-      ["Aceptar", "Enter/Z"],
-      ["Volver", "Esc/X"],
-      ["Inventario", "Esc o I"],
-      ["Bestiario", "I (portada)"]
+      [
+        "Moverse",
+        "Flechas/WASD"
+      ],
+      [
+        "Correr",
+        "Mayúsculas"
+      ],
+      [
+        "Aceptar",
+        "Enter/Z"
+      ],
+      [
+        "Volver",
+        "Esc/X"
+      ],
+      [
+        "Inventario",
+        "Esc o I"
+      ],
+      [
+        "Bestiario",
+        "I (portada)"
+      ]
     ],
     "tactil": [
-      ["Moverse", "Desliza el dedo"],
-      ["Correr", "Dedo al borde"],
-      ["Elegir", "Toca la opción"],
-      ["Inventario", "Mochila"]
+      [
+        "Moverse",
+        "Desliza el dedo"
+      ],
+      [
+        "Correr",
+        "Dedo al borde"
+      ],
+      [
+        "Elegir",
+        "Toca la opción"
+      ],
+      [
+        "Inventario",
+        "Mochila"
+      ]
+    ],
+    "mando": [
+      [
+        "Moverse",
+        "Stick o cruceta"
+      ],
+      [
+        "Correr",
+        "X o gatillo"
+      ],
+      [
+        "Aceptar",
+        "A"
+      ],
+      [
+        "Volver",
+        "B"
+      ],
+      [
+        "Inventario",
+        "Menú"
+      ],
+      [
+        "Bestiario",
+        "Y (portada)"
+      ]
     ]
   },
   "pistas": {
@@ -31,6 +87,27 @@
       "Arrastra el dedo para moverte · lejos, corres",
       "Toca la mochila: equipo y puntos de mejora",
       "Pilla a un monstruo por la espalda: atacas antes"
+    ],
+    "mando": [
+      "Stick: moverte · X o gatillo: correr",
+      "Menú: mochila, equipo y puntos de mejora",
+      "Pilla a un monstruo por la espalda: atacas antes"
     ]
+  },
+  "mando": {
+    "zonaMuerta": 0.35,
+    "gatillo": 0.5,
+    "botones": {
+      "confirmar": 0,
+      "cancelar": 1,
+      "correr": 2,
+      "info": 3,
+      "gatilloCorrer": 7,
+      "menu": 9,
+      "arriba": 12,
+      "abajo": 13,
+      "izquierda": 14,
+      "derecha": 15
+    }
   }
 }

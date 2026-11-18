@@ -1,3 +1,4 @@
+import { dispositivo, type Dispositivo } from '../input/dispositivo';
 import type { Acciones } from '../core/acciones';
 import { toqueEquipo } from '../core/disposicion';
 import type { Luchador } from '../core/combate';
@@ -23,11 +24,22 @@ import {
   type FilaEquipo,
   type VistaEquipo,
 } from '../render/equipo';
-import { esTactil } from '../render/pantalla';
 import type { Sprite } from '../render/recursos';
 import { sonar } from '../render/sonido';
 import { vestirHoja } from '../render/tinte';
 import type { Escena } from './escena';
+
+const HALLAZGO = 'Lo que no te pongas se guarda en la mochila';
+const PISTA_HALLAZGO: Record<Dispositivo, string> = {
+  teclado: HALLAZGO,
+  tactil: HALLAZGO,
+  mando: HALLAZGO,
+};
+const PISTA_EQUIPO: Record<Dispositivo, string> = {
+  teclado: '↑↓ elegir · ← → cambiar · Enter listo',
+  tactil: 'Toca las flechas para cambiar de pieza',
+  mando: 'Cruceta ↑↓ elegir · ← → cambiar · A listo',
+};
 
 export interface DatosEquipo {
   luchadora: Luchador;
@@ -75,7 +87,8 @@ export class EscenaEquipo implements Escena {
   private filas: FilaEquipo[] = [];
   private cambios: CambioEstadistica[] = [];
   private readonly titulo: string;
-  private readonly pista: string;
+  /** La pista según el dispositivo: se elige al dibujar, por si cambia con la pantalla abierta. */
+  private readonly pista: Record<Dispositivo, string>;
   private readonly vista: VistaEquipo;
 
   constructor(
@@ -89,7 +102,7 @@ export class EscenaEquipo implements Escena {
       const nueva = this.pieza(modo.clave);
       this.activa = HUECOS.indexOf(nueva.hueco);
       this.titulo = `¡Has encontrado ${nueva.nombre}!`;
-      this.pista = 'Lo que no te pongas se guarda en la mochila';
+      this.pista = PISTA_HALLAZGO;
       // Si no llevaba nada en ese hueco, no hay nada que pensar: solo ponérsela.
       const llevaba = d.inventario[nueva.hueco] !== null;
       this.menu = {
@@ -101,15 +114,13 @@ export class EscenaEquipo implements Escena {
       };
     } else {
       this.titulo = 'Equipo';
-      this.pista = esTactil()
-        ? 'Toca las flechas para cambiar de pieza'
-        : '↑↓ elegir · ← → cambiar · Enter listo';
+      this.pista = PISTA_EQUIPO;
       this.menu = { opciones: [{ texto: 'Listo', detalle: '', disponible: true }], seleccion: 0 };
     }
     this.rehacer();
     this.vista = {
       titulo: this.titulo,
-      pista: this.pista,
+      pista: this.pista[dispositivo()],
       sprite: this.sprite,
       tiempo: 0,
       filas: this.filas,
@@ -169,6 +180,7 @@ export class EscenaEquipo implements Escena {
   draw(ctx: CanvasRenderingContext2D): void {
     // La misma vista en cada fotograma, puesta al día (crear una nueva sería memoria en el bucle).
     const v = this.vista;
+    v.pista = this.pista[dispositivo()];
     v.sprite = this.sprite;
     v.tiempo = this.tiempo;
     v.filas = this.filas;
