@@ -93,3 +93,11 @@ export function mejorar(h: Luchador, mejora: Mejora, r: ReglasProgresion): boole
   }
   return true;
 }
+
+/**
+ * Gasta todos los puntos de mejora siguiendo `plan` (el orden de `planPuntos` de la heroína), empezando por
+ * la mejora que toca a su nivel. Es lo que hace el reto del día al subir de nivel y lo que juega el simulador.
+ */
+export function repartirPuntos(h: Luchador, plan: readonly Mejora[], r: ReglasProgresion): void {
+  for (let i = 0; plan.length > 0 && mejorar(h, plan[(h.nivel + i) % plan.length]!, r); i++);
+}

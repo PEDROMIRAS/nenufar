@@ -19,14 +19,8 @@ import {
   reglasDesafio,
 } from '../src/core/eventos';
 import type { Inventario } from '../src/core/inventario';
-import { mejorar } from '../src/core/progresion';
-import type {
-  DificultadJson,
-  EquipoJson,
-  Mejora,
-  MonstruoJson,
-  ReglasCombate,
-} from '../src/core/types';
+import { repartirPuntos } from '../src/core/progresion';
+import type { DificultadJson, EquipoJson, MonstruoJson, ReglasCombate } from '../src/core/types';
 import { generarZona } from '../src/core/zona';
 import { bestiarioCon, reglasCon } from '../src/core/dificultad';
 import { cuantosGrupos } from '../src/core/monstruos';
@@ -107,18 +101,8 @@ function quizaEquipar(h: Luchador, inv: Inventario, clave: string): void {
 }
 
 /** Reparto de los puntos de mejora de cada rana (por su hoja de sprite), por turnos. */
-const PLAN: Record<string, Mejora[]> = {
-  rana_ronin: ['ataque', 'pv', 'defensa'],
-  rana_maga: ['magia', 'pv', 'pm'],
-};
-
 function gastarPuntos(h: Luchador): void {
-  const plan = PLAN[h.heroe?.sprite ?? ''] ?? [];
-  for (
-    let i = 0;
-    plan.length > 0 && mejorar(h, plan[(h.nivel + i) % plan.length]!, REGLAS.experiencia);
-    i++
-  );
+  repartirPuntos(h, h.heroe?.planPuntos ?? [], REGLAS.experiencia);
 }
 
 /** Monstruos y reglas con la dificultad de la partida ya aplicada. */

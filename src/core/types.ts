@@ -92,6 +92,8 @@ export interface HeroeJson {
   habilidades: HabilidadJson[];
   /** Recompensas de los jefes violetas: claves de equipo en objetos.json y el nombre de su quinta habilidad. */
   especiales: { arma: string; armadura: string; habilidad: string };
+  /** Orden en que se reparten solos sus puntos de mejora (reto del día y simulador). */
+  planPuntos: Mejora[];
 }
 
 /** Una habilidad: cuesta PM, se desbloquea en un nivel y hace daño, cura o aplica un estado. */
