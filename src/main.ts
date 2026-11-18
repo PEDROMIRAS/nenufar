@@ -21,7 +21,15 @@ import { capasDeEquipo, coloresDeEquipo, inventarioInicial } from './core/equipo
 import type { Inventario } from './core/inventario';
 import { limpiarNombre } from './core/nombre';
 import { cambiosDeNivel, empezarEnNivel, instantanea, repartirPuntos } from './core/progresion';
-import { progresoReto, semillaDelDia, type Fecha } from './core/reto';
+import {
+  anotarReto,
+  progresoReto,
+  semillaDelDia,
+  textoFecha,
+  type Fecha,
+  type ResultadoReto,
+} from './core/reto';
+import { EscenaFinReto } from './escenas/finReto';
 import RETO from './data/reto.json';
 import {
   actualizarRecords,
@@ -115,9 +123,11 @@ import {
   cargarAjustes,
   cargarPartida,
   cargarRecords,
+  cargarReto,
   guardarAjustes,
   guardarPartida,
   guardarRecords,
+  guardarReto,
 } from './render/almacen';
 import {
   cargarImagen,
@@ -461,7 +471,7 @@ async function iniciar(): Promise<void> {
    * Empieza el reto del día con la rana elegida: el Bosque corto de reto.json con la semilla de `fecha`, la rana ya en
    * el nivel del reto y sin guardar nada. «Otra vez» lo vuelve a llamar con la misma rana y la misma fecha.
    */
-  const empezarReto = (heroe: HeroeJson, sprite: Sprite, fecha: Fecha): void => {
+  const empezarReto = (heroe: HeroeJson, sprite: Sprite, fecha: Fecha, otraVez = false): void => {
     const luchadora = luchadorDeHeroe(heroe);
     const inventario = inventarioInicial(luchadora, heroe, OBJETOS);
     empezarEnNivel(luchadora, RETO.nivel, REGLAS.experiencia);
@@ -480,20 +490,30 @@ async function iniciar(): Promise<void> {
       .then((zona) => {
         pila.cambiar(zona);
         guardarAjustes({ pistasVistas: true }); // las pistas, si tocaban, ya van en esta zona
-        contar(
-          pila,
-          [
-            {
-              titulo: `Reto del día · ${fecha.dia}/${fecha.mes}/${fecha.anio}`,
-              texto: 'Llega al Guardián del Bosque',
-            },
-          ],
-          () => {},
-        );
+        // shortcut: solo en desarrollo, ?reto=gana|pierde enseña la tarjeta final nada más entrar (una vez).
+        if (finForzado) {
+          partida.reto!.segundos = 222;
+          terminarReto(partida, finForzado === 'gana');
+          finForzado = null;
+          return;
+        }
+        if (!otraVez)
+          contar(
+            pila,
+            [
+              {
+                titulo: `Reto del día · ${fecha.dia}/${fecha.mes}/${fecha.anio}`,
+                texto: 'Llega al Guardián del Bosque',
+              },
+            ],
+            () => {},
+          );
       })
       .catch(mostrarError);
   };
-  reiniciarReto = empezarReto;
+  reiniciarReto = (heroe, fecha) =>
+    empezarReto(heroe, opciones.find((o) => o.heroe === heroe)!.sprite, fecha, true);
+  let finForzado = import.meta.env.DEV ? new URLSearchParams(location.search).get('reto') : null;
   const seleccionReto = new EscenaSeleccion(opciones, ({ heroe, sprite }) =>
     empezarReto(heroe, sprite, hoy()),
   );
@@ -546,6 +566,7 @@ async function iniciar(): Promise<void> {
       .catch(mostrarError);
   } else {
     await mostrarPortada();
+    if (finForzado) empezarReto(opciones[0]!.heroe, opciones[0]!.sprite, hoy());
   }
 
   async function mostrarPortada(): Promise<void> {
@@ -1103,8 +1124,11 @@ const volverAPortada = (): void => {
   location.assign(location.pathname);
 };
 
-/** Empieza otra vez el reto con la misma rana y la misma fecha (lo pone `iniciar`, que tiene las hojas cargadas). */
-let reiniciarReto: (heroe: HeroeJson, sprite: Sprite, fecha: Fecha) => void = () => {};
+/**
+ * Empieza otra vez el reto con la misma rana y la misma fecha, sin el cartel de entrada (lo pone `iniciar`, que tiene
+ * las hojas cargadas).
+ */
+let reiniciarReto: (heroe: HeroeJson, fecha: Fecha) => void = () => {};
 
 /** La fecha de hoy en el navegador; en desarrollo, `?fecha=AAAA-MM-DD` la fuerza. */
 function hoy(): Fecha {
@@ -1116,13 +1140,38 @@ function hoy(): Fecha {
   return { anio: d.getFullYear(), mes: d.getMonth() + 1, dia: d.getDate() };
 }
 
-/** Fin del reto del día (stub hasta la tarjeta final): vuelve a la portada. */
+/**
+ * Fin del reto del día: apunta el resultado en el récord de hoy de esa rana y enseña la tarjeta final, con «Otra vez»
+ * (la misma rana y la misma fecha, aunque ya sea otro día) y «Portada».
+ */
 function terminarReto(partida: Partida, victoria: boolean): void {
+  const reto = partida.reto;
+  const heroe = partida.luchadora.heroe;
+  if (!reto || !heroe) return volverAPortada();
   retoEnJuego = null;
-  void partida;
-  void victoria;
-  void reiniciarReto;
-  volverAPortada();
+  const resultado: ResultadoReto = { victoria, segundos: reto.segundos, ...reto.progreso() };
+  const clave = claveDe(HEROES, heroe);
+  const { estado, nuevo } = anotarReto(cargarReto(), textoFecha(reto.fecha), clave, resultado);
+  guardarReto(estado);
+  const mejor = estado.mejores[clave] ?? resultado;
+  partida.pila.cambiar(
+    new EscenaFinReto(
+      {
+        titulo: victoria ? '¡Guardián vencido!' : 'Fin del reto',
+        resultado: victoria
+          ? `Tiempo: ${formatearTiempo(resultado.segundos)}`
+          : `Caíste en la sala ${resultado.sala} de ${resultado.de}`,
+        mejor: `Tu mejor de hoy con la ${heroe.nombre.replace(/^Rana /, 'rana ')}`,
+        mejorValor: mejor.victoria
+          ? `Victoria en ${formatearTiempo(mejor.segundos)}`
+          : `Sala ${mejor.sala} de ${mejor.de}`,
+        nuevo,
+        dias: `Días jugados: ${estado.dias}`,
+      },
+      () => reiniciarReto(heroe, reto.fecha),
+      volverAPortada,
+    ),
+  );
 }
 
 /** Fin de la partida: guarda los récords y enseña el resumen. */
