@@ -67,3 +67,12 @@
 
 - [ ] **Step 1:** `CLAUDE.md` (estado y próximos pasos) y sección «Resultado» de este plan con lo visto y lo no visto.
 - [ ] **Step 2: Commit** — `git commit -m "CLAUDE.md y plan: aviso de mando hecho"`
+
+## Resultado (2026-11-18)
+
+Hecho en línea. Suite, lint y build pasan.
+
+- Línea de la portada vista a 1000×640, 390×844 y 360×640 (`docs/previews/aviso_mando_portada*.png`): cabe y no toca nada.
+- Cartel visto con `?mando` sobre la portada a 1000×640 y 390×844 (`aviso_mando_cartel*.png`). Abajo tapaba «Pulsa o toca para empezar» en el móvil de pie: va al 62 % del alto de la ventana.
+- El texto de la portada vive en `controles.json` (`mando.texto`) para poder testearlo sin la escena.
+- **Sin ver:** el cartel sobre el mapa, en combate y con un mando real (`gamepadconnected`).
