@@ -9,6 +9,8 @@ export interface MandoLeido {
 
 /** Sección `mando` de `controles.json`: índices de la asignación estándar de la API Gamepad. */
 export interface MandoJson {
+  /** Línea de la portada que dice que se juega con mando. */
+  texto: string;
   zonaMuerta: number;
   /** Valor del gatillo a partir del cual cuenta como pulsado. */
   gatillo: number;

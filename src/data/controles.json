@@ -95,6 +95,7 @@
     ]
   },
   "mando": {
+    "texto": "Juega con teclado, dedo o mando",
     "zonaMuerta": 0.35,
     "gatillo": 0.5,
     "botones": {
