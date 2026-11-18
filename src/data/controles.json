@@ -48,6 +48,32 @@
         "Inventario",
         "Mochila"
       ]
+    ],
+    "mando": [
+      [
+        "Moverse",
+        "Stick o cruceta"
+      ],
+      [
+        "Correr",
+        "X o gatillo derecho"
+      ],
+      [
+        "Aceptar",
+        "A"
+      ],
+      [
+        "Volver",
+        "B"
+      ],
+      [
+        "Inventario",
+        "Menú"
+      ],
+      [
+        "Bestiario",
+        "Y (portada)"
+      ]
     ]
   },
   "pistas": {
@@ -60,6 +86,11 @@
     "tactil": [
       "Arrastra el dedo para moverte · lejos, corres",
       "Toca la mochila: equipo y puntos de mejora",
+      "Pilla a un monstruo por la espalda: atacas antes"
+    ],
+    "mando": [
+      "Stick: moverte · X o gatillo: correr",
+      "Menú: mochila, equipo y puntos de mejora",
       "Pilla a un monstruo por la espalda: atacas antes"
     ]
   },

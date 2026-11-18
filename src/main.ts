@@ -90,7 +90,7 @@ import { EscenaTitulo } from './escenas/titulo';
 import { leerFuentes } from './input/fuente';
 import { crearJoystick } from './input/joystick';
 import { crearTeclado } from './input/teclado';
-import { fijarDispositivo, usarDispositivo } from './input/dispositivo';
+import { dispositivo, fijarDispositivo, usarDispositivo } from './input/dispositivo';
 import { crearMando } from './input/mando';
 import { crearToque } from './input/toque';
 import { iniciarBucle } from './render/bucle';
@@ -676,7 +676,7 @@ async function crearZona(
     // Las pistas de controles, solo en la primera zona de la primera partida.
     pistas:
       indice === 0 && !recuperado && !cargarAjustes().pistasVistas
-        ? controles.pistas[esTactil() ? 'tactil' : 'teclado']
+        ? controles.pistas[dispositivo()]
         : [],
     segundosPista: controles.pistas.segundos,
     iniciarCombate: (grupo, alTerminarMapa, quien, combate) => {

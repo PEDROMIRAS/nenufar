@@ -1,3 +1,4 @@
+import { dispositivo, type Dispositivo } from '../input/dispositivo';
 import type { Acciones } from '../core/acciones';
 import {
   actuar,
@@ -80,6 +81,13 @@ const ayuda = (texto: string): string[] => partirEnLineas(texto, LARGO_LINEA);
 const textoVida = (pv: number, max: number): string => `${pv}/${max}`;
 
 /** Pantalla de combate: anima los eventos de `core/combate` uno a uno y recoge la acción de la heroína. */
+/** Lo que dice el lector de pantalla al final del combate. */
+const CONTINUAR: Record<Dispositivo, string> = {
+  teclado: 'Pulsa Enter para continuar.',
+  tactil: 'Toca para continuar.',
+  mando: 'Pulsa A para continuar.',
+};
+
 export class EscenaCombate implements Escena {
   readonly conMundo = true;
   readonly alta = true;
@@ -447,7 +455,7 @@ export class EscenaCombate implements Escena {
       }
       case 'fin':
         v.titulo = TITULO[e.resultado];
-        anunciar(`${v.titulo} Pulsa Enter para continuar.`);
+        anunciar(`${v.titulo} ${CONTINUAR[dispositivo()]}`);
         if (e.resultado !== 'huida') sonar(e.resultado);
         v.menu = null;
         break;

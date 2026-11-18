@@ -14,7 +14,7 @@ import type {
   ReglasProgresion,
 } from '../core/types';
 import { VERTICAL } from '../data/datos';
-import { TEXTO_CONTROLES } from '../render/controles';
+import { textoControles } from '../render/controles';
 import { interfaz } from '../render/pantalla';
 import {
   ajustarControlesAjustes,
@@ -324,7 +324,7 @@ export class EscenaPausa implements Escena {
           ]
         : this.pagina === 'objetos'
           ? f.objetos.map((o) => `${o.nombre} ${o.cantidad}: ${o.lineas.join(' ')}`)
-          : ['Sonido, calidad, música y efectos', `Controles. ${TEXTO_CONTROLES}`];
+          : ['Sonido, calidad, música y efectos', `Controles. ${textoControles()}`];
     anunciar([`Inventario, ${NOMBRE_SECCION[this.pagina]}`, ...contenido].join('. '));
   }
 

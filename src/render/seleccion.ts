@@ -1,13 +1,20 @@
+import { dispositivo, type Dispositivo } from '../input/dispositivo';
 import { tarjetasAltas } from '../core/disposicion';
 import type { Rect } from '../core/menu';
 import type { HeroeJson } from '../core/types';
 import { VERTICAL } from '../data/datos';
 import { dibujarCabecera, dibujarFondo, dibujarMarco, PALETA, rombo } from './marco';
-import { esTactil, interfaz } from './pantalla';
+import { interfaz } from './pantalla';
 import type { Sprite } from './recursos';
 import { escribir } from './texto';
 
 /** Tarjetas de las heroínas, en píxeles lógicos (una por heroína, de izquierda a derecha). */
+const PISTA: Record<Dispositivo, string> = {
+  teclado: '← → elegir · Enter seguir',
+  tactil: 'Toca una rana para elegirla',
+  mando: 'Cruceta elegir · A seguir',
+};
+
 export const TARJETAS = [
   { x: 40, y: 56, ancho: 184, alto: 236 },
   { x: 256, y: 56, ancho: 184, alto: 236 },
@@ -100,7 +107,7 @@ export function dibujarSeleccion(
     }
   }
 
-  const pista = esTactil() ? 'Toca una rana para elegirla' : '← → elegir · Enter seguir';
+  const pista = PISTA[dispositivo()];
   escribir(
     ctx,
     pista,

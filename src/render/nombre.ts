@@ -1,12 +1,19 @@
+import { dispositivo, type Dispositivo } from '../input/dispositivo';
 import { botonesAltosCacheados, letrasEnAncho } from '../core/disposicion';
 import { VERTICAL } from '../data/datos';
 import { dibujarMenu, type MenuVista } from './combate';
 import { dibujarCabecera, dibujarFondo, PALETA } from './marco';
-import { alRedimensionar, esTactil, interfaz } from './pantalla';
+import { alRedimensionar, interfaz } from './pantalla';
 import { dibujarFotograma, type Sprite } from './recursos';
 import { escribir, partirCacheado } from './texto';
 
 /** Caracteres como mucho: lo que cabe sin descuadrar el combate y el inventario. */
+const PISTA: Record<Dispositivo, string> = {
+  teclado: 'Escribe un nombre · Enter seguir · ↓ botones · Esc volver',
+  tactil: 'Escribe un nombre y toca Seguir',
+  mando: 'A seguir con este nombre · B volver',
+};
+
 export const LARGO_NOMBRE = 12;
 /** Dónde va el campo de texto, en píxeles lógicos. */
 export const RECT_CAMPO = { x: 120, y: 196, ancho: 240, alto: 32 };
@@ -45,9 +52,7 @@ export function dibujarNombre(
   dibujarCabecera(ctx, 16, alta ? 'Nombre de tu rana' : '¿Cómo se llama tu rana?');
   dibujarFotograma(ctx, sprite, 'idle', 'down', tiempo, centro, 160, 3);
   escribir(ctx, tipo, centro, 172, PALETA.claro, 'center');
-  const pista = esTactil()
-    ? 'Escribe un nombre y toca Seguir'
-    : 'Escribe un nombre · Enter seguir · ↓ botones · Esc volver';
+  const pista = PISTA[dispositivo()];
   if (alta) {
     // La pista, partida al ancho, justo sobre los botones.
     const lineas = partirCacheado(pista, letrasEnAncho(interfaz.ancho - 2 * VERTICAL.menu.margen));

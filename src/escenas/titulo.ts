@@ -1,9 +1,10 @@
+import { dispositivo, type Dispositivo } from '../input/dispositivo';
 import type { Acciones } from '../core/acciones';
 import { formatearTiempo, textoPorDificultad, type Records } from '../core/records';
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
 import { dibujarCaja, PALETA } from '../render/marco';
 import { partirTexto } from '../core/texto';
-import { ALTO, ANCHO, area, dentro, esTactil, interfaz } from '../render/pantalla';
+import { ALTO, ANCHO, area, dentro, interfaz } from '../render/pantalla';
 import type { Portada3d } from '../render/mundo/portada';
 import { ponerMusica, sonar } from '../render/sonido';
 import { escribir, FUENTE, FUENTE_LOGO } from '../render/texto';
@@ -28,6 +29,13 @@ const FOCOS = ['controles', 'empezar', 'extras'] as const;
 const ANUNCIO = { controles: 'Controles', empezar: AVISO, extras: 'Bestiario y logros' };
 
 /** Portada: la sala de descanso del Bosque con las ranas junto a la fuente, el logo y los récords. */
+/** Segunda línea del botón de extras; con teclado o mando dice también su botón. */
+const TEXTO_EXTRAS: Record<Dispositivo, string> = {
+  teclado: 'logros (I)',
+  tactil: 'logros',
+  mando: 'logros (Y)',
+};
+
 export class EscenaTitulo implements Escena {
   readonly conMundo = true;
   readonly alta = true;
@@ -40,8 +48,7 @@ export class EscenaTitulo implements Escena {
   /** Récords generales y, debajo, los de cada dificultad (o el mejor tiempo, si aún no hay). */
   private readonly records: string;
   private readonly recordsDificultad: string;
-  /** Segunda línea del botón; con teclado dice también su tecla. */
-  private readonly textoExtras = esTactil() ? 'logros' : 'logros (I)';
+
   /** Récords partidos al ancho de la interfaz alta, y las letras por línea con las que se partieron. */
   private lineasRecords: string[] = [];
   private letrasRecords = 0;
@@ -166,7 +173,13 @@ export class EscenaTitulo implements Escena {
     const centro = interfaz.ancho / 2;
     escribir(ctx, 'Nenúfar', centro, 18, '#c89bff', 'center', FUENTE_LOGO);
     escribir(ctx, 'Un dungeon crawler de ranas', centro, 74, PALETA.texto, 'center');
-    this.boton(ctx, BOTON_EXTRAS, 'Bestiario y', this.textoExtras, FOCOS[this.foco] === 'extras');
+    this.boton(
+      ctx,
+      BOTON_EXTRAS,
+      'Bestiario y',
+      TEXTO_EXTRAS[dispositivo()],
+      FOCOS[this.foco] === 'extras',
+    );
     this.boton(ctx, BOTON_CONTROLES, 'Controles', '', FOCOS[this.foco] === 'controles');
 
     // El aviso pulsa de opacidad en vez de desaparecer (y se queda fijo con menos movimiento).

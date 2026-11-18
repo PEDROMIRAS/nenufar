@@ -1,13 +1,18 @@
+import { dispositivo, type Dispositivo } from '../input/dispositivo';
 import type { Acciones } from '../core/acciones';
 import { anunciar } from '../render/accesibilidad';
-import { ALTO_FILA, AYUDA_CONTROLES, dibujarControles, TEXTO_CONTROLES } from '../render/controles';
+import { ALTO_FILA, ayudaControles, dibujarControles, textoControles } from '../render/controles';
 import { dibujarCabecera, dibujarFondo, dibujarMarco, PALETA } from '../render/marco';
-import { esTactil, interfaz } from '../render/pantalla';
+import { interfaz } from '../render/pantalla';
 import { sonar } from '../render/sonido';
 import { escribir } from '../render/texto';
 import type { Escena } from './escena';
 
-const PIE = esTactil() ? 'Toca para volver' : 'Esc o Enter para volver';
+const PIE: Record<Dispositivo, string> = {
+  teclado: 'Esc o Enter para volver',
+  tactil: 'Toca para volver',
+  mando: 'B o A para volver',
+};
 /** Ancho de la lista (las dos columnas), para centrarla. */
 const ANCHO_LISTA = 220;
 
@@ -18,7 +23,7 @@ export class EscenaControles implements Escena {
   constructor(private readonly alVolver: () => void) {}
 
   enter(): void {
-    anunciar(`Controles. ${TEXTO_CONTROLES}. ${PIE}`);
+    anunciar(`Controles. ${textoControles()}. ${PIE[dispositivo()]}`);
   }
   exit(): void {}
 
@@ -33,11 +38,18 @@ export class EscenaControles implements Escena {
     dibujarFondo(ctx);
     dibujarCabecera(ctx, 24, 'Controles');
     // Centrado en la interfaz que toque: 480×352 o, en el móvil de pie, la columna alta.
-    const alto = AYUDA_CONTROLES.length * ALTO_FILA;
+    const alto = ayudaControles().length * ALTO_FILA;
     const x = (interfaz.ancho - ANCHO_LISTA) / 2;
     const y = (interfaz.alto - alto) / 2;
     dibujarMarco(ctx, x - 20, y - 16, ANCHO_LISTA + 40, alto + 32);
     dibujarControles(ctx, x, y);
-    escribir(ctx, PIE, interfaz.ancho / 2, interfaz.alto - 40, PALETA.apagada, 'center');
+    escribir(
+      ctx,
+      PIE[dispositivo()],
+      interfaz.ancho / 2,
+      interfaz.alto - 40,
+      PALETA.apagada,
+      'center',
+    );
   }
 }
