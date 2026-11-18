@@ -92,7 +92,7 @@ import { crearJoystick } from './input/joystick';
 import { crearTeclado } from './input/teclado';
 import { dispositivo, fijarDispositivo, usarDispositivo } from './input/dispositivo';
 import { conexionesMando, crearMando } from './input/mando';
-import { opacidadCartel } from './core/cartel';
+import { avisoNuevo, crearEstadoCartel, opacidadCartel } from './core/cartel';
 import { dibujarCartel } from './render/cartel';
 import { anunciar, movimientoReducido } from './render/accesibilidad';
 import { crearToque } from './input/toque';
@@ -520,7 +520,7 @@ async function iniciar(): Promise<void> {
   }
 
   // Cartel «Mando conectado»: segundos desde la última conexión (Infinity = no se ve).
-  let conexiones = conexionesMando();
+  const estadoCartel = crearEstadoCartel();
   let tiempoCartel = Infinity;
   // shortcut: solo en desarrollo, con ?mando el cartel sale al empezar para verlo sin mando
   if (import.meta.env.DEV && new URLSearchParams(location.search).has('mando')) tiempoCartel = 0;
@@ -528,8 +528,7 @@ async function iniciar(): Promise<void> {
     (dt) => {
       leerFuentes(fuentes, acciones);
       pila.update(dt, acciones);
-      if (conexionesMando() !== conexiones) {
-        conexiones = conexionesMando();
+      if (avisoNuevo(estadoCartel, conexionesMando())) {
         tiempoCartel = 0;
         anunciar(CARTEL_MANDO);
       } else tiempoCartel += dt;

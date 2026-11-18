@@ -11,3 +11,20 @@ export function opacidadCartel(
   if (reducido || d.fundido <= 0) return 1;
   return Math.min(1, t / d.fundido, (d.segundos - t) / d.fundido);
 }
+
+/** Cuántas conexiones de mando se han avisado ya. Empieza en 0, no en la cuenta del arranque: así una
+ * conexión ocurrida mientras cargaba la portada también sale. */
+export interface EstadoCartel {
+  avisadas: number;
+}
+
+export function crearEstadoCartel(): EstadoCartel {
+  return { avisadas: 0 };
+}
+
+/** Cierto si la cuenta de conexiones trae alguna sin avisar (y la apunta como avisada). */
+export function avisoNuevo(estado: EstadoCartel, conexiones: number): boolean {
+  if (conexiones === estado.avisadas) return false;
+  estado.avisadas = conexiones;
+  return true;
+}
