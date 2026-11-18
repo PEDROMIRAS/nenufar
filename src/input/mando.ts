@@ -1,5 +1,6 @@
+import type { Vibracion } from '../core/impacto';
 import { leerMando, type MandoJson } from '../core/mando';
-import { usarDispositivo } from './dispositivo';
+import { dispositivo, usarDispositivo } from './dispositivo';
 import type { FuenteEntrada } from './fuente';
 
 /** Botones que se recuerdan del paso anterior (la asignación estándar tiene 17). */
@@ -30,4 +31,21 @@ export function crearMando(d: MandoJson): FuenteEntrada {
       if (leerMando(m, antes, d, acciones)) usarDispositivo('mando');
     },
   };
+}
+
+/**
+ * Hace vibrar el mando, escalado con el Temblor efectivo (0 = nada). Solo si se juega con el mando y el
+ * navegador sabe hacerlo vibrar (Safari y Firefox no tienen `vibrationActuator`): si no, no hace nada.
+ */
+export function vibrar(v: Vibracion, temblor: number): void {
+  if (temblor <= 0 || dispositivo() !== 'mando') return;
+  const motor = mandoActual()?.vibrationActuator;
+  if (!motor || typeof motor.playEffect !== 'function') return;
+  motor
+    .playEffect('dual-rumble', {
+      duration: v.duracion * 1000,
+      strongMagnitude: Math.min(1, v.fuerte * temblor),
+      weakMagnitude: Math.min(1, v.debil * temblor),
+    })
+    .catch(() => {});
 }

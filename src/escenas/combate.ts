@@ -1,3 +1,4 @@
+import { vibrar } from '../input/mando';
 import { dispositivo, type Dispositivo } from '../input/dispositivo';
 import type { Acciones } from '../core/acciones';
 import {
@@ -477,6 +478,7 @@ export class EscenaCombate implements Escena {
     v.tiempoDestello = 0;
     if (e.tipo === 'danio') v.escalaNumero = peso.numero;
     if (peso.sonido) sonar(peso.sonido);
+    vibrar(peso.vibracion, temblorEfectivo());
   }
 
   /** Cambia la vida que se ve y hace flotar el número (rojo/blanco si es daño, verde si es cura). */
