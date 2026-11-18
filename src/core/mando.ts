@@ -11,6 +11,8 @@ export interface MandoLeido {
 export interface MandoJson {
   /** Línea de la portada que dice que se juega con mando. */
   texto: string;
+  /** Cartel «Mando conectado»: segundos a la vista y segundos de fundido al entrar y al salir. */
+  aviso: { segundos: number; fundido: number };
   zonaMuerta: number;
   /** Valor del gatillo a partir del cual cuenta como pulsado. */
   gatillo: number;
