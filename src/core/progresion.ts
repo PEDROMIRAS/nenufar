@@ -101,3 +101,15 @@ export function mejorar(h: Luchador, mejora: Mejora, r: ReglasProgresion): boole
 export function repartirPuntos(h: Luchador, plan: readonly Mejora[], r: ReglasProgresion): void {
   for (let i = 0; plan.length > 0 && mejorar(h, plan[(h.nivel + i) % plan.length]!, r); i++);
 }
+
+/**
+ * Sube a la heroína hasta `nivel` como si lo hubiera ganado (crecimiento y puntos repartidos con su plan) y la
+ * deja con la vida y la magia llenas: el reto del día empieza con una rana ya curtida.
+ */
+export function empezarEnNivel(h: Luchador, nivel: number, r: ReglasProgresion): void {
+  while (h.nivel < Math.min(nivel, r.nivelMaximo))
+    ganarExperiencia(h, experienciaParaSubir(h.nivel, r) - h.experiencia, r);
+  repartirPuntos(h, h.heroe?.planPuntos ?? [], r);
+  h.pv = h.pvMax;
+  h.pm = h.pmMax;
+}

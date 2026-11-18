@@ -6,6 +6,7 @@ import {
   ganarExperiencia,
   instantanea,
   mejorar,
+  empezarEnNivel,
   repartirPuntos,
 } from '../src/core/progresion';
 import type { Mejora, ReglasProgresion } from '../src/core/types';
@@ -126,4 +127,16 @@ describe('repartirPuntos', () => {
     repartirPuntos(h, [], r);
     expect(h.puntos).toBe(3);
   });
+});
+
+test('empezarEnNivel sube como si lo hubiera ganado, reparte los puntos y deja la vida llena', () => {
+  const h = ronin();
+  const base = { pvMax: h.pvMax, ataque: h.ataque };
+  empezarEnNivel(h, 3, r);
+  expect(h.nivel).toBe(3);
+  expect(h.experiencia).toBe(0);
+  expect(h.puntos).toBe(0);
+  expect(h.pvMax).toBeGreaterThan(base.pvMax);
+  expect(h.ataque).toBeGreaterThan(base.ataque + 2 * heroes.ronin.porNivel.ataque - 1);
+  expect([h.pv, h.pm]).toEqual([h.pvMax, h.pmMax]);
 });

@@ -19,7 +19,7 @@ import {
   reglasDesafio,
 } from '../src/core/eventos';
 import type { Inventario } from '../src/core/inventario';
-import { repartirPuntos } from '../src/core/progresion';
+import { empezarEnNivel, repartirPuntos } from '../src/core/progresion';
 import type { DificultadJson, EquipoJson, MonstruoJson, ReglasCombate } from '../src/core/types';
 import { generarZona } from '../src/core/zona';
 import { bestiarioCon, reglasCon } from '../src/core/dificultad';
@@ -40,6 +40,7 @@ import {
   PRESAGIOS,
   REGLAS,
 } from '../src/data/datos';
+import reto from '../src/data/reto.json';
 import zonas from '../src/data/zonas.json';
 
 /** Simulador de partidas enteras jugadas con una política razonable (para el equilibrado). */
@@ -100,7 +101,7 @@ function quizaEquipar(h: Luchador, inv: Inventario, clave: string): void {
   }
 }
 
-/** Reparto de los puntos de mejora de cada rana (por su hoja de sprite), por turnos. */
+/** Reparto de los puntos de mejora de cada rana, con el plan de heroes.json. */
 function gastarPuntos(h: Luchador): void {
   repartirPuntos(h, h.heroe?.planPuntos ?? [], REGLAS.experiencia);
 }
@@ -375,5 +376,80 @@ export function simular(
     recibido,
     niveles,
     completas: Math.round((completas / partidas) * 1000) / 10,
+  };
+}
+
+/**
+ * Reto del día: por cada semilla (una por fecha), la zona corta de reto.json y `intentos` partidas con distinto azar
+ * de combate (como distintas personas jugando el mismo mapa). Devuelve el porcentaje de victorias total y el de cada
+ * fecha, y los combates medios por intento.
+ */
+export function simularReto(
+  nombre: string,
+  semillas: readonly number[],
+  intentos: number,
+): { total: number; porFecha: number[]; combates: number; jefe: number; nivel: number } {
+  const dificultad = reto.dificultad as DificultadJson;
+  const mundo: Mundo = {
+    bestiario: bestiarioCon(MONSTRUOS, dificultad),
+    reglas: reglasCon(REGLAS, dificultad),
+  };
+  const heroe = HEROES[nombre as keyof typeof HEROES];
+  const z = zonas.zonas[reto.zona as keyof typeof zonas.zonas];
+  const porFecha: number[] = [];
+  let ganadas = 0;
+  let combates = 0;
+  const jefe: Cuenta = { ganados: 0, jugados: 0 };
+  let niveles = 0;
+  for (const semilla of semillas) {
+    const zona = generarZona(
+      { ...zonas.generacion, salas: reto.salas, tesoros: reto.tesoros },
+      semilla,
+    );
+    let ganadasFecha = 0;
+    for (let k = 0; k < intentos; k++) {
+      const azar = crearAzar(semilla * 97 + k);
+      const h = luchadorDeHeroe(heroe);
+      const inv = inventarioInicial(h, heroe, OBJETOS);
+      empezarEnNivel(h, reto.nivel, REGLAS.experiencia);
+      let fuente = zona.salas.some((x) => x.tipo === 'descanso');
+      let viva = true;
+      for (const sala of zona.salas) {
+        if (sala.tipo === 'tesoro') {
+          const hallazgo = abrirCofre(z.cofre, azar, heroe, OBJETOS, inv);
+          if (hallazgo?.tipo === 'equipo') quizaEquipar(h, inv, hallazgo.clave);
+        }
+        if (sala.tipo !== 'combate') continue;
+        if (fuente && h.pv < h.pvMax * 0.5) {
+          fuente = false;
+          restaurarFuente(h, 'todo');
+        }
+        const n = cuantosGrupos(reto.gruposPorSala, 0, azar);
+        for (let g = 0; g < n && viva; g++) {
+          combates++;
+          viva = pelear(h, inv, elegirConPeso(z.grupos, azar)!.monstruos, azar, mundo);
+        }
+        if (!viva) break;
+      }
+      if (viva) {
+        if (fuente) restaurarFuente(h, 'todo');
+        combates++;
+        niveles += h.nivel;
+        viva = pelear(h, inv, [z.jefe], azar, mundo);
+        jefe.jugados++;
+        if (viva) jefe.ganados++;
+      }
+      if (viva) ganadasFecha++;
+    }
+    ganadas += ganadasFecha;
+    porFecha.push(Math.round((ganadasFecha / intentos) * 1000) / 10);
+  }
+  const total = semillas.length * intentos;
+  return {
+    total: Math.round((ganadas / total) * 1000) / 10,
+    porFecha,
+    combates: Math.round((combates / total) * 10) / 10,
+    jefe: pct(jefe),
+    nivel: jefe.jugados ? Math.round((niveles / jefe.jugados) * 10) / 10 : 0,
   };
 }
