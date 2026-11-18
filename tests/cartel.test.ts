@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { opacidadCartel } from '../src/core/cartel';
+import { avisoNuevo, crearEstadoCartel, opacidadCartel } from '../src/core/cartel';
 import controles from '../src/data/controles.json';
 
 const d = controles.mando.aviso;
@@ -21,5 +21,19 @@ describe('opacidadCartel', () => {
   it('con menos movimiento no funde', () => {
     expect(opacidadCartel(0, d, true)).toBe(1);
     expect(opacidadCartel(2.4, d, true)).toBe(1);
+  });
+});
+
+describe('avisoNuevo', () => {
+  it('una conexión ocurrida mientras cargaba la portada también se avisa', () => {
+    const estado = crearEstadoCartel();
+    // El evento llegó durante la carga: la cuenta ya es 1 en el primer paso.
+    expect(avisoNuevo(estado, 1)).toBe(true);
+    expect(avisoNuevo(estado, 1)).toBe(false);
+    expect(avisoNuevo(estado, 2)).toBe(true);
+  });
+
+  it('sin conexiones no avisa', () => {
+    expect(avisoNuevo(crearEstadoCartel(), 0)).toBe(false);
   });
 });
