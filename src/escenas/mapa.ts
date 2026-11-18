@@ -199,6 +199,9 @@ export class EscenaMapa implements Escena {
   private fundido = 0;
   /** Combate que empieza cuando acabe la entrada (destello y franjas), y segundos que lleva la entrada. */
   private combateEntrante: (() => void) | null = null;
+  /** Si ya sonó el «¡!» o el «?» en este paso (varios grupos pueden ver a la heroína a la vez). */
+  private sonadoAlerta = false;
+  private sonadoPerdido = false;
   /** Sonido de los pasos en esta zona (`paso_bosque`…) y segundos que lleva corriendo desde la última nube de polvo. */
   private readonly sonidoPaso: string;
   private polvoPendiente = 0;
@@ -450,6 +453,8 @@ export class EscenaMapa implements Escena {
       }
       if (cofre) this.abrir(cofre);
     }
+    // Si varios grupos ven (o pierden) a la heroína en el mismo paso, cada sonido suena una sola vez.
+    this.sonadoAlerta = this.sonadoPerdido = false;
     for (const m of this.montada.monstruos) {
       const mov = m.grupo[0]?.mapa;
       if (m.vivo && mov) {
@@ -562,8 +567,11 @@ export class EscenaMapa implements Escena {
     if (m.p.cambio !== 0) {
       m.signo = m.p.cambio === 1 ? 'alerta' : 'perdido';
       m.tiempoSigno = 0;
-      const sonido = (m.signo === 'alerta' ? MAPA_VIVO.alerta : MAPA_VIVO.perdido).sonido;
-      if (sonido) sonar(sonido);
+      const alerta = m.signo === 'alerta';
+      const sonido = (alerta ? MAPA_VIVO.alerta : MAPA_VIVO.perdido).sonido;
+      if (sonido && !(alerta ? this.sonadoAlerta : this.sonadoPerdido)) sonar(sonido);
+      if (alerta) this.sonadoAlerta = true;
+      else this.sonadoPerdido = true;
       return;
     }
     if (!m.signo) return;
@@ -596,7 +604,8 @@ export class EscenaMapa implements Escena {
     this.polvoPendiente += dt;
     if (this.polvoPendiente >= polvo.cada) {
       this.polvoPendiente -= polvo.cada;
-      this.o.mundo.soltarPolvo(h.cuerpo.x, h.cuerpo.y + h.cuerpo.alto / 2, this.tiempo);
+      // La heroína se dibuja con los pies en (cuerpo.x, cuerpo.y): el polvo sale ahí.
+      this.o.mundo.soltarPolvo(h.cuerpo.x, h.cuerpo.y, this.tiempo);
     }
   }
 

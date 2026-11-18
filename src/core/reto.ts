@@ -61,13 +61,18 @@ export const RETO_VACIO: EstadoReto = Object.freeze({
   mejores: Object.freeze({}) as Record<string, ResultadoReto>,
 });
 
-/** Apunta un intento acabado: un día nuevo reinicia los mejores y suma un día jugado. No muta `e`. */
+/**
+ * Apunta un intento acabado: un día nuevo reinicia los mejores y suma un día jugado. Un intento de una fecha anterior a
+ * la guardada (otra pestaña ya jugó el día siguiente) no se apunta. No muta `e`.
+ */
 export function anotarReto(
   e: EstadoReto,
   fecha: string,
   heroe: string,
   r: ResultadoReto,
 ): { estado: EstadoReto; nuevo: boolean } {
+  // «AAAA-MM-DD» se ordena como texto.
+  if (fecha < e.fecha) return { estado: e, nuevo: false };
   const otroDia = fecha !== e.fecha;
   const mejores = otroDia ? {} : { ...e.mejores };
   const nuevo = mejorResultado(r, mejores[heroe] ?? null);
@@ -91,10 +96,11 @@ export function leerReto(texto: string | null): EstadoReto {
     const mejores: Record<string, ResultadoReto> = {};
     for (const [clave, v] of Object.entries(d?.mejores ?? {})) {
       const r = resultado(v);
-      if (r) mejores[clave] = r;
+      // Una clave «__proto__» cambiaría el prototipo del objeto en vez de crear una clave.
+      if (r && clave !== '__proto__') mejores[clave] = r;
     }
     return {
-      fecha: typeof d?.fecha === 'string' ? d.fecha : '',
+      fecha: typeof d?.fecha === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d.fecha) ? d.fecha : '',
       dias: Number.isInteger(d?.dias) && (d!.dias as number) >= 0 ? (d!.dias as number) : 0,
       mejores,
     };

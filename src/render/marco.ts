@@ -19,6 +19,8 @@ export const PALETA = {
   apagada: '#8e8e9a',
   texto: '#efe9da',
   px: '#7fc65e',
+  /** Rojo de peligro: el «¡!» de los monstruos y el fin de la partida. */
+  peligro: '#d8584a',
 };
 
 /** Lado de los rombos de las esquinas y del cursor. */

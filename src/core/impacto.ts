@@ -86,7 +86,9 @@ export function desplazamiento(
   salida: { x: number; y: number },
 ): { x: number; y: number } {
   const a = trauma * trauma * factor;
-  const [f1, f2] = d.temblor.frecuencias;
+  // Por índice: desestructurar un array pasa por su iterador en cada fotograma.
+  const f1 = d.temblor.frecuencias[0];
+  const f2 = d.temblor.frecuencias[1];
   const ruidoX = (Math.sin(t * f1 * 2 * Math.PI) + Math.sin(t * f2 * 2 * Math.PI + 1.3)) / 2;
   const ruidoY = (Math.sin(t * f2 * 2 * Math.PI + 0.7) + Math.sin(t * f1 * 2 * Math.PI + 2.9)) / 2;
   // Sin «-0» cuando no hay temblor.

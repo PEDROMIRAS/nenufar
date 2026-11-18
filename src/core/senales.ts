@@ -37,7 +37,8 @@ export function opacidadSigno(t: number, s: SignoJson): number {
 
 /**
  * Si al pasar el tiempo de la animación de andar de `antes` a `ahora` se ha entrado en un fotograma de pisada
- * (aunque se salten varios de golpe). Si la animación se reinició (`ahora` < `antes`), no.
+ * (aunque se salten varios de golpe). Si la animación se reinició (`ahora` < `antes`: echa a andar desde parado),
+ * cuenta desde el fotograma 0, así que el primer paso también suena.
  */
 export function pisada(
   antes: number,
@@ -46,8 +47,7 @@ export function pisada(
   frames: number,
   pisadas: readonly number[],
 ): boolean {
-  if (ahora < antes) return false;
-  const desde = Math.floor(antes * fps);
+  const desde = ahora < antes ? -1 : Math.floor(antes * fps);
   const hasta = Math.floor(ahora * fps);
   for (let f = desde + 1; f <= hasta; f++) if (pisadas.includes(f % frames)) return true;
   return false;

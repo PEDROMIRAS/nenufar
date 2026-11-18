@@ -21,14 +21,15 @@ export function dibujarCartel(
   opacidad: number,
 ): void {
   colocarCartel(ctx);
-  const x = cartel.ancho / 2;
+  // Esquina en píxel entero: si no, el borde de 1 px sale borroso.
+  const izquierda = Math.round(cartel.ancho / 2 - ANCHO_CAJA / 2);
   const y = Math.round(cartel.alto * ALTURA);
   ctx.globalAlpha = opacidad;
   ctx.fillStyle = 'rgba(9, 7, 18, 0.85)';
-  ctx.fillRect(x - ANCHO_CAJA / 2, y, ANCHO_CAJA, ALTO_CAJA);
+  ctx.fillRect(izquierda, y, ANCHO_CAJA, ALTO_CAJA);
   ctx.strokeStyle = PALETA.filete;
   ctx.lineWidth = 1;
-  ctx.strokeRect(x - ANCHO_CAJA / 2 + 0.5, y + 0.5, ANCHO_CAJA - 1, ALTO_CAJA - 1);
-  escribir(ctx, texto, x, y + 6, PALETA.cursor, 'center');
+  ctx.strokeRect(izquierda + 0.5, y + 0.5, ANCHO_CAJA - 1, ALTO_CAJA - 1);
+  escribir(ctx, texto, izquierda + ANCHO_CAJA / 2, y + 6, PALETA.cursor, 'center');
   ctx.globalAlpha = 1;
 }

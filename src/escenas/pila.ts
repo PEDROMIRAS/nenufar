@@ -33,9 +33,10 @@ export class PilaEscenas {
     this.escenas[this.escenas.length - 1]?.update(dt, acciones);
   }
 
-  /** La escena de arriba (la que recibe la entrada). */
-  get arriba(): Escena | undefined {
-    return this.escenas[this.escenas.length - 1];
+  /** ¿Hay alguna escena que cumpla `prueba` en cualquier nivel de la pila? Sin asignar memoria. */
+  alguna(prueba: (escena: Escena) => boolean): boolean {
+    for (let i = 0; i < this.escenas.length; i++) if (prueba(this.escenas[i]!)) return true;
+    return false;
   }
 
   /** ¿La escena de arriba usa el mapa 3D? */

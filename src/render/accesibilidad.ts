@@ -6,10 +6,14 @@ import { cargarAjustes, guardarAjustes } from './almacen';
 
 let region: HTMLElement | null = null;
 
-/** Hace que el lector de pantalla diga `texto` (sin cortar lo que esté diciendo). */
+/**
+ * Hace que el lector de pantalla diga `texto` (sin cortar lo que esté diciendo). Si es el mismo texto que el anterior,
+ * se le añade un espacio duro: un `textContent` igual no cambia la región y el lector no lo repetiría.
+ */
 export function anunciar(texto: string): void {
   region ??= document.getElementById('anuncios');
-  if (region) region.textContent = texto;
+  if (!region) return;
+  region.textContent = region.textContent === texto ? `${texto}\u00a0` : texto;
 }
 
 // Se consulta una vez y se lee su `matches`, que está siempre al día (sin crear nada por fotograma).

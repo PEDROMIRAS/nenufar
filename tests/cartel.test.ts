@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { avisoNuevo, crearEstadoCartel, opacidadCartel } from '../src/core/cartel';
+import { avisoNuevo, crearEstadoCartel, opacidadCartel, reiniciarCartel } from '../src/core/cartel';
 import controles from '../src/data/controles.json';
 
 const d = controles.mando.aviso;
@@ -36,4 +36,26 @@ describe('avisoNuevo', () => {
   it('sin conexiones no avisa', () => {
     expect(avisoNuevo(crearEstadoCartel(), 0)).toBe(false);
   });
+});
+
+describe('reiniciarCartel', () => {
+  it('si no se ve, empieza de cero (con su fundido de entrada)', () => {
+    expect(reiniciarCartel(Infinity, d)).toBe(0);
+    expect(reiniciarCartel(d.segundos, d)).toBe(0);
+  });
+
+  it('si ya se ve, no vuelve a fundir: sigue entero y vuelve a durar lo de siempre', () => {
+    const t = reiniciarCartel(1.5, d);
+    expect(opacidadCartel(t, d, false)).toBe(1);
+    expect(d.segundos - t).toBeCloseTo(d.segundos - d.fundido);
+    // A media entrada sigue subiendo desde donde iba, sin bajar a 0.
+    expect(reiniciarCartel(0.1, d)).toBe(0.1);
+  });
+});
+
+it('reiniciarCartel durante el fundido de salida sigue desde la misma opacidad, subiendo', () => {
+  const t = d.segundos - d.fundido / 2; // a media salida: opacidad 0,5
+  const nuevo = reiniciarCartel(t, d);
+  expect(opacidadCartel(nuevo, d, false)).toBeCloseTo(opacidadCartel(t, d, false));
+  expect(opacidadCartel(nuevo + 0.01, d, false)).toBeGreaterThan(opacidadCartel(nuevo, d, false));
 });

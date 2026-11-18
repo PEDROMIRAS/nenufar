@@ -81,7 +81,6 @@ const ayuda = (texto: string): string[] => partirEnLineas(texto, LARGO_LINEA);
 
 const textoVida = (pv: number, max: number): string => `${pv}/${max}`;
 
-/** Pantalla de combate: anima los eventos de `core/combate` uno a uno y recoge la acción de la heroína. */
 /** Lo que dice el lector de pantalla al final del combate. */
 const CONTINUAR: Record<Dispositivo, string> = {
   teclado: 'Pulsa Enter para continuar.',
@@ -89,6 +88,7 @@ const CONTINUAR: Record<Dispositivo, string> = {
   mando: 'Pulsa A para continuar.',
 };
 
+/** Pantalla de combate: anima los eventos de `core/combate` uno a uno y recoge la acción de la heroína. */
 export class EscenaCombate implements Escena {
   readonly conMundo = true;
   readonly alta = true;
@@ -126,6 +126,8 @@ export class EscenaCombate implements Escena {
   /** Trauma del temblor (de 0 a 1) y segundos que quedan de pausa de impacto. */
   private trauma = 0;
   private pausa = 0;
+  /** Se pulsó o tocó durante la pausa de impacto: salta la lectura en cuanto acabe. */
+  private saltoPendiente = false;
   /** Segundos de la salida a negro tras confirmar el resultado; −1 mientras no se sale. */
   private saliendo = -1;
 
@@ -209,8 +211,10 @@ export class EscenaCombate implements Escena {
     }
     if (v.negro > 0) v.negro = Math.max(0, v.negro - dt / IMPACTO.entrada.aparicion);
     if (this.pausa > 0) {
-      // Pausa de impacto: el combate se detiene un instante (un toque no la salta).
+      // Pausa de impacto: el combate se detiene un instante (un toque no la salta, pero se guarda para saltar la
+      // lectura en cuanto acabe: si no, se perdería).
       this.pausa -= dt;
+      if (acciones.confirmar || acciones.toqueX >= 0) this.saltoPendiente = true;
       return;
     }
     v.tiempo += dt;
@@ -223,7 +227,9 @@ export class EscenaCombate implements Escena {
     }
     if (this.espera > 0) {
       // Un toque o Enter salta lo que falta de la lectura de un mensaje.
-      if (this.leyendo && (acciones.confirmar || acciones.toqueX >= 0)) this.espera = 0;
+      const saltar = acciones.confirmar || acciones.toqueX >= 0 || this.saltoPendiente;
+      this.saltoPendiente = false;
+      if (this.leyendo && saltar) this.espera = 0;
       else {
         this.espera -= dt;
         return;

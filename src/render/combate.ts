@@ -320,9 +320,11 @@ function dibujarDestello(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   const opacidad = v.destello * Math.max(0, 1 - v.tiempoDestello / IMPACTO.destello.duracion);
   if (opacidad <= 0) return;
   // Hasta donde empieza el panel: en vertical, el borde de arriba del panel apilado; si no, la pestaña del panel.
-  const abajo = interfaz.alta
-    ? ((e) => e.y + e.alto)(disposicion(v.menu?.opciones.length ?? 0).escena)
-    : PANEL.y - 14;
+  let abajo = PANEL.y - 14;
+  if (interfaz.alta) {
+    const e = disposicion(v.menu?.opciones.length ?? 0).escena;
+    abajo = e.y + e.alto;
+  }
   ctx.fillStyle = '#fff';
   ctx.globalAlpha = opacidad;
   ctx.fillRect(area.x, area.y, area.ancho, abajo - area.y);
