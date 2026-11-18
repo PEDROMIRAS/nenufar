@@ -125,3 +125,11 @@
 
 - [ ] **Step 1:** `CLAUDE.md` (Estado y Próximos pasos: el hito 4 de la auditoría es el reto; la escalera queda descartada para este público) y sección «Resultado» de este plan con lo visto, lo no visto y las cifras del equilibrado.
 - [ ] **Step 2: Commit** — `git commit -m "CLAUDE.md y plan: reto del día hecho"`
+
+## Resultado (2026-11-18)
+
+Hecho en línea. Suite, lint y build pasan.
+
+- **Equilibrado:** `reto.json` con nivel inicial 3, ataque ×1,9, vida ×1,4, recuperación 0,6, 8 salas, 1-2 grupos, 1 tesoro. Ronin 66,5 % (peor día 49 %, Guardián 88 %), maga 65,9 % (peor día 46 %, Guardián 96 %), unos 6 combates por reto, sin subidas de nivel durante el reto. Con la rana en nivel 1 ningún multiplicador común igualaba a las dos (la maga, 15-25 puntos por encima); pociones extra y experiencia ×4 lo igualaban deformando el juego. El peor día se mide con 100 intentos por fecha: con 20 es ruido.
+- **Visto con Chrome sin cabeza:** la portada con el botón (1000×640, 390×844, 360×640), la entrada en dos pulsaciones (botón y rana; luego el cartel), una sala y un combate ganado del reto sin tocar récords ni guardar partida, la recarga a mitad que vuelve a la portada, la tarjeta ganando y perdiendo (`?reto=gana|pierde`, 1000×640 y 390×844) y «Otra vez» entrando en el mismo mapa.
+- **Sin ver:** morir o vencer al Guardián jugando, la subida de nivel con reparto automático (no ocurre con estas cifras), el móvil real, el mando y la duración real.
