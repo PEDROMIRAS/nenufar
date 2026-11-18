@@ -29,7 +29,8 @@ import {
 import { crearElemento } from './elementos';
 import { crearFuente } from './fuente';
 import { crearHundidos } from './hundidos';
-import { compararLuces } from '../../core/luces';
+import { compararLuces, lugaresDeLuz } from '../../core/luces';
+import { crearAmbiente } from './ambiente';
 import { crearArco, crearBarrera, crearModelo } from './modelos';
 import {
   ajustarPixelArt,
@@ -103,6 +104,8 @@ export interface VistaSala {
   /** Animación de cada objeto 3D que se mueve (la hoguera, el portal). */
   animados: Map<ObjetoSala, (tiempo: number) => void>;
   hundidos: { actualizar: (tiempo: number) => void } | null;
+  /** Animación de las fuentes de luz de ambiente (sin objeto al que colgarla). */
+  ambiente: ((tiempo: number) => void)[];
   /** Luces puntuales de sus objetos (hoguera, candelabros, portal) y dónde están. */
   luces: { luz: LuzHd2d; x: number; z: number; fase: number }[];
   /** Barrera de cada salida, que se ve mientras está cerrada. */
@@ -377,6 +380,7 @@ export class Mundo {
       animados: new Map(),
       hundidos: null,
       luces: [],
+      ambiente: [],
       barreras: [],
       azar,
       encuadre,
@@ -501,8 +505,31 @@ export class Mundo {
       if (o instanceof THREE.Mesh)
         [o.material as THREE.Material | THREE.Material[]].flat().forEach(transparentar);
     });
+    this.ponerAmbiente(v, salidas);
     z.vistas.push(v);
     return v;
+  }
+
+  /**
+   * En una sala sin luces propias, las fuentes de luz de ambiente de la zona (luciérnagas, haz, fuego fatuo, grieta):
+   * su modelo animado y su luz puntual, en casillas libres lejos de las salidas.
+   */
+  private ponerAmbiente(v: VistaSala, salidas: readonly Salida[]): void {
+    const amb = this.zona?.aspecto.ambiente;
+    const luz = amb ? this.a.luces[amb.tipo] : undefined;
+    if (!amb || !luz || v.luces.length > 0) return;
+    const cuantos = amb.min + Math.floor(v.azar() * (amb.max - amb.min + 1));
+    for (const [x, y] of lugaresDeLuz(v.sala, salidas, cuantos, amb.distancia, v.azar)) {
+      const e = crearAmbiente(amb.tipo, v.azar, this.tamPunto());
+      e.grupo.position.set(x + 0.5, 0, y + 0.5);
+      v.grupo.add(e.grupo);
+      if (e.actualizar) v.ambiente.push(e.actualizar);
+      e.grupo.traverse((m) => {
+        if (m instanceof THREE.Points && !m.material.sizeAttenuation) this.puntos.push(m.material);
+      });
+      v.luces.push({ luz, x: x + 0.5, z: y + 0.5, fase: v.azar() * 10 });
+    }
+    v.luces.sort((p, q) => compararLuces(p.luz, q.luz));
   }
 
   /** Rehace lo que se ve de un objeto (el cofre al abrirse) o lo añade (el portal al vencer al jefe). */
@@ -846,6 +873,7 @@ export class Mundo {
     if (z) for (const p of v.piezas.values()) pintarPieza(p, z.imagenes, z.tam, tiempo);
     v.fuente?.actualizar(tiempo);
     for (const actualizar of v.animados.values()) actualizar(tiempo);
+    for (let i = 0; i < v.ambiente.length; i++) v.ambiente[i]!(tiempo);
     v.hundidos?.actualizar(tiempo);
     for (let i = 0; i < this.puntuales.length; i++) {
       const luz = this.puntuales[i]!;

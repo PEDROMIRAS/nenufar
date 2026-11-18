@@ -460,6 +460,16 @@ export interface ZonaHd2d {
   principal: { color: string; intensidad: number };
   /** Niebla del color del fondo que oscurece lo lejano (densidad de una niebla exponencial); sin el campo, nada. */
   niebla?: number;
+  /**
+   * Fuentes de luz de ambiente en las salas sin luces propias: tipo (también la clave de su luz en `luces`), entre
+   * cuántas y cuántas por sala y a cuántas casillas como mínimo de las salidas y entre sí.
+   */
+  ambiente?: {
+    tipo: 'luciernagas' | 'haz' | 'fuego_fatuo' | 'grieta';
+    min: number;
+    max: number;
+    distancia: number;
+  };
   borde: BordeHd2d;
   hundido: HundidoHd2d;
   arco: ArcoHd2d;

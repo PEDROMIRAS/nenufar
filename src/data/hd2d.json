@@ -27,6 +27,38 @@
     "limo": [500, 278]
   },
   "luces": {
+    "luciernagas": {
+      "color": "#c8ff6a",
+      "intensidad": 3.5,
+      "alcance": 4.5,
+      "alto": 0.6,
+      "parpadeo": 0.25,
+      "sombra": false
+    },
+    "haz": {
+      "color": "#ffe0a0",
+      "intensidad": 9,
+      "alcance": 5,
+      "alto": 2,
+      "parpadeo": 0.03,
+      "sombra": false
+    },
+    "fuego_fatuo": {
+      "color": "#b48cff",
+      "intensidad": 7,
+      "alcance": 5,
+      "alto": 0.7,
+      "parpadeo": 0.15,
+      "sombra": false
+    },
+    "grieta": {
+      "color": "#ff6a2a",
+      "intensidad": 7,
+      "alcance": 4.5,
+      "alto": 0.2,
+      "parpadeo": 0.2,
+      "sombra": false
+    },
     "hoguera": {
       "color": "#ff9a4a",
       "intensidad": 20,
@@ -89,6 +121,7 @@
       "fondo": "#0b120e",
       "modelos": true,
       "niebla": 0.012,
+      "ambiente": { "tipo": "luciernagas", "min": 1, "max": 2, "distancia": 3 },
       "cielo": { "arriba": "#9fb4ff", "abajo": "#2a3a24", "intensidad": 0.85 },
       "principal": { "color": "#c8d6ff", "intensidad": 0.9 },
       "borde": {
@@ -119,6 +152,7 @@
       "fondo": "#121410",
       "modelos": true,
       "niebla": 0.012,
+      "ambiente": { "tipo": "haz", "min": 1, "max": 1, "distancia": 3 },
       "cielo": { "arriba": "#ffe9c8", "abajo": "#4a4636", "intensidad": 0.9 },
       "principal": { "color": "#fff1d6", "intensidad": 1.6 },
       "borde": {
@@ -140,7 +174,8 @@
       "fondo": "#07060b",
       "modelos": true,
       "niebla": 0.012,
-      "cielo": { "arriba": "#8f7ad0", "abajo": "#2a2238", "intensidad": 1.2 },
+      "ambiente": { "tipo": "fuego_fatuo", "min": 1, "max": 2, "distancia": 3 },
+      "cielo": { "arriba": "#8f7ad0", "abajo": "#2a2238", "intensidad": 1.4 },
       "principal": { "color": "#c9b8ff", "intensidad": 1.0 },
       "borde": {
         "tipo": "sillares",
@@ -161,7 +196,8 @@
       "fondo": "#0a0508",
       "modelos": false,
       "niebla": 0.012,
-      "cielo": { "arriba": "#8a7498", "abajo": "#2a1c22", "intensidad": 1.2 },
+      "ambiente": { "tipo": "grieta", "min": 1, "max": 2, "distancia": 3 },
+      "cielo": { "arriba": "#8a7498", "abajo": "#2a1c22", "intensidad": 1.6 },
       "principal": { "color": "#ffb888", "intensidad": 1.2 },
       "borde": {
         "tipo": "sillares",
