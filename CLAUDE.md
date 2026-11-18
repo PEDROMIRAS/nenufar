@@ -55,9 +55,24 @@ Si el diseño y este archivo discrepan, manda el documento; avisa de la discrepa
 - `?semilla=N` en la URL repite una partida; la semilla de cada zona sale en la consola.
 - Hitos 2-7 en el documento. Hasta el hito 5 la lógica puede probarse con rectángulos, pero el arte ya existe y se puede usar desde el hito 1.
 
-## Próximos pasos (para retomar, 2026-11-17)
+## Próximos pasos (para retomar, 2026-11-19)
 
-### Por dónde vamos (2026-11-17, al pausar): la auditoría con las skills de gamedev
+### Por dónde vamos (2026-11-19, al pausar)
+
+Todo está fusionado en `main` y publicado; no hay ramas abiertas. Lo último: **luz y relieve** (2026-11-18) y el **README al día** (2026-11-19, commit `843871d`). Pedro preguntó por cambiar de motor (Babylon o Godot) para que no se vea plano; se decidió **seguir con Three.js** tras una prueba de luz que le convenció. La auditoría con las skills de gamedev queda cerrada (sus cuatro hitos hechos: peso de los golpes, mapa vivo, mando y reto del día, más la luz).
+
+Para mañana, lo que propuse y Pedro no ha elegido todavía:
+
+1. **Que Pedro juegue lo publicado sin probar** (ordenador, móvil y mando) y diga qué afinar: la luz y el relieve (¿alguna zona demasiado oscura, sobre todo Cauce Seco y Cripta?; ¿le gustan las luciérnagas, el haz, el fuego fatuo y la grieta?; ¿la cámara del combate se queda corta o se pasa?), el reto del día (¿dura ~5 min?, nivel 3, banda 55-75 %, cartel de entrada), el mando y su vibración, el cartel «Mando conectado» al 62 % del alto, el mapa vivo y el peso de los golpes. Los números están en `hd2d.json` (luz, `relieve`, `ambiente`), `impacto.json` (`camara`, golpes) y `reto.json`.
+2. **Pulir la cámara del combate** (mi recomendación mientras Pedro prueba): tirón con un atacante distinto si se salta la lectura, la luz del proyectil que no sigue el acercamiento y los pies de la heroína y el nombre del jefe que se salen de su sitio durante ~1 s.
+3. **Rehacer las capturas del README** (`docs/capturas/`), que siguen siendo de octubre, con la luz de antes.
+4. **Arte que falta:** imágenes de Pedro para el dragón negro, el murciélago, el sacerdote y el cofre trampa; las ranas a doble resolución (proyecto aparte, con su visto bueno).
+5. **Enlace desde el portafolio** (hace falta saber dónde está y permiso) y el vídeo de demo, que aún no va.
+6. **Repasar el resto de la pestaña principal del documento de desarrollo** (controles, pantallas, plan de hitos: datos viejos como la sala de 15×11).
+
+**Menores aplazados de luz y relieve:** los tres de la cámara (punto 2), `lugaresDeLuz` puede elegir la casilla de copa de un objeto alto, el suelo exterior no tiene relieve, la regla «sin luces propias → ambiente» no tiene test propio, y en las salas del Cauce con braseros solo arriba la mitad de abajo queda en penumbra.
+
+### Antes (2026-11-17): la auditoría con las skills de gamedev
 
 Pedro instaló las 79 skills de `gamedev-skills/awesome-gamedev-agent-skills` en `.claude/skills/` (sin versionar; procedencia en `.claude/PROCEDENCIA-gamedev-skills.md`; `performance-optimization` renombrada `gamedev-performance-optimization`) para «mejorar el juego en todo punto». La auditoría (hecha en la conversación, no guardada en un archivo) concluyó que **no hay que reformular el juego**: la base cumple casi todo y lo que falta es sobre todo sensación. Hitos, en este orden, cada uno con brainstorming → spec → plan → ejecución en línea → revisor final nuevo (Opus) → fusionar en `main` y publicar (así lo ha pedido Pedro las dos veces):
 
