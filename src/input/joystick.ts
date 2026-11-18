@@ -1,4 +1,5 @@
 import { fijarDireccion } from '../core/direccion';
+import { usarDispositivo } from './dispositivo';
 import type { FuenteEntrada } from './fuente';
 
 interface Ajustes {
@@ -49,6 +50,7 @@ export function crearJoystick(
     const control = e.target instanceof HTMLInputElement || e.target instanceof HTMLButtonElement;
     if (dedo !== null || e.pointerType === 'mouse' || control) return;
     dedo = e.pointerId;
+    usarDispositivo('tactil');
     origenX = e.clientX;
     origenY = e.clientY;
     dx = dy = 0;

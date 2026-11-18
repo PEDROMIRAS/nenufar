@@ -90,6 +90,8 @@ import { EscenaTitulo } from './escenas/titulo';
 import { leerFuentes } from './input/fuente';
 import { crearJoystick } from './input/joystick';
 import { crearTeclado } from './input/teclado';
+import { fijarDispositivo, usarDispositivo } from './input/dispositivo';
+import { crearMando } from './input/mando';
 import { crearToque } from './input/toque';
 import { iniciarBucle } from './render/bucle';
 import { PALETA } from './render/marco';
@@ -277,8 +279,13 @@ async function iniciar(): Promise<void> {
     : 0;
 
   // El joystick escucha en todo el body: también responde en las franjas negras fuera del canvas.
+  if (esTactil()) usarDispositivo('tactil');
+  // shortcut: solo en desarrollo, para ver los textos del mando sin tenerlo
+  if (import.meta.env.DEV && new URLSearchParams(location.search).has('mando'))
+    fijarDispositivo('mando');
   const fuentes = [
     crearTeclado(),
+    crearMando(controles.mando),
     crearJoystick(document.body, controles.joystick),
     crearToque(canvas),
   ];
