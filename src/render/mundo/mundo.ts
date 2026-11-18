@@ -31,7 +31,15 @@ import { crearFuente } from './fuente';
 import { crearHundidos } from './hundidos';
 import { compararLuces } from '../../core/luces';
 import { crearArco, crearBarrera, crearModelo } from './modelos';
-import { ajustarPixelArt, cuentaColores, materialRuido, paleta, pintar, textura } from './texturas';
+import {
+  ajustarPixelArt,
+  cuentaColores,
+  materialRuido,
+  paleta,
+  pintar,
+  textura,
+  texturaNormales,
+} from './texturas';
 import { transparentar, uniformesTransparencia } from './transparencia';
 
 // Calidad elegida en la pausa (como el sonido): el mundo la aplica al dibujar el siguiente fotograma.
@@ -62,6 +70,8 @@ export type FondoSala = (
 export interface Actor {
   malla: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshLambertMaterial>;
   tex: THREE.Texture;
+  /** Mapa de normales de la hoja (con su misma rejilla y desplazamiento), si hay relieve. */
+  normales: THREE.Texture | null;
   sprite: Sprite;
   columnas: number;
   filas: number;
@@ -295,6 +305,7 @@ export class Mundo {
   ): void {
     this.vaciar();
     this.escena.background = new THREE.Color(aspecto.fondo);
+    this.escena.fog = aspecto.niebla ? new THREE.FogExp2(aspecto.fondo, aspecto.niebla) : null;
     this.cielo.color.set(aspecto.cielo.arriba);
     this.cielo.groundColor.set(aspecto.cielo.abajo);
     this.cielo.intensity = aspecto.cielo.intensidad;
@@ -445,6 +456,11 @@ export class Mundo {
       new THREE.PlaneGeometry(sala.ancho, sala.alto),
       new THREE.MeshLambertMaterial({ map: textura(lienzo), alphaTest: 0.5 }),
     );
+    // El suelo toma relieve de su propio dibujo (lo claro sube): la luz rasante de una hoguera lo marca.
+    if (this.a.relieve) {
+      plano.material.bumpMap = plano.material.map;
+      plano.material.bumpScale = this.a.relieve.suelo;
+    }
     plano.rotation.x = -Math.PI / 2;
     plano.position.copy(centro);
     plano.receiveShadow = true;
@@ -581,8 +597,20 @@ export class Mundo {
     const columnas = (img.naturalWidth || img.width) / frameWidth;
     const filas = (img.naturalHeight || img.height) / frameHeight;
     tex.repeat.set(1 / columnas, 1 / filas);
+    const rel = this.a.relieve;
+    const normales = rel ? texturaNormales(img, rel) : null;
+    normales?.repeat.set(1 / columnas, 1 / filas);
+    const material = new THREE.MeshLambertMaterial({
+      map: tex,
+      alphaTest: 0.5,
+      side: THREE.DoubleSide,
+    });
+    if (normales && rel) {
+      material.normalMap = normales;
+      material.normalScale.set(rel.escala, rel.escala);
+    }
     const malla = carton(
-      new THREE.MeshLambertMaterial({ map: tex, alphaTest: 0.5, side: THREE.DoubleSide }),
+      material,
       frameWidth / tam,
       frameHeight / tam,
       (frameHeight - anchor.y) / tam,
@@ -591,7 +619,7 @@ export class Mundo {
     malla.rotation.x = -this.giro;
     malla.scale.y = this.estirar;
     (v?.grupo ?? this.escena).add(malla);
-    const actor: Actor = { malla, tex, sprite, columnas, filas, signo: null };
+    const actor: Actor = { malla, tex, normales, sprite, columnas, filas, signo: null };
     v?.actores.push(actor);
     return actor;
   }
@@ -684,6 +712,7 @@ export class Mundo {
       columna / a.columnas,
       1 - (a.sprite.datos.directions[direccion] + 1) / a.filas,
     );
+    a.normales?.offset.copy(a.tex.offset);
   }
 
   /**

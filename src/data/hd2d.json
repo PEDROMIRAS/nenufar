@@ -9,6 +9,7 @@
   "resolucionMaxima": 2,
   "desenfoque": 2.4,
   "combate": { "desenfoque": 3, "foco": 0.5 },
+  "relieve": { "radio": 5, "detalle": 0.35, "fuerza": 2.5, "escala": 1.5, "suelo": 0.6 },
   "bordes": { "muro": 1, "alto": 1, "fuerza": 6 },
   "bloom": { "fuerza": 0.55, "radio": 0.5, "umbral": 0.72 },
   "vineta": { "offset": 1.0, "oscuridad": 1.15 },
@@ -28,8 +29,8 @@
   "luces": {
     "hoguera": {
       "color": "#ff9a4a",
-      "intensidad": 14,
-      "alcance": 6,
+      "intensidad": 20,
+      "alcance": 8,
       "alto": 0.55,
       "parpadeo": 0.18,
       "sombra": true
@@ -87,7 +88,8 @@
     "bosque": {
       "fondo": "#0b120e",
       "modelos": true,
-      "cielo": { "arriba": "#9fb4ff", "abajo": "#2a3a24", "intensidad": 1.6 },
+      "niebla": 0.012,
+      "cielo": { "arriba": "#9fb4ff", "abajo": "#2a3a24", "intensidad": 0.85 },
       "principal": { "color": "#c8d6ff", "intensidad": 0.9 },
       "borde": {
         "tipo": "arboles",

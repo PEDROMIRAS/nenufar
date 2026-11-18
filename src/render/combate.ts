@@ -1,3 +1,4 @@
+import { zoomAtaque } from '../core/camaraCombate';
 import type { Combate, Luchador } from '../core/combate';
 import { escalaHoja } from '../core/hoja';
 import { partirTexto } from '../core/texto';
@@ -272,6 +273,7 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   ctx.save();
   ctx.translate(Math.round(tx), Math.round(ty));
   dibujarOrden(ctx, v);
+  acercarAlAtaque(ctx, v);
   for (let i = 0; i < v.enemigos.length; i++)
     dibujarEnemigo(ctx, v, v.enemigos[i]!, xEnemigo(i, v.enemigos.length));
   dibujarHeroina(ctx, v);
@@ -803,6 +805,24 @@ function dibujarPanel(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   escribir(ctx, v.textoPv.get(h) ?? '', fx + 148, fy + 14);
   barra(ctx, fx, fy + 34, 140, v.pmHeroina / Math.max(1, h.pmMax), COLOR.pm);
   escribir(ctx, v.textoPm, fx + 148, fy + 30);
+}
+
+/**
+ * Cámara del ataque en curso: la escena (sin la barra de turnos ni el panel) se acerca al punto entre quien ataca y
+ * quien recibe; el fondo 3D se queda quieto, así que el primer plano se separa de él.
+ */
+function acercarAlAtaque(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
+  const a = v.atacante;
+  const o = v.objetivoAtaque;
+  const camara = IMPACTO.camara;
+  if (!a || !o || !camara) return;
+  const z = zoomAtaque(v.tiempoAtaque, anticipoAtaque(v, a), camara);
+  if (z === 1) return;
+  const fx = (centroX(v, a) + centroX(v, o)) / 2;
+  const fy = (centroY(a) + centroY(o)) / 2;
+  ctx.translate(fx, fy);
+  ctx.scale(z, z);
+  ctx.translate(-fx, -fy);
 }
 
 /** Dónde va el proyectil del ataque en curso (y de qué hoja es), o null si no hay ninguno en vuelo. */

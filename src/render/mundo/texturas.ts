@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { Tile } from '../../core/sala';
+import { normalesDeSprite, type OpcionesRelieve } from '../../core/relieve';
 import { dibujarTile } from '../sala';
 
 /** Lienzo de `ancho`×`alto` casillas pintado por `pintor`. */
@@ -184,4 +185,32 @@ export function materialRuido(
   const map = manchas(colores, pesos, azar);
   map.repeat.set(repetir, repetir);
   return new THREE.MeshLambertMaterial({ map, flatShading: true });
+}
+
+/** Mapas de normales ya hechos, por imagen (cada hoja se procesa una vez). */
+const NORMALES = new Map<CanvasImageSource, HTMLCanvasElement>();
+
+/**
+ * Mapa de normales de una hoja de pixel art (ver `normalesDeSprite`), para que la luz la envuelva. Textura lineal,
+ * sin suavizado, con la misma rejilla que la hoja.
+ */
+export function texturaNormales(img: HTMLImageElement, o: OpcionesRelieve): THREE.Texture {
+  let lienzo = NORMALES.get(img);
+  if (!lienzo) {
+    const ancho = img.naturalWidth || img.width;
+    const alto = img.naturalHeight || img.height;
+    lienzo = document.createElement('canvas');
+    lienzo.width = ancho;
+    lienzo.height = alto;
+    const ctx = lienzo.getContext('2d')!;
+    ctx.drawImage(img, 0, 0);
+    const datos = ctx.getImageData(0, 0, ancho, alto);
+    datos.data.set(normalesDeSprite(datos.data, ancho, alto, o));
+    ctx.putImageData(datos, 0, 0);
+    NORMALES.set(img, lienzo);
+  }
+  const tex = new THREE.CanvasTexture(lienzo);
+  ajustarPixelArt(tex);
+  tex.colorSpace = THREE.NoColorSpace;
+  return tex;
 }

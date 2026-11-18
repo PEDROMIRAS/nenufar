@@ -458,6 +458,8 @@ export interface ZonaHd2d {
   cielo: { arriba: string; abajo: string; intensidad: number };
   /** Luz principal (direccional, con sombras), desde arriba a la izquierda y del lado de la cámara. */
   principal: { color: string; intensidad: number };
+  /** Niebla del color del fondo que oscurece lo lejano (densidad de una niebla exponencial); sin el campo, nada. */
+  niebla?: number;
   borde: BordeHd2d;
   hundido: HundidoHd2d;
   arco: ArcoHd2d;
@@ -477,6 +479,8 @@ export interface Hd2dJson {
   desenfoque: number;
   /** Fondo del combate: cuántas veces el desenfoque normal y dónde queda la franja enfocada (0 abajo, 1 arriba). */
   combate: { desenfoque: number; foco: number };
+  /** Relieve de los sprites (mapa de normales sacado del pixel art) y del suelo (bump con su propio dibujo). */
+  relieve?: { radio: number; detalle: number; fuerza: number; escala: number; suelo: number };
   /** Desenfoque del mapa: casillas de muro que rodean la zona nítida, altura hasta la que se ve nítida (monstruos) y cuánto crece fuera. */
   bordes: { muro: number; alto: number; fuerza: number };
   bloom: { fuerza: number; radio: number; umbral: number };
