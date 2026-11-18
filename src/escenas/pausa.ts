@@ -3,7 +3,8 @@ import { habilidadesDisponibles, type Luchador } from '../core/combate';
 import { aplicarConsumible, gastar, haceAlgo, type Inventario } from '../core/inventario';
 import { describirConsumible, partirEnLineas } from '../core/descripciones';
 import { bonoDe, describirEfecto } from '../core/equipo';
-import { efectoToque, filaTocada } from '../core/menu';
+import { efectoToque, enfocarAjustes, filaTocada } from '../core/menu';
+import { dispositivo } from '../input/dispositivo';
 import { experienciaParaSubir } from '../core/progresion';
 import { lineasPresagio } from '../core/presagios';
 import type {
@@ -170,6 +171,9 @@ export class EscenaPausa implements Escena {
       else if (a.confirmar) this.usar(this.objeto);
       return;
     }
+    // Con un control HTML enfocado, la dirección es suya: el teclado ya no la manda, pero el mando y el
+    // joystick sí, y movería el cursor de la lista sin que se vea.
+    if (this.controlEnfocado()) return;
     if (nuevoY) {
       const n = SECCIONES.length;
       this.elegirFila((this.elegida + dy + n) % n);
@@ -248,7 +252,8 @@ export class EscenaPausa implements Escena {
       this.enObjetos = true;
       this.anunciarObjeto();
     } else if (s === 'ajustes') {
-      if (!this.controlEnfocado()) this.controles.sonido.enfocar();
+      if (enfocarAjustes(dispositivo() === 'mando', this.controlEnfocado()))
+        this.controles.sonido.enfocar();
     } else if (s === 'equipo') {
       sonar('confirmar');
       this.abrirEncima(this.alEquipo);

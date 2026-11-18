@@ -25,3 +25,11 @@ export function efectoToque(
 ): 'elegir' | 'usar' {
   return dobleToque && tocada !== elegida ? 'elegir' : 'usar';
 }
+
+/**
+ * Si al entrar en Ajustes se enfoca su primer control HTML. Con mando no: el mando no mueve deslizadores
+ * ni marca casillas, y el foco lo dejaría atrapado sin cursor en la lista.
+ */
+export function enfocarAjustes(conMando: boolean, yaEnfocado: boolean): boolean {
+  return !conMando && !yaEnfocado;
+}
