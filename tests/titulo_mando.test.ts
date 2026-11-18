@@ -10,6 +10,8 @@ describe('línea de la portada sobre el mando', () => {
   });
 
   it('cabe en una línea en la interfaz alta más estrecha (320 de ancho, margen 8)', () => {
-    expect(controles.mando.texto.length).toBeLessThanOrEqual(Math.floor((320 - 2 * 8) / ANCHO_LETRA));
+    expect(controles.mando.texto.length).toBeLessThanOrEqual(
+      Math.floor((320 - 2 * 8) / ANCHO_LETRA),
+    );
   });
 });
