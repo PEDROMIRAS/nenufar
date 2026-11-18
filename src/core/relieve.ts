@@ -66,7 +66,8 @@ export function normalesDeSprite(
       salida[i * 4] = Math.round(((nx / largo) * 0.5 + 0.5) * 255);
       salida[i * 4 + 1] = Math.round(((ny / largo) * 0.5 + 0.5) * 255);
       salida[i * 4 + 2] = Math.round(((1 / largo) * 0.5 + 0.5) * 255);
-      salida[i * 4 + 3] = rgba[i * 4 + 3]!;
+      // Opaco entero: un texel transparente llegaría a WebGL como (0, 0, 0), una normal que apaga la luz.
+      salida[i * 4 + 3] = 255;
     }
   return salida;
 }

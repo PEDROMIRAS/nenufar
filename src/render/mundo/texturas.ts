@@ -187,19 +187,26 @@ export function materialRuido(
   return new THREE.MeshLambertMaterial({ map, flatShading: true });
 }
 
-/** Mapas de normales ya hechos, por imagen (cada hoja se procesa una vez). */
-const NORMALES = new Map<CanvasImageSource, HTMLCanvasElement>();
+/**
+ * Mapas de normales ya hechos, por hoja: una textura base que no se usa ni se suelta; cada actor lleva un `clone()`,
+ * que comparte la imagen (una sola subida a la GPU por hoja) con su propio desplazamiento. Débil: una hoja que ya no
+ * existe (la heroína vestida con otro equipo) se olvida sola.
+ */
+const NORMALES = new WeakMap<object, THREE.Texture>();
 
 /**
  * Mapa de normales de una hoja de pixel art (ver `normalesDeSprite`), para que la luz la envuelva. Textura lineal,
- * sin suavizado, con la misma rejilla que la hoja.
+ * sin suavizado, con la misma rejilla que la hoja; cada llamada da una copia propia que se puede soltar.
  */
-export function texturaNormales(img: HTMLImageElement, o: OpcionesRelieve): THREE.Texture {
-  let lienzo = NORMALES.get(img);
-  if (!lienzo) {
-    const ancho = img.naturalWidth || img.width;
-    const alto = img.naturalHeight || img.height;
-    lienzo = document.createElement('canvas');
+export function texturaNormales(
+  img: HTMLImageElement | HTMLCanvasElement,
+  o: OpcionesRelieve,
+): THREE.Texture {
+  let base = NORMALES.get(img);
+  if (!base) {
+    const ancho = (img as HTMLImageElement).naturalWidth || img.width;
+    const alto = (img as HTMLImageElement).naturalHeight || img.height;
+    const lienzo = document.createElement('canvas');
     lienzo.width = ancho;
     lienzo.height = alto;
     const ctx = lienzo.getContext('2d')!;
@@ -207,10 +214,10 @@ export function texturaNormales(img: HTMLImageElement, o: OpcionesRelieve): THRE
     const datos = ctx.getImageData(0, 0, ancho, alto);
     datos.data.set(normalesDeSprite(datos.data, ancho, alto, o));
     ctx.putImageData(datos, 0, 0);
-    NORMALES.set(img, lienzo);
+    base = new THREE.CanvasTexture(lienzo);
+    ajustarPixelArt(base);
+    base.colorSpace = THREE.NoColorSpace;
+    NORMALES.set(img, base);
   }
-  const tex = new THREE.CanvasTexture(lienzo);
-  ajustarPixelArt(tex);
-  tex.colorSpace = THREE.NoColorSpace;
-  return tex;
+  return base.clone();
 }

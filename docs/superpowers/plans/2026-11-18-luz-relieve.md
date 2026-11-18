@@ -96,5 +96,5 @@ Hecho en línea. Suite, lint y build pasan.
 
 - **Valores finales:** cielo Bosque 0,85, Ruinas 0,9 (principal 1,6), Cripta 1,4 (principal 1,0), Cauce 1,6; niebla 0,012; luces de objetos ×1,4 y +2 de alcance (hoguera 20 y 8); luciérnagas 3,5, haz 9, fuego fatuo 7, grieta 7; relieve radio 5, detalle 0,35, fuerza 2,5, escala 1,5, suelo 0,6; cámara 12 % y ×1,6 en golpes fuertes.
 - **Visto con Chrome sin cabeza:** la portada de las cuatro zonas, la primera sala de cada zona (1000×640 y 390×844), una sala de combate entera por zona, un combate por zona, el acercamiento normal y el de jefe, y el cambio de calidad sin recargar.
-- **Medido:** el mapa de normales de la hoja más grande (2208×384) tarda 58 ms en el Mac, una vez por hoja.
+- **Medido:** el mapa de normales de la hoja más grande (rey_sin_charca, 2944×384) tarda 77 ms en el Mac, una vez por hoja y solo en calidad alta.
 - **Sin ver:** el móvil real (rendimiento incluido), las fuentes de luz en movimiento, salas sin luces de la Cripta y el Cauce. En las salas del Cauce con braseros solo arriba, la mitad de abajo queda en penumbra.

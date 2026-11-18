@@ -71,8 +71,6 @@ export type FondoSala = (
 export interface Actor {
   malla: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshLambertMaterial>;
   tex: THREE.Texture;
-  /** Mapa de normales de la hoja (con su misma rejilla y desplazamiento), si hay relieve. */
-  normales: THREE.Texture | null;
   sprite: Sprite;
   columnas: number;
   filas: number;
@@ -343,6 +341,12 @@ export class Mundo {
     for (const v of this.zona.vistas) {
       if (v.grupo.parent) v.grupo.parent.remove(v.grupo);
       v.grupo.traverse((o) => {
+        // Los sprites (el halo del fuego fatuo) comparten la geometría de three: solo su material y su textura.
+        if (o instanceof THREE.Sprite) {
+          o.material.map?.dispose();
+          o.material.dispose();
+          return;
+        }
         if (!(o instanceof THREE.Mesh || o instanceof THREE.Points)) return;
         o.geometry.dispose();
         for (const m of [o.material as THREE.Material | THREE.Material[]].flat()) {
@@ -350,6 +354,7 @@ export class Mundo {
           // Las texturas del «¡!» y el «?» son de todas las zonas: no se sueltan.
           if (map && map !== this.texturasSigno.alerta && map !== this.texturasSigno.perdido)
             map.dispose();
+          if (m instanceof THREE.MeshLambertMaterial) quitarRelieve(m);
           m.dispose();
         }
       });
@@ -626,15 +631,19 @@ export class Mundo {
     const filas = (img.naturalHeight || img.height) / frameHeight;
     tex.repeat.set(1 / columnas, 1 / filas);
     const rel = this.a.relieve;
-    const normales = rel ? texturaNormales(img, rel) : null;
-    normales?.repeat.set(1 / columnas, 1 / filas);
     const material = new THREE.MeshLambertMaterial({
       map: tex,
       alphaTest: 0.5,
       side: THREE.DoubleSide,
     });
-    if (normales && rel) {
-      material.userData.relieve = normales;
+    if (rel) {
+      // El mapa de normales se calcula solo cuando hace falta (en calidad baja, nunca) y de la hoja que lleve el
+      // actor en ese momento (la heroína cambia de hoja al vestirse).
+      material.userData.hacerRelieve = (): THREE.Texture => {
+        const normales = texturaNormales(sprite.imagen as HTMLImageElement, rel);
+        normales.repeat.set(1 / columnas, 1 / filas);
+        return normales;
+      };
       material.normalScale.set(rel.escala, rel.escala);
       ponerRelieve(material, calidadAlta);
     }
@@ -648,7 +657,7 @@ export class Mundo {
     malla.rotation.x = -this.giro;
     malla.scale.y = this.estirar;
     (v?.grupo ?? this.escena).add(malla);
-    const actor: Actor = { malla, tex, normales, sprite, columnas, filas, signo: null };
+    const actor: Actor = { malla, tex, sprite, columnas, filas, signo: null };
     v?.actores.push(actor);
     return actor;
   }
@@ -741,7 +750,7 @@ export class Mundo {
       columna / a.columnas,
       1 - (a.sprite.datos.directions[direccion] + 1) / a.filas,
     );
-    a.normales?.offset.copy(a.tex.offset);
+    a.malla.material.normalMap?.offset.copy(a.tex.offset);
   }
 
   /**
@@ -769,6 +778,9 @@ export class Mundo {
     if (h.tex.image !== h.sprite.imagen) {
       h.tex.image = h.sprite.imagen;
       h.tex.needsUpdate = true;
+      // Su relieve también: el equipo cambia la silueta.
+      quitarRelieve(h.malla.material);
+      ponerRelieve(h.malla.material, calidadAlta);
     }
     this.colocarActor(h, x, y, animacion, direccion, tiempoAnimacion);
     h.malla.visible = opacidad > 0;
@@ -853,10 +865,7 @@ export class Mundo {
     this.tiltH.enabled = this.tiltV.enabled = calidadAlta;
     this.principal.castShadow = calidadAlta;
     // En baja, sin relieve en los sprites ni en el suelo (todas las salas montadas y la heroína).
-    this.escena.traverse((o) => {
-      if (o instanceof THREE.Mesh && o.material instanceof THREE.MeshLambertMaterial)
-        ponerRelieve(o.material, calidadAlta);
-    });
+    if (this.heroe) ponerRelieve(this.heroe.malla.material, calidadAlta);
     for (const vista of this.zona?.vistas ?? [])
       vista.grupo.traverse((o) => {
         if (o instanceof THREE.Mesh && o.material instanceof THREE.MeshLambertMaterial)
@@ -973,6 +982,7 @@ export class Mundo {
     if (this.heroe) {
       this.escena.remove(this.heroe.malla);
       this.heroe.malla.geometry.dispose();
+      quitarRelieve(this.heroe.malla.material);
       this.heroe.malla.material.dispose();
       this.heroe.tex.dispose();
     }
@@ -1076,11 +1086,13 @@ function texturaNube(): THREE.Texture {
 }
 
 /**
- * Pone o quita el relieve guardado en `userData.relieve` (mapa de normales de un sprite o bump del suelo, según el
- * material lo tenga como normal o como bump). Sin relieve guardado, nada.
+ * Pone o quita el relieve de un material: el bump del suelo (`userData.relieve`, su propio dibujo) o el mapa de
+ * normales de un sprite, que se calcula la primera vez que se pone (`userData.hacerRelieve`). Sin ninguno, nada.
  */
 function ponerRelieve(m: THREE.MeshLambertMaterial, alta: boolean): void {
-  const relieve = m.userData.relieve as THREE.Texture | undefined;
+  let relieve = m.userData.relieve as THREE.Texture | undefined;
+  const hacer = m.userData.hacerRelieve as (() => THREE.Texture) | undefined;
+  if (!relieve && alta && hacer) relieve = m.userData.relieve = hacer();
   if (!relieve) return;
   const esSuelo = relieve === m.map;
   const actual = esSuelo ? m.bumpMap : m.normalMap;
@@ -1089,4 +1101,16 @@ function ponerRelieve(m: THREE.MeshLambertMaterial, alta: boolean): void {
   if (esSuelo) m.bumpMap = nuevo;
   else m.normalMap = nuevo;
   m.needsUpdate = true;
+}
+
+/** Suelta el mapa de normales calculado de un sprite (se rehará si hace falta); el bump del suelo es su dibujo. */
+function quitarRelieve(m: THREE.MeshLambertMaterial): void {
+  const relieve = m.userData.relieve as THREE.Texture | undefined;
+  if (!relieve || relieve === m.map) return;
+  relieve.dispose();
+  delete m.userData.relieve;
+  if (m.normalMap) {
+    m.normalMap = null;
+    m.needsUpdate = true;
+  }
 }

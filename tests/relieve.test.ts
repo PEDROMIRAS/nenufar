@@ -30,8 +30,12 @@ describe('normalesDeSprite', () => {
     expect(en(n, 3, 1)[1]).toBeGreaterThan(128);
   });
 
-  test('lo transparente sigue transparente', () => {
-    expect(en(normalesDeSprite(cuadrado(), 7, 7, o), 0, 0)[3]).toBe(0);
+  test('ningún texel queda a (0, 0, 0): todo opaco y lo transparente mira de frente', () => {
+    // El alfa del mapa de normales no se usa (el recorte va con el color) y un texel transparente se sube a WebGL
+    // como (0, 0, 0), una normal hacia dentro que apaga la luz: el mapa es opaco entero.
+    const n = normalesDeSprite(cuadrado(), 7, 7, o);
+    expect(en(n, 0, 0)).toEqual([128, 128, 255, 255]);
+    for (let i = 3; i < n.length; i += 4) expect(n[i]).toBe(255);
   });
 
   test('sin fuerza, todo de frente', () => {
