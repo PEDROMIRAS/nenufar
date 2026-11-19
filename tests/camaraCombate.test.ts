@@ -44,12 +44,25 @@ describe('camaraAtaque', () => {
     expect(inicio).toEqual(desde);
     const medio = camaraAtaque(0.1, 0.5, d, desde, objetivo, nuevo());
     expect(medio.zoom).toBeCloseTo(1.09);
-    expect(medio.x).toBeCloseTo(160);
-    expect(medio.y).toBeCloseTo(80);
+    // Se mezcla el desplazamiento, (zoom − 1) · punto: (0,08·120 + 0,1·200) / 2 / 0,09.
+    expect(medio.x).toBeCloseTo((0.08 * 120 + 0.1 * 200) / 2 / 0.09);
+    expect(medio.y).toBeCloseTo((0.08 * 60 + 0.1 * 100) / 2 / 0.09);
     const llegada = camaraAtaque(0.3, 0.5, d, desde, objetivo, nuevo());
     expect(llegada.zoom).toBeCloseTo(1.1);
     expect(llegada.x).toBe(200);
     expect(llegada.y).toBe(100);
+  });
+
+  test('al pasar de un encuadre a otro, nada se sale del marco por el camino', () => {
+    const marco = { arriba: 26, abajo: 200 };
+    const contenido = { arriba: 40, abajo: 188 };
+    const desde = encuadrar(1.2, 100, 40, contenido, marco, nuevo());
+    const hacia = encuadrar(1.2, 300, 190, contenido, marco, nuevo());
+    for (let t = 0; t <= d.entrada; t += 0.01) {
+      const c = camaraAtaque(t, 0.5, d, desde, hacia, nuevo());
+      expect(c.y + c.zoom * (contenido.arriba - c.y)).toBeGreaterThanOrEqual(marco.arriba - 1e-9);
+      expect(c.y + c.zoom * (contenido.abajo - c.y)).toBeLessThanOrEqual(marco.abajo + 1e-9);
+    }
   });
 
   test('sin zoom o con tiempos raros, 1', () => {

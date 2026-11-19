@@ -82,10 +82,15 @@ export function camaraAtaque(
   if (t < d.entrada) {
     const s = suave(t / d.entrada);
     salida.zoom = desde.zoom + (objetivo.zoom - desde.zoom) * s;
-    // Sin acercamiento, el punto de antes no se ve: se empieza ya en el nuevo, sin desplazarse.
-    if (desde.zoom > 1) {
-      salida.x = desde.x + (objetivo.x - desde.x) * s;
-      salida.y = desde.y + (objetivo.y - desde.y) * s;
+    // Sin acercamiento, el punto de antes no se ve: se empieza ya en el nuevo, sin desplazarse. Si no, se pasa de
+    // un encuadre al otro mezclando su desplazamiento, (zoom − 1) · punto, y no el punto: así cada punto de la
+    // escena va en línea recta de donde estaba a donde acaba y nada se sale del marco por el camino.
+    const z = salida.zoom;
+    if (desde.zoom > 1 && z > 1) {
+      const dx = (desde.zoom - 1) * desde.x;
+      const dy = (desde.zoom - 1) * desde.y;
+      salida.x = (dx + ((objetivo.zoom - 1) * objetivo.x - dx) * s) / (z - 1);
+      salida.y = (dy + ((objetivo.zoom - 1) * objetivo.y - dy) * s) / (z - 1);
     }
     return salida;
   }
