@@ -67,7 +67,7 @@ Para mañana, lo que propuse y Pedro no ha elegido todavía:
 
 1. **Que Pedro juegue lo publicado sin probar** (ordenador, móvil y mando) y diga qué afinar: la luz y el relieve (¿alguna zona demasiado oscura, sobre todo Cauce Seco y Cripta?; ¿le gustan las luciérnagas, el haz, el fuego fatuo y la grieta?; ¿la cámara del combate se queda corta o se pasa?), el reto del día (¿dura ~5 min?, nivel 3, banda 55-75 %, cartel de entrada), el mando y su vibración, el cartel «Mando conectado» al 62 % del alto, el mapa vivo y el peso de los golpes. Los números están en `hd2d.json` (luz, `relieve`, `ambiente`), `impacto.json` (`camara`, golpes) y `reto.json`.
 2. **Pulir la cámara del combate** (mi recomendación mientras Pedro prueba): tirón con un atacante distinto si se salta la lectura, la luz del proyectil que no sigue el acercamiento y los pies de la heroína y el nombre del jefe que se salen de su sitio durante ~1 s.
-3. **Rehacer las capturas del README** (`docs/capturas/`), que siguen siendo de octubre, con la luz de antes.
+3. **README rehecho (2026-11-19, rama `readme-nuevo`)** con capturas nuevas en `docs/capturas/` (1280×800 y móvil a 390×844 ×2), sacadas con Playwright y el Chrome del sistema contra `npm run dev`; las viejas de `docs/capturas/menus/` siguen siendo de octubre.
 4. **Arte que falta:** imágenes de Pedro para el dragón negro, el murciélago, el sacerdote y el cofre trampa; las ranas a doble resolución (proyecto aparte, con su visto bueno).
 5. **Enlace desde el portafolio** (hace falta saber dónde está y permiso) y el vídeo de demo, que aún no va.
 6. **Repasar el resto de la pestaña principal del documento de desarrollo** (controles, pantallas, plan de hitos: datos viejos como la sala de 15×11).
