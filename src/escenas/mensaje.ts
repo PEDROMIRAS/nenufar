@@ -49,7 +49,13 @@ export class EscenaMensaje implements Escena {
     this.lineas = this.parrafos.flatMap((p) => (p ? partirTexto(p, l.linea) : ['']));
   }
 
+  private anunciado = false;
+
   enter(): void {
+    this.anunciado = false;
+  }
+
+  private anunciarTodo(): void {
     // Párrafos enteros, no las líneas partidas para la pantalla (cortarían frases a la mitad); el
     // punto solo se añade donde no hay ya uno.
     anunciar(
@@ -62,6 +68,12 @@ export class EscenaMensaje implements Escena {
   exit(): void {}
 
   update(_dt: number, acciones: Acciones): void {
+    if (!this.anunciado) {
+      // Se anuncia en el primer fotograma a la vista, no al apilarse: tras ganar un combate se apila debajo de
+      // otras pantallas (nivel, frase del jefe) y, si se leyera en enter(), la taparían antes de verse.
+      this.anunciado = true;
+      this.anunciarTodo();
+    }
     if (acciones.confirmar || acciones.toqueX >= 0) this.alContinuar();
   }
 
