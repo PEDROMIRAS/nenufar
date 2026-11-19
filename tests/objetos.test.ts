@@ -211,6 +211,19 @@ describe('cofres', () => {
     });
   });
 
+  test('un cofre tampoco ofrece una pieza dejada en el puesto del mercader', () => {
+    const inv = crearInventario();
+    inv.vendidas = ['katana_acero'];
+    const tabla = [
+      { objeto: 'arma', nivel: 2, peso: 99 },
+      { objeto: 'armadura', nivel: 2, peso: 1 },
+    ];
+    expect(abrirCofre(tabla, () => 0, HEROES.ronin, OBJETOS, inv)).toEqual({
+      tipo: 'equipo',
+      clave: 'cota_malla',
+    });
+  });
+
   test('los cofres de zonas.json solo tienen cosas que existen, y los de la Cripta y el Cauce Seco son de nivel 3 y 4', () => {
     for (const z of Object.values(zonas.zonas)) {
       for (const b of z.cofre) {

@@ -121,7 +121,7 @@ export type Hallazgo =
 
 /**
  * Abre un cofre con la tabla de su zona: tira una vez y guarda el consumible o devuelve la pieza.
- * Como en el botín, nunca sale una pieza que ya se tiene (puesta o en la mochila).
+ * Como en el botín, nunca sale una pieza que ya salió en la partida (puesta, en la mochila o dejada en el mercader).
  */
 export function abrirCofre(
   tabla: readonly BotinJson[],

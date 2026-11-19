@@ -72,10 +72,11 @@ export function opcionesAltar(l: Vida, a: Altar, r: ReglasProgresion): OpcionEve
   ];
 }
 
-/** Guarda cada consumible que cabe; devuelve el aviso de lo que no cupo (vacío si todo cupo). */
-function darConsumibles(inv: Inventario, claves: readonly string[], maximo: number): string {
-  const sinSitio = claves.filter((c) => !guardar(inv, c, maximo));
-  return sinSitio.length > 0 ? `; no te caben más (${sinSitio.join(', ')})` : '';
+/** Guarda cada consumible que cabe; devuelve el aviso de lo que no cupo (vacío si todo cupo), con sus nombres. */
+function darConsumibles(inv: Inventario, claves: readonly string[], objetos: ObjetosJson): string {
+  const sinSitio = claves.filter((c) => !guardar(inv, c, objetos.maximoPorTipo));
+  const nombres = [...new Set(sinSitio)].map((c) => objetos.consumibles[c]?.nombre ?? c);
+  return nombres.length > 0 ? `; no te caben más (${nombres.join(', ')})` : '';
 }
 
 /**
@@ -101,7 +102,7 @@ export function aplicarAltar(
     const cura = curaMagia(l, a);
     l.pm = 0;
     l.pv += cura;
-    return `El altar acepta tu magia y te cura ${cura} PV${darConsumibles(inv, a.magia.consumibles, objetos.maximoPorTipo)}`;
+    return `El altar acepta tu magia y te cura ${cura} PV${darConsumibles(inv, a.magia.consumibles, objetos)}`;
   }
   return 'Te marchas del altar';
 }
@@ -161,14 +162,7 @@ export function aplicarErmitano(
 ): string {
   const oferta = e.ofertas.find((o) => o.clave === clave);
   if (!oferta) return '';
-  // «Poción ×2 y Antídoto»: cada consumible una vez, con su cantidad.
-  const cantidades = new Map<string, number>();
-  for (const c of oferta.consumibles) cantidades.set(c, (cantidades.get(c) ?? 0) + 1);
-  const nombres = [...cantidades].map(([c, n]) => {
-    const nombre = objetos.consumibles[c]?.nombre ?? c;
-    return n > 1 ? `${nombre} ×${n}` : nombre;
-  });
-  return `${e.aviso}: ${nombres.join(' y ')}${darConsumibles(inv, oferta.consumibles, objetos.maximoPorTipo)}`;
+  return `${e.aviso}: ${nombrarLote(oferta.consumibles, objetos)}${darConsumibles(inv, oferta.consumibles, objetos)}`;
 }
 
 /** Lo que se lee al hablar con el ermitaño: quién es y, si la zona lo tiene, su saludo. */
@@ -191,6 +185,7 @@ function valorPieza(clave: string, objetos: ObjetosJson): number {
 /**
  * Lo que da el mercader por la pieza `clave`: `base` más uno por cada `porBono` de su valor, y cada unidad del
  * consumible de `paga` del que menos se lleva (contando lo que ya suma el lote; a igualdad, el primero de la lista).
+ * Solo da lo que cabe: con todo al máximo, el lote sale más corto o vacío (y la oferta se apaga).
  */
 export function loteMercader(
   inv: Inventario,
@@ -202,8 +197,12 @@ export function loteMercader(
   const cuenta = new Map(m.paga.map((c) => [c, inv.consumibles[c] ?? 0]));
   const lote: string[] = [];
   for (let i = 0; i < n; i++) {
-    let elegido = m.paga[0]!;
-    for (const c of m.paga) if (cuenta.get(c)! < cuenta.get(elegido)!) elegido = c;
+    let elegido: string | null = null;
+    for (const c of m.paga) {
+      const n = cuenta.get(c)!;
+      if (n < objetos.maximoPorTipo && (elegido === null || n < cuenta.get(elegido)!)) elegido = c;
+    }
+    if (elegido === null) break;
     cuenta.set(elegido, cuenta.get(elegido)! + 1);
     lote.push(elegido);
   }
@@ -241,15 +240,13 @@ export function opcionesMercader(
     .slice(0, m.cuantas);
   const ofertas: OpcionEvento[] = piezas.map(({ k }) => {
     const nombre = objetos.equipo[k]!.nombre;
+    const lote = loteMercader(inv, k, m, objetos);
     return {
       clave: k,
       texto: nombre,
-      descripcion: conPieza(
-        m.oferta,
-        nombre,
-        nombrarLote(loteMercader(inv, k, m, objetos), objetos),
-      ),
-      activa: true,
+      descripcion:
+        lote.length > 0 ? conPieza(m.oferta, nombre, nombrarLote(lote, objetos)) : m.lleno,
+      activa: lote.length > 0,
     };
   });
   if (ofertas.length === 0) ofertas.push({ clave: 'nada', ...m.sinNada, activa: false });
@@ -270,10 +267,11 @@ export function aplicarMercader(
   const pieza = objetos.equipo[clave];
   if (!pieza || !inv.mochila.includes(clave)) return '';
   const lote = loteMercader(inv, clave, m, objetos);
+  // Sin nada que quepa no hay trueque: la pieza se queda en la mochila.
+  if (lote.length === 0) return '';
   inv.mochila = inv.mochila.filter((k) => k !== clave);
   inv.vendidas = [...(inv.vendidas ?? []), clave];
   return (
-    conPieza(m.aviso, pieza.nombre, nombrarLote(lote, objetos)) +
-    darConsumibles(inv, lote, objetos.maximoPorTipo)
+    conPieza(m.aviso, pieza.nombre, nombrarLote(lote, objetos)) + darConsumibles(inv, lote, objetos)
   );
 }

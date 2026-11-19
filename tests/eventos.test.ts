@@ -319,11 +319,35 @@ describe('mercader', () => {
     const inv = crearInventario();
     inv.mochila = ['katana_acero'];
     const aviso = aplicarMercader(inv, 'katana_acero', mercader, objetos);
-    expect(aviso).toBe('Dejas Katana de acero y te llevas Poción y Éter');
+    expect(aviso).toBe('Te llevas Poción y Éter');
     expect(inv.mochila).toEqual([]);
     expect(inv.vendidas).toEqual(['katana_acero']);
     expect(inv.consumibles).toMatchObject({ pocion: 1, eter: 1 });
     // Lo que no está en la mochila no se cambia.
     expect(aplicarMercader(inv, 'katana_acero', mercader, objetos)).toBe('');
+  });
+
+  test('solo paga lo que cabe; con todo al máximo, la oferta se apaga y no hay trueque', () => {
+    const inv = crearInventario();
+    inv.mochila = ['hoja_runica'];
+    inv.consumibles = { pocion: 5, eter: 4 };
+    expect(loteMercader(inv, 'hoja_runica', mercader, objetos)).toEqual(['eter']);
+    inv.consumibles = { pocion: 5, eter: 5 };
+    const o = opcionesMercader(inv, mercader, objetos);
+    expect(o[0]).toMatchObject({
+      clave: 'hoja_runica',
+      activa: false,
+      descripcion: mercader.lleno,
+    });
+    expect(aplicarMercader(inv, 'hoja_runica', mercader, objetos)).toBe('');
+    expect(inv.mochila).toEqual(['hoja_runica']);
+  });
+
+  test('los datos del puesto tienen sentido (si no, el lote se colgaría o saldría vacío)', () => {
+    expect(mercader.cuantas).toBeGreaterThanOrEqual(1);
+    expect(mercader.porBono).toBeGreaterThan(0);
+    expect(mercader.base).toBeGreaterThanOrEqual(1);
+    expect(mercader.paga.length).toBeGreaterThan(0);
+    for (const c of mercader.paga) expect(objetos.consumibles[c]).toBeDefined();
   });
 });
