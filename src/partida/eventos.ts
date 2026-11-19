@@ -6,15 +6,18 @@ import { dificultadCon } from '../core/presagios';
 import {
   aplicarAltar,
   aplicarErmitano,
+  despedidaErmitano,
   opcionesAltar,
   opcionesDesafio,
   opcionesErmitano,
+  textoErmitano,
 } from '../core/eventos';
 import { type Zona } from '../core/zona';
 import { EVENTOS, MONSTRUOS, OBJETOS, PRESAGIOS, REGLAS } from '../data/datos';
 import { EscenaEvento } from '../escenas/evento';
 import { sonar } from '../render/sonido';
 import { type Partida } from './partida';
+import { contar } from './relato';
 
 /** Pone (o quita) el presagio de la zona y recalcula lo que depende de él: la dificultad, los monstruos y las reglas. */
 export function fijarPresagio(partida: Partida, presagio: PresagioJson | null): void {
@@ -53,21 +56,29 @@ export function abrirAltar(
   );
 }
 
-/** La elección del ermitaño encima del mapa: da lo ofrecido que se elija y avisa de lo ocurrido. */
+/**
+ * La elección del ermitaño encima del mapa (con su saludo de la zona `zona`): da lo ofrecido que se elija, se despide
+ * y avisa de lo ocurrido.
+ */
 export function abrirErmitano(
   partida: Partida,
+  zona: string,
   azar: () => number,
   alTerminar: (usado: boolean, aviso: string) => void,
 ): void {
   partida.pila.apilar(
     new EscenaEvento(
       EVENTOS.ermitano.nombre,
-      EVENTOS.ermitano.descripcion,
+      textoErmitano(EVENTOS.ermitano, zona),
       opcionesErmitano(EVENTOS.ermitano, azar),
       (clave) => {
         partida.pila.desapilar();
         if (clave === 'marcharse') return alTerminar(false, '');
+        // Lo que da se avisa en el mapa al cerrar su despedida (el aviso espera debajo).
         alTerminar(true, aplicarErmitano(partida.inventario, clave, EVENTOS.ermitano, OBJETOS));
+        const despedida = despedidaErmitano(EVENTOS.ermitano, azar);
+        if (despedida)
+          contar(partida.pila, [{ titulo: EVENTOS.ermitano.nombre, texto: despedida }], () => {});
       },
     ),
   );

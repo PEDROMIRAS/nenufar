@@ -94,6 +94,18 @@
       "alto": 8
     },
     "sprite": "monstruos/ermitano",
-    "aviso": "El ermitaño te da"
+    "aviso": "El ermitaño te da",
+    "saludos": {
+      "bosque": "«La última lluvia aún gotea de estas ramas. No durará mucho.»",
+      "ruinas": "«Esto fue un templo de la Orden. Ahora solo quedo yo, y lo que escondí entre las piedras.»",
+      "cripta": "«Habla bajo: aquí los muertos tienen el sueño ligero.»",
+      "cauce": "«Por este lecho corría el agua que él se bebió. Mi farol es lo único que no arde aquí abajo.»"
+    },
+    "despedidas": [
+      "«Que tu luz dure más que la de mi farol.»",
+      "«Cuando vuelva la luna, acuérdate de este viejo.»",
+      "«No me des las gracias. Dámelas cuando amanezca.»"
+    ],
+    "yaDado": "«Ya te di lo que tenía. Sigue: la noche no espera.»"
   }
 }

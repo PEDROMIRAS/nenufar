@@ -348,6 +348,11 @@ export interface DatosEventos {
     sprite: string;
     /** Principio del aviso al recibir lo elegido («El ermitaño te da: …»). */
     aviso: string;
+    /** Lo que dice al acercarse, por clave de zona (tras `descripcion`). */
+    saludos: Record<string, string>;
+    /** Lo que dice al llevarse una oferta (una al azar) y al volver a hablarle con la sala ya hecha. */
+    despedidas: string[];
+    yaDado: string;
   };
 }
 
