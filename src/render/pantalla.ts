@@ -138,6 +138,9 @@ export function aLogico(clientX: number, clientY: number): [number, number] {
   return [(clientX * dpr - m.x) / m.escala, (clientY * dpr - m.y) / m.escala];
 }
 
+/** Píxeles CSS de la ventana que mide un píxel lógico de la forma activa. */
+export const cssPorLogico = (): number => activo().escala / dpr;
+
 /** Coordenadas lógicas de la forma activa → píxeles CSS de la ventana. */
 export function aVentana(x: number, y: number): [number, number] {
   const m = activo();

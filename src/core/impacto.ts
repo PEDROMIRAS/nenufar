@@ -144,6 +144,19 @@ export function desplazamientoCamara(
   return salida;
 }
 
+/**
+ * Unidades del mundo por píxel lógico de la capa 2D que tiembla: un píxel lógico mide `pantallaPorLogico` píxeles de
+ * pantalla, y la sala, `salaEnPantalla` píxeles de ancho para `encuadreAncho` unidades del mundo. Así el fondo 3D se
+ * mueve en pantalla lo mismo que la capa 2D (la interfaz del combate y la sala no tienen la misma escala).
+ */
+export function unidadTemblor(
+  pantallaPorLogico: number,
+  encuadreAncho: number,
+  salaEnPantalla: number,
+): number {
+  return salaEnPantalla > 0 ? (pantallaPorLogico * encuadreAncho) / salaEnPantalla : 0;
+}
+
 /** Los destellos salen solo si la pantalla puede temblar: con el temblor a 0 (ajuste o «menos movimiento»), nada. */
 export function factorDestello(temblor: number): number {
   return temblor > 0 ? 1 : 0;
