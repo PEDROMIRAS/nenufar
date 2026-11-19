@@ -59,3 +59,29 @@ test('alguna dice si hay una escena así en cualquier nivel de la pila, no solo 
   pila.desapilar();
   expect(pila.alguna((e) => e === pausa)).toBe(false);
 });
+
+test('tras fundirDesdeNegro, encima de la escena de arriba sale un velo negro que se aclara y desaparece', () => {
+  const pila = new PilaEscenas();
+  pila.apilar(escena('nivel'));
+  const opacidades: number[] = [];
+  const ctx = {
+    canvas: { width: 100, height: 50 },
+    globalAlpha: 1,
+    fillStyle: '',
+    save: () => {},
+    restore: () => {},
+    setTransform: () => {},
+    fillRect(this: { globalAlpha: number }) {
+      opacidades.push(this.globalAlpha);
+    },
+  } as unknown as CanvasRenderingContext2D;
+  pila.fundirDesdeNegro(0.3);
+  pila.draw(ctx, 0);
+  pila.update(0.15, acciones);
+  pila.draw(ctx, 0);
+  pila.update(0.2, acciones);
+  pila.draw(ctx, 0);
+  expect(opacidades[0]).toBeCloseTo(1);
+  expect(opacidades[1]).toBeCloseTo(0.5);
+  expect(opacidades).toHaveLength(2);
+});

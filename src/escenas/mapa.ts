@@ -640,8 +640,7 @@ export class EscenaMapa implements Escena {
         (r) => {
           alTerminar(r);
           this.borrarSignos();
-          // El combate acabó fundido a negro: el mapa sale de negro (la mitad de un fundido de salas).
-          this.fundido = this.o.duracionFundido / 2;
+          // El combate acabó fundido a negro: la pila de escenas saca de negro lo que quede arriba (`luchar`).
         },
         quien,
         combate,

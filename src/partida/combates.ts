@@ -8,7 +8,7 @@ import { anotarVencidos } from '../core/records';
 import { monstruoCon } from '../core/dificultad';
 import type { MonstruoJson, ReglasCombate } from '../core/types';
 import { aplicarRecompensa, elegirRecompensa } from '../core/recompensas';
-import { OBJETOS, REGLAS } from '../data/datos';
+import { IMPACTO, OBJETOS, REGLAS } from '../data/datos';
 import historia from '../data/historia.json';
 import ritmo from '../data/ritmo.json';
 import zonas from '../data/zonas.json';
@@ -180,6 +180,8 @@ export function luchar(
   pila.apilar(
     new EscenaCombate(combate, partida.sprite, partida.hojas, fondo, (resultado) => {
       pila.desapilar();
+      // El combate acabó en negro: lo que quede arriba al terminar este aviso sale de negro.
+      pila.fundirDesdeNegro(IMPACTO.entrada.aparicion);
       if (resultado === 'victoria') {
         partida.vencidos += combate.enemigos.length;
         // Al bestiario en cuanto se vencen: no se pierden aunque se abandone la partida (el reto no lo toca).
