@@ -85,7 +85,7 @@ Comunes a las dos:
 Rana ronin:
 
 3. Soy la última que lleva la espada de la Orden. Mi maestro me preparó para este día. No pensé que llegaría sola.
-4. Al norte, el Bosque. Después, las Ruinas. Al final, la Cripta. Antes de que amanezca.
+4. Al norte, el Bosque. Después, las Ruinas y la Cripta. Al final, el Cauce Seco. Antes de que amanezca.
 
 Rana maga:
 
