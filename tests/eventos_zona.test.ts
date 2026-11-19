@@ -92,6 +92,28 @@ describe.each(CLAVES)('zona %s', (clave) => {
     expect(altares).toBeGreaterThan(20);
     expect(ermitanos).toBeGreaterThan(20);
   });
+
+  test('el mercader sale solo de los altares que quedan: desafíos, ermitaños y trazado no cambian', () => {
+    const base = { probabilidadEvento: 1, probabilidadDesafio: 0.5, probabilidadErmitano: 0.5 };
+    const evento = (extra: Partial<AjustesZona>, s: number) =>
+      generarZona(ajustes(clave, { ...base, ...extra }), s);
+    let altares = 0;
+    let mercaderes = 0;
+    for (let s = 0; s < 300; s++) {
+      const sin = evento({}, s).salas;
+      const con = evento({ probabilidadMercader: 0.5 }, s).salas;
+      expect(con.map((x) => [x.tipo, x.puertas])).toEqual(sin.map((x) => [x.tipo, x.puertas]));
+      con.forEach((x, i) => {
+        const antes = sin[i]!.evento;
+        if (x.evento === 'mercader') expect(antes).toBe('altar');
+        else expect(x.evento).toBe(antes);
+        if (x.evento === 'altar') altares++;
+        if (x.evento === 'mercader') mercaderes++;
+      });
+    }
+    expect(altares).toBeGreaterThan(10);
+    expect(mercaderes).toBeGreaterThan(10);
+  });
 });
 
 test('la probabilidad de eventos de eventos.json es una probabilidad', () => {

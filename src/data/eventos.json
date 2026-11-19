@@ -107,5 +107,24 @@
       "«No me des las gracias. Dámelas cuando amanezca.»"
     ],
     "yaDado": "«Ya te di lo que tenía. Sigue: la noche no espera.»"
+  },
+  "mercader": {
+    "fraccion": 0.5,
+    "nombre": "Puesto del mercader",
+    "descripcion": "Un puesto sin nadie bajo una lona raída. En una tablilla pone: «Deja lo que ya no uses y llévate lo que te haga falta. Un trueque por viajero».",
+    "cuantas": 3,
+    "base": 1,
+    "porBono": 4,
+    "paga": ["pocion", "eter"],
+    "oferta": "Dejas {pieza} y te llevas {lote}.",
+    "sinNada": {
+      "texto": "No tienes nada que dejar",
+      "descripcion": "Solo acepta armas y armaduras de tu mochila: las que no llevas puestas."
+    },
+    "marcharse": {
+      "texto": "Marcharse",
+      "descripcion": "No dejas nada. El puesto seguirá aquí."
+    },
+    "aviso": "Dejas {pieza} y te llevas {lote}"
   }
 }

@@ -150,7 +150,8 @@ function inventarioValido(i: unknown, c: Conocido): boolean {
     esIndice(i.usados) &&
     Array.isArray(i.recompensas) &&
     i.recompensas.every((r) => RECOMPENSAS.includes(r as Recompensa)) &&
-    CORAZON.includes(i.corazon as Inventario['corazon'])
+    CORAZON.includes(i.corazon as Inventario['corazon']) &&
+    (i.vendidas === undefined || (sonTextos(i.vendidas) && i.vendidas.every(pieza)))
   );
 }
 

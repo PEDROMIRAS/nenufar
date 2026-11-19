@@ -8,6 +8,7 @@ import type { DatosEventos, ObjetosJson, ReglasCombate, ReglasProgresion } from 
 type Altar = DatosEventos['altar'];
 type Desafio = DatosEventos['desafio'];
 type Ermitano = DatosEventos['ermitano'];
+type Mercader = DatosEventos['mercader'];
 type Vida = Pick<Luchador, 'pv' | 'pvMax' | 'pm' | 'pmMax' | 'nivel'>;
 
 export interface OpcionEvento {
@@ -179,4 +180,100 @@ export function textoErmitano(e: Ermitano, zona: string): string {
 /** Su despedida al llevarse una oferta: una de la lista al azar (sin lista, nada). */
 export function despedidaErmitano(e: Ermitano, azar: () => number): string {
   return e.despedidas[Math.floor(azar() * e.despedidas.length)] ?? '';
+}
+
+/** Lo que vale una pieza para el mercader: la suma de sus bonos. */
+function valorPieza(clave: string, objetos: ObjetosJson): number {
+  const bonos = objetos.equipo[clave]?.bonos ?? {};
+  return Object.values(bonos).reduce((a: number, b) => a + (b ?? 0), 0);
+}
+
+/**
+ * Lo que da el mercader por la pieza `clave`: `base` más uno por cada `porBono` de su valor, y cada unidad del
+ * consumible de `paga` del que menos se lleva (contando lo que ya suma el lote; a igualdad, el primero de la lista).
+ */
+export function loteMercader(
+  inv: Inventario,
+  clave: string,
+  m: Mercader,
+  objetos: ObjetosJson,
+): string[] {
+  const n = m.base + Math.floor(valorPieza(clave, objetos) / m.porBono);
+  const cuenta = new Map(m.paga.map((c) => [c, inv.consumibles[c] ?? 0]));
+  const lote: string[] = [];
+  for (let i = 0; i < n; i++) {
+    let elegido = m.paga[0]!;
+    for (const c of m.paga) if (cuenta.get(c)! < cuenta.get(elegido)!) elegido = c;
+    cuenta.set(elegido, cuenta.get(elegido)! + 1);
+    lote.push(elegido);
+  }
+  return lote;
+}
+
+/** «Poción ×2 y Éter»: cada consumible una vez, con su cantidad. */
+function nombrarLote(lote: readonly string[], objetos: ObjetosJson): string {
+  const cantidades = new Map<string, number>();
+  for (const c of lote) cantidades.set(c, (cantidades.get(c) ?? 0) + 1);
+  return [...cantidades]
+    .map(([c, n]) => {
+      const nombre = objetos.consumibles[c]?.nombre ?? c;
+      return n > 1 ? `${nombre} ×${n}` : nombre;
+    })
+    .join(' y ');
+}
+
+const conPieza = (texto: string, pieza: string, lote: string): string =>
+  texto.replace('{pieza}', pieza).replace('{lote}', lote);
+
+/**
+ * Las ofertas del mercader: una por pieza de la mochila (hasta `cuantas`, de más a menos valiosa; a igualdad, en el
+ * orden de la mochila) y marcharse. Con la mochila vacía, una opción apagada que dice por qué.
+ */
+export function opcionesMercader(
+  inv: Inventario,
+  m: Mercader,
+  objetos: ObjetosJson,
+): OpcionEvento[] {
+  const piezas = inv.mochila
+    .filter((k) => objetos.equipo[k])
+    .map((k, i) => ({ k, i, v: valorPieza(k, objetos) }))
+    .sort((a, b) => b.v - a.v || a.i - b.i)
+    .slice(0, m.cuantas);
+  const ofertas: OpcionEvento[] = piezas.map(({ k }) => {
+    const nombre = objetos.equipo[k]!.nombre;
+    return {
+      clave: k,
+      texto: nombre,
+      descripcion: conPieza(
+        m.oferta,
+        nombre,
+        nombrarLote(loteMercader(inv, k, m, objetos), objetos),
+      ),
+      activa: true,
+    };
+  });
+  if (ofertas.length === 0) ofertas.push({ clave: 'nada', ...m.sinNada, activa: false });
+  ofertas.push({ clave: 'marcharse', ...m.marcharse, activa: true });
+  return ofertas;
+}
+
+/**
+ * Deja la pieza `clave` de la mochila en el puesto (apuntada en `vendidas`: los botines no la repiten), da su lote y
+ * devuelve el aviso (con lo que no cupo, si algo). Una clave que no está en la mochila no hace nada.
+ */
+export function aplicarMercader(
+  inv: Inventario,
+  clave: string,
+  m: Mercader,
+  objetos: ObjetosJson,
+): string {
+  const pieza = objetos.equipo[clave];
+  if (!pieza || !inv.mochila.includes(clave)) return '';
+  const lote = loteMercader(inv, clave, m, objetos);
+  inv.mochila = inv.mochila.filter((k) => k !== clave);
+  inv.vendidas = [...(inv.vendidas ?? []), clave];
+  return (
+    conPieza(m.aviso, pieza.nombre, nombrarLote(lote, objetos)) +
+    darConsumibles(inv, lote, objetos.maximoPorTipo)
+  );
 }

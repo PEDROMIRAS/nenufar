@@ -10,6 +10,7 @@ import { abrirCofre, inventarioInicial } from '../src/core/equipo';
 import {
   aplicarAltar,
   aplicarErmitano,
+  aplicarMercader,
   gruposDesafio,
   opcionesAltar,
   reglasDesafio,
@@ -118,6 +119,20 @@ function tratarConErmitano(h: Luchador, inv: Inventario): void {
   aplicarErmitano(inv, elegida.clave, EVENTOS.ermitano, OBJETOS);
 }
 
+/**
+ * La jugadora simulada ante el puesto del mercader: deja la pieza más valiosa de las que le sobran (las que habría
+ * en la mochila: la jugadora no la usa, así que se apuntan aparte en `sobrantes`) y se lleva su lote.
+ */
+function tratarConMercader(inv: Inventario, sobrantes: string[]): void {
+  const valor = (k: string): number =>
+    Object.values(OBJETOS.equipo[k]?.bonos ?? {}).reduce((a: number, b) => a + (b ?? 0), 0);
+  const pieza = [...sobrantes].sort((a, b) => valor(b) - valor(a))[0];
+  if (!pieza) return;
+  sobrantes.splice(sobrantes.indexOf(pieza), 1);
+  inv.mochila.push(pieza);
+  aplicarMercader(inv, pieza, EVENTOS.mercader, OBJETOS);
+}
+
 /** Con al menos esta parte de los PV la jugadora simulada acepta el desafío; con menos, se marcha. */
 const VIDA_PARA_DESAFIO = 0.6;
 
@@ -170,6 +185,8 @@ export function simular(
   fraccionDesafio = 0,
   /** Fracción de los eventos que no son un desafío que son un ermitaño (el resto, altares). */
   fraccionErmitano = 0,
+  /** Fracción de los altares que quedan que son un puesto del mercader. */
+  fraccionMercader = 0,
 ) {
   const mundo: Mundo = {
     bestiario: bestiarioCon(MONSTRUOS, dificultad),
@@ -196,6 +213,15 @@ export function simular(
     const h = luchadorDeHeroe(heroe);
     const inv = inventarioInicial(h, heroe, OBJETOS);
     let viva = true;
+    // Lo que habría en la mochila del juego: lo que se quita al ponerse algo mejor y lo que encuentra sin ponérselo.
+    const sobrantes: string[] = [];
+    const sobrar = (k: string | null): void => {
+      if (k && !sobrantes.includes(k) && !inv.vendidas?.includes(k)) sobrantes.push(k);
+    };
+    const sobrarCambios = (antes: (string | null)[]): void => {
+      if (inv.arma !== antes[0]) sobrar(antes[0] ?? null);
+      if (inv.armadura !== antes[1]) sobrar(antes[1] ?? null);
+    };
     for (const [i, clave] of claves.entries()) {
       const z = zonas.zonas[clave];
       // Sin salas violetas (son opcionales), pero con el tesoro trampa, que no se distingue de uno normal.
@@ -207,6 +233,7 @@ export function simular(
           probabilidadEvento: probabilidadAltar,
           probabilidadDesafio: fraccionDesafio,
           probabilidadErmitano: fraccionErmitano,
+          probabilidadMercader: fraccionMercader,
         },
         s + i * 7919,
       );
@@ -231,12 +258,18 @@ export function simular(
       let fuente = zona.salas.some((x) => x.tipo === 'descanso');
       const abrir = (): void => {
         const hallazgo = abrirCofre(cofre, azar, heroe, OBJETOS, inv);
-        if (hallazgo?.tipo === 'equipo') quizaEquipar(h, inv, hallazgo.clave);
+        if (hallazgo?.tipo !== 'equipo') return;
+        const antes = [inv.arma, inv.armadura];
+        quizaEquipar(h, inv, hallazgo.clave);
+        // Lo que no se pone, a lo que sobra (como la mochila del juego).
+        if (inv.arma === antes[0] && inv.armadura === antes[1]) sobrar(hallazgo.clave);
+        else sobrarCambios(antes);
       };
       for (const sala of zona.salas) {
         if (sala.tipo !== 'combate' && !sala.trampa && sala.evento !== 'desafio') {
           if (sala.tipo === 'tesoro') abrir();
           if (sala.evento === 'ermitano') tratarConErmitano(h, inv);
+          else if (sala.evento === 'mercader') tratarConMercader(inv, sobrantes);
           else if (sala.tipo === 'evento') usarAltar(h, inv);
           continue;
         }
@@ -277,7 +310,9 @@ export function simular(
               (recibido[clave] ??= { suma: 0, n: 0 }),
             ),
           );
+          const antes = [inv.arma, inv.armadura];
           viva = pelear(h, inv, grupo, azar, mundoZona);
+          sobrarCambios(antes);
           contar(reales, clave, viva);
         }
         if (!viva) break;

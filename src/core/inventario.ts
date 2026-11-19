@@ -14,6 +14,8 @@ export interface Inventario {
   recompensas: Recompensa[];
   /** Corazón del dragón negro: sin conseguir (su hueco ni se ve), listo para levantarla o ya gastado. */
   corazon: 'no' | 'lleno' | 'gastado';
+  /** Piezas dejadas en el puesto del mercader: los cofres no las vuelven a dar (falta en partidas de antes). */
+  vendidas?: string[];
 }
 
 export function crearInventario(): Inventario {

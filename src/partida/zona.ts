@@ -45,6 +45,8 @@ import {
   probabilidadDesafio,
   probabilidadErmitano,
   presagioForzado,
+  abrirMercader,
+  probabilidadMercader,
 } from './eventos';
 import { lucharJefe, lucharVioleta, vestir, datosEquipo, ofrecerEquipo, luchar } from './combates';
 import { empezarOtra, volverAPortada, terminarReto, terminarPartida } from './fin';
@@ -77,6 +79,7 @@ export async function crearZona(
           probabilidadEvento: probabilidadEvento(),
           probabilidadDesafio: probabilidadDesafio(),
           probabilidadErmitano: probabilidadErmitano(),
+          probabilidadMercader: probabilidadMercader(),
         },
         partida.semilla + indice * 7919,
       );
@@ -172,6 +175,7 @@ export async function crearZona(
     usarDesafio: (alTerminar) => abrirDesafio(partida, alTerminar),
     ermitano: EVENTOS.ermitano,
     usarErmitano: (azar, alTerminar) => abrirErmitano(partida, nombre, azar, alTerminar),
+    usarMercader: (alTerminar) => abrirMercader(partida, alTerminar),
     ofrecerEquipo: (clave, alFinal) => ofrecerEquipo(partida, [clave], alFinal),
     abrirPausa: () => {
       const pausa: EscenaPausa = new EscenaPausa(

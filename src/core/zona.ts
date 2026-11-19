@@ -25,7 +25,7 @@ export interface SalaZona {
   /** Solo en salas 'tesoro': el cofre es un monstruo. */
   trampa?: boolean;
   /** Solo en salas 'evento': cuál es. */
-  evento?: 'altar' | 'desafio' | 'ermitano';
+  evento?: 'altar' | 'desafio' | 'ermitano' | 'mercader';
 }
 
 export interface Zona {
@@ -51,6 +51,8 @@ export interface AjustesZona {
   probabilidadDesafio?: number;
   /** Fracción de los eventos que no son un desafío que son un ermitaño. */
   probabilidadErmitano?: number;
+  /** Fracción de los altares que quedan (ni desafío ni ermitaño) que son un mercader. */
+  probabilidadMercader?: number;
 }
 
 const MAX_SEMILLAS = 1000;
@@ -149,6 +151,9 @@ function colocarExtras(a: AjustesZona, salas: SalaZona[], azar: () => number): b
       // Con el campo, parte de los altares son ermitaños (la tirada solo se hace entonces: sin él, nada cambia).
       if (sala.evento === 'altar' && a.probabilidadErmitano && azar() < a.probabilidadErmitano)
         sala.evento = 'ermitano';
+      // Y parte de los altares que quedan, mercaderes (la última tirada: los ermitaños y desafíos no cambian).
+      if (sala.evento === 'altar' && a.probabilidadMercader && azar() < a.probabilidadMercader)
+        sala.evento = 'mercader';
     }
   }
   return true;
