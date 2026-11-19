@@ -6,10 +6,12 @@ import { dificultadCon } from '../core/presagios';
 import {
   aplicarAltar,
   aplicarErmitano,
+  aplicarMercader,
   despedidaErmitano,
   opcionesAltar,
   opcionesDesafio,
   opcionesErmitano,
+  opcionesMercader,
   textoErmitano,
 } from '../core/eventos';
 import { type Zona } from '../core/zona';
@@ -84,12 +86,38 @@ export function abrirErmitano(
   );
 }
 
-/** ?desafio o ?ermitano empiezan dentro de esa sala de evento de la zona, si la tiene (solo en desarrollo). */
+/** El puesto del mercader encima del mapa: deja la pieza elegida a cambio de su lote y avisa de lo ocurrido. */
+export function abrirMercader(
+  partida: Partida,
+  alTerminar: (usado: boolean, aviso: string) => void,
+): void {
+  partida.pila.apilar(
+    new EscenaEvento(
+      EVENTOS.mercader.nombre,
+      EVENTOS.mercader.descripcion,
+      opcionesMercader(partida.inventario, EVENTOS.mercader, OBJETOS),
+      (clave) => {
+        partida.pila.desapilar();
+        if (clave === 'marcharse') return alTerminar(false, '');
+        const aviso = aplicarMercader(partida.inventario, clave, EVENTOS.mercader, OBJETOS);
+        alTerminar(aviso !== '', aviso);
+      },
+    ),
+  );
+}
+
+/** ?desafio, ?ermitano o ?mercader empiezan dentro de esa sala de evento de la zona, si la tiene (solo en desarrollo). */
 export function empezarEnEvento(zona: Zona): EstadoMapa | null {
   // shortcut: solo en desarrollo, para probar el desafío o el ermitaño sin recorrer la zona
   if (!import.meta.env.DEV) return null;
   const url = new URLSearchParams(location.search);
-  const evento = url.has('desafio') ? 'desafio' : url.has('ermitano') ? 'ermitano' : null;
+  const evento = url.has('desafio')
+    ? 'desafio'
+    : url.has('ermitano')
+      ? 'ermitano'
+      : url.has('mercader')
+        ? 'mercader'
+        : null;
   const sala = zona.salas.findIndex((s) => s.evento === evento);
   if (sala < 0) return null;
   return { sala, lado: null, visitadas: [sala], hechas: [], vencidos: {}, fuenteUsada: false };
@@ -115,7 +143,9 @@ export function probabilidadEvento(): number {
   // shortcut: solo en desarrollo, para probar los eventos sin buscarlos
   if (!import.meta.env.DEV) return EVENTOS.probabilidad;
   const url = new URLSearchParams(location.search);
-  return url.has('evento') || url.has('desafio') || url.has('ermitano') ? 1 : EVENTOS.probabilidad;
+  return ['evento', 'desafio', 'ermitano', 'mercader'].some((k) => url.has(k))
+    ? 1
+    : EVENTOS.probabilidad;
 }
 
 /** La fracción de eventos que son un desafío; con ?desafio, todos (solo en desarrollo). */
@@ -123,7 +153,7 @@ export function probabilidadDesafio(): number {
   // shortcut: solo en desarrollo, para probar el desafío sin buscarlo
   if (!import.meta.env.DEV) return EVENTOS.desafio.fraccion;
   const url = new URLSearchParams(location.search);
-  if (url.has('ermitano')) return 0;
+  if (url.has('ermitano') || url.has('mercader')) return 0;
   return url.has('desafio') ? 1 : EVENTOS.desafio.fraccion;
 }
 
@@ -131,7 +161,16 @@ export function probabilidadDesafio(): number {
 export function probabilidadErmitano(): number {
   // shortcut: solo en desarrollo, para probar al ermitaño sin buscarlo
   if (!import.meta.env.DEV) return EVENTOS.ermitano.fraccion;
-  return new URLSearchParams(location.search).has('ermitano') ? 1 : EVENTOS.ermitano.fraccion;
+  const url = new URLSearchParams(location.search);
+  if (url.has('mercader')) return 0;
+  return url.has('ermitano') ? 1 : EVENTOS.ermitano.fraccion;
+}
+
+/** La fracción de los altares que son un puesto del mercader; con ?mercader, todos (solo en desarrollo). */
+export function probabilidadMercader(): number {
+  // shortcut: solo en desarrollo, para probar el mercader sin buscarlo
+  if (!import.meta.env.DEV) return EVENTOS.mercader.fraccion;
+  return new URLSearchParams(location.search).has('mercader') ? 1 : EVENTOS.mercader.fraccion;
 }
 
 /** ?presagio=clave fuerza el presagio de todas las zonas, solo en desarrollo. */

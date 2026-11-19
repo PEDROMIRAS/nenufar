@@ -51,6 +51,8 @@ const ORO = ['#8c6226', '#cea23e', '#f6d678'];
 const PIEDRA = ['#3a3e4c', '#5a5f70', '#80869a', '#aab0c0'];
 const MORADO = ['#2e124c', '#6028a0', '#a460ec', '#e6ccff'];
 const ROJO = ['#460e0e', '#961e1e', '#e2483c', '#ffb096'];
+/** El puesto del mercader: el altar en dorado. */
+const DORADO = ['#3e2a08', '#8a6214', '#e0a836', '#ffe6a0'];
 
 /** Tablones de madera con vetas, juntas oscuras y clavos. */
 function texturaMadera(azar: Azar): THREE.CanvasTexture {
@@ -524,6 +526,8 @@ export function crearElemento(nombre: string, azar: Azar, tamPunto: number): Ele
       return altar(true, azar);
     case 'desafio':
       return altar(true, azar, ROJO);
+    case 'mercader':
+      return altar(true, azar, DORADO);
     case 'altar_apagado':
       return altar(false, azar);
     default:

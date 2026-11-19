@@ -132,7 +132,7 @@ export function abrirCofre(
 ): Hallazgo | null {
   const yaLaTiene = (e: BotinJson): boolean => {
     const clave = piezaDeBotin(e.objeto, e.nivel, heroe, objetos);
-    return clave !== null && laTiene(inv, clave);
+    return clave !== null && yaSalio(inv, clave);
   };
   const entrada = elegirConPeso(
     tabla.filter((e) => !yaLaTiene(e)),
@@ -188,6 +188,11 @@ export function capasDeEquipo(inv: Inventario, objetos: ObjetosJson): string[] {
 /** ¿Tiene ya esa pieza, puesta o guardada en la mochila? */
 export function laTiene(inv: Inventario, clave: string): boolean {
   return inv.arma === clave || inv.armadura === clave || inv.mochila.includes(clave);
+}
+
+/** Si la pieza ya salió en esta partida: la tiene o la dejó en el puesto del mercader. Los botines no la repiten. */
+export function yaSalio(inv: Inventario, clave: string): boolean {
+  return laTiene(inv, clave) || (inv.vendidas?.includes(clave) ?? false);
 }
 
 /** Guarda una pieza en la mochila sin ponérsela (si no la tenía ya). */

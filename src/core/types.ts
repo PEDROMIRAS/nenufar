@@ -354,6 +354,25 @@ export interface DatosEventos {
     despedidas: string[];
     yaDado: string;
   };
+  /** El puesto del mercader: se deja una pieza de la mochila a cambio de consumibles. */
+  mercader: {
+    /** Fracción de los altares (lo que no es desafío ni ermitaño) que son un mercader. */
+    fraccion: number;
+    nombre: string;
+    descripcion: string;
+    /** Cuántas piezas de la mochila ofrece cambiar, de más a menos valiosa. */
+    cuantas: number;
+    /** Consumibles por pieza: `base` más uno por cada `porBono` de la suma de sus bonos. */
+    base: number;
+    porBono: number;
+    /** Lo que paga, en este orden a igualdad: cada unidad, del que menos se lleva. */
+    paga: string[];
+    /** Descripción de cada oferta y aviso al cambiar, con `{pieza}` y `{lote}`. */
+    oferta: string;
+    sinNada: { texto: string; descripcion: string };
+    marcharse: { texto: string; descripcion: string };
+    aviso: string;
+  };
 }
 
 /** `src/data/combate.json`: reglas comunes de todos los combates. */

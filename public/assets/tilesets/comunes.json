@@ -149,6 +149,18 @@
         28,
         31
       ]
+    },
+    {
+      "name": "mercader",
+      "index": 18,
+      "layer": "objeto",
+      "solid": true,
+      "caja": [
+        4,
+        19,
+        28,
+        31
+      ]
     }
   ]
 }

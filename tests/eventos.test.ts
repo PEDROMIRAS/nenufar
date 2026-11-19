@@ -13,11 +13,14 @@ import { equipar, inventarioInicial } from '../src/core/equipo';
 import {
   aplicarAltar,
   aplicarErmitano,
+  aplicarMercader,
   despedidaErmitano,
   gruposDesafio,
+  loteMercader,
   opcionesAltar,
   opcionesDesafio,
   opcionesErmitano,
+  opcionesMercader,
   reglasDesafio,
   textoErmitano,
 } from '../src/core/eventos';
@@ -276,5 +279,51 @@ describe('ermitaño', () => {
   test('las ofertas piden consumibles que existen', () => {
     for (const o of ermitano.ofertas)
       for (const c of o.consumibles) expect(objetos.consumibles[c]).toBeDefined();
+  });
+});
+
+describe('mercader', () => {
+  const mercader = EVENTOS.mercader;
+
+  test('sin nada en la mochila, solo una opción apagada que lo explica y marcharse', () => {
+    const o = opcionesMercader(crearInventario(), mercader, objetos);
+    expect(o.map((x) => [x.clave, x.activa])).toEqual([
+      ['nada', false],
+      ['marcharse', true],
+    ]);
+  });
+
+  test('ofrece hasta `cuantas` piezas de la mochila, de más a menos valiosa', () => {
+    const inv = crearInventario();
+    inv.mochila = ['katana_madera', 'hoja_runica', 'tunica', 'katana_acero'];
+    const o = opcionesMercader(inv, mercader, objetos);
+    expect(o.map((x) => x.clave)).toEqual([
+      'hoja_runica',
+      'katana_acero',
+      'katana_madera',
+      'marcharse',
+    ]);
+    expect(o[0]!.descripcion).toBe('Dejas Hoja rúnica y te llevas Poción ×2 y Éter.');
+  });
+
+  test('paga más cuanto mejor es la pieza, y cada unidad de lo que menos se lleva', () => {
+    const inv = crearInventario();
+    expect(loteMercader(inv, 'katana_gastada', mercader, objetos)).toEqual(['pocion']);
+    expect(loteMercader(inv, 'katana_acero', mercader, objetos)).toEqual(['pocion', 'eter']);
+    expect(loteMercader(inv, 'katana_brasas', mercader, objetos)).toHaveLength(4);
+    inv.consumibles.pocion = 3;
+    expect(loteMercader(inv, 'katana_acero', mercader, objetos)).toEqual(['eter', 'eter']);
+  });
+
+  test('cambiar quita la pieza de la mochila, la apunta como vendida y da el lote', () => {
+    const inv = crearInventario();
+    inv.mochila = ['katana_acero'];
+    const aviso = aplicarMercader(inv, 'katana_acero', mercader, objetos);
+    expect(aviso).toBe('Dejas Katana de acero y te llevas Poción y Éter');
+    expect(inv.mochila).toEqual([]);
+    expect(inv.vendidas).toEqual(['katana_acero']);
+    expect(inv.consumibles).toMatchObject({ pocion: 1, eter: 1 });
+    // Lo que no está en la mochila no se cambia.
+    expect(aplicarMercader(inv, 'katana_acero', mercader, objetos)).toBe('');
   });
 });

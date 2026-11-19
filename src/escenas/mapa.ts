@@ -165,6 +165,8 @@ export interface OpcionesMapa {
   /** El ermitaño: sus datos y la elección de lo que ofrece (con el azar que sortea las ofertas de esta sala). */
   ermitano: DatosEventos['ermitano'];
   usarErmitano: (azar: () => number, alTerminar: (usado: boolean, aviso: string) => void) => void;
+  /** Abre el puesto del mercader; `alTerminar` dice si hubo trueque y el aviso. */
+  usarMercader: (alTerminar: (usado: boolean, aviso: string) => void) => void;
   /** Enseña la comparación de una pieza de equipo encontrada y avisa al decidir. */
   ofrecerEquipo: (clave: string, alFinal: () => void) => void;
   /** Abre la pausa (MENU o el botón de la esquina). */
@@ -291,7 +293,8 @@ export class EscenaMapa implements Escena {
         this.abrirPortal(this.montar(s));
       } else if (s.tipo === 'evento' && apagado) {
         for (const o of this.montar(s).sala.objetos)
-          if (o.inf.name === 'altar' || o.inf.name === 'desafio') o.inf = apagado;
+          if (o.inf.name === 'altar' || o.inf.name === 'desafio' || o.inf.name === 'mercader')
+            o.inf = apagado;
       }
     }
   }
@@ -443,18 +446,14 @@ export class EscenaMapa implements Escena {
         }
       }
     } else if (this.actual.tipo === 'evento' && !this.hechas.has(this.actual)) {
-      const desafio = this.actual.evento === 'desafio';
-      const objeto = objetoAlAlcance(
-        this.montada.sala,
-        desafio ? 'desafio' : 'altar',
-        h.cuerpo,
-        tam,
-        ALCANCE,
-      );
+      const evento = this.actual.evento;
+      const nombre = evento === 'desafio' || evento === 'mercader' ? evento : 'altar';
+      const objeto = objetoAlAlcance(this.montada.sala, nombre, h.cuerpo, tam, ALCANCE);
       if (!objeto) this.eventoListo = true;
       else if (this.eventoListo) {
         this.eventoListo = false;
-        if (desafio) this.retar(objeto);
+        if (evento === 'desafio') this.retar(objeto);
+        else if (evento === 'mercader') this.comerciar(objeto);
         else this.usarAltar(objeto);
         return;
       }
@@ -707,6 +706,15 @@ export class EscenaMapa implements Escena {
     this.o.usarAltar((usado, aviso) => {
       if (usado && this.actual === sala) this.apagarEvento(altar);
       this.avisar(aviso);
+    });
+  }
+
+  /** Abre el puesto del mercader; tras un trueque se apaga y la sala queda hecha. */
+  private comerciar(puesto: ObjetoSala): void {
+    const sala = this.actual;
+    this.o.usarMercader((usado, aviso) => {
+      if (usado && this.actual === sala) this.apagarEvento(puesto);
+      if (aviso) this.avisar(aviso);
     });
   }
 
@@ -1016,10 +1024,12 @@ export class EscenaMapa implements Escena {
     const { zona, plantillas, catalogo, tam } = this.o;
     // Semilla propia por sala (la misma zona da siempre las mismas salas); el ermitaño ocupa el sitio del altar.
     const { sala, azar, ermitano } = montarSalaZona(zona, s, plantillas, catalogo);
-    const circulo = catalogo.get('desafio');
-    if (s.evento === 'desafio' && circulo) {
+    // El desafío y el mercader ocupan el sitio del altar con su propio objeto (el altar en rojo o en dorado).
+    const propio =
+      s.evento === 'desafio' || s.evento === 'mercader' ? catalogo.get(s.evento) : undefined;
+    if (propio) {
       const altar = sala.objetos.find((o) => o.inf.name === 'altar');
-      if (altar) altar.inf = circulo;
+      if (altar) altar.inf = propio;
     }
     const fuente = sala.objetos.find((o) => o.inf.name === 'fuente_cen_inf');
     if (fuente) {

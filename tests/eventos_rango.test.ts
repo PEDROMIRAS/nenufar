@@ -25,6 +25,7 @@ describe('eventos con la probabilidad y el reparto de eventos.json', () => {
           EVENTOS.probabilidad,
           EVENTOS.desafio.fraccion,
           EVENTOS.ermitano.fraccion,
+          EVENTOS.mercader.fraccion,
         ).completas;
         console.log(`eventos · ${dif} · ${nombre}: sin ${sin}% · con ${con}%`);
         expect(Math.abs(con - sin)).toBeLessThanOrEqual(TOLERANCIA);
