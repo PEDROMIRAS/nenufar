@@ -211,6 +211,8 @@ export class EscenaMapa implements Escena {
   private portalUsado = false;
   /** Segundos que quedan sin poder empezar otro combate. */
   private invulnerable = 0;
+  /** El cofre trampa vencido suena al abrirse cuando vuelve a verse el mapa, no bajo la pantalla de nivel. */
+  private cofrePendiente = false;
   /** Salidas cerradas mientras queden monstruos (bits), y casillas marcadas sólidas por ello. */
   private cerradas = 0;
   private bloqueadas: number[] = [];
@@ -324,6 +326,10 @@ export class EscenaMapa implements Escena {
     const { heroina: h, tam, duracionFundido } = this.o;
     ponerMusica(this.o.musica);
     this.tiempo += dt;
+    if (this.cofrePendiente) {
+      this.cofrePendiente = false;
+      sonar('cofre');
+    }
     if (this.combateEntrante) {
       // Entrada al combate: la heroína espera; al acabar, con la pantalla en negro, empieza el combate.
       h.xAnterior = h.cuerpo.x;
@@ -647,13 +653,17 @@ export class EscenaMapa implements Escena {
     this.tiempoAviso = segundos;
   }
 
-  /** Abre el cofre (se queda abierto) y guarda lo que hay o enseña la pieza de equipo. */
-  private abrir(cofre: ObjetoSala): void {
+  /**
+   * Abre el cofre (se queda abierto) y guarda lo que hay o enseña la pieza de equipo. `sonarYa` en falso deja el
+   * sonido para cuando el mapa vuelva a verse (el cofre trampa se abre al ganar, con otras pantallas encima).
+   */
+  private abrir(cofre: ObjetoSala, sonarYa = true): void {
     const abierto = this.o.catalogo.get('cofre_abierto');
     if (abierto) cofre.inf = abierto;
     if (this.montada.vista) this.o.mundo.rehacerObjeto(this.montada.vista.sala, cofre);
     this.marcarHecha(this.actual);
-    sonar('cofre');
+    if (sonarYa) sonar('cofre');
+    else this.cofrePendiente = true;
     this.sacarBotin('El cofre está vacío', 'En el cofre hay');
   }
 
@@ -776,7 +786,7 @@ export class EscenaMapa implements Escena {
       (resultado) => {
         this.invulnerable = this.o.invulnerabilidad;
         // Vencido, deja el botín de un cofre normal de la zona.
-        if (resultado === 'victoria' && this.actual === sala) this.abrir(cofre);
+        if (resultado === 'victoria' && this.actual === sala) this.abrir(cofre, false);
       },
       null,
       { tipo: 'trampa' },
