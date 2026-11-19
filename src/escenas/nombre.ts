@@ -3,7 +3,6 @@ import type { Acciones } from '../core/acciones';
 import { limpiarNombre } from '../core/nombre';
 import type { HeroeJson } from '../core/types';
 import { anunciar } from '../render/accesibilidad';
-import { guardarNombre } from '../render/almacen';
 import type { CampoNombre } from '../render/campoNombre';
 import { opcionTocada, type MenuVista } from '../render/combate';
 import { ajustarCampoNombre, dibujarNombre, LARGO_NOMBRE } from '../render/nombre';
@@ -108,7 +107,6 @@ export class EscenaNombre implements Escena {
     this.hecho = true;
     sonar('confirmar');
     const nombre = limpiarNombre(this.campo.leer(), this.heroe.nombre, LARGO_NOMBRE);
-    guardarNombre(this.heroe.nombre, nombre);
     this.alSeguir(nombre);
   }
 

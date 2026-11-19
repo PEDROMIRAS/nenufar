@@ -17,7 +17,13 @@ import {
   type PartidaGuardada,
 } from './core/guardado';
 import { crearHeroina, type Heroina } from './core/heroina';
-import { capasDeEquipo, coloresDeEquipo, equipar, inventarioInicial } from './core/equipo';
+import {
+  capasDeEquipo,
+  coloresDeEquipo,
+  equipar,
+  guardarPieza,
+  inventarioInicial,
+} from './core/equipo';
 import type { Inventario } from './core/inventario';
 import { limpiarNombre } from './core/nombre';
 import { cambiosDeNivel, empezarEnNivel, instantanea, repartirPuntos } from './core/progresion';
@@ -1054,13 +1060,14 @@ function lucharVioleta(
 }
 
 /**
- * Recompensa de un jefe violeta: una al azar de las que faltan (el arma o la armadura se ofrecen en la
- * pantalla de equipo). El dragón negro, además, da su Corazón.
+ * Recompensa de un jefe violeta: una al azar de las que faltan (el arma o la armadura van a la mochila y se ofrecen
+ * en la pantalla de equipo). El dragón negro, además, da su Corazón. `alAplicar` se llama con la recompensa ya dada y
+ * antes de contarla (main guarda ahí: cerrar el navegador mientras se cuenta no la pierde ni repite el combate).
  */
-function premiar(partida: Partida, jefe: MonstruoJson, alFinal: () => void): void {
+function premiar(partida: Partida, jefe: MonstruoJson, alAplicar: () => void): void {
   const { luchadora: l, inventario: inv } = partida;
   const heroe = l.heroe;
-  if (!heroe) return alFinal();
+  if (!heroe) return alAplicar();
   const textos: Pagina[] = [];
   let pieza: string | null = null;
   const r = elegirRecompensa(inv.recompensas, crearAzar(partida.semilla * 17 + partida.combates));
@@ -1083,9 +1090,10 @@ function premiar(partida: Partida, jefe: MonstruoJson, alFinal: () => void): voi
     inv.corazon = 'lleno';
     textos.push(historia.recompensas.corazon);
   }
-  contar(partida.pila, textos, () =>
-    pieza ? ofrecerEquipo(partida, [pieza], alFinal) : alFinal(),
-  );
+  alAplicar();
+  contar(partida.pila, textos, () => {
+    if (pieza) ofrecerEquipo(partida, [pieza], () => {});
+  });
 }
 
 /** La portada en 3D: la sala de hd2d.json con su zona cargada. */
@@ -1149,8 +1157,12 @@ function datosEquipo(partida: Partida): DatosEquipo {
   };
 }
 
-/** Enseña, una tras otra, las piezas de equipo encontradas para decidir si se cambian; después sigue. */
+/**
+ * Enseña, una tras otra, las piezas de equipo encontradas para decidir si se cambian; después sigue. Las piezas van
+ * antes a la mochila: la pantalla solo decide si se las pone, y cerrar el navegador con ella abierta no las pierde.
+ */
 function ofrecerEquipo(partida: Partida, piezas: readonly string[], alFinal: () => void): void {
+  for (const pieza of piezas) guardarPieza(partida.inventario, pieza);
   const [primera, ...resto] = piezas;
   if (!primera) {
     vestir(partida);
@@ -1322,8 +1334,13 @@ function luchar(
         if (!partida.reto) guardarRecords(anotarVencidos(cargarRecords(), claves));
       }
       if (resultado !== 'derrota') {
-        const seguir = (): void =>
-          ofrecerEquipo(partida, combate.equipoEncontrado, () => alTerminar(resultado));
+        // El combate se da por acabado ya, antes de las pantallas de después (frase del jefe, nivel, puntos, equipo):
+        // el mapa lo apunta y main guarda, así que cerrar el navegador en ellas no obliga a repetirlo. El equipo
+        // encontrado va antes a la mochila para que ese guardado lo lleve. Lo que apile `alTerminar` queda debajo de
+        // esas pantallas y se ve después, como siempre.
+        for (const pieza of combate.equipoEncontrado) guardarPieza(partida.inventario, pieza);
+        alTerminar(resultado);
+        const seguir = (): void => ofrecerEquipo(partida, combate.equipoEncontrado, () => {});
         const subir = (): void => {
           if (luchadora.nivel <= antes.nivel) {
             seguir();
