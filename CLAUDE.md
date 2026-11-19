@@ -70,7 +70,7 @@ Para mañana, lo que propuse y Pedro no ha elegido todavía:
 3. **README rehecho (2026-11-19, rama `readme-nuevo`)** con capturas nuevas en `docs/capturas/` (1280×800 y móvil a 390×844 ×2), sacadas con Playwright y el Chrome del sistema contra `npm run dev`; las viejas de `docs/capturas/menus/` siguen siendo de octubre.
 4. **Arte que falta:** imágenes de Pedro para el dragón negro, el murciélago, el sacerdote y el cofre trampa; las ranas a doble resolución (proyecto aparte, con su visto bueno).
 5. **Enlace desde el portafolio** (hace falta saber dónde está y permiso) y el vídeo de demo, que aún no va.
-6. **Repasar el resto de la pestaña principal del documento de desarrollo** (controles, pantallas, plan de hitos: datos viejos como la sala de 15×11).
+6. **Documento de desarrollo al día (2026-11-19):** registro de «Versión 2: lo nuevo» con la luz y el relieve, la auditoría y el README; en la pestaña principal, controles con mando, pantallas, HUD, combate, accesibilidad, sala de 21×13, rangos del equilibrado, despliegue y estructura de carpetas. El plan de hitos y los riesgos se dejaron como historia de la versión 1.
 
 **Menores aplazados de luz y relieve:** los tres de la cámara (punto 2), `lugaresDeLuz` puede elegir la casilla de copa de un objeto alto, el suelo exterior no tiene relieve, la regla «sin luces propias → ambiente» no tiene test propio, y en las salas del Cauce con braseros solo arriba la mitad de abajo queda en penumbra.
 
