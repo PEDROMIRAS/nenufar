@@ -72,7 +72,7 @@ Para mañana, lo que propuse y Pedro no ha elegido todavía:
 5. **Enlace desde el portafolio** (hace falta saber dónde está y permiso) y el vídeo de demo, que aún no va.
 6. **Documento de desarrollo al día (2026-11-19):** registro de «Versión 2: lo nuevo» con la luz y el relieve, la auditoría y el README; en la pestaña principal, controles con mando, pantallas, HUD, combate, accesibilidad, sala de 21×13, rangos del equilibrado, despliegue y estructura de carpetas. El plan de hitos y los riesgos se dejaron como historia de la versión 1.
 
-**Menores aplazados de luz y relieve:** `lugaresDeLuz` puede elegir la casilla de copa de un objeto alto, el suelo exterior no tiene relieve, la regla «sin luces propias → ambiente» no tiene test propio, y en las salas del Cauce con braseros solo arriba la mitad de abajo queda en penumbra.
+**Menores aplazados de luz y relieve:** el suelo exterior no tiene relieve y en las salas del Cauce con braseros solo arriba la mitad de abajo queda en penumbra (los dos, de aspecto: que los mire Pedro). Arreglados el 2026-11-19 (rama `luz-menores`): `lugaresDeLuz` ya no elige la casilla de la copa de un objeto alto y la regla «sin luces propias → ambiente» es `cuantasDeAmbiente`, con test.
 
 ### Antes (2026-11-17): la auditoría con las skills de gamedev
 

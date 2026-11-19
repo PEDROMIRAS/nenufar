@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { crearAzar } from '../src/core/azar';
-import { compararLuces, lugaresDeLuz } from '../src/core/luces';
+import { compararLuces, cuantasDeAmbiente, lugaresDeLuz } from '../src/core/luces';
 import { HD2D } from '../src/data/datos';
 
 describe('orden de las luces de una sala', () => {
@@ -46,6 +46,17 @@ describe('lugaresDeLuz', () => {
     for (const l of lugares) expect(l).not.toEqual([4, 4]);
   });
 
+  it('no pone ninguna bajo la copa de un objeto alto (la casilla de encima de su base)', () => {
+    // Un árbol en cada columna, con la copa en la fila 5: esa fila no puede tener luz.
+    const conArboles = {
+      ...sala(),
+      objetos: Array.from({ length: 21 }, (_, x) => ({ x, y: 6, sup: {} })),
+    };
+    for (let semilla = 1; semilla <= 30; semilla++)
+      for (const [, y] of lugaresDeLuz(conArboles, salidas, 3, 2, crearAzar(semilla)))
+        expect(y === 5 || y === 6).toBe(false);
+  });
+
   it('en una sala toda sólida, ninguna', () => {
     expect(lugaresDeLuz(sala(true), salidas, 2, 3, crearAzar(1))).toEqual([]);
   });
@@ -54,5 +65,25 @@ describe('lugaresDeLuz', () => {
     expect(lugaresDeLuz(sala(), salidas, 2, 3, crearAzar(7))).toEqual(
       lugaresDeLuz(sala(), salidas, 2, 3, crearAzar(7)),
     );
+  });
+});
+
+describe('cuantasDeAmbiente', () => {
+  const amb = { min: 1, max: 2 };
+
+  it('una sala con luces propias no lleva ninguna de ambiente', () => {
+    for (let semilla = 1; semilla <= 20; semilla++)
+      expect(cuantasDeAmbiente(3, amb, crearAzar(semilla))).toBe(0);
+  });
+
+  it('sin luces propias, entre min y max, y salen las dos cifras', () => {
+    const vistas = new Set<number>();
+    for (let semilla = 1; semilla <= 50; semilla++) {
+      const n = cuantasDeAmbiente(0, amb, crearAzar(semilla));
+      expect(n).toBeGreaterThanOrEqual(1);
+      expect(n).toBeLessThanOrEqual(2);
+      vistas.add(n);
+    }
+    expect([...vistas].sort()).toEqual([1, 2]);
   });
 });
