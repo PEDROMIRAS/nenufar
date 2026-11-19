@@ -30,7 +30,7 @@ export interface PesoJson {
 
 export interface ImpactoJson {
   pesos: Record<Peso, PesoJson>;
-  /** Cámara del combate durante los ataques (ver `zoomAtaque`); sin el campo, quieta. */
+  /** Cámara del combate durante los ataques (ver `camaraAtaque`); sin el campo, quieta. */
   camara?: CamaraCombateJson;
   temblor: { maxX: number; maxY: number; decaimiento: number; frecuencias: [number, number] };
   destello: { duracion: number };

@@ -1,4 +1,4 @@
-import { zoomAtaque } from '../core/camaraCombate';
+import { camaraAtaque, encuadrar, zoomMaximo, type Encuadre } from '../core/camaraCombate';
 import type { Combate, Luchador } from '../core/combate';
 import { escalaHoja } from '../core/hoja';
 import { partirTexto } from '../core/texto';
@@ -78,6 +78,12 @@ export interface VistaCombate {
   objetivoAtaque: Luchador | null;
   /** El ataque en curso es un golpe fuerte (crítico, cargado o en un combate contra un jefe): la cámara se acerca más. */
   ataqueFuerte: boolean;
+  /**
+   * Cámara con que se dibujó el último fotograma (la escribe el dibujo) y cómo estaba al empezar el ataque en curso
+   * (la copia la escena): un ataque nuevo sale de ahí, sin tirones aunque el anterior aún estuviera cerca.
+   */
+  camara: Encuadre;
+  camaraDesde: Encuadre;
   /** Efecto que se ve sobre quien recibe un golpe («corte», «impacto»…) y desde cuándo. */
   efecto: string;
   efectoEn: Luchador | null;
@@ -265,8 +271,9 @@ export function opcionTocada(x: number, y: number, n: number): number {
 
 export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   colocar(v);
+  colocarCamara(v);
   const { x: tx, y: ty } = v.temblor;
-  v.fondo(v.tiempo, tx, ty, posicionProyectil(v));
+  v.fondo(v.tiempo, tx, ty, luzProyectil(v));
   // El canvas 2D queda transparente encima de la sala en 3D.
   ctx.fillStyle = COLOR.velo;
   rellenarArea(ctx);
@@ -275,7 +282,12 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   ctx.save();
   ctx.translate(Math.round(tx), Math.round(ty));
   dibujarOrden(ctx, v);
-  acercarAlAtaque(ctx, v);
+  const c = v.camara;
+  if (c.zoom !== 1) {
+    ctx.translate(c.x, c.y);
+    ctx.scale(c.zoom, c.zoom);
+    ctx.translate(-c.x, -c.y);
+  }
   for (let i = 0; i < v.enemigos.length; i++)
     dibujarEnemigo(ctx, v, v.enemigos[i]!, xEnemigo(i, v.enemigos.length));
   dibujarHeroina(ctx, v);
@@ -323,12 +335,8 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
 function dibujarDestello(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   const opacidad = v.destello * Math.max(0, 1 - v.tiempoDestello / IMPACTO.destello.duracion);
   if (opacidad <= 0) return;
-  // Hasta donde empieza el panel: en vertical, el borde de arriba del panel apilado; si no, la pestaña del panel.
-  let abajo = PANEL.y - 14;
-  if (interfaz.alta) {
-    const e = disposicion(v.menu?.opciones.length ?? 0).escena;
-    abajo = e.y + e.alto;
-  }
+  // Hasta donde empieza el panel.
+  const abajo = bordePanel(v);
   ctx.fillStyle = '#fff';
   ctx.globalAlpha = opacidad;
   ctx.fillRect(area.x, area.y, area.ancho, abajo - area.y);
@@ -809,22 +817,63 @@ function dibujarPanel(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   escribir(ctx, v.textoPm, fx + 148, fy + 30);
 }
 
+/** Lo de la escena que la cámara no debe sacar del marco, el marco y el encuadre pedido (reutilizados). */
+const CONTENIDO = { arriba: 0, abajo: 0 };
+const MARCO = { arriba: 0, abajo: 0 };
+const OBJETIVO_CAMARA: Encuadre = { zoom: 1, x: 0, y: 0 };
+/** Píxeles que bajan los pies de la heroína bajo su ancla (2 de la hoja × 2 de escala). */
+const PIES_HEROINA = 4;
+/** Lo que ocupa bajo su ancla un enemigo: barra de vida, PV y estados (`dibujarEnemigo`). */
+const BAJO_ENEMIGO = 46;
+
+/** Borde de arriba del panel: en vertical, el del panel apilado; si no, el de su pestaña. */
+function bordePanel(v: VistaCombate): number {
+  if (!interfaz.alta) return PANEL.y - 14;
+  const e = disposicion(v.menu?.opciones.length ?? 0).escena;
+  return e.y + e.alto;
+}
+
 /**
- * Cámara del ataque en curso: la escena (sin la barra de turnos ni el panel) se acerca al punto entre quien ataca y
- * quien recibe; el fondo 3D se queda quieto, así que el primer plano se separa de él.
+ * Cámara de este fotograma (en `v.camara`): durante un ataque, la escena (sin la barra de turnos ni el panel) se
+ * acerca al punto entre quien ataca y quien recibe; el fondo 3D se queda quieto, así que el primer plano se separa
+ * de él. El acercamiento nunca saca del marco los nombres de los enemigos ni los pies de la heroína.
  */
-function acercarAlAtaque(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
+function colocarCamara(v: VistaCombate): void {
   const a = v.atacante;
   const o = v.objetivoAtaque;
   const camara = IMPACTO.camara;
-  if (!a || !o || !camara) return;
-  const z = zoomAtaque(v.tiempoAtaque, anticipoAtaque(v, a), camara, v.ataqueFuerte);
-  if (z === 1) return;
-  const fx = (centroX(v, a) + centroX(v, o)) / 2;
-  const fy = (centroY(a) + centroY(o)) / 2;
-  ctx.translate(fx, fy);
-  ctx.scale(z, z);
-  ctx.translate(-fx, -fy);
+  if (!a || !o || !camara) {
+    v.camara.zoom = 1;
+    return;
+  }
+  let arriba = Infinity;
+  for (const e of v.enemigos) {
+    if ((v.pv.get(e) ?? e.pv) <= 0 && v.golpeado !== e) continue;
+    // Lo más alto que dibuja cada enemigo: el aviso de golpe fuerte o la flecha, o si no caben, el nombre.
+    const extra = (lineasNombre(e).length - 1) * LINEA_NOMBRE;
+    arriba = Math.min(arriba, Math.max(FIN_BARRA_TURNOS, topeEnemigo(v, e) - 36 - extra));
+  }
+  CONTENIDO.arriba = Number.isFinite(arriba) ? arriba : FIN_BARRA_TURNOS;
+  CONTENIDO.abajo = Math.max(G.heroinaY + PIES_HEROINA, G.enemigoY + BAJO_ENEMIGO);
+  // El marco nunca es más estrecho que lo que ya se ve sin acercarse.
+  MARCO.arriba = Math.min(FIN_BARRA_TURNOS, CONTENIDO.arriba);
+  MARCO.abajo = Math.max(bordePanel(v), CONTENIDO.abajo);
+  encuadrar(
+    zoomMaximo(camara, v.ataqueFuerte),
+    (centroX(v, a) + centroX(v, o)) / 2,
+    (centroY(a) + centroY(o)) / 2,
+    CONTENIDO,
+    MARCO,
+    OBJETIVO_CAMARA,
+  );
+  camaraAtaque(
+    v.tiempoAtaque,
+    anticipoAtaque(v, a),
+    camara,
+    v.camaraDesde,
+    OBJETIVO_CAMARA,
+    v.camara,
+  );
 }
 
 /** Dónde va el proyectil del ataque en curso (y de qué hoja es), o null si no hay ninguno en vuelo. */
@@ -845,6 +894,22 @@ function posicionProyectil(v: VistaCombate): typeof PROYECTIL | null {
   PROYECTIL.y = y0 + (y1 - y0) * t;
   PROYECTIL.angulo = Math.atan2(y1 - y0, x1 - x0);
   return PROYECTIL;
+}
+
+/**
+ * Dónde está el proyectil en la pantalla, con el acercamiento de la cámara: ahí se pone su luz en la sala 3D, que
+ * no se acerca (el proyectil, sí: se dibuja dentro de la escena).
+ */
+const LUZ = { nombre: '', x: 0, y: 0, angulo: 0 };
+function luzProyectil(v: VistaCombate): typeof LUZ | null {
+  const p = posicionProyectil(v);
+  if (!p) return null;
+  const c = v.camara;
+  LUZ.nombre = p.nombre;
+  LUZ.x = c.x + c.zoom * (p.x - c.x);
+  LUZ.y = c.y + c.zoom * (p.y - c.y);
+  LUZ.angulo = p.angulo;
+  return LUZ;
 }
 
 /** Proyectil del ataque en curso, en vuelo del atacante al objetivo durante el último tramo antes del golpe. */
