@@ -84,6 +84,12 @@ export interface VistaCombate {
    */
   camara: Encuadre;
   camaraDesde: Encuadre;
+  /**
+   * Adónde va la cámara en el ataque en curso: se fija en su primer fotograma (la escena pone `camaraFijada` en
+   * falso al empezarlo), para que un enemigo que cae o aparece a mitad no la mueva de golpe.
+   */
+  camaraObjetivo: Encuadre;
+  camaraFijada: boolean;
   /** Efecto que se ve sobre quien recibe un golpe («corte», «impacto»…) y desde cuándo. */
   efecto: string;
   efectoEn: Luchador | null;
@@ -820,7 +826,6 @@ function dibujarPanel(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
 /** Lo de la escena que la cámara no debe sacar del marco, el marco y el encuadre pedido (reutilizados). */
 const CONTENIDO = { arriba: 0, abajo: 0 };
 const MARCO = { arriba: 0, abajo: 0 };
-const OBJETIVO_CAMARA: Encuadre = { zoom: 1, x: 0, y: 0 };
 /** Píxeles que bajan los pies de la heroína bajo su ancla (2 de la hoja × 2 de escala). */
 const PIES_HEROINA = 4;
 /** Lo que ocupa bajo su ancla un enemigo: barra de vida, PV y estados (`dibujarEnemigo`). */
@@ -831,6 +836,14 @@ function bordePanel(v: VistaCombate): number {
   if (!interfaz.alta) return PANEL.y - 14;
   const e = disposicion(v.menu?.opciones.length ?? 0).escena;
   return e.y + e.alto;
+}
+
+/**
+ * Borde de abajo del marco de la cámara: durante un ataque el menú está cerrado y no se dibuja la pestaña del
+ * panel, así que en horizontal llega hasta el panel mismo.
+ */
+function bordeCamara(v: VistaCombate): number {
+  return interfaz.alta || v.menu ? bordePanel(v) : PANEL.y;
 }
 
 /**
@@ -846,32 +859,41 @@ function colocarCamara(v: VistaCombate): void {
     v.camara.zoom = 1;
     return;
   }
-  let arriba = Infinity;
-  for (const e of v.enemigos) {
-    if ((v.pv.get(e) ?? e.pv) <= 0 && v.golpeado !== e) continue;
-    // Lo más alto que dibuja cada enemigo: el aviso de golpe fuerte o la flecha, o si no caben, el nombre.
-    const extra = (lineasNombre(e).length - 1) * LINEA_NOMBRE;
-    arriba = Math.min(arriba, Math.max(FIN_BARRA_TURNOS, topeEnemigo(v, e) - 36 - extra));
+  if (!v.camaraFijada) {
+    v.camaraFijada = true;
+    let arriba = Infinity;
+    for (const e of v.enemigos) {
+      if ((v.pv.get(e) ?? e.pv) <= 0 && v.golpeado !== e) continue;
+      // Lo más alto que dibuja cada enemigo (`dibujarEnemigo`): el aviso de golpe fuerte o la flecha sobre el
+      // nombre si caben; si no, el nombre, que nunca sube de la barra de turnos.
+      const extra = (lineasNombre(e).length - 1) * LINEA_NOMBRE;
+      const tope = topeEnemigo(v, e);
+      const aviso = tope - 36 - extra;
+      arriba = Math.min(
+        arriba,
+        aviso >= FIN_BARRA_TURNOS ? aviso : Math.max(FIN_BARRA_TURNOS, tope - 18 - extra),
+      );
+    }
+    CONTENIDO.abajo = Math.max(G.heroinaY + PIES_HEROINA, G.enemigoY + BAJO_ENEMIGO);
+    CONTENIDO.arriba = Number.isFinite(arriba) ? arriba : CONTENIDO.abajo;
+    // El marco nunca es más estrecho que lo que ya se ve sin acercarse.
+    MARCO.arriba = Math.min(FIN_BARRA_TURNOS, CONTENIDO.arriba);
+    MARCO.abajo = Math.max(bordeCamara(v), CONTENIDO.abajo);
+    encuadrar(
+      zoomMaximo(camara, v.ataqueFuerte),
+      (centroX(v, a) + centroX(v, o)) / 2,
+      (centroY(a) + centroY(o)) / 2,
+      CONTENIDO,
+      MARCO,
+      v.camaraObjetivo,
+    );
   }
-  CONTENIDO.arriba = Number.isFinite(arriba) ? arriba : FIN_BARRA_TURNOS;
-  CONTENIDO.abajo = Math.max(G.heroinaY + PIES_HEROINA, G.enemigoY + BAJO_ENEMIGO);
-  // El marco nunca es más estrecho que lo que ya se ve sin acercarse.
-  MARCO.arriba = Math.min(FIN_BARRA_TURNOS, CONTENIDO.arriba);
-  MARCO.abajo = Math.max(bordePanel(v), CONTENIDO.abajo);
-  encuadrar(
-    zoomMaximo(camara, v.ataqueFuerte),
-    (centroX(v, a) + centroX(v, o)) / 2,
-    (centroY(a) + centroY(o)) / 2,
-    CONTENIDO,
-    MARCO,
-    OBJETIVO_CAMARA,
-  );
   camaraAtaque(
     v.tiempoAtaque,
     anticipoAtaque(v, a),
     camara,
     v.camaraDesde,
-    OBJETIVO_CAMARA,
+    v.camaraObjetivo,
     v.camara,
   );
 }

@@ -169,6 +169,8 @@ export class EscenaCombate implements Escena {
       ataqueFuerte: false,
       camara: { zoom: 1, x: 0, y: 0 },
       camaraDesde: { zoom: 1, x: 0, y: 0 },
+      camaraObjetivo: { zoom: 1, x: 0, y: 0 },
+      camaraFijada: false,
       efecto: '',
       efectoEn: null,
       tiempoEfecto: 0,
@@ -254,6 +256,7 @@ export class EscenaCombate implements Escena {
       v.camaraDesde.zoom = v.camara.zoom;
       v.camaraDesde.x = v.camara.x;
       v.camaraDesde.y = v.camara.y;
+      v.camaraFijada = false;
       const sonido = this.enHabilidad ? undefined : siguiente.origen.heroe?.combate.sonido;
       if (sonido) sonar(sonido);
       this.espera = anticipoAtaque(v, siguiente.origen);
