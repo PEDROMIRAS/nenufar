@@ -436,6 +436,11 @@ export class EscenaMapa implements Escena {
           this.hablarConErmitano();
           return;
         }
+        // Ya dio lo que tenía: solo lo dice (una vez por acercamiento).
+        if (this.eventoListo) {
+          this.eventoListo = false;
+          this.avisar(this.o.ermitano.yaDado);
+        }
       }
     } else if (this.actual.tipo === 'evento' && !this.hechas.has(this.actual)) {
       const desafio = this.actual.evento === 'desafio';

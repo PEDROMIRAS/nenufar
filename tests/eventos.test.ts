@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import zonas from '../src/data/zonas.json';
 import {
   actuar,
   avanzar,
@@ -12,11 +13,13 @@ import { equipar, inventarioInicial } from '../src/core/equipo';
 import {
   aplicarAltar,
   aplicarErmitano,
+  despedidaErmitano,
   gruposDesafio,
   opcionesAltar,
   opcionesDesafio,
   opcionesErmitano,
   reglasDesafio,
+  textoErmitano,
 } from '../src/core/eventos';
 import { crearInventario } from '../src/core/inventario';
 import { experienciaParaSubir } from '../src/core/progresion';
@@ -229,6 +232,26 @@ describe('ermitaño', () => {
     for (let s = 0; s < 60; s++)
       for (const x of opcionesErmitano(ermitano, crearAzar(s))) vistas.add(x.clave);
     expect(vistas).toEqual(new Set([...ermitano.ofertas.map((x) => x.clave), 'marcharse']));
+  });
+
+  test('saluda en todas las zonas, con su propia frase tras la descripción', () => {
+    for (const zona of Object.keys(zonas.zonas)) {
+      const texto = textoErmitano(ermitano, zona);
+      expect(texto.startsWith(ermitano.descripcion)).toBe(true);
+      expect(texto).toContain(ermitano.saludos[zona]!);
+    }
+    // Una zona sin saludo: solo la descripción.
+    expect(textoErmitano(ermitano, 'otra')).toBe(ermitano.descripcion);
+  });
+
+  test('se despide con una frase de su lista, la misma con la misma semilla', () => {
+    const vistas = new Set<string>();
+    for (let s = 0; s < 40; s++) vistas.add(despedidaErmitano(ermitano, crearAzar(s)));
+    expect(vistas).toEqual(new Set(ermitano.despedidas));
+    expect(despedidaErmitano(ermitano, crearAzar(4))).toBe(
+      despedidaErmitano(ermitano, crearAzar(4)),
+    );
+    expect(despedidaErmitano({ ...ermitano, despedidas: [] }, crearAzar(1))).toBe('');
   });
 
   test('aplicarErmitano guarda los consumibles de la oferta', () => {

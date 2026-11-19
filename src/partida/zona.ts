@@ -171,7 +171,7 @@ export async function crearZona(
     desafio: EVENTOS.desafio,
     usarDesafio: (alTerminar) => abrirDesafio(partida, alTerminar),
     ermitano: EVENTOS.ermitano,
-    usarErmitano: (azar, alTerminar) => abrirErmitano(partida, azar, alTerminar),
+    usarErmitano: (azar, alTerminar) => abrirErmitano(partida, nombre, azar, alTerminar),
     ofrecerEquipo: (clave, alFinal) => ofrecerEquipo(partida, [clave], alFinal),
     abrirPausa: () => {
       const pausa: EscenaPausa = new EscenaPausa(

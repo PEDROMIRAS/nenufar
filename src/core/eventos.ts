@@ -169,3 +169,14 @@ export function aplicarErmitano(
   });
   return `${e.aviso}: ${nombres.join(' y ')}${darConsumibles(inv, oferta.consumibles, objetos.maximoPorTipo)}`;
 }
+
+/** Lo que se lee al hablar con el ermitaño: quién es y, si la zona lo tiene, su saludo. */
+export function textoErmitano(e: Ermitano, zona: string): string {
+  const saludo = e.saludos[zona];
+  return saludo ? `${e.descripcion} ${saludo}` : e.descripcion;
+}
+
+/** Su despedida al llevarse una oferta: una de la lista al azar (sin lista, nada). */
+export function despedidaErmitano(e: Ermitano, azar: () => number): string {
+  return e.despedidas[Math.floor(azar() * e.despedidas.length)] ?? '';
+}
