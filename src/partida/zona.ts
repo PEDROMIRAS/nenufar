@@ -247,7 +247,19 @@ export async function crearZona(
       }
     },
   });
-  if (reto) reto.progreso = () => progresoReto(zona.salas, escena.estado().visitadas);
+  if (reto) {
+    // Las salas de combate donde no cupo ningún grupo no cuentan en «sala N de M» (se montan igual que en el mapa).
+    const grupos = gruposDeZona(
+      zona,
+      PLANTILLAS[nombre],
+      catalogo,
+      RETO.gruposPorSala,
+      zonas.monstruos.distanciaEntradas,
+      datos.grupos,
+    );
+    const vacias = new Set([...grupos].filter(([, g]) => g.length === 0).map(([s]) => s));
+    reto.progreso = () => progresoReto(zona.salas, escena.estado().visitadas, vacias);
+  }
   return escena;
 }
 
