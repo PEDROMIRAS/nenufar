@@ -351,7 +351,7 @@ export class EscenaMapa implements Escena {
       h.xAnterior = h.cuerpo.x;
       h.yAnterior = h.cuerpo.y;
       if (this.pendiente === 'portal' && this.fundido >= duracionFundido / 2) {
-        // Se queda en negro: main.ts cambia de escena cuando ha cargado la zona siguiente.
+        // Se queda en negro: `alUsarPortal` (src/partida/zona.ts) cambia de escena cuando ha cargado la zona siguiente.
         if (!this.portalUsado) this.o.alUsarPortal?.();
         this.portalUsado = true;
         return;
@@ -771,7 +771,7 @@ export class EscenaMapa implements Escena {
         if (resultado !== 'victoria') {
           this.avisar(desafio.avisos.huida);
         } else {
-          // No se lanza ya: main guarda la partida al volver aquí (con `combatePendiente`) y pisaría el
+          // No se lanza ya: `crearZona` guarda la partida al volver aquí (con `combatePendiente`) y pisaría el
           // guardado del siguiente combate. Con el último, lo pendiente es el premio.
           this.desafioPendiente = paso + 1;
         }
