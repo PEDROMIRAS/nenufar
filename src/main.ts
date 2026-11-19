@@ -1260,8 +1260,8 @@ function terminarPartida(partida: Partida, victoria: boolean): void {
     zona: partida.zona,
     vencidos: partida.vencidos,
     segundos: (performance.now() - partida.inicio) / 1000,
-    dificultad: Object.entries(DIFICULTADES).find(([, d]) => d === partida.dificultad)?.[0] ?? '',
-    heroe: Object.entries(HEROES).find(([, h]) => h === l.heroe)?.[0] ?? '',
+    dificultad: claveDe(DIFICULTADES, partida.dificultad),
+    heroe: l.heroe ? claveDe(HEROES, l.heroe) : '',
     objetosUsados: partida.inventario.usados,
     contraHeredada: partida.rival !== monstruo(zonas.jefeFinal).nombre,
   };
@@ -1347,22 +1347,8 @@ function luchar(
             return;
           }
           // En el reto los puntos se reparten solos y no se para en un menú.
-          if (partida.reto) {
+          if (partida.reto)
             repartirPuntos(luchadora, luchadora.heroe?.planPuntos ?? [], REGLAS.experiencia);
-            pila.apilar(
-              new EscenaMensaje(
-                `¡Nivel ${luchadora.nivel}!`,
-                PALETA.elegida,
-                cambiosDeNivel(antes, luchadora),
-                SEGUIR,
-                () => {
-                  pila.desapilar();
-                  seguir();
-                },
-              ),
-            );
-            return;
-          }
           pila.apilar(
             new EscenaMensaje(
               `¡Nivel ${luchadora.nivel}!`,
@@ -1371,6 +1357,7 @@ function luchar(
               SEGUIR,
               () => {
                 pila.desapilar();
+                if (partida.reto) return seguir();
                 // Después, repartir los puntos nuevos (o dejarlos para luego).
                 pila.apilar(
                   new EscenaPuntos(luchadora, partida.reglas, 'Luego', () => {

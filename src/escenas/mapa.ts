@@ -35,6 +35,7 @@ import type {
   DatosEventos,
   Direccion,
   MonstruoJson,
+  MovimientoMapaJson,
   ObjetosJson,
   PlantillasJson,
   ZonaHd2d,
@@ -235,9 +236,12 @@ export class EscenaMapa implements Escena {
   private readonly hud: TextosHud = { cabecera: '', pv: '', pm: '' };
   /** Valores con los que se escribieron los textos del HUD, para rehacerlos solo si cambian. */
   private hudFirma = -1;
+  /** Cómo pasea el ermitaño: sin visión ni persecución. Se hace una vez y no en cada fotograma. */
+  private readonly paseoErmitano: MovimientoMapaJson;
 
   constructor(private readonly o: OpcionesMapa) {
     this.sonidoPaso = `paso_${o.musica}`;
+    this.paseoErmitano = { ...o.ermitano.mapa, persecucion: 0, vision: 0 };
     const inicio = o.zona.salas.find((s) => s.tipo === 'inicio');
     if (!inicio) throw new Error('La zona no tiene sala de inicio');
     this.azarMapa = crearAzar(o.zona.semilla * 7 + 3);
@@ -405,7 +409,7 @@ export class EscenaMapa implements Escena {
     }
     const ermitano = this.montada.ermitano;
     if (ermitano) {
-      const { alcance, ...mapa } = this.o.ermitano.mapa;
+      const { alcance } = this.o.ermitano.mapa;
       const c = ermitano.cuerpo;
       const dx = h.cuerpo.x - c.x;
       const dy = h.cuerpo.y - c.y;
@@ -413,7 +417,7 @@ export class EscenaMapa implements Escena {
         this.eventoListo = true;
         actualizarPatrulla(
           ermitano,
-          { ...mapa, persecucion: 0, vision: 0 },
+          this.paseoErmitano,
           h.cuerpo.x,
           h.cuerpo.y,
           dt,
