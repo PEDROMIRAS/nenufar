@@ -69,7 +69,7 @@ export function lucharVioleta(
 /**
  * Recompensa de un jefe violeta: una al azar de las que faltan (el arma o la armadura van a la mochila y se ofrecen
  * en la pantalla de equipo). El dragón negro, además, da su Corazón. `alAplicar` se llama con la recompensa ya dada y
- * antes de contarla (main guarda ahí: cerrar el navegador mientras se cuenta no la pierde ni repite el combate).
+ * antes de contarla (`crearZona` guarda ahí: cerrar el navegador mientras se cuenta no la pierde ni repite el combate).
  */
 export function premiar(partida: Partida, jefe: MonstruoJson, alAplicar: () => void): void {
   const { luchadora: l, inventario: inv } = partida;
