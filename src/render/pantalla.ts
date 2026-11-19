@@ -16,9 +16,6 @@ export const SALA_ANCHO = 672;
 export const SALA_ALTO = 416;
 /** Lado del tile en píxeles lógicos (672 = 21·32). */
 const TILE = 32;
-/** Fondo común de las pantallas de menú (título aparte, que tiene su sala). */
-export const FONDO = '#10161a';
-
 const TACTIL = window.matchMedia('(pointer: coarse)');
 
 /** ¿Pantalla táctil (móvil, tableta)? */
@@ -85,9 +82,6 @@ let reajustar = (): void => {};
 
 /** Escala activa: lo que mide un píxel lógico en píxeles reales. */
 const activo = () => (ventana ? modos.ventana : pideAlta && vertical ? modos.alta : modos.menu);
-
-/** ¿La ventana es más alta que ancha (móvil de pie)? */
-export const esVertical = (): boolean => vertical;
 
 /** Pone `interfaz` y `area` al tamaño de la forma activa. */
 function refrescarInterfaz(): void {
