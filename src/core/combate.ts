@@ -444,7 +444,7 @@ function cumple(c: Combate, m: Luchador, a: AccionMonstruoJson): boolean {
   return true;
 }
 
-/** ¿Puede hacer esa acción ahora? Una habilidad necesita sus PM y, si es de apoyo, un aliado al que ayudar. */
+/** Cuántos de la lista siguen en pie. */
 const vivos = (lista: readonly Luchador[]): number => lista.filter((l) => l.pv > 0).length;
 
 /** Añade al combate un monstruo del bestiario a mitad de pelea; `lote`, todos los que llegan con él. */
@@ -483,6 +483,7 @@ function comprobarFase(c: Combate, m: Luchador, eventos: Evento[]): boolean {
   return false;
 }
 
+/** ¿Puede hacer esa acción ahora? Una habilidad necesita sus PM y, si es de apoyo, un aliado al que ayudar. */
 function sePuede(c: Combate, m: Luchador, accion: string): boolean {
   if (accion === 'invocar') {
     const inv = m.monstruo?.invocacion;
