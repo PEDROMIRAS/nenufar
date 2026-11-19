@@ -24,15 +24,17 @@ export function mandoActual(): Gamepad | null {
 /** Fuente de entrada del mando: lee la API Gamepad en cada paso lógico. */
 export function crearMando(d: MandoJson): FuenteEntrada {
   const antes = new Array<boolean>(BOTONES).fill(false);
+  const stick = { moviendo: false };
   return {
     leer(acciones) {
       const m = mandoActual();
       if (!m) {
         // Al reconectar no puede quedar un botón «pegado» del mando de antes.
         antes.fill(false);
+        stick.moviendo = false;
         return;
       }
-      if (leerMando(m, antes, d, acciones)) usarDispositivo('mando');
+      if (leerMando(m, antes, d, acciones, stick)) usarDispositivo('mando');
     },
   };
 }

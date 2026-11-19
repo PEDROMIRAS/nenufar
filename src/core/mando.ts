@@ -13,7 +13,11 @@ export interface MandoJson {
   texto: string;
   /** Cartel «Mando conectado»: segundos a la vista y segundos de fundido al entrar y al salir. */
   aviso: { segundos: number; fundido: number };
+  /** Inclinación del stick a partir de la cual se mueve, y por debajo de la cual se para (histéresis). */
   zonaMuerta: number;
+  zonaMuertaSalida: number;
+  /** Grados que ocupa cada diagonal del stick (45 = las 8 direcciones a partes iguales). */
+  anchoDiagonal: number;
   /** Valor del gatillo a partir del cual cuenta como pulsado. */
   gatillo: number;
   botones: {
@@ -42,9 +46,15 @@ function nuevo(m: MandoLeido, antes: boolean[], i: number): boolean {
   return ahora && !era;
 }
 
+/** Lo que el stick recuerda de un paso a otro: si se estaba moviendo (para la histéresis de la zona muerta). */
+export interface EstadoStick {
+  moviendo: boolean;
+}
+
 /**
  * Escribe en `acciones` lo que hace el mando en este paso: MOVER con la cruceta (si está pulsada) o el
- * stick con zona muerta, CONFIRMAR, CANCELAR, MENU e INFO al pulsar y CORRER mientras se mantiene.
+ * stick con zona muerta (empieza a moverse en `zonaMuerta` y no se para hasta bajar de `zonaMuertaSalida`: cerca del
+ * borde no parpadea), CONFIRMAR, CANCELAR, MENU e INFO al pulsar y CORRER mientras se mantiene.
  * Devuelve si hubo entrada real (dirección fuera de la zona muerta o algún botón pulsado), para saber
  * cuál es el último dispositivo usado: un mando quieto con algo de deriva en el stick no cuenta.
  */
@@ -53,6 +63,7 @@ export function leerMando(
   antes: boolean[],
   d: MandoJson,
   acciones: Acciones,
+  stick: EstadoStick = { moviendo: false },
 ): boolean {
   const b = d.botones;
   let hubo = false;
@@ -62,11 +73,14 @@ export function leerMando(
   if (dx !== 0 || dy !== 0) {
     fijarDireccion(acciones, dx, dy, 0);
     hubo = true;
+    stick.moviendo = false;
   } else {
     const ax = m.axes[0] ?? 0;
     const ay = m.axes[1] ?? 0;
-    if (Math.hypot(ax, ay) >= d.zonaMuerta) {
-      fijarDireccion(acciones, ax, ay, d.zonaMuerta);
+    const umbral = stick.moviendo ? d.zonaMuertaSalida : d.zonaMuerta;
+    stick.moviendo = Math.hypot(ax, ay) >= umbral;
+    if (stick.moviendo) {
+      fijarDireccion(acciones, ax, ay, umbral, d.anchoDiagonal);
       hubo = true;
     }
   }
