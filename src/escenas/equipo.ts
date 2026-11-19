@@ -129,7 +129,13 @@ export class EscenaEquipo implements Escena {
     };
   }
 
+  private anunciado = false;
+
   enter(): void {
+    this.anunciado = false;
+  }
+
+  private anunciarTodo(): void {
     anunciar(
       [
         this.titulo,
@@ -143,6 +149,12 @@ export class EscenaEquipo implements Escena {
   exit(): void {}
 
   update(dt: number, a: Acciones): void {
+    if (!this.anunciado) {
+      // Se anuncia en el primer fotograma a la vista, no al apilarse: tras ganar un combate se apila debajo de
+      // otras pantallas (nivel, frase del jefe) y, si se leyera en enter(), la taparían antes de verse.
+      this.anunciado = true;
+      this.anunciarTodo();
+    }
     this.tiempo += dt;
     if (a.toqueX >= 0) {
       this.tocar(a.toqueX, a.toqueY);

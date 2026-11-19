@@ -41,7 +41,13 @@ export class EscenaFinReto implements Escena {
     private readonly alPortada: () => void,
   ) {}
 
+  private anunciado = false;
+
   enter(): void {
+    this.anunciado = false;
+  }
+
+  private anunciarTodo(): void {
     const l = this.lineas;
     anunciar(
       [
@@ -64,6 +70,12 @@ export class EscenaFinReto implements Escena {
   }
 
   update(_dt: number, a: Acciones): void {
+    if (!this.anunciado) {
+      // Se anuncia en el primer fotograma a la vista, no al apilarse: tras ganar un combate se apila debajo de
+      // otras pantallas (nivel, frase del jefe) y, si se leyera en enter(), la taparían antes de verse.
+      this.anunciado = true;
+      this.anunciarTodo();
+    }
     if (this.hecha) return;
     if (a.cancelar) {
       this.usar(1);
