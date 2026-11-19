@@ -30,7 +30,8 @@ const SALEN_DE_CONTROLES = new Set([...MENU, ...INFO]);
 
 export function crearTeclado(): FuenteEntrada {
   const sostenidas = new Set<string>();
-  // Pulsadas desde el último paso: un toque corto entre dos pasos no se pierde.
+  // Pulsadas desde el último paso: un toque corto entre dos pasos no se pierde (tampoco el de una flecha: cuenta
+  // como dirección durante ese paso, así que en un menú mueve el cursor aunque se soltara antes de leerla).
   const nuevas = new Set<string>();
 
   addEventListener('keydown', (e) => {
@@ -51,8 +52,10 @@ export function crearTeclado(): FuenteEntrada {
   addEventListener('blur', () => sostenidas.clear());
 
   const alguna = (codigos: string[], en: Set<string>): boolean => codigos.some((c) => en.has(c));
+  const pulsada = (codigos: string[]): boolean =>
+    alguna(codigos, sostenidas) || alguna(codigos, nuevas);
   const eje = (negativo: string[], positivo: string[]): number =>
-    (alguna(positivo, sostenidas) ? 1 : 0) - (alguna(negativo, sostenidas) ? 1 : 0);
+    (pulsada(positivo) ? 1 : 0) - (pulsada(negativo) ? 1 : 0);
 
   return {
     leer(acciones) {
