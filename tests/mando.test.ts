@@ -116,3 +116,23 @@ describe('leerMando', () => {
     expect(paso()).toBe(false);
   });
 });
+
+describe('histéresis del stick', () => {
+  it('empieza a moverse en la zona muerta y no se para hasta bajar de la de salida', () => {
+    const m = mandoFalso();
+    const antes = new Array<boolean>(17).fill(false);
+    const stick = { moviendo: false };
+    const mover = (x: number): number => {
+      const a = crearAcciones();
+      m.axes[0] = x;
+      leerMando(m, antes, D, a, stick);
+      return a.moverX;
+    };
+    const entre = (D.zonaMuerta + D.zonaMuertaSalida) / 2;
+    expect(mover(entre)).toBe(0); // quieto: aún no llega a la zona muerta
+    expect(mover(D.zonaMuerta + 0.01)).toBe(1);
+    expect(mover(entre)).toBe(1); // ya en marcha: sigue aunque baje un poco
+    expect(mover(D.zonaMuertaSalida - 0.01)).toBe(0);
+    expect(mover(entre)).toBe(0);
+  });
+});
