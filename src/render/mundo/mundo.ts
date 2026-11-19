@@ -29,7 +29,7 @@ import {
 import { crearElemento } from './elementos';
 import { crearFuente } from './fuente';
 import { crearHundidos } from './hundidos';
-import { compararLuces, lugaresDeLuz } from '../../core/luces';
+import { compararLuces, cuantasDeAmbiente, lugaresDeLuz } from '../../core/luces';
 import { crearAmbiente } from './ambiente';
 import { crearArco, crearBarrera, crearModelo } from './modelos';
 import {
@@ -522,8 +522,9 @@ export class Mundo {
   private ponerAmbiente(v: VistaSala, salidas: readonly Salida[]): void {
     const amb = this.zona?.aspecto.ambiente;
     const luz = amb ? this.a.luces[amb.tipo] : undefined;
-    if (!amb || !luz || v.luces.length > 0) return;
-    const cuantos = amb.min + Math.floor(v.azar() * (amb.max - amb.min + 1));
+    if (!amb || !luz) return;
+    const cuantos = cuantasDeAmbiente(v.luces.length, amb, v.azar);
+    if (cuantos === 0) return;
     for (const [x, y] of lugaresDeLuz(v.sala, salidas, cuantos, amb.distancia, v.azar)) {
       const e = crearAmbiente(amb.tipo, v.azar, this.tamPunto());
       e.grupo.position.set(x + 0.5, 0, y + 0.5);
