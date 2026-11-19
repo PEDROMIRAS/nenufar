@@ -34,3 +34,9 @@ Hecho en la rama `mercader`. Medido con 2400 partidas por casilla, de la mezcla 
 | Difícil | 24,1 → 24,3 | 28,9 → 28,5 |
 
 Ninguna casilla se mueve más de 0,4 puntos: el puesto sale en un 5 % de las zonas y paga poco. Atajo de desarrollo: `?mercader` (los eventos son puestos y la partida empieza dentro de uno). Visto con Chrome sin cabeza en el Bosque con la mochila vacía y con cuatro piezas, al hacer un trueque y con el puesto apagado después. **Sin ver** en las otras zonas ni en el móvil. **El aspecto (el altar en dorado) lo tiene que aprobar Pedro.** Como con los demás eventos, la partida se guarda al entrar en cada sala: si se cierra el navegador justo después de un trueque, al volver la sala está como antes. Una partida guardada con la versión anterior puede encontrarse un puesto donde había un altar (no se cambia `VERSION_GUARDADO`, como cuando llegó el ermitaño).
+
+### Tras la revisión final (2026-11-19)
+
+- **Arreglado:** con las pociones y los éteres al máximo, el puesto se quedaba la pieza sin dar nada. Ahora el lote solo cuenta lo que cabe. Si no cabe nada, la oferta se apaga («No te cabe nada más…») y no hay trueque.
+- **Arreglado:** el aviso pasa a ser «Te llevas {lote}», porque el largo se salía de su caja; «no te caben más» dice los nombres y no las claves; con la mochila vacía o todo lleno, el texto del puesto ya dice por qué no hay trueque, también para el lector de pantalla. El generador de `comunes` tiene el puesto, y hay tests de los datos del puesto, del tile, de que lo vendido no vuelve en los cofres y de que el guardado valida `vendidas`.
+- **Decisiones mías que quedan así:** las piezas especiales de los jefes violeta se valoran por sus bonos de base (3 a 5), sin contar lo que crecen con el nivel, así que pagan 1 o 2. La jugadora simulada no apunta las piezas que suelta un combate y no se pone, así que en la medida el mercader rinde algo menos que en el juego.

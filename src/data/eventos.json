@@ -125,6 +125,7 @@
       "texto": "Marcharse",
       "descripcion": "No dejas nada. El puesto seguirá aquí."
     },
-    "aviso": "Dejas {pieza} y te llevas {lote}"
+    "lleno": "No te cabe nada más de lo que paga: gasta algo antes.",
+    "aviso": "Te llevas {lote}"
   }
 }

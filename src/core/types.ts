@@ -371,6 +371,8 @@ export interface DatosEventos {
     oferta: string;
     sinNada: { texto: string; descripcion: string };
     marcharse: { texto: string; descripcion: string };
+    /** Descripción de una oferta apagada porque no cabe nada de lo que paga. */
+    lleno: string;
     aviso: string;
   };
 }

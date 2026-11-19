@@ -56,6 +56,16 @@ describe('guardado de la partida', () => {
     expect(leerGuardado(JSON.stringify(g), conocido)).toEqual(g);
   });
 
+  test('las piezas dejadas en el mercader se guardan; sin el campo (partidas de antes) también vale', () => {
+    const g = ejemplo();
+    g.inventario.vendidas = ['katana_acero'];
+    expect(leerGuardado(JSON.stringify(g), conocido)).toEqual(g);
+    g.inventario.vendidas = ['no_existe'];
+    expect(leerGuardado(JSON.stringify(g), conocido)).toBeNull();
+    delete g.inventario.vendidas;
+    expect(leerGuardado(JSON.stringify(g), conocido)).toEqual(g);
+  });
+
   test.each([
     [{ tipo: 'grupo', indice: 1, quien: 'heroina' }],
     [{ tipo: 'grupo', indice: 0, quien: null }],

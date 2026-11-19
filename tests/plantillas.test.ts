@@ -147,3 +147,8 @@ describe.each(Object.entries(ZONAS))('plantillas de %s', (zona, plantillas) => {
     }
   });
 });
+
+test('el puesto del mercader y el círculo del desafío están en los objetos comunes (si no, la sala no se abre)', () => {
+  const nombres = (comunes as { tiles: { name: string }[] }).tiles.map((t) => t.name);
+  for (const n of ['altar', 'altar_apagado', 'desafio', 'mercader']) expect(nombres).toContain(n);
+});

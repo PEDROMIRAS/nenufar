@@ -9,6 +9,7 @@ WATER = [(40, 92, 160), (70, 140, 210), (130, 196, 240), (220, 244, 255)]
 FIRE = [(210, 84, 40), (246, 150, 52), (255, 214, 110), (255, 246, 210)]
 VIO = [(46, 18, 76), (96, 40, 160), (164, 96, 236), (230, 204, 255)]
 RED = [(70, 14, 14), (150, 30, 30), (226, 72, 60), (255, 176, 150)]
+ORO = [(62, 42, 8), (138, 98, 20), (224, 168, 54), (255, 230, 160)]  # el puesto del mercader
 
 
 def chest(opened=False):
@@ -184,4 +185,5 @@ def tiles():
         ("altar", "objeto", True, [altar()], None),
         ("altar_apagado", "objeto", True, [altar(False)], None),
         ("desafio", "objeto", True, [altar(True, RED)], None),
+        ("mercader", "objeto", True, [altar(True, ORO)], None),
     ]
