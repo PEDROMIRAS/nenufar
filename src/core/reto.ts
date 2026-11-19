@@ -37,14 +37,19 @@ export function mejorResultado(a: ResultadoReto, b: ResultadoReto | null): boole
 
 const conMonstruos = (s: SalaZona): boolean => s.tipo === 'combate' || s.tipo === 'jefe';
 
-/** Hasta qué sala con monstruos se llegó: las visitadas (índices en `salas`), como mínimo la primera. */
+/**
+ * Hasta qué sala con monstruos se llegó: las visitadas (índices en `salas`), como mínimo la primera. `vacias` son las
+ * salas de combate en las que no cupo ningún grupo (rarísimo): no cuentan.
+ */
 export function progresoReto(
   salas: readonly SalaZona[],
   visitadas: readonly number[],
+  vacias: ReadonlySet<SalaZona> = new Set(),
 ): { sala: number; de: number } {
-  const de = salas.filter(conMonstruos).length;
+  const cuenta = (s: SalaZona): boolean => conMonstruos(s) && !vacias.has(s);
+  const de = salas.filter(cuenta).length;
   const vistas = new Set(visitadas);
-  const sala = salas.filter((s, i) => vistas.has(i) && conMonstruos(s)).length;
+  const sala = salas.filter((s, i) => vistas.has(i) && cuenta(s)).length;
   return { sala: Math.max(1, sala), de };
 }
 

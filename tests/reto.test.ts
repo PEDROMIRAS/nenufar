@@ -58,6 +58,17 @@ test('progresoReto cuenta las salas con monstruos y empieza en 1', () => {
   expect(progresoReto(zona.salas, todas)).toEqual({ sala: conMonstruos, de: conMonstruos });
 });
 
+test('progresoReto no cuenta una sala de combate en la que no cupo ningún grupo', () => {
+  const zona = generarZona({ ...zonas.generacion, salas: 8 }, 7);
+  const conMonstruos = zona.salas.filter((s) => s.tipo === 'combate' || s.tipo === 'jefe').length;
+  const vacia = zona.salas.find((s) => s.tipo === 'combate')!;
+  const todas = zona.salas.map((_, i) => i);
+  expect(progresoReto(zona.salas, todas, new Set([vacia]))).toEqual({
+    sala: conMonstruos - 1,
+    de: conMonstruos - 1,
+  });
+});
+
 describe('anotarReto', () => {
   test('primer día, mismo día peor, otra rana y día nuevo', () => {
     const uno = anotarReto(RETO_VACIO, '2026-11-18', 'ronin', pierde(3));
