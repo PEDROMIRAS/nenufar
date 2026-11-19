@@ -1,144 +1,50 @@
 import { crearAcciones } from './core/acciones';
 import { crearAzar } from './core/azar';
-import {
-  crearCombate,
-  luchadorDeHeroe,
-  luchadoresDeGrupo,
-  type Luchador,
-  type Resultado,
-} from './core/combate';
-import {
-  heroinaGuardada,
-  restaurarHeroina,
-  VERSION_GUARDADO,
-  type CombateGuardado,
-  type Conocido,
-  type EstadoMapa,
-  type PartidaGuardada,
-} from './core/guardado';
-import { crearHeroina, type Heroina } from './core/heroina';
-import {
-  capasDeEquipo,
-  coloresDeEquipo,
-  equipar,
-  guardarPieza,
-  inventarioInicial,
-} from './core/equipo';
+import { luchadorDeHeroe, type Luchador } from './core/combate';
+import { restaurarHeroina } from './core/guardado';
+import { crearHeroina } from './core/heroina';
+import { equipar, inventarioInicial } from './core/equipo';
 import type { Inventario } from './core/inventario';
-import { limpiarNombre } from './core/nombre';
-import { cambiosDeNivel, empezarEnNivel, instantanea, repartirPuntos } from './core/progresion';
-import {
-  anotarReto,
-  progresoReto,
-  semillaDelDia,
-  textoFecha,
-  type Fecha,
-  type ResultadoReto,
-} from './core/reto';
-import { EscenaFinReto } from './escenas/finReto';
+import { empezarEnNivel } from './core/progresion';
+import { semillaDelDia, type Fecha } from './core/reto';
 import RETO from './data/reto.json';
-import JUGADORA from './data/jugadora.json';
-import { elegirDia } from './core/diaJusto';
-import { gruposDeZona } from './core/montaje';
-import {
-  actualizarRecords,
-  anotarLogros,
-  anotarVencidos,
-  esNuevoRecord,
-  formatearTiempo,
-  type Resumen,
-} from './core/records';
-import { logrosNuevos, monstruosDelMundo, type Logro } from './core/logros';
-import logrosJson from './data/logros.json';
-import { construirSala, crearCatalogo, type Tile } from './core/sala';
-import { bestiarioCon, monstruoCon, reglasCon } from './core/dificultad';
-import type {
-  DificultadJson,
-  HeroeJson,
-  MonstruoJson,
-  PlantillasJson,
-  PresagioJson,
-  ReglasCombate,
-  ZonaHd2d,
-} from './core/types';
-import { aplicarRecompensa, elegirRecompensa } from './core/recompensas';
-import { cofreCon, dificultadCon, elegirPresagio, presagioUtil } from './core/presagios';
-import { jefeVioleta, modoVioleta } from './core/violetas';
-import {
-  aplicarAltar,
-  aplicarErmitano,
-  opcionesAltar,
-  opcionesDesafio,
-  opcionesErmitano,
-  reglasDesafio,
-} from './core/eventos';
-import { generarZona, type Zona } from './core/zona';
+import { construirSala, crearCatalogo } from './core/sala';
+import { bestiarioCon, reglasCon } from './core/dificultad';
+import type { DificultadJson, HeroeJson } from './core/types';
 import controles from './data/controles.json';
-import {
-  DIFICULTADES,
-  EVENTOS,
-  HD2D,
-  HEROES,
-  MONSTRUOS,
-  OBJETOS,
-  PRESAGIOS,
-  REGLAS,
-} from './data/datos';
-import plantillasBosque from './data/salas/plantillas_bosque.json';
-import plantillasCauce from './data/salas/plantillas_cauce.json';
-import plantillasCripta from './data/salas/plantillas_cripta.json';
-import plantillasRuinas from './data/salas/plantillas_ruinas.json';
+import { DIFICULTADES, EVENTOS, HD2D, HEROES, MONSTRUOS, OBJETOS, REGLAS } from './data/datos';
 import historia from './data/historia.json';
 import ritmo from './data/ritmo.json';
-import zonas from './data/zonas.json';
-import { EscenaCombate } from './escenas/combate';
 import { EscenaControles } from './escenas/controles';
 import { EscenaDificultad } from './escenas/dificultad';
 import { EscenaExtras } from './escenas/extras';
 import { EscenaNombre } from './escenas/nombre';
-import { EscenaEquipo, type DatosEquipo } from './escenas/equipo';
-import { EscenaEvento } from './escenas/evento';
-import { EscenaMensaje } from './escenas/mensaje';
-import { EscenaMapa } from './escenas/mapa';
 import { PilaEscenas } from './escenas/pila';
 import { EscenaPausa } from './escenas/pausa';
 import type { Escena } from './escenas/escena';
 import { EscenaPresentacion } from './escenas/presentacion';
-import { EscenaPuntos } from './escenas/puntos';
 import { EscenaSeleccion } from './escenas/seleccion';
 import { EscenaTitulo } from './escenas/titulo';
 import { leerFuentes } from './input/fuente';
 import { crearJoystick } from './input/joystick';
 import { crearTeclado } from './input/teclado';
-import { dispositivo, fijarDispositivo, usarDispositivo } from './input/dispositivo';
+import { fijarDispositivo, usarDispositivo } from './input/dispositivo';
 import { conexionesMando, crearMando } from './input/mando';
 import { avisoNuevo, crearEstadoCartel, opacidadCartel, reiniciarCartel } from './core/cartel';
 import { dibujarCartel } from './render/cartel';
 import { anunciar, movimientoReducido } from './render/accesibilidad';
 import { crearToque } from './input/toque';
 import { iniciarBucle } from './render/bucle';
-import { PALETA } from './render/marco';
 import { vigilarActualizaciones } from './render/actualizacion';
 import { colocarContexto, esTactil, fijarModo, prepararPantalla } from './render/pantalla';
-import { crearCasilla, crearDeslizador, type Casilla, type Deslizador } from './render/deslizador';
+import { crearCasilla, crearDeslizador } from './render/deslizador';
 import { crearCampoNombre } from './render/campoNombre';
 import { LARGO_NOMBRE, RECT_CAMPO } from './render/nombre';
 import { RECT_CALIDAD, RECT_EFECTOS, RECT_MUSICA, RECT_SONIDO, RECT_TEMBLOR } from './render/pausa';
-import { prepararSonido, sonar } from './render/sonido';
-import { vestirHoja } from './render/tinte';
-import { Mundo, type FondoSala } from './render/mundo/mundo';
+import { prepararSonido } from './render/sonido';
+import { Mundo } from './render/mundo/mundo';
 import { crearPortada, type Portada3d } from './render/mundo/portada';
-import {
-  borrarPartida,
-  cargarAjustes,
-  cargarPartida,
-  cargarRecords,
-  cargarReto,
-  guardarAjustes,
-  guardarPartida,
-  guardarRecords,
-  guardarReto,
-} from './render/almacen';
+import { cargarPartida, cargarRecords, guardarAjustes } from './render/almacen';
 import {
   cargarImagen,
   cargarSprite,
@@ -146,151 +52,28 @@ import {
   cargarTilesets,
   type Sprite,
 } from './render/recursos';
-
-const LOGROS: readonly Logro[] = logrosJson.logros;
-/** Lo que miran los logros que no está en la partida: qué ranas y qué monstruos existen. */
-const MUNDO = { heroes: Object.keys(HEROES), monstruos: monstruosDelMundo(MONSTRUOS) };
-
-type NombreZona = keyof typeof zonas.zonas;
-/** Orden de las zonas: el de zonas.json. */
-const ORDEN = Object.keys(zonas.zonas) as NombreZona[];
-const PLANTILLAS: Record<NombreZona, PlantillasJson> = {
-  bosque: plantillasBosque,
-  ruinas: plantillasRuinas,
-  cripta: plantillasCripta,
-  cauce: plantillasCauce,
-};
-/** Para `?portada=<id de plantilla>` (solo en desarrollo). */
-const PLANTILLAS_DEV: Record<string, PlantillasJson> = PLANTILLAS;
-
-/** Lo que comparten todas las zonas de una partida. */
-interface Partida {
-  semilla: number;
-  pila: PilaEscenas;
-  heroina: Heroina;
-  luchadora: Luchador;
-  inventario: Inventario;
-  /** La heroína: su hoja cambia de colores con el equipo (ver `vestir`); `imagenBase` es la original. */
-  sprite: Sprite;
-  imagenBase: HTMLImageElement;
-  /** Capas de las piezas especiales que cambian la silueta de la heroína, por su ruta. */
-  capas: ReadonlyMap<string, HTMLImageElement>;
-  /** Hojas de monstruos, efectos y proyectiles, por nombre. */
-  hojas: ReadonlyMap<string, Sprite>;
-  combates: number;
-  /** Para el resumen final: cuándo empezó (ms), monstruos vencidos y zona en la que está. */
-  inicio: number;
-  vencidos: number;
-  zona: string;
-  /** Dificultad elegida, y monstruos y reglas de combate con ella ya aplicada. */
-  dificultad: DificultadJson;
-  /** Presagio de la zona en que está, y la dificultad con él puesto (`dificultad` no cambia: los récords la buscan por identidad). */
-  presagio: PresagioJson | null;
-  dificultadZona: DificultadJson;
-  bestiario: Record<string, MonstruoJson>;
-  reglas: ReglasCombate;
-  /** Volumen de música y efectos y sonido sí o no en el inventario (controles HTML, uno por partida). */
-  controles: {
-    musica: Deslizador;
-    efectos: Deslizador;
-    temblor: Deslizador;
-    sonido: Casilla;
-    calidad: Casilla;
-  };
-  /** Nombre del jefe final: lleva el de la última heroína que lo venció, si la hubo. */
-  rival: string;
-  /** Salas violetas que han salido en las zonas ya creadas, y si una de ellas era del dragón negro. */
-  violetas: number;
-  dragonUsado: boolean;
-  /** Los dos de antes, tal como estaban antes de crear la zona actual: es lo que se guarda. */
-  violetasAntes: number;
-  dragonAntes: boolean;
-  /** El mapa en 3D (uno para todas las partidas: cada WebGLRenderer es un contexto del navegador). */
-  mundo: Mundo;
-  /**
-   * En el reto del día: su fecha, los segundos jugados (sin contar la pausa) y hasta qué sala se ha llegado. Null en
-   * la partida normal. El reto no se guarda ni toca los récords, los logros ni el bestiario.
-   */
-  reto: { fecha: Fecha; segundos: number; progreso: () => { sala: number; de: number } } | null;
-}
+import {
+  sesion,
+  type NombreZona,
+  ORDEN,
+  PLANTILLAS_DEV,
+  type Partida,
+  CONOCIDO,
+  aspecto,
+  mostrarError,
+} from './partida/partida';
+import { LOGROS, hoy, terminarReto } from './partida/fin';
+import { contar, paginas, paginaPresagio, cartel, tituloRival } from './partida/relato';
+import { crearZona } from './partida/zona';
+import { abrirAltar } from './partida/eventos';
+import { vestir, luchar } from './partida/combates';
 
 const esPausa = (e: Escena): boolean => e instanceof EscenaPausa;
 
-/** El reto del día que se está jugando, para contar su tiempo en el bucle (null si no hay). */
-let retoEnJuego: Partida | null = null;
-
-/** Lo que existe en el juego, para descartar una partida guardada que nombre algo que ya no está. */
-const CONOCIDO: Conocido = {
-  heroes: Object.keys(HEROES),
-  dificultades: Object.keys(DIFICULTADES),
-  equipo: Object.keys(OBJETOS.equipo),
-  consumibles: Object.keys(OBJETOS.consumibles),
-  zonas: ORDEN.length,
-};
-
-/** Hay una partida en marcha: cerrar la pestaña pregunta antes (Ctrl+W sin querer). */
-let enCurso = false;
+// Con una partida en marcha, cerrar la pestaña pregunta antes (Ctrl+W sin querer).
 addEventListener('beforeunload', (e) => {
-  if (enCurso) e.preventDefault();
+  if (sesion.enCurso) e.preventDefault();
 });
-
-const claveDe = <T>(tabla: Record<string, T>, valor: T): string =>
-  Object.entries(tabla).find(([, v]) => v === valor)?.[0] ?? '';
-
-/** La partida tal como hay que guardarla al entrar en una sala de la zona `zona`. */
-function guardado(
-  partida: Partida,
-  zona: number,
-  mapa: EstadoMapa,
-  combate: CombateGuardado | null = null,
-): PartidaGuardada {
-  const l = partida.luchadora;
-  return {
-    version: VERSION_GUARDADO,
-    semilla: partida.semilla,
-    zona,
-    heroe: l.heroe ? claveDe(HEROES, l.heroe) : '',
-    dificultad: claveDe(DIFICULTADES, partida.dificultad),
-    combates: partida.combates,
-    vencidos: partida.vencidos,
-    violetasAntes: partida.violetasAntes,
-    dragonAntes: partida.dragonAntes,
-    rival: partida.rival,
-    segundos: (performance.now() - partida.inicio) / 1000,
-    combate,
-    heroina: heroinaGuardada(l),
-    inventario: partida.inventario,
-    mapa,
-  };
-}
-
-/** Una pantalla de la historia. */
-interface Pagina {
-  titulo: string;
-  texto: string;
-}
-
-const COLOR_HISTORIA = '#c9b6ff';
-const SEGUIR = 'Pulsa o toca para seguir';
-
-/** Apila las páginas de la historia una tras otra encima de lo que haya; al pasar la última, sigue. */
-function contar(pila: PilaEscenas, paginas: readonly Pagina[], alFinal: () => void): void {
-  const [primera, ...resto] = paginas;
-  if (!primera) {
-    alFinal();
-    return;
-  }
-  pila.apilar(
-    new EscenaMensaje(primera.titulo, COLOR_HISTORIA, [primera.texto], SEGUIR, () => {
-      pila.desapilar();
-      contar(pila, resto, alFinal);
-    }),
-  );
-}
-
-/** Páginas sin título, una por texto. */
-const paginas = (textos: readonly string[]): Pagina[] =>
-  textos.map((texto) => ({ titulo: '', texto }));
 
 /** Lo que dice el cartel al detectar un mando. */
 const CARTEL_MANDO = 'Mando conectado';
@@ -417,7 +200,7 @@ async function iniciar(): Promise<void> {
       reto: null,
     };
     vestir(partida); // con el arma y la armadura que lleve
-    enCurso = true;
+    sesion.enCurso = true;
     return partida;
   };
   /** Crea la partida con la heroína, su nombre y la dificultad elegidas y carga la primera zona. */
@@ -498,9 +281,9 @@ async function iniciar(): Promise<void> {
       inventario,
       semillaDelDia(fecha),
     );
-    enCurso = false; // el reto dura minutos: cerrar la pestaña no pregunta
+    sesion.enCurso = false; // el reto dura minutos: cerrar la pestaña no pregunta
     partida.reto = { fecha, segundos: 0, progreso: () => ({ sala: 1, de: 1 }) };
-    retoEnJuego = partida;
+    sesion.retoEnJuego = partida;
     crearZona(partida, ORDEN.indexOf(RETO.zona as NombreZona), true)
       .then((zona) => {
         pila.cambiar(zona);
@@ -526,7 +309,7 @@ async function iniciar(): Promise<void> {
       })
       .catch(mostrarError);
   };
-  reiniciarReto = (heroe, fecha) =>
+  sesion.reiniciarReto = (heroe, fecha) =>
     empezarReto(heroe, opciones.find((o) => o.heroe === heroe)!.sprite, fecha, true);
   let finForzado = import.meta.env.DEV ? new URLSearchParams(location.search).get('reto') : null;
   const seleccionReto = new EscenaSeleccion(opciones, ({ heroe, sprite }) =>
@@ -618,7 +401,7 @@ async function iniciar(): Promise<void> {
       leerFuentes(fuentes, acciones);
       pila.update(dt, acciones);
       // El tiempo del reto no cuenta la pausa (ni Equipo o Puntos abiertos desde ella).
-      if (retoEnJuego?.reto && !pila.alguna(esPausa)) retoEnJuego.reto.segundos += dt;
+      if (sesion.retoEnJuego?.reto && !pila.alguna(esPausa)) sesion.retoEnJuego.reto.segundos += dt;
       if (avisoNuevo(estadoCartel, conexionesMando())) {
         tiempoCartel = reiniciarCartel(tiempoCartel, controles.mando.aviso);
         anunciar(CARTEL_MANDO);
@@ -632,468 +415,6 @@ async function iniciar(): Promise<void> {
       if (opacidad > 0) dibujarCartel(ctx, CARTEL_MANDO, opacidad);
     },
   );
-}
-
-/** Carga la zona `indice` y crea su escena; su portal carga la siguiente y la pone en su lugar. */
-async function crearZona(
-  partida: Partida,
-  indice: number,
-  entrarDesdeNegro: boolean,
-  /** Estado de la zona en una partida recuperada. */
-  recuperado: EstadoMapa | null = null,
-): Promise<EscenaMapa> {
-  const nombre = ORDEN[indice];
-  if (!nombre) throw new Error(`No hay zona número ${indice}`);
-  const { tilesets, imagenes } = await cargarTilesets(nombre);
-  const datos = zonas.zonas[nombre];
-  const reto = partida.reto;
-  // Cada zona con su propia semilla, derivada de la de la partida. El reto: la zona corta, con la semilla del día
-  // tal cual y sin sala violeta, trampa, eventos ni presagio (como la juega el simulador).
-  const catalogo = crearCatalogo(tilesets);
-  const zona = reto
-    ? diaDelReto(partida, datos, catalogo)
-    : generarZona(
-        {
-          ...zonas.generacion,
-          salas: datos.salas,
-          violeta: modoVioleta(indice, ORDEN.length, partida.violetas),
-          probabilidadVioleta: zonas.violetas.probabilidad,
-          probabilidadTrampa: zonas.violetas.probabilidadTrampa,
-          probabilidadEvento: probabilidadEvento(),
-          probabilidadDesafio: probabilidadDesafio(),
-          probabilidadErmitano: probabilidadErmitano(),
-        },
-        partida.semilla + indice * 7919,
-      );
-  console.info(`Zona ${nombre}, semilla ${zona.semilla}`);
-  const clavePresagio = reto
-    ? null
-    : (presagioForzado() ??
-      elegirPresagio(PRESAGIOS, zona.semilla, (p) =>
-        presagioUtil(p, datos.cofre, OBJETOS.armaduras.length),
-      ));
-  fijarPresagio(partida, clavePresagio ? PRESAGIOS.lista[clavePresagio]! : null);
-  const presagio = partida.presagio;
-  // Lo que se guarda es lo de antes de crear la zona: al recuperarla se vuelve a crear igual.
-  partida.violetasAntes = partida.violetas;
-  partida.dragonAntes = partida.dragonUsado;
-  // El jefe de la sala violeta, si la hay: a veces el dragón negro, como mucho uno por partida.
-  let violeta: MonstruoJson | null = null;
-  if (zona.salas.some((s) => s.tipo === 'violeta')) {
-    const clave = jefeVioleta(
-      nombre,
-      datos,
-      zonas.violetas,
-      partida.dragonUsado,
-      crearAzar(zona.semilla * 13 + 5),
-    );
-    partida.violetas++;
-    if (clave === zonas.violetas.dragon[nombre]) partida.dragonUsado = true;
-    violeta = monstruo(clave);
-  }
-  partida.zona = datos.nombre;
-  const hayOtra = indice + 1 < ORDEN.length;
-  const escena: EscenaMapa = new EscenaMapa({
-    zona,
-    mundo: partida.mundo,
-    aspecto: aspecto(nombre),
-    fuente: HD2D.fuente,
-    plantillas: PLANTILLAS[nombre],
-    catalogo,
-    imagenes,
-    tam: tilesets[0]?.tileSize ?? 32,
-    heroina: partida.heroina,
-    sprite: partida.sprite,
-    musica: nombre,
-    spritesMonstruos: partida.hojas,
-    duracionFundido: zonas.transicionSalas,
-    rejilla: zonas.generacion.rejilla,
-    // El portal de la última zona lleva al jefe final; vencerlo es ganar la partida. En el reto no hay portal que
-    // usar: vencer al Guardián lo acaba.
-    alUsarPortal: reto
-      ? () => {}
-      : hayOtra
-        ? () => {
-            crearZona(partida, indice + 1, true)
-              .then((siguiente) => {
-                partida.pila.cambiar(siguiente);
-                contar(partida.pila, [cartel(indice + 1), ...paginaPresagio(partida)], () => {});
-              })
-              .catch(mostrarError);
-          }
-        : () => {
-            guardarPartida(guardado(partida, indice, escena.estado(), { tipo: 'final' }));
-            fijarPresagio(partida, null); // el jefe final se lucha sin presagio
-            lucharJefe(
-              partida,
-              { ...monstruo(zonas.jefeFinal), nombre: partida.rival },
-              historia.jefeFinal,
-              escena.fondoSala,
-              () => terminarPartida(partida, true),
-            );
-          },
-    entrarDesdeNegro,
-    recuperado: recuperado ?? (reto ? null : empezarEnEvento(zona)),
-    // El reto no se guarda: si se cierra, se pierde (y la portada vuelve a salir al abrir).
-    alEntrarEnSala: (estado) => {
-      if (!reto) guardarPartida(guardado(partida, indice, estado));
-    },
-    grupos: datos.grupos.map(({ monstruos, peso }) => ({
-      peso,
-      monstruos: monstruos.map(monstruo),
-    })),
-    gruposPorSala: reto ? RETO.gruposPorSala : zonas.monstruos.gruposPorSala,
-    gruposExtra: presagio?.gruposExtra ?? 0,
-    modoFuente: presagio?.fuente ?? 'todo',
-    presagio: presagio?.nombre ?? null,
-    jefe: monstruo(datos.jefe),
-    jefeVioleta: violeta,
-    cofreTrampa: monstruo(datos.cofreTrampa),
-    cofre: cofreCon(datos.cofre, presagio, OBJETOS.armaduras.length),
-    inventario: partida.inventario,
-    objetos: OBJETOS,
-    usarAltar: (alTerminar) => abrirAltar(partida, alTerminar),
-    desafio: EVENTOS.desafio,
-    usarDesafio: (alTerminar) => abrirDesafio(partida, alTerminar),
-    ermitano: EVENTOS.ermitano,
-    usarErmitano: (azar, alTerminar) => abrirErmitano(partida, azar, alTerminar),
-    ofrecerEquipo: (clave, alFinal) => ofrecerEquipo(partida, [clave], alFinal),
-    abrirPausa: () => {
-      const pausa: EscenaPausa = new EscenaPausa(
-        partida.luchadora,
-        partida.sprite,
-        partida.inventario,
-        OBJETOS,
-        REGLAS.experiencia,
-        REGLAS.estados,
-        partida.presagio,
-        partida.controles,
-        () =>
-          partida.pila.apilar(
-            new EscenaEquipo(datosEquipo(partida), { tipo: 'cambiar' }, () => {
-              partida.pila.desapilar();
-              vestir(partida);
-              pausa.refrescar();
-            }),
-          ),
-        () =>
-          partida.pila.apilar(
-            new EscenaPuntos(partida.luchadora, partida.reglas, 'Volver', () => {
-              partida.pila.desapilar();
-              pausa.refrescar();
-            }),
-          ),
-        () => partida.pila.desapilar(),
-        reto ? volverAPortada : empezarOtra,
-      );
-      partida.pila.apilar(pausa);
-    },
-    distanciaMonstruos: zonas.monstruos.distanciaEntradas,
-    invulnerabilidad: REGLAS.invulnerabilidadTrasCombate,
-    luchadora: partida.luchadora,
-    nombreZona: datos.nombre,
-    lluviaTrasJefe: historia.zonas[nombre].jefe.lluvia,
-    // Las pistas de controles, solo en la primera zona de la primera partida.
-    pistas:
-      indice === 0 && !recuperado && !cargarAjustes().pistasVistas
-        ? controles.pistas[dispositivo()]
-        : [],
-    segundosPista: controles.pistas.segundos,
-    iniciarCombate: (grupo, alTerminarMapa, quien, combate) => {
-      // Se guarda al empezar, con el combate: si se cierra a mitad, al volver se repite desde el
-      // principio (cerrar no salva de un combate). Al acabarlo (ganado o huyendo) se guarda tal cual,
-      // para que tampoco se pueda repetir uno ya ganado.
-      if (reto) {
-        // En el reto, vencer al Guardián lo acaba (tras su frase y la subida de nivel, si la hay).
-        const jefe = grupo[0];
-        if (jefe?.jefe)
-          lucharJefe(partida, jefe, historia.zonas[nombre].jefe, escena.fondoSala, (resultado) =>
-            resultado === 'victoria' ? terminarReto(partida, true) : alTerminarMapa(resultado),
-          );
-        else luchar(partida, grupo, escena.fondoSala, alTerminarMapa, quien);
-        return;
-      }
-      guardarPartida(guardado(partida, indice, escena.estado(), combate));
-      const alTerminar = (resultado: Resultado): void => {
-        alTerminarMapa(resultado);
-        // En una cadena del desafío, lo pendiente (el siguiente combate o el premio) va en el guardado.
-        guardarPartida(guardado(partida, indice, escena.estado(), escena.combatePendiente()));
-      };
-      const jefe = grupo[0];
-      if (jefe?.jefe && jefe.oculto) lucharVioleta(partida, jefe, escena.fondoSala, alTerminar);
-      else if (jefe?.jefe)
-        lucharJefe(partida, jefe, historia.zonas[nombre].jefe, escena.fondoSala, alTerminar);
-      else {
-        // En el desafío solo el último combate devuelve vida: los anteriores se luchan sin recuperación.
-        const sinRecuperar =
-          combate.tipo === 'desafio' && combate.paso + 1 < EVENTOS.desafio.combates;
-        const reglas = sinRecuperar ? reglasDesafio(partida.reglas) : partida.reglas;
-        luchar(partida, grupo, escena.fondoSala, alTerminar, quien, null, reglas);
-      }
-    },
-  });
-  if (reto) reto.progreso = () => progresoReto(zona.salas, escena.estado().visitadas);
-  return escena;
-}
-
-/**
- * La zona del reto del día: la de la semilla de la fecha si es justa para todas las ranas (la jugadora simulada la
- * juega antes); si no, la siguiente. Es determinista: el mismo día para todo el mundo. Fija la semilla de la partida
- * a la de la zona elegida (los combates sacan su azar de ella).
- */
-function diaDelReto(
-  partida: Partida,
-  datos: (typeof zonas.zonas)[NombreZona],
-  catalogo: ReadonlyMap<string, Tile>,
-): Zona {
-  const nombre = RETO.zona as NombreZona;
-  const inicio = performance.now();
-  const zona = elegirDia(
-    partida.semilla,
-    (s) => generarZona({ ...zonas.generacion, salas: RETO.salas, tesoros: RETO.tesoros }, s),
-    (z) =>
-      new Map(
-        [
-          ...gruposDeZona(
-            z,
-            PLANTILLAS[nombre],
-            catalogo,
-            RETO.gruposPorSala,
-            zonas.monstruos.distanciaEntradas,
-            datos.grupos,
-          ),
-        ].map(([sala, grupos]) => [sala, grupos.map((g) => g.monstruos)]),
-      ),
-    {
-      heroes: Object.values(HEROES),
-      nivel: RETO.nivel,
-      cofre: datos.cofre,
-      jefe: datos.jefe,
-      mundo: {
-        bestiario: partida.bestiario,
-        reglas: partida.reglas,
-        objetos: OBJETOS,
-        experiencia: REGLAS.experiencia,
-        politica: JUGADORA,
-      },
-      comprobacion: RETO.comprobacion,
-    },
-  );
-  partida.semilla = zona.semilla;
-  console.info(
-    `Reto del día: semilla ${zona.semilla}, comprobada en ${Math.round(performance.now() - inicio)} ms`,
-  );
-  return zona;
-}
-
-/** Pone (o quita) el presagio de la zona y recalcula lo que depende de él: la dificultad, los monstruos y las reglas. */
-function fijarPresagio(partida: Partida, presagio: PresagioJson | null): void {
-  partida.presagio = presagio;
-  partida.dificultadZona = dificultadCon(partida.dificultad, presagio);
-  partida.bestiario = bestiarioCon(MONSTRUOS, partida.dificultadZona);
-  partida.reglas = reglasCon(REGLAS, partida.dificultadZona);
-}
-
-/** La elección del altar encima del mapa: aplica el trato elegido y avisa de lo ocurrido. */
-function abrirAltar(partida: Partida, alTerminar: (usado: boolean, aviso: string) => void): void {
-  partida.pila.apilar(
-    new EscenaEvento(
-      EVENTOS.altar.nombre,
-      EVENTOS.altar.descripcion,
-      opcionesAltar(partida.luchadora, EVENTOS.altar, REGLAS.experiencia),
-      (clave) => {
-        partida.pila.desapilar();
-        const nivel = partida.luchadora.nivel;
-        const aviso = aplicarAltar(
-          partida.luchadora,
-          partida.inventario,
-          clave,
-          EVENTOS.altar,
-          OBJETOS,
-          REGLAS.experiencia,
-        );
-        // Subir de nivel en el altar suena como en el combate.
-        if (partida.luchadora.nivel > nivel) sonar('nivel');
-        alTerminar(clave !== 'marcharse', aviso);
-      },
-    ),
-  );
-}
-
-/** La elección del ermitaño encima del mapa: da lo ofrecido que se elija y avisa de lo ocurrido. */
-function abrirErmitano(
-  partida: Partida,
-  azar: () => number,
-  alTerminar: (usado: boolean, aviso: string) => void,
-): void {
-  partida.pila.apilar(
-    new EscenaEvento(
-      EVENTOS.ermitano.nombre,
-      EVENTOS.ermitano.descripcion,
-      opcionesErmitano(EVENTOS.ermitano, azar),
-      (clave) => {
-        partida.pila.desapilar();
-        if (clave === 'marcharse') return alTerminar(false, '');
-        alTerminar(true, aplicarErmitano(partida.inventario, clave, EVENTOS.ermitano, OBJETOS));
-      },
-    ),
-  );
-}
-
-/** ?desafio o ?ermitano empiezan dentro de esa sala de evento de la zona, si la tiene (solo en desarrollo). */
-function empezarEnEvento(zona: Zona): EstadoMapa | null {
-  // shortcut: solo en desarrollo, para probar el desafío o el ermitaño sin recorrer la zona
-  if (!import.meta.env.DEV) return null;
-  const url = new URLSearchParams(location.search);
-  const evento = url.has('desafio') ? 'desafio' : url.has('ermitano') ? 'ermitano' : null;
-  const sala = zona.salas.findIndex((s) => s.evento === evento);
-  if (sala < 0) return null;
-  return { sala, lado: null, visitadas: [sala], hechas: [], vencidos: {}, fuenteUsada: false };
-}
-
-/** La elección del desafío encima del mapa: avisa de si se acepta. */
-function abrirDesafio(partida: Partida, alTerminar: (aceptado: boolean) => void): void {
-  partida.pila.apilar(
-    new EscenaEvento(
-      EVENTOS.desafio.nombre,
-      EVENTOS.desafio.descripcion,
-      opcionesDesafio(EVENTOS.desafio),
-      (clave) => {
-        partida.pila.desapilar();
-        alTerminar(clave === 'aceptar');
-      },
-    ),
-  );
-}
-
-/** ?evento hace que toda zona con un callejón libre tenga un evento (?desafio, además, un desafío), solo en desarrollo. */
-function probabilidadEvento(): number {
-  // shortcut: solo en desarrollo, para probar los eventos sin buscarlos
-  if (!import.meta.env.DEV) return EVENTOS.probabilidad;
-  const url = new URLSearchParams(location.search);
-  return url.has('evento') || url.has('desafio') || url.has('ermitano') ? 1 : EVENTOS.probabilidad;
-}
-
-/** La fracción de eventos que son un desafío; con ?desafio, todos (solo en desarrollo). */
-function probabilidadDesafio(): number {
-  // shortcut: solo en desarrollo, para probar el desafío sin buscarlo
-  if (!import.meta.env.DEV) return EVENTOS.desafio.fraccion;
-  const url = new URLSearchParams(location.search);
-  if (url.has('ermitano')) return 0;
-  return url.has('desafio') ? 1 : EVENTOS.desafio.fraccion;
-}
-
-/** La fracción de los eventos que no son un desafío que son un ermitaño; con ?ermitano, todos (solo en desarrollo). */
-function probabilidadErmitano(): number {
-  // shortcut: solo en desarrollo, para probar al ermitaño sin buscarlo
-  if (!import.meta.env.DEV) return EVENTOS.ermitano.fraccion;
-  return new URLSearchParams(location.search).has('ermitano') ? 1 : EVENTOS.ermitano.fraccion;
-}
-
-/** ?presagio=clave fuerza el presagio de todas las zonas, solo en desarrollo. */
-function presagioForzado(): string | null {
-  // shortcut: solo en desarrollo, para probar un presagio concreto
-  if (!import.meta.env.DEV) return null;
-  const clave = new URLSearchParams(location.search).get('presagio');
-  return clave && clave in PRESAGIOS.lista ? clave : null;
-}
-
-/** Página del presagio de la zona, tras su cartel (ninguna si no hay). */
-function paginaPresagio(partida: Partida): Pagina[] {
-  const p = partida.presagio;
-  return p ? [{ titulo: `Presagio: ${p.nombre}`, texto: p.descripcion }] : [];
-}
-
-/** Cartel de la zona `indice` al entrar: su nombre largo y una o dos líneas. */
-function cartel(indice: number): Pagina {
-  const zona = historia.zonas[ORDEN[indice] ?? 'bosque'];
-  return { titulo: zona.nombre, texto: zona.cartel };
-}
-
-/** Nombre del jefe final de esta partida, con el de la última heroína que lo venció si la hubo. */
-function tituloRival(): string {
-  const senora = limpiarNombre(cargarAjustes().senora, '', LARGO_NOMBRE);
-  return senora
-    ? historia.jefeFinal.heredado.replace('{nombre}', senora)
-    : monstruo(zonas.jefeFinal).nombre;
-}
-
-/** Combate contra un jefe, con su frase antes de empezar y otra al caer. */
-function lucharJefe(
-  partida: Partida,
-  jefe: MonstruoJson,
-  frases: { inicio: string; caida: string },
-  fondo: FondoSala,
-  alTerminar: (resultado: Resultado) => void,
-): void {
-  // Primero su entrada (la sala tiembla y sale su nombre), luego su frase y el combate.
-  partida.pila.apilar(
-    new EscenaPresentacion(fondo, jefe.nombre, ritmo.presentacionJefe, () => {
-      partida.pila.desapilar();
-      contar(partida.pila, [{ titulo: jefe.nombre, texto: frases.inicio }], () =>
-        luchar(partida, [jefe], fondo, alTerminar, null, {
-          titulo: jefe.nombre,
-          texto: frases.caida,
-        }),
-      );
-    }),
-  );
-}
-
-/** Frases de los jefes violetas, por el nombre de su sprite (los tres dragones comparten la suya). */
-const FRASES_VIOLETAS: Record<string, { inicio: string; caida: string }> = historia.violetas;
-
-/** Combate contra el jefe de una sala violeta: como un jefe de zona y, al vencerlo, su recompensa. */
-function lucharVioleta(
-  partida: Partida,
-  jefe: MonstruoJson,
-  fondo: FondoSala,
-  alTerminar: (resultado: Resultado) => void,
-): void {
-  const frases = FRASES_VIOLETAS[jefe.sprite.split('/').pop() ?? ''];
-  if (!frases) throw new Error(`Sin frases en historia.json para ${jefe.sprite}`);
-  lucharJefe(partida, jefe, frases, fondo, (resultado) =>
-    resultado === 'victoria'
-      ? premiar(partida, jefe, () => alTerminar(resultado))
-      : alTerminar(resultado),
-  );
-}
-
-/**
- * Recompensa de un jefe violeta: una al azar de las que faltan (el arma o la armadura van a la mochila y se ofrecen
- * en la pantalla de equipo). El dragón negro, además, da su Corazón. `alAplicar` se llama con la recompensa ya dada y
- * antes de contarla (main guarda ahí: cerrar el navegador mientras se cuenta no la pierde ni repite el combate).
- */
-function premiar(partida: Partida, jefe: MonstruoJson, alAplicar: () => void): void {
-  const { luchadora: l, inventario: inv } = partida;
-  const heroe = l.heroe;
-  if (!heroe) return alAplicar();
-  const textos: Pagina[] = [];
-  let pieza: string | null = null;
-  const r = elegirRecompensa(inv.recompensas, crearAzar(partida.semilla * 17 + partida.combates));
-  if (r) {
-    const ganado = aplicarRecompensa(l, inv, heroe, r);
-    if (r === 'habilidad') {
-      const t = historia.recompensas.habilidad;
-      textos.push({ titulo: t.titulo, texto: t.texto.replace('{habilidad}', ganado) });
-    } else {
-      pieza = ganado;
-      const nombre = OBJETOS.equipo[ganado]?.nombre ?? ganado;
-      const t = historia.recompensas.pieza;
-      textos.push({
-        titulo: t.titulo,
-        texto: t.texto.replace('{jefe}', jefe.nombre).replace('{pieza}', nombre),
-      });
-    }
-  }
-  if (Object.values(zonas.violetas.dragon).includes(jefe.clave ?? '')) {
-    inv.corazon = 'lleno';
-    textos.push(historia.recompensas.corazon);
-  }
-  alAplicar();
-  contar(partida.pila, textos, () => {
-    if (pieza) ofrecerEquipo(partida, [pieza], () => {});
-  });
 }
 
 /** La portada en 3D: la sala de hd2d.json con su zona cargada. */
@@ -1118,274 +439,6 @@ async function portada(
   const sala = construirSala(plantilla.mapa, conjunto, catalogo, crearAzar(datos.semilla));
   const tam = tilesets[0]?.tileSize ?? 32;
   return crearPortada(mundo, datos, aspecto(zona), sala, catalogo, imagenes, tam, sprites);
-}
-
-/** Aspecto 3D de la zona, de hd2d.json. */
-function aspecto(zona: string): ZonaHd2d {
-  const a = HD2D.zonas[zona];
-  if (!a) throw new Error(`Falta la zona ${zona} en hd2d.json`);
-  return a;
-}
-
-function monstruo(clave: string): MonstruoJson {
-  const m = MONSTRUOS[clave];
-  if (!m) throw new Error(`Monstruo desconocido en zonas.json: ${clave}`);
-  return m;
-}
-
-/** Viste la hoja de la heroína según el arma y la armadura que lleva: colores y piezas especiales. */
-function vestir(partida: Partida): void {
-  const heroe = partida.luchadora.heroe;
-  if (!heroe) return;
-  partida.sprite.imagen = vestirHoja(
-    partida.imagenBase,
-    coloresDeEquipo(heroe, partida.inventario, OBJETOS),
-    capasDeEquipo(partida.inventario, OBJETOS).flatMap((k) => partida.capas.get(k) ?? []),
-  );
-}
-
-/** Lo que necesita la pantalla de Equipo de la partida. */
-function datosEquipo(partida: Partida): DatosEquipo {
-  return {
-    luchadora: partida.luchadora,
-    inventario: partida.inventario,
-    objetos: OBJETOS,
-    estados: REGLAS.estados,
-    sprite: partida.sprite,
-    imagenBase: partida.imagenBase,
-    capas: partida.capas,
-  };
-}
-
-/**
- * Enseña, una tras otra, las piezas de equipo encontradas para decidir si se cambian; después sigue. Las piezas van
- * antes a la mochila: la pantalla solo decide si se las pone, y cerrar el navegador con ella abierta no las pierde.
- */
-function ofrecerEquipo(partida: Partida, piezas: readonly string[], alFinal: () => void): void {
-  for (const pieza of piezas) guardarPieza(partida.inventario, pieza);
-  const [primera, ...resto] = piezas;
-  if (!primera) {
-    vestir(partida);
-    alFinal();
-    return;
-  }
-  partida.pila.apilar(
-    new EscenaEquipo(datosEquipo(partida), { tipo: 'hallazgo', clave: primera }, () => {
-      partida.pila.desapilar();
-      ofrecerEquipo(partida, resto, alFinal);
-    }),
-  );
-}
-
-const VOLVER_AL_TITULO = 'Pulsa o toca para volver al título';
-
-/** Vuelve al título para empezar otra partida con un mapa nuevo (sin la semilla de la URL). */
-const empezarOtra = (): void => {
-  enCurso = false;
-  borrarPartida();
-  location.assign(location.pathname);
-};
-
-/** Vuelve a la portada sin tocar la partida guardada (desde el reto del día, que no guarda nada). */
-const volverAPortada = (): void => {
-  enCurso = false;
-  location.assign(location.pathname);
-};
-
-/**
- * Empieza otra vez el reto con la misma rana y la misma fecha, sin el cartel de entrada (lo pone `iniciar`, que tiene
- * las hojas cargadas).
- */
-let reiniciarReto: (heroe: HeroeJson, fecha: Fecha) => void = () => {};
-
-/** La fecha de hoy en el navegador; en desarrollo, `?fecha=AAAA-MM-DD` la fuerza. */
-function hoy(): Fecha {
-  const pedida = import.meta.env.DEV
-    ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(new URLSearchParams(location.search).get('fecha') ?? '')
-    : null;
-  if (pedida) return { anio: Number(pedida[1]), mes: Number(pedida[2]), dia: Number(pedida[3]) };
-  const d = new Date();
-  return { anio: d.getFullYear(), mes: d.getMonth() + 1, dia: d.getDate() };
-}
-
-/**
- * Fin del reto del día: apunta el resultado en el récord de hoy de esa rana y enseña la tarjeta final, con «Otra vez»
- * (la misma rana y la misma fecha, aunque ya sea otro día) y «Portada».
- */
-function terminarReto(partida: Partida, victoria: boolean): void {
-  const reto = partida.reto;
-  const heroe = partida.luchadora.heroe;
-  if (!reto || !heroe) return volverAPortada();
-  retoEnJuego = null;
-  const resultado: ResultadoReto = { victoria, segundos: reto.segundos, ...reto.progreso() };
-  const clave = claveDe(HEROES, heroe);
-  const fecha = textoFecha(reto.fecha);
-  const { estado, nuevo } = anotarReto(cargarReto(), fecha, clave, resultado);
-  guardarReto(estado);
-  // Si otra pestaña ya jugó un día más reciente, el intento no se apunta y la tarjeta lo dice.
-  const apuntado = estado.fecha === fecha;
-  const mejor = (apuntado ? estado.mejores[clave] : null) ?? resultado;
-  partida.pila.cambiar(
-    new EscenaFinReto(
-      {
-        titulo: victoria ? '¡Guardián vencido!' : 'Fin del reto',
-        resultado: victoria
-          ? `Tiempo: ${formatearTiempo(resultado.segundos)}`
-          : `Caíste en la sala ${resultado.sala} de ${resultado.de}`,
-        mejor: apuntado
-          ? `Tu mejor de hoy con la ${heroe.nombre.replace(/^Rana /, 'rana ')}`
-          : 'No cuenta: ya jugaste un día más reciente',
-        mejorValor: mejor.victoria
-          ? `Victoria en ${formatearTiempo(mejor.segundos)}`
-          : `Sala ${mejor.sala} de ${mejor.de}`,
-        nuevo,
-        dias: `Días jugados: ${estado.dias}`,
-      },
-      () => reiniciarReto(heroe, reto.fecha),
-      volverAPortada,
-    ),
-  );
-}
-
-/** Fin de la partida: guarda los récords y enseña el resumen. */
-function terminarPartida(partida: Partida, victoria: boolean): void {
-  // Morir o ganar acaba la partida: no hay nada que recuperar.
-  enCurso = false;
-  borrarPartida();
-  const l = partida.luchadora;
-  const resumen: Resumen = {
-    victoria,
-    heroina: l.nombre,
-    nivel: l.nivel,
-    zona: partida.zona,
-    vencidos: partida.vencidos,
-    segundos: (performance.now() - partida.inicio) / 1000,
-    dificultad: claveDe(DIFICULTADES, partida.dificultad),
-    heroe: l.heroe ? claveDe(HEROES, l.heroe) : '',
-    objetosUsados: partida.inventario.usados,
-    contraHeredada: partida.rival !== monstruo(zonas.jefeFinal).nombre,
-  };
-  const records = cargarRecords();
-  const nuevoRecord = esNuevoRecord(records, resumen);
-  const actualizados = actualizarRecords(records, resumen);
-  const nuevos = logrosNuevos(actualizados, resumen, MUNDO, LOGROS);
-  guardarRecords(anotarLogros(actualizados, nuevos));
-  // Quien vence al jefe final ocupa su lugar: la próxima partida la espera a ella en la Cripta.
-  if (victoria) guardarAjustes({ senora: l.nombre });
-  const lineas = [
-    `${resumen.heroina}, nivel ${resumen.nivel} (${partida.dificultad.nombre})`,
-    victoria ? `Has derrotado a ${partida.rival}` : `Caíste en: ${resumen.zona}`,
-    `Monstruos vencidos: ${resumen.vencidos}`,
-    `Tiempo: ${formatearTiempo(resumen.segundos)}`,
-    ...(nuevoRecord ? ['', `¡Nuevo récord en ${partida.dificultad.nombre}!`] : []),
-    ...nuevos.map((clave) => `Logro: ${LOGROS.find((l) => l.clave === clave)?.nombre ?? clave}`),
-  ];
-  const textos = victoria ? (l.heroe?.historia.final ?? []) : [historia.derrota];
-  contar(partida.pila, paginas(textos), () =>
-    partida.pila.cambiar(
-      victoria
-        ? new EscenaMensaje('¡Victoria!', PALETA.elegida, lineas, VOLVER_AL_TITULO, empezarOtra)
-        : new EscenaMensaje(
-            'Fin de la partida',
-            PALETA.peligro,
-            lineas,
-            VOLVER_AL_TITULO,
-            empezarOtra,
-          ),
-    ),
-  );
-}
-
-/** Apila un combate contra `grupo`; al acabar lo quita y avisa, salvo derrota (fin de la partida). */
-function luchar(
-  partida: Partida,
-  grupo: MonstruoJson[],
-  /** Sala en la que empieza el combate, que se ve de fondo. */
-  fondo: FondoSala,
-  alTerminar: (resultado: Resultado) => void,
-  iniciativa: 'heroina' | 'monstruos' | null = null,
-  /** Lo que dice el jefe al caer, antes de la subida de nivel y del equipo. */
-  caida: Pagina | null = null,
-  /** Las reglas del combate; las de la partida salvo en los primeros combates del desafío. */
-  reglas: ReglasCombate = partida.reglas,
-): void {
-  const { pila, luchadora } = partida;
-  const antes = instantanea(luchadora);
-  const azar = crearAzar(partida.semilla * 31 + ++partida.combates);
-  const combate = crearCombate(
-    luchadora,
-    luchadoresDeGrupo(grupo.map((m) => monstruoCon(m, partida.dificultadZona))),
-    reglas,
-    azar,
-    partida.bestiario,
-  );
-  combate.iniciativa = iniciativa;
-  combate.inventario = partida.inventario;
-  combate.objetos = OBJETOS;
-  pila.apilar(
-    new EscenaCombate(combate, partida.sprite, partida.hojas, fondo, (resultado) => {
-      pila.desapilar();
-      if (resultado === 'victoria') {
-        partida.vencidos += combate.enemigos.length;
-        // Al bestiario en cuanto se vencen: no se pierden aunque se abandone la partida (el reto no lo toca).
-        const claves = combate.enemigos.flatMap((e) =>
-          e.monstruo?.clave ? [e.monstruo.clave] : [],
-        );
-        if (!partida.reto) guardarRecords(anotarVencidos(cargarRecords(), claves));
-      }
-      if (resultado !== 'derrota') {
-        // El combate se da por acabado ya, antes de las pantallas de después (frase del jefe, nivel, puntos, equipo):
-        // el mapa lo apunta y main guarda, así que cerrar el navegador en ellas no obliga a repetirlo. El equipo
-        // encontrado va antes a la mochila para que ese guardado lo lleve. Lo que apile `alTerminar` queda debajo de
-        // esas pantallas y se ve después, como siempre.
-        for (const pieza of combate.equipoEncontrado) guardarPieza(partida.inventario, pieza);
-        alTerminar(resultado);
-        const seguir = (): void => ofrecerEquipo(partida, combate.equipoEncontrado, () => {});
-        const subir = (): void => {
-          if (luchadora.nivel <= antes.nivel) {
-            seguir();
-            return;
-          }
-          // En el reto los puntos se reparten solos y no se para en un menú.
-          if (partida.reto)
-            repartirPuntos(luchadora, luchadora.heroe?.planPuntos ?? [], REGLAS.experiencia);
-          pila.apilar(
-            new EscenaMensaje(
-              `¡Nivel ${luchadora.nivel}!`,
-              PALETA.elegida,
-              cambiosDeNivel(antes, luchadora),
-              SEGUIR,
-              () => {
-                pila.desapilar();
-                if (partida.reto) return seguir();
-                // Después, repartir los puntos nuevos (o dejarlos para luego).
-                pila.apilar(
-                  new EscenaPuntos(luchadora, partida.reglas, 'Luego', () => {
-                    pila.desapilar();
-                    seguir();
-                  }),
-                );
-              },
-            ),
-          );
-        };
-        // Primero lo que dice el jefe al caer, luego la subida de nivel, el equipo encontrado y de vuelta al mapa.
-        if (caida && resultado === 'victoria') contar(pila, [caida], subir);
-        else subir();
-      } else if (partida.reto) {
-        terminarReto(partida, false);
-      } else {
-        terminarPartida(partida, false);
-      }
-    }),
-  );
-}
-
-function mostrarError(error: unknown): void {
-  // Sin esto, en un móvil un fallo de carga es solo una pantalla negra.
-  document.body.style.color = '#fff';
-  document.body.textContent = `Error: ${error instanceof Error ? error.message : String(error)}`;
-  console.error(error);
 }
 
 // Un fallo dentro del bucle corta el requestAnimationFrame: sin esto el juego se congela sin avisar.
