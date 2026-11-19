@@ -1,27 +1,99 @@
-import { expect, test } from 'vitest';
-import { zoomAtaque } from '../src/core/camaraCombate';
+import { describe, expect, test } from 'vitest';
+import { camaraAtaque, encuadrar, zoomMaximo, type Encuadre } from '../src/core/camaraCombate';
 
 const d = { zoom: 0.1, entrada: 0.2, mantener: 0.3, salida: 0.4 };
+const nuevo = (zoom = 1, x = 0, y = 0): Encuadre => ({ zoom, x, y });
 
-test('se acerca, se queda tras el golpe y vuelve a 1', () => {
-  expect(zoomAtaque(0, 0.5, d)).toBe(1);
-  expect(zoomAtaque(0.1, 0.5, d)).toBeCloseTo(1.05);
-  expect(zoomAtaque(0.5, 0.5, d)).toBeCloseTo(1.1);
-  expect(zoomAtaque(0.79, 0.5, d)).toBeCloseTo(1.1);
-  expect(zoomAtaque(1.0, 0.5, d)).toBeCloseTo(1.05);
-  expect(zoomAtaque(1.3, 0.5, d)).toBe(1);
+describe('zoomMaximo', () => {
+  test('1 + zoom, y en un golpe fuerte zoom × fuerte', () => {
+    expect(zoomMaximo(d)).toBeCloseTo(1.1);
+    expect(zoomMaximo({ ...d, fuerte: 1.6 }, true)).toBeCloseTo(1.16);
+    expect(zoomMaximo({ ...d, fuerte: 1.6 }, false)).toBeCloseTo(1.1);
+    // Sin el campo, el fuerte no cambia nada.
+    expect(zoomMaximo(d, true)).toBeCloseTo(1.1);
+  });
+
+  test('sin zoom en los datos, 1', () => {
+    expect(zoomMaximo({ ...d, zoom: 0 })).toBe(1);
+    expect(zoomMaximo({ ...d, zoom: Number.NaN })).toBe(1);
+  });
 });
 
-test('sin zoom o con tiempos raros, 1', () => {
-  expect(zoomAtaque(0.3, 0.5, { ...d, zoom: 0 })).toBe(1);
-  expect(zoomAtaque(-1, 0.5, d)).toBe(1);
-  expect(zoomAtaque(Number.NaN, 0.5, d)).toBe(1);
+describe('camaraAtaque', () => {
+  const objetivo = nuevo(1.1, 200, 100);
+
+  test('desde quieta: se acerca, se queda tras el golpe y vuelve a 1', () => {
+    const z = (t: number): number => camaraAtaque(t, 0.5, d, nuevo(), objetivo, nuevo()).zoom;
+    expect(z(0)).toBe(1);
+    expect(z(0.1)).toBeCloseTo(1.05);
+    expect(z(0.5)).toBeCloseTo(1.1);
+    expect(z(0.79)).toBeCloseTo(1.1);
+    expect(z(1.0)).toBeCloseTo(1.05);
+    expect(z(1.3)).toBe(1);
+  });
+
+  test('desde quieta no se desplaza: el punto es el del ataque desde el principio', () => {
+    const c = camaraAtaque(0.1, 0.5, d, nuevo(1, 0, 0), objetivo, nuevo());
+    expect(c.x).toBe(200);
+    expect(c.y).toBe(100);
+  });
+
+  test('un ataque que empieza con la cámara aún cerca del anterior sale de donde estaba, sin tirón', () => {
+    const desde = nuevo(1.08, 120, 60);
+    const inicio = camaraAtaque(0, 0.5, d, desde, objetivo, nuevo());
+    expect(inicio).toEqual(desde);
+    const medio = camaraAtaque(0.1, 0.5, d, desde, objetivo, nuevo());
+    expect(medio.zoom).toBeCloseTo(1.09);
+    expect(medio.x).toBeCloseTo(160);
+    expect(medio.y).toBeCloseTo(80);
+    const llegada = camaraAtaque(0.3, 0.5, d, desde, objetivo, nuevo());
+    expect(llegada.zoom).toBeCloseTo(1.1);
+    expect(llegada.x).toBe(200);
+    expect(llegada.y).toBe(100);
+  });
+
+  test('sin zoom o con tiempos raros, 1', () => {
+    expect(camaraAtaque(0.3, 0.5, { ...d, zoom: 0 }, nuevo(), objetivo, nuevo()).zoom).toBe(1);
+    expect(camaraAtaque(-1, 0.5, d, nuevo(), objetivo, nuevo()).zoom).toBe(1);
+    expect(camaraAtaque(Number.NaN, 0.5, d, nuevo(), objetivo, nuevo()).zoom).toBe(1);
+  });
 });
 
-test('en un golpe fuerte se acerca más (zoom × fuerte); sin él, igual que antes', () => {
-  const f = { ...d, fuerte: 1.6 };
-  expect(zoomAtaque(0.5, 0.5, f, true)).toBeCloseTo(1 + 0.1 * 1.6);
-  expect(zoomAtaque(0.5, 0.5, f, false)).toBeCloseTo(1.1);
-  // Sin el campo, el fuerte no cambia nada.
-  expect(zoomAtaque(0.5, 0.5, d, true)).toBeCloseTo(1.1);
+describe('encuadrar', () => {
+  const marco = { arriba: 26, abajo: 200 };
+  /** Dónde acaba el punto `p` con el encuadre `e`. */
+  const tras = (e: Encuadre, p: number): number => e.y + e.zoom * (p - e.y);
+
+  test('con sitio de sobra, el zoom y el punto pedidos', () => {
+    const e = encuadrar(1.1, 200, 120, { arriba: 80, abajo: 160 }, marco, nuevo());
+    expect(e).toEqual({ zoom: 1.1, x: 200, y: 120 });
+  });
+
+  test('mueve el punto lo justo para que los nombres no suban sobre la barra de turnos', () => {
+    const contenido = { arriba: 40, abajo: 150 };
+    const e = encuadrar(1.2, 200, 130, contenido, marco, nuevo());
+    expect(e.zoom).toBeCloseTo(1.2);
+    expect(tras(e, contenido.arriba)).toBeCloseTo(marco.arriba);
+    expect(tras(e, contenido.abajo)).toBeLessThanOrEqual(marco.abajo);
+  });
+
+  test('ni los pies de la heroína bajan al panel', () => {
+    const contenido = { arriba: 100, abajo: 190 };
+    const e = encuadrar(1.2, 200, 100, contenido, marco, nuevo());
+    expect(tras(e, contenido.abajo)).toBeCloseTo(marco.abajo);
+    expect(tras(e, contenido.arriba)).toBeGreaterThanOrEqual(marco.arriba);
+  });
+
+  test('si el contenido casi llena el marco, se acerca menos: lo que quepa', () => {
+    const contenido = { arriba: 27, abajo: 188 };
+    const e = encuadrar(1.19, 200, 129, contenido, marco, nuevo());
+    expect(e.zoom).toBeCloseTo((200 - 26) / (188 - 27));
+    expect(tras(e, contenido.arriba)).toBeCloseTo(marco.arriba);
+    expect(tras(e, contenido.abajo)).toBeCloseTo(marco.abajo);
+  });
+
+  test('sin zoom, o si el contenido ya llena el marco, no se acerca', () => {
+    expect(encuadrar(1, 200, 120, { arriba: 80, abajo: 160 }, marco, nuevo()).zoom).toBe(1);
+    expect(encuadrar(1.2, 200, 120, { arriba: 26, abajo: 200 }, marco, nuevo()).zoom).toBe(1);
+  });
 });
