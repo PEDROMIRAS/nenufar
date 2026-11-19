@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { desplazamientoCamara } from '../../core/impacto';
+import { desplazamientoCamara, unidadTemblor } from '../../core/impacto';
 import { crearAnillo, progresoNube, soltarNube, vaciarAnillo } from '../../core/polvo';
 import { MAPA_VIVO } from '../../data/datos';
 import { crearDesenfoque } from './desenfoque';
@@ -16,7 +16,14 @@ import type { Direccion, Hd2dJson, LuzHd2d, ZonaHd2d } from '../../core/types';
 import { N, S } from '../../core/zona';
 import { PALETA } from '../marco';
 import { cargarAjustes, guardarAjustes } from '../almacen';
-import { alRedimensionar, aVentana, rectSala, SALA_ALTO, SALA_ANCHO } from '../pantalla';
+import {
+  alRedimensionar,
+  aVentana,
+  cssPorLogico,
+  rectSala,
+  SALA_ALTO,
+  SALA_ANCHO,
+} from '../pantalla';
 import type { Sprite } from '../recursos';
 import { dibujarTile } from '../sala';
 import {
@@ -824,11 +831,12 @@ export class Mundo {
     for (const a of v.actores) a.malla.visible = false;
     this.animarPolvo(tiempo, false);
     this.animar(v, tiempo);
-    // Píxeles lógicos a unidades del mundo, en el sentido en que la sala acompaña a los sprites.
+    // Píxeles lógicos de la capa 2D a unidades del mundo, en el sentido en que la sala acompaña a los sprites: por
+    // píxeles de pantalla, porque la interfaz del combate y la sala no tienen la misma escala.
     const d = desplazamientoCamara(
       temblorX,
       temblorY,
-      v.encuadre.ancho / SALA_ANCHO,
+      unidadTemblor(cssPorLogico(), v.encuadre.ancho, rectSala().ancho),
       this.arribaY,
       this.arribaZ,
       this.temblorCamara,

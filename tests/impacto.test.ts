@@ -3,6 +3,7 @@ import type { Evento, Luchador } from '../src/core/combate';
 import {
   decaerTrauma,
   desplazamientoCamara,
+  unidadTemblor,
   factorDestello,
   desplazamiento,
   factorTemblor,
@@ -168,6 +169,13 @@ describe('revisión final', () => {
     expect(s.x).toBe(0);
     expect(s.y).toBeCloseTo(1.6);
     expect(s.z).toBeCloseTo(-1.2);
+  });
+  test('el fondo se mueve en pantalla lo mismo que la capa 2D, aunque tengan escalas distintas', () => {
+    // Ventana de 1280×800: la interfaz de 480 se ve a 2,27 px por píxel lógico; la sala (21 casillas), a 1280 px.
+    const u = unidadTemblor(800 / 352, 21, 1280);
+    // 4 píxeles lógicos de temblor → unidades del mundo → píxeles de pantalla de la sala.
+    expect(((4 * u) / 21) * 1280).toBeCloseTo((4 * 800) / 352);
+    expect(unidadTemblor(2, 21, 0)).toBe(0);
   });
   test('sin temblor tampoco hay destellos', () => {
     expect(factorDestello(0)).toBe(0);
