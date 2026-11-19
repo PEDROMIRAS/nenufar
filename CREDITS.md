@@ -2,13 +2,15 @@
 
 ## Arte
 
-Todo el arte del repositorio (heroínas, monstruos, efectos, proyectil, tilesets, autotiles y objetos) es original y se genera con los scripts de `tools/generadores/`. No incluye assets de terceros.
+El arte del juego sale de los scripts en Python de `tools/generadores/`, que son deterministas: con los mismos scripts, el resultado es idéntico píxel a píxel.
+
+- **Dibujado por los scripts:** las dos heroínas y sus piezas de equipo, los efectos, el proyectil, los tilesets, los autotiles, los objetos comunes y algunos monstruos (el murciélago, el dragón negro, el Sacerdote de la luna falsa y el cofre trampa) y el ermitaño.
+- **Sacado de imágenes de referencia:** casi todos los monstruos y jefes, y las texturas de la fuente de descanso. Los scripts reducen cada imagen, le quitan el fondo, la repintan con la paleta del juego y la animan. Las imágenes las aportó el autor del proyecto y están en el repositorio, en `docs/superpowers/mockups/referencias-monstruos/` y `docs/superpowers/mockups/cauce-seco-referencias/`.
+- **Modelos 3D** (árboles, rocas, columnas, cofres, hoguera, portal, fuente, altar…): se construyen en código con Three.js en `src/render/mundo/`, con texturas sacadas de los colores del propio arte.
 
 ## Sonido
 
-La música y los efectos se sintetizan en el navegador con Web Audio a partir de `src/data/sonido.json`; son originales y no hay archivos de audio.
-
-Las ilustraciones usadas como referencia durante el diseño sirvieron solo para marcar el tono y no forman parte del proyecto.
+La música y los efectos se sintetizan en el navegador con Web Audio a partir de `src/data/sonido.json`; no hay archivos de audio.
 
 ## Assets de terceros
 
