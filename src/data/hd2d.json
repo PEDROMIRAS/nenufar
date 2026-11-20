@@ -97,7 +97,8 @@
       "alcance": 5.5,
       "alto": 0.7,
       "parpadeo": 0.1,
-      "sombra": false
+      "sombra": false,
+      "prioridad": 1
     },
     "desafio": {
       "color": "#ff5a3c",
@@ -105,7 +106,8 @@
       "alcance": 5.5,
       "alto": 0.7,
       "parpadeo": 0.1,
-      "sombra": false
+      "sombra": false,
+      "prioridad": 1
     },
     "mercader": {
       "color": "#ffc65a",
@@ -113,7 +115,8 @@
       "alcance": 5.5,
       "alto": 0.7,
       "parpadeo": 0.1,
-      "sombra": false
+      "sombra": false,
+      "prioridad": 1
     },
     "brasero": {
       "color": "#ff8a3a",

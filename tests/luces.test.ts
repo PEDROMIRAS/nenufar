@@ -21,6 +21,15 @@ describe('orden de las luces de una sala', () => {
     expect(ordenar(['portal', 'hoguera'])[0]).toBe('hoguera');
   });
 
+  it('la luz de un altar, un desafío o un mercader entra aunque haya muchos braseros o candelabros', () => {
+    for (const evento of ['altar', 'desafio', 'mercader']) {
+      expect(ordenar([...Array<string>(6).fill('brasero'), evento]).slice(0, 4)).toContain(evento);
+      expect(ordenar([...Array<string>(7).fill('candelabro'), evento]).slice(0, 4)).toContain(
+        evento,
+      );
+    }
+  });
+
   it('con la misma fuerza se respeta el orden en que se añadieron', () => {
     expect(ordenar(['candelabro', 'candelabro'])).toEqual(['candelabro', 'candelabro']);
   });

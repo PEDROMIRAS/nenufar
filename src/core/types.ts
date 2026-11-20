@@ -426,6 +426,11 @@ export interface LuzHd2d {
   parpadeo: number;
   /** Solo las que proyectan sombras (caras en el móvil: seis pasadas cada una). */
   sombra: boolean;
+  /**
+   * Las de más prioridad entran antes en los pocos huecos de luz puntual, por débiles que sean: la luz del altar,
+   * el círculo del desafío o el puesto del mercader se quedaba fuera en las salas con muchos candelabros o braseros.
+   */
+  prioridad?: number;
 }
 
 /** Borde de la sala en 3D: árboles (Bosque) o sillares de piedra (Ruinas, Cripta). */
