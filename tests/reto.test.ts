@@ -78,17 +78,26 @@ describe('anotarReto', () => {
     expect(peor.nuevo).toBe(false);
     expect(peor.estado.mejores.ronin).toEqual(pierde(3));
     expect(peor.estado.dias).toBe(1);
-    const maga = anotarReto(peor.estado, '2026-11-18', 'maga', pierde(1));
+    const maga = anotarReto(peor.estado, '2026-11-18', 'maga', pierde(2));
     expect(maga.nuevo).toBe(true);
     expect(maga.estado.mejores.ronin).toEqual(pierde(3));
-    const manana = anotarReto(maga.estado, '2026-11-19', 'ronin', pierde(1));
+    const manana = anotarReto(maga.estado, '2026-11-19', 'ronin', pierde(2));
     expect(manana.nuevo).toBe(true);
     expect(manana.estado.dias).toBe(2);
-    expect(manana.estado.mejores).toEqual({ ronin: pierde(1) });
+    expect(manana.estado.mejores).toEqual({ ronin: pierde(2) });
     // No muta el estado de entrada.
     expect(uno.estado.mejores.ronin).toEqual(pierde(3));
     expect(RETO_VACIO.dias).toBe(0);
   });
+});
+
+test('caer en la primera sala se apunta, pero no se celebra como récord', () => {
+  const uno = anotarReto(RETO_VACIO, '2026-11-20', 'ronin', pierde(1));
+  expect(uno.nuevo).toBe(false);
+  expect(uno.estado.mejores.ronin).toEqual(pierde(1));
+  expect(uno.estado.dias).toBe(1);
+  // Pasar de ahí sí lo es.
+  expect(anotarReto(uno.estado, '2026-11-20', 'ronin', pierde(2)).nuevo).toBe(true);
 });
 
 test('leerReto tolera basura', () => {

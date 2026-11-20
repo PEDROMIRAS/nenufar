@@ -68,7 +68,8 @@ export const RETO_VACIO: EstadoReto = Object.freeze({
 
 /**
  * Apunta un intento acabado: un día nuevo reinicia los mejores y suma un día jugado. Un intento de una fecha anterior a
- * la guardada (otra pestaña ya jugó el día siguiente) no se apunta. No muta `e`.
+ * la guardada (otra pestaña ya jugó el día siguiente) no se apunta. No muta `e`. `nuevo` dice si la tarjeta celebra
+ * un récord: caer en la primera sala se apunta como el mejor del día si no había otro, pero no se celebra.
  */
 export function anotarReto(
   e: EstadoReto,
@@ -80,8 +81,9 @@ export function anotarReto(
   if (fecha < e.fecha) return { estado: e, nuevo: false };
   const otroDia = fecha !== e.fecha;
   const mejores = otroDia ? {} : { ...e.mejores };
-  const nuevo = mejorResultado(r, mejores[heroe] ?? null);
-  if (nuevo) mejores[heroe] = { ...r };
+  const mejor = mejorResultado(r, mejores[heroe] ?? null);
+  if (mejor) mejores[heroe] = { ...r };
+  const nuevo = mejor && (r.victoria || r.sala > 1);
   return { estado: { fecha, dias: e.dias + (otroDia ? 1 : 0), mejores }, nuevo };
 }
 
