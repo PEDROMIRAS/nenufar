@@ -9,7 +9,8 @@ import type { Recompensa } from './recompensas';
  * de sala: la misma sala saldría distinta) y entonces se descarta.
  */
 // 3: las salas del Cauce Seco pasan de 15×11 a 21×13 (los grupos de `vencidos` caerían en otro sitio).
-export const VERSION_GUARDADO = 3;
+// 4: rocas y escombros nuevos en esas salas (por lo mismo).
+export const VERSION_GUARDADO = 4;
 
 /** Estado del mapa de la zona: lo que no sale de la semilla. Índices de `zona.salas`. */
 export interface EstadoMapa {
