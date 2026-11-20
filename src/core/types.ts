@@ -495,13 +495,16 @@ export interface ZonaHd2d {
   niebla?: number;
   /**
    * Fuentes de luz de ambiente en las salas sin luces propias: tipo (también la clave de su luz en `luces`), entre
-   * cuántas y cuántas por sala y a cuántas casillas como mínimo de las salidas y entre sí.
+   * cuántas y cuántas por sala y a cuántas casillas como mínimo de las salidas y entre sí. Con `conLuces`, también
+   * en las salas que ya tienen luces propias (en la Cripta todas tienen candelabros: sin él, el fuego fatuo no
+   * salía nunca).
    */
   ambiente?: {
     tipo: 'luciernagas' | 'haz' | 'fuego_fatuo' | 'grieta';
     min: number;
     max: number;
     distancia: number;
+    conLuces?: boolean;
   };
   borde: BordeHd2d;
   hundido: HundidoHd2d;
