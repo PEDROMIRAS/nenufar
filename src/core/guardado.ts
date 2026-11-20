@@ -8,7 +8,8 @@ import type { Recompensa } from './recompensas';
  * La versión sube cuando una partida guardada dejaría de significar lo mismo (p. ej. al añadir plantillas
  * de sala: la misma sala saldría distinta) y entonces se descarta.
  */
-export const VERSION_GUARDADO = 2;
+// 3: las salas del Cauce Seco pasan de 15×11 a 21×13 (los grupos de `vencidos` caerían en otro sitio).
+export const VERSION_GUARDADO = 3;
 
 /** Estado del mapa de la zona: lo que no sale de la semilla. Índices de `zona.salas`. */
 export interface EstadoMapa {
