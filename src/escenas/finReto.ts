@@ -1,14 +1,22 @@
 import type { Acciones } from '../core/acciones';
 import { filaTocada } from '../core/menu';
 import { anunciar } from '../render/accesibilidad';
-import { dibujarFila, dibujarFondo, dibujarMarco, PALETA } from '../render/marco';
+import { dibujarCaja, dibujarFondo, dibujarMarco, PALETA } from '../render/marco';
 import { interfaz } from '../render/pantalla';
 import { sonar } from '../render/sonido';
-import { escribir, FUENTE_GRANDE } from '../render/texto';
+import { escribir, FUENTE_BOTON, FUENTE_GRANDE } from '../render/texto';
 import type { Escena } from './escena';
 
-const ALTO_FILA = 32;
+/** Alto de cada botón y aire entre ellos: en vertical, más altos (para el dedo). */
+const BOTON = { alto: 32, separacion: 6 };
+const BOTON_ALTO = { alto: 40, separacion: 8 };
 const MARGEN = 32;
+const boton = (): typeof BOTON => (interfaz.alta ? BOTON_ALTO : BOTON);
+/** Alto de todos los botones juntos. */
+const altoBotones = (): number => {
+  const b = boton();
+  return OPCIONES.length * b.alto + (OPCIONES.length - 1) * b.separacion;
+};
 /** Primera y última línea de texto de la tarjeta (sin desplazar) y el aire entre el texto y los botones en vertical. */
 const ARRIBA = 36;
 const FIN_TEXTO = 230;
@@ -74,14 +82,14 @@ export class EscenaFinReto implements Escena {
    */
   private bajar(): number {
     if (!interfaz.alta) return 0;
-    const alto = FIN_TEXTO - ARRIBA + AIRE_BOTONES + OPCIONES.length * ALTO_FILA;
+    const alto = FIN_TEXTO - ARRIBA + AIRE_BOTONES + altoBotones();
     return Math.max(0, Math.round((interfaz.alto - alto) / 2) - ARRIBA);
   }
 
   /** Dónde empiezan los botones: en horizontal, abajo, dentro del marco; en vertical, bajo el texto. */
   private yFilas(): number {
     if (interfaz.alta) return FIN_TEXTO + AIRE_BOTONES + this.bajar();
-    return interfaz.alto - 32 - OPCIONES.length * ALTO_FILA - 12;
+    return interfaz.alto - 32 - altoBotones() - 12;
   }
 
   update(_dt: number, a: Acciones): void {
@@ -97,13 +105,14 @@ export class EscenaFinReto implements Escena {
       return;
     }
     if (a.toqueX >= 0) {
+      const b = boton();
       const caja = {
         x: MARGEN,
         y: this.yFilas(),
         ancho: interfaz.ancho - 2 * MARGEN,
-        alto: OPCIONES.length * ALTO_FILA,
+        alto: OPCIONES.length * (b.alto + b.separacion),
       };
-      const i = filaTocada(a.toqueX, a.toqueY, caja, ALTO_FILA, OPCIONES.length);
+      const i = filaTocada(a.toqueX, a.toqueY, caja, b.alto + b.separacion, OPCIONES.length);
       if (i >= 0) this.usar(i);
       return;
     }
@@ -131,18 +140,24 @@ export class EscenaFinReto implements Escena {
     escribir(ctx, l.mejorValor, centro, 160 + b, PALETA.claro, 'center');
     if (l.nuevo) escribir(ctx, '¡Nuevo récord!', centro, 186 + b, PALETA.cursor, 'center');
     escribir(ctx, l.dias, centro, 216 + b, PALETA.apagada, 'center');
+    // Botones en caja, como los de las demás pantallas.
     const y = this.yFilas();
-    for (let i = 0; i < OPCIONES.length; i++)
-      dibujarFila(
+    const medidas = boton();
+    const ancho = interfaz.ancho - 2 * MARGEN;
+    for (let i = 0; i < OPCIONES.length; i++) {
+      const elegida = i === this.seleccion;
+      const yBoton = y + i * (medidas.alto + medidas.separacion);
+      dibujarCaja(ctx, MARGEN, yBoton, ancho, medidas.alto, elegida ? 'elegida' : 'normal');
+      escribir(
         ctx,
-        MARGEN,
-        y + i * ALTO_FILA,
-        interfaz.ancho - 2 * MARGEN,
-        ALTO_FILA,
         OPCIONES[i]!,
-        '',
-        i === this.seleccion ? 'elegida' : 'normal',
+        centro,
+        yBoton + (medidas.alto - 14) / 2,
+        elegida ? PALETA.elegida : PALETA.texto,
+        'center',
+        FUENTE_BOTON,
       );
+    }
   }
 
   private usar(i: number): void {
