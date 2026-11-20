@@ -94,6 +94,7 @@
       "alto": 8
     },
     "sprite": "monstruos/ermitano",
+    "luz": "farol",
     "aviso": "El ermitaño te da",
     "saludos": {
       "bosque": "«La última lluvia aún gotea de estas ramas. No durará mucho.»",

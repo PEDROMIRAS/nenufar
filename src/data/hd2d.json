@@ -109,6 +109,15 @@
       "sombra": false,
       "prioridad": 1
     },
+    "farol": {
+      "color": "#ffb45a",
+      "intensidad": 5,
+      "alcance": 4.5,
+      "alto": 0.9,
+      "parpadeo": 0.12,
+      "sombra": false,
+      "prioridad": 1
+    },
     "mercader": {
       "color": "#ffc65a",
       "intensidad": 7,
@@ -186,8 +195,8 @@
       "modelos": true,
       "niebla": 0.012,
       "ambiente": { "tipo": "fuego_fatuo", "min": 1, "max": 2, "distancia": 3 },
-      "cielo": { "arriba": "#8f7ad0", "abajo": "#2a2238", "intensidad": 1.4 },
-      "principal": { "color": "#c9b8ff", "intensidad": 1.0 },
+      "cielo": { "arriba": "#8f7ad0", "abajo": "#2a2238", "intensidad": 3.2 },
+      "principal": { "color": "#c9b8ff", "intensidad": 2.2 },
       "borde": {
         "tipo": "sillares",
         "alto": 1.15,
@@ -208,8 +217,8 @@
       "modelos": false,
       "niebla": 0.012,
       "ambiente": { "tipo": "grieta", "min": 1, "max": 2, "distancia": 3 },
-      "cielo": { "arriba": "#8a7498", "abajo": "#2a1c22", "intensidad": 1.6 },
-      "principal": { "color": "#ffb888", "intensidad": 1.2 },
+      "cielo": { "arriba": "#8a7498", "abajo": "#2a1c22", "intensidad": 3.0 },
+      "principal": { "color": "#ffb888", "intensidad": 2.2 },
       "borde": {
         "tipo": "sillares",
         "alto": 1.1,

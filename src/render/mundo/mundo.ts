@@ -63,6 +63,13 @@ export function ponerCalidadAlta(alta: boolean): void {
 
 /** Luces puntuales que hay siempre en la escena: cambiar cuántas hay obliga a recompilar los materiales. */
 const PUNTUALES = 4;
+/** Una luz puntual de una sala: cuál (de `hd2d.json`), dónde (en casillas) y su desfase de parpadeo. */
+export interface LuzSala {
+  luz: LuzHd2d;
+  x: number;
+  z: number;
+  fase: number;
+}
 /** Píxeles de una casilla (el tileSize de todos los tilesets): una unidad del mundo. */
 const TAM = 32;
 
@@ -112,7 +119,7 @@ export interface VistaSala {
   /** Animación de las fuentes de luz de ambiente (sin objeto al que colgarla). */
   ambiente: ((tiempo: number) => void)[];
   /** Luces puntuales de sus objetos (hoguera, candelabros, portal) y dónde están. */
-  luces: { luz: LuzHd2d; x: number; z: number; fase: number }[];
+  luces: LuzSala[];
   /** Barrera de cada salida, que se ve mientras está cerrada. */
   barreras: { lado: number; obj: THREE.Object3D }[];
   azar: () => number;
@@ -549,6 +556,25 @@ export class Mundo {
     v.luces.sort((p, q) => compararLuces(p.luz, q.luz));
   }
 
+  /**
+   * Una luz `nombre` de `hd2d.json` que se mueve con alguien (el farol del ermitaño): se añade a la sala `v` y se
+   * coloca con `moverLuz`. Null si no hay esa luz en los datos.
+   */
+  ponerLuzMovil(v: VistaSala, nombre: string): LuzSala | null {
+    const luz = this.a.luces[nombre];
+    if (!luz) return null;
+    const l: LuzSala = { luz, x: 0, z: 0, fase: v.azar() * 10 };
+    v.luces.push(l);
+    v.luces.sort((p, q) => compararLuces(p.luz, q.luz));
+    return l;
+  }
+
+  /** Lleva la luz `l` a los pies de quien está en (x, y) píxeles del juego. */
+  moverLuz(l: LuzSala, x: number, y: number): void {
+    l.x = x / TAM;
+    l.z = y / TAM;
+  }
+
   /** Rehace lo que se ve de un objeto (el cofre al abrirse) o lo añade (el portal al vencer al jefe). */
   rehacerObjeto(v: VistaSala, o: ObjetoSala): void {
     const viejo = v.objetos.get(o);
@@ -904,6 +930,8 @@ export class Mundo {
         luz.intensity = 0;
         continue;
       }
+      // Cada fotograma: alguna se mueve (el farol del ermitaño).
+      luz.position.set(l.x, l.luz.alto, l.z);
       const p = l.luz.parpadeo;
       const t = tiempo + l.fase;
       luz.intensity =
