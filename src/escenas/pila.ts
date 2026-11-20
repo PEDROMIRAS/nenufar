@@ -51,6 +51,11 @@ export class PilaEscenas {
     return false;
   }
 
+  /** Dónde pide la escena de arriba que acabe el cartel del mando (ver `Escena.bajoCartel`). */
+  get bajoCartel(): number | undefined {
+    return this.escenas[this.escenas.length - 1]?.bajoCartel;
+  }
+
   /** ¿La escena de arriba usa el mapa 3D? */
   get conMundo(): boolean {
     return this.escenas[this.escenas.length - 1]?.conMundo === true;

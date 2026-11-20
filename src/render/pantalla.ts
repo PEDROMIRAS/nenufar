@@ -279,6 +279,12 @@ export function colocarSobre(
   return escala;
 }
 
+/** Una altura lógica de la forma activa → la misma altura en unidades de los carteles (`cartel`). */
+export function alturaEnCartel(y: number): number {
+  const m = activo();
+  return (y * m.escala + m.y) / cartel.escala;
+}
+
 /** Coloca el contexto en la forma de los carteles (`cartel`), sea cual sea la escena de debajo. */
 export function colocarCartel(ctx: CanvasRenderingContext2D): void {
   ctx.setTransform(cartel.escala, 0, 0, cartel.escala, 0, 0);

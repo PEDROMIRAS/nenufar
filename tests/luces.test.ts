@@ -57,6 +57,17 @@ describe('lugaresDeLuz', () => {
         expect(y === 5 || y === 6).toBe(false);
   });
 
+  it('ninguna pegada a algo sólido ni al borde de la sala', () => {
+    // Muro en la columna 8: ni la 7, ni la 8, ni la 9 pueden tener luz; tampoco la primera y la última fila o columna.
+    const conMuro = sala();
+    for (let y = 0; y < 13; y++) conMuro.solido[y * 21 + 8] = true;
+    for (let semilla = 1; semilla <= 30; semilla++)
+      for (const [x, y] of lugaresDeLuz(conMuro, salidas, 3, 2, crearAzar(semilla))) {
+        expect(x >= 7 && x <= 9).toBe(false);
+        expect(x === 0 || y === 0 || x === 20 || y === 12).toBe(false);
+      }
+  });
+
   it('en una sala toda sólida, ninguna', () => {
     expect(lugaresDeLuz(sala(true), salidas, 2, 3, crearAzar(1))).toEqual([]);
   });

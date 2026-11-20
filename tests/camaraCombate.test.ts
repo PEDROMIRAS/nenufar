@@ -110,3 +110,32 @@ describe('encuadrar', () => {
     expect(encuadrar(1.2, 200, 120, { arriba: 26, abajo: 200 }, marco, nuevo()).zoom).toBe(1);
   });
 });
+
+describe('encuadrar con los lados', () => {
+  const marco = { arriba: 0, abajo: 400 };
+  const contenido = { arriba: 100, abajo: 200 };
+  const pantalla = { izquierda: 0, derecha: 320 };
+  /** Dónde acaba el punto `p` (en x) con el encuadre `e`. */
+  const tras = (e: Encuadre, p: number): number => e.x + e.zoom * (p - e.x);
+
+  test('mueve el punto lo justo para que el nombre de la derecha no salga de la pantalla', () => {
+    // Acercarse hacia la izquierda empuja hacia fuera lo de la derecha.
+    const lados = { izquierda: 20, derecha: 315 };
+    const e = encuadrar(1.05, 100, 150, contenido, marco, nuevo(), lados, pantalla);
+    expect(e.zoom).toBeCloseTo(1.05);
+    expect(tras(e, lados.derecha)).toBeCloseTo(pantalla.derecha);
+    expect(tras(e, lados.izquierda)).toBeGreaterThanOrEqual(pantalla.izquierda);
+  });
+
+  test('si lo de los lados casi llena la pantalla, se acerca menos', () => {
+    const lados = { izquierda: 5, derecha: 315 };
+    const e = encuadrar(1.2, 160, 150, contenido, marco, nuevo(), lados, pantalla);
+    expect(e.zoom).toBeCloseTo(320 / 310);
+    expect(tras(e, lados.izquierda)).toBeCloseTo(pantalla.izquierda);
+    expect(tras(e, lados.derecha)).toBeCloseTo(pantalla.derecha);
+  });
+
+  test('sin lados, la x no se toca', () => {
+    expect(encuadrar(1.1, 300, 150, contenido, marco, nuevo()).x).toBe(300);
+  });
+});

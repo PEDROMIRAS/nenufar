@@ -153,6 +153,8 @@ const G = {
   enemigoY: ENEMIGO.y,
   escala: ENEMIGO.escala,
   separacion: ENEMIGO.separacion,
+  /** Lo que tiene cada nombre de enemigo a lo ancho: la separación o, si va solo, lo que hay hasta el borde. */
+  anchoNombre: ENEMIGO.separacion,
   centro: CENTRO_ENEMIGOS,
   heroinaX: HEROINA.x,
   heroinaY: HEROINA.y,
@@ -171,6 +173,13 @@ function disposicion(n: number): DisposicionCombate {
 }
 
 function colocar(v: VistaCombate): void {
+  colocarEscena(v);
+  // Un jefe va solo: su nombre largo cabe en una línea y no baja sobre su cabeza («Sacerdote de la luna falsa»).
+  G.anchoNombre =
+    v.enemigos.length === 1 ? 2 * Math.min(G.centro, G.ancho - G.centro) : G.separacion;
+}
+
+function colocarEscena(v: VistaCombate): void {
   G.ancho = interfaz.ancho;
   if (!interfaz.alta) {
     G.enemigoY = ENEMIGO.y;
@@ -430,12 +439,18 @@ const nombreCorto = (l: Luchador): string => {
 /** Alto de cada línea del nombre de un enemigo cuando no cabe en una. */
 const LINEA_NOMBRE = 14;
 const NOMBRES = new WeakMap<Luchador, { letras: number; lineas: readonly string[] }>();
-/** El nombre corto partido en las líneas que caben en lo que le toca a cada enemigo (una vez por tamaño). */
+/**
+ * El nombre corto partido en las líneas que caben en lo que le toca a cada enemigo (una vez por tamaño). Una
+ * palabra que no cabe ni sola se corta con «…» para no montarse con la del vecino.
+ */
 function lineasNombre(l: Luchador): readonly string[] {
-  const letras = anchoNombre(G.separacion);
+  const letras = anchoNombre(G.anchoNombre);
   let c = NOMBRES.get(l);
   if (!c || c.letras !== letras) {
-    c = { letras, lineas: partirTexto(nombreCorto(l), letras) };
+    const lineas = partirTexto(nombreCorto(l), letras).map((t) =>
+      t.length > letras ? `${t.slice(0, Math.max(1, letras - 1))}…` : t,
+    );
+    c = { letras, lineas };
     NOMBRES.set(l, c);
   }
   return c.lineas;
@@ -598,6 +613,11 @@ export function filaCombate(n: number): number {
   return interfaz.alta ? disposicion(n).fila : FILA_COMBATE;
 }
 const PANEL = { x: 8, y: 200, ancho: 464, alto: 146 };
+
+/** Dónde acaba el cartel del mando en el combate: en horizontal, justo sobre el panel; en vertical, donde siempre. */
+export function bajoCartelCombate(): number | undefined {
+  return interfaz.alta ? undefined : PANEL.y - 4;
+}
 /** Columna derecha: arriba la ficha de la heroína (Pedro, 2026-10-26) y debajo qué hace lo elegido. */
 const DERECHA = {
   x: 230,
@@ -826,6 +846,13 @@ function dibujarPanel(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
 /** Lo de la escena que la cámara no debe sacar del marco, el marco y el encuadre pedido (reutilizados). */
 const CONTENIDO = { arriba: 0, abajo: 0 };
 const MARCO = { arriba: 0, abajo: 0 };
+const LADOS = { izquierda: 0, derecha: 0 };
+const MARCO_LADOS = { izquierda: 0, derecha: 0 };
+/** Ensancha `LADOS` para que quepa lo que mide `ancho` centrado en `x`. */
+function abarcar(x: number, ancho: number): void {
+  LADOS.izquierda = Math.min(LADOS.izquierda, x - ancho / 2);
+  LADOS.derecha = Math.max(LADOS.derecha, x + ancho / 2);
+}
 /** Píxeles que bajan los pies de la heroína bajo su ancla (2 de la hoja × 2 de escala). */
 const PIES_HEROINA = 4;
 /** Lo que ocupa bajo su ancla un enemigo: barra de vida, PV y estados (`dibujarEnemigo`). */
@@ -849,7 +876,8 @@ function bordeCamara(v: VistaCombate): number {
 /**
  * Cámara de este fotograma (en `v.camara`): durante un ataque, la escena (sin la barra de turnos ni el panel) se
  * acerca al punto entre quien ataca y quien recibe; el fondo 3D se queda quieto, así que el primer plano se separa
- * de él. El acercamiento nunca saca del marco los nombres de los enemigos ni los pies de la heroína.
+ * de él. El acercamiento nunca saca del marco los nombres de los enemigos ni los pies de la heroína, ni nada por
+ * los lados de la pantalla.
  */
 function colocarCamara(v: VistaCombate): void {
   const a = v.atacante;
@@ -862,6 +890,32 @@ function colocarCamara(v: VistaCombate): void {
   if (!v.camaraFijada) {
     v.camaraFijada = true;
     let arriba = Infinity;
+    // Lo más a los lados que se dibuja: la heroína y, de cada enemigo, lo más ancho entre su sprite, su nombre, su
+    // barra, sus textos y el aviso de golpe fuerte (en vertical, con nombres largos, tocan el borde).
+    LADOS.izquierda = G.heroinaX;
+    LADOS.derecha = G.heroinaX;
+    abarcar(G.heroinaX, Math.max(32 * HEROINA.escala, 'Defendiendo'.length * ANCHO_LETRA));
+    for (let i = 0; i < v.enemigos.length; i++) {
+      const e = v.enemigos[i]!;
+      if ((v.pv.get(e) ?? e.pv) <= 0 && v.golpeado !== e) continue;
+      const hoja = e.monstruo && v.hojas.get(e.monstruo.sprite);
+      let letras = Math.max(
+        (v.textoPv.get(e) ?? '').length,
+        (v.estados.get(e) ?? '').length,
+        v.cargando.has(e) ? '¡Golpe fuerte!'.length : 0,
+      );
+      for (const l of lineasNombre(e)) letras = Math.max(letras, l.length);
+      abarcar(
+        xEnemigo(i, v.enemigos.length),
+        Math.max(
+          hoja ? (hoja.datos.frameWidth / escalaHoja(hoja.datos)) * G.escala : 0,
+          letras * ANCHO_LETRA,
+          Math.min(80, G.separacion - 8),
+        ),
+      );
+    }
+    MARCO_LADOS.izquierda = Math.min(0, LADOS.izquierda);
+    MARCO_LADOS.derecha = Math.max(G.ancho, LADOS.derecha);
     for (const e of v.enemigos) {
       if ((v.pv.get(e) ?? e.pv) <= 0 && v.golpeado !== e) continue;
       // Lo más alto que dibuja cada enemigo (`dibujarEnemigo`): el aviso de golpe fuerte o la flecha sobre el
@@ -886,6 +940,8 @@ function colocarCamara(v: VistaCombate): void {
       CONTENIDO,
       MARCO,
       v.camaraObjetivo,
+      LADOS,
+      MARCO_LADOS,
     );
   }
   camaraAtaque(

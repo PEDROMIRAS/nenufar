@@ -24,7 +24,8 @@ export function cuantasDeAmbiente(
 
 /**
  * Dónde poner hasta `cuantos` fuentes de luz de ambiente en una sala: casillas libres (no sólidas, sin objeto y sin
- * la parte de arriba de un objeto alto, como la copa de un árbol) a `distancia` o más (en casillas, en cualquier
+ * la parte de arriba de un objeto alto, como la copa de un árbol) que no toquen nada sólido ni el borde (el haz de
+ * las Ruinas, inclinado, atravesaba el muro si caía pegado a él), a `distancia` o más (en casillas, en cualquier
  * dirección) de cada entrada y entre sí. Determinista con el mismo azar.
  */
 export function lugaresDeLuz(
@@ -47,11 +48,21 @@ export function lugaresDeLuz(
   }
   const lejos = (x: number, y: number, p: readonly [number, number]): boolean =>
     Math.max(Math.abs(x - p[0]), Math.abs(y - p[1])) >= distancia;
+  const pegada = (x: number, y: number): boolean => {
+    for (let dy = -1; dy <= 1; dy++)
+      for (let dx = -1; dx <= 1; dx++) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= sala.ancho || ny >= sala.alto) return true;
+        if (sala.solido[ny * sala.ancho + nx]) return true;
+      }
+    return false;
+  };
   const libres: [number, number][] = [];
   for (let y = 0; y < sala.alto; y++)
     for (let x = 0; x < sala.ancho; x++) {
       const i = y * sala.ancho + x;
-      if (sala.solido[i] || conObjeto.has(i)) continue;
+      if (conObjeto.has(i) || pegada(x, y)) continue;
       if (salidas.every((s) => lejos(x, y, s.entrada))) libres.push([x, y]);
     }
   const elegidas: [number, number][] = [];

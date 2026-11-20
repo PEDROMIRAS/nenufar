@@ -412,7 +412,7 @@ async function iniciar(): Promise<void> {
       colocarContexto(ctx);
       pila.draw(ctx, alpha);
       const opacidad = opacidadCartel(tiempoCartel, controles.mando.aviso, movimientoReducido());
-      if (opacidad > 0) dibujarCartel(ctx, CARTEL_MANDO, opacidad);
+      if (opacidad > 0) dibujarCartel(ctx, CARTEL_MANDO, opacidad, pila.bajoCartel);
     },
   );
 }
