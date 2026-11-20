@@ -235,13 +235,24 @@ export class EscenaPausa implements Escena {
     }
   }
 
-  /** Mueve el cursor de la lista; Heroína, Objetos y Ajustes se ven a la derecha al momento. */
+  /**
+   * Mueve el cursor de la lista; Heroína, Objetos y Ajustes se ven a la derecha al momento. Equipo y Mejorar
+   * abren su pantalla encima, y mientras tanto la derecha enseña la ficha de la heroína, con su equipo y sus
+   * estadísticas (antes se quedaba en lo último visto: con el cursor en Equipo, la derecha decía «Objetos»).
+   */
   private elegirFila(i: number): void {
     if (i !== this.elegida) sonar('cursor');
     this.elegida = i;
     const s = SECCIONES[i]!;
     if (s === 'heroina' || s === 'objetos' || s === 'ajustes') this.verPagina(s);
-    else this.anunciarFila();
+    else {
+      if ((s === 'equipo' || s === 'mejorar') && this.pagina !== 'heroina') {
+        this.pagina = 'heroina';
+        this.objeto = 0;
+        this.mostrarControles();
+      }
+      this.anunciarFila();
+    }
   }
 
   /** Enter (o →) o un toque en la fila `i`. */
