@@ -63,6 +63,8 @@ import { IMPACTO, MAPA_VIVO } from '../data/datos';
 import { dibujarEntrada } from '../render/entrada';
 import type { Escena } from './escena';
 
+/** Lo más que se espera en negro a que se prepare una sala nueva, en milisegundos. */
+const TOPE_PREPARAR = 1500;
 /** Vector hacia el que mira la heroína según su dirección. */
 const MIRADA: Record<Direccion, [number, number]> = {
   down: [0, 1],
@@ -206,6 +208,12 @@ export class EscenaMapa implements Escena {
   private tiempo = 0;
   /** Segundos que lleva el fundido (0 = sin fundido) y qué pasa a mitad: cruzar un lado o usar el portal. */
   private fundido = 0;
+  /**
+   * La sala nueva se está preparando (texturas y sombreadores, `Mundo.prepararVista`): el fundido se queda en
+   * negro y no se dibuja el 3D hasta que acabe. `prepararAlEmpezar`: lo mismo con la primera sala de la zona.
+   */
+  private preparando = false;
+  private prepararAlEmpezar = false;
   /** Combate que empieza cuando acabe la entrada (destello y franjas), y segundos que lleva la entrada. */
   private combateEntrante: (() => void) | null = null;
   /** Si ya sonó el «¡!» o el «?» en este paso (varios grupos pueden ver a la heroína a la vez). */
@@ -270,7 +278,10 @@ export class EscenaMapa implements Escena {
       this.colocar(buscarInicio(this.montada.sala, o.tam, c.ancho, c.alto));
     }
     this.aplicarCierre();
-    if (o.entrarDesdeNegro) this.fundido = o.duracionFundido / 2;
+    if (o.entrarDesdeNegro) {
+      this.fundido = o.duracionFundido / 2;
+      this.prepararAlEmpezar = true;
+    }
     o.alEntrarEnSala?.(this.estado());
   }
 
@@ -355,10 +366,16 @@ export class EscenaMapa implements Escena {
       }
       return;
     }
+    if (this.prepararAlEmpezar) {
+      this.prepararAlEmpezar = false;
+      this.preparar();
+    }
     if (this.fundido > 0) {
       // Durante el fundido la heroína espera; a mitad, con la pantalla en negro, pasa lo pendiente.
       h.xAnterior = h.cuerpo.x;
       h.yAnterior = h.cuerpo.y;
+      // En negro hasta que la sala nueva esté lista.
+      if (this.preparando) return;
       if (this.pendiente === 'portal' && this.fundido >= duracionFundido / 2) {
         // Se queda en negro: `alUsarPortal` (src/partida/zona.ts) cambia de escena cuando ha cargado la zona siguiente.
         if (!this.portalUsado) this.o.alUsarPortal?.();
@@ -369,6 +386,9 @@ export class EscenaMapa implements Escena {
       if (typeof this.pendiente === 'number' && this.fundido >= duracionFundido / 2) {
         this.cruzar(this.pendiente);
         this.pendiente = null;
+        // Justo en negro (sin pasarse de la mitad): ahí espera mientras se prepara.
+        this.fundido = duracionFundido / 2;
+        this.preparar();
       }
       if (this.fundido >= duracionFundido) this.fundido = 0;
       return;
@@ -519,6 +539,7 @@ export class EscenaMapa implements Escena {
 
   draw(ctx: CanvasRenderingContext2D, alpha: number): void {
     const { heroina: h, duracionFundido, mundo } = this.o;
+
     const vista = this.vistaDe(this.montada);
     this.montada.monstruos.forEach((m, i) => this.colocarMonstruos(m, vista.actores[i], alpha));
     this.colocarErmitano(this.montada.ermitano, vista.ermitano, vista.farol, alpha);
@@ -532,18 +553,20 @@ export class EscenaMapa implements Escena {
     }
     const x = h.xAnterior + (h.cuerpo.x - h.xAnterior) * alpha;
     seguir(x);
-    mundo.dibujar(
-      vista.sala,
-      this.o.sprite,
-      x,
-      h.yAnterior + (h.cuerpo.y - h.yAnterior) * alpha,
-      h.animacion,
-      h.direccion,
-      h.tiempoAnimacion,
-      opacidad,
-      this.cerradas,
-      this.tiempo,
-    );
+    // Mientras se prepara la sala nueva no se dibuja el 3D (lo compilaría de golpe): el fundido la tapa en negro.
+    if (!this.preparando)
+      mundo.dibujar(
+        vista.sala,
+        this.o.sprite,
+        x,
+        h.yAnterior + (h.cuerpo.y - h.yAnterior) * alpha,
+        h.animacion,
+        h.direccion,
+        h.tiempoAnimacion,
+        opacidad,
+        this.cerradas,
+        this.tiempo,
+      );
     // El canvas 2D queda transparente encima del 3D, solo con la interfaz.
     ctx.clearRect(0, 0, ventana.ancho, ventana.alto);
     if (this.lluvia > 0 && this.gotas) {
@@ -973,6 +996,22 @@ export class EscenaMapa implements Escena {
       },
       quien,
       { tipo: 'grupo', indice: sala.monstruos.indexOf(m), quien },
+    );
+  }
+
+  /**
+   * Prepara la sala actual para dibujarse sin parones (ver `preparando`). Con un tope: si algo no responde, se sigue
+   * igualmente (dibujarla compilará lo que falte, como antes).
+   */
+  private preparar(): void {
+    this.preparando = true;
+    const listo = (): void => {
+      this.preparando = false;
+    };
+    const tope = new Promise<void>((r) => setTimeout(r, TOPE_PREPARAR));
+    Promise.race([this.o.mundo.prepararVista(this.vistaDe(this.montada).sala), tope]).then(
+      listo,
+      listo,
     );
   }
 
