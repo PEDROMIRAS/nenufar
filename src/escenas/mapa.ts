@@ -52,7 +52,7 @@ import {
 import { pintarMinimapa } from '../render/minimapa';
 import { crearLluvia, dibujarLluvia, moverLluvia, type Lluvia } from '../render/lluvia';
 import { direccionDe } from '../render/monstruo';
-import type { Actor, FondoSala, Mundo, VistaSala } from '../render/mundo/mundo';
+import type { Actor, FondoSala, LuzSala, Mundo, VistaSala } from '../render/mundo/mundo';
 import type { Sprite } from '../render/recursos';
 import { anunciar, movimientoReducido, temblorEfectivo } from '../render/accesibilidad';
 import { ponerMusica, sonar } from '../render/sonido';
@@ -92,7 +92,13 @@ interface MonstruoMapa {
 interface SalaMontada {
   sala: Sala;
   /** La sala en 3D y un actor por monstruo de cada grupo; se montan la primera vez que se ve. */
-  vista: { sala: VistaSala; actores: Actor[][]; ermitano: Actor | null } | null;
+  vista: {
+    sala: VistaSala;
+    actores: Actor[][];
+    ermitano: Actor | null;
+    /** La luz del farol del ermitaño, que lo sigue. */
+    farol: LuzSala | null;
+  } | null;
   monstruos: MonstruoMapa[];
   /** El ermitaño de una sala de evento de ese tipo: pasea cerca de su casa y mira a la heroína al acercarse. */
   ermitano: Patrulla | null;
@@ -515,7 +521,7 @@ export class EscenaMapa implements Escena {
     const { heroina: h, duracionFundido, mundo } = this.o;
     const vista = this.vistaDe(this.montada);
     this.montada.monstruos.forEach((m, i) => this.colocarMonstruos(m, vista.actores[i], alpha));
-    this.colocarErmitano(this.montada.ermitano, vista.ermitano, alpha);
+    this.colocarErmitano(this.montada.ermitano, vista.ermitano, vista.farol, alpha);
     // Parpadea 3 veces por segundo (tope de WCAG) mientras no se puede empezar otro combate; con menos
     // movimiento, medio transparente.
     let opacidad = 1;
@@ -876,14 +882,22 @@ export class EscenaMapa implements Escena {
   }
 
   /** Coloca al ermitaño (si la sala lo tiene) mirando hacia donde se movió por última vez. */
-  private colocarErmitano(p: Patrulla | null, actor: Actor | null, alpha: number): void {
+  private colocarErmitano(
+    p: Patrulla | null,
+    actor: Actor | null,
+    farol: LuzSala | null,
+    alpha: number,
+  ): void {
     if (!p || !actor) return;
     const { cuerpo: c, xAnterior, yAnterior } = p;
     const andando = c.x !== xAnterior || c.y !== yAnterior;
+    const x = xAnterior + (c.x - xAnterior) * alpha;
+    const y = yAnterior + (c.y - yAnterior) * alpha;
+    if (farol) this.o.mundo.moverLuz(farol, x, y);
     this.o.mundo.colocarActor(
       actor,
-      xAnterior + (c.x - xAnterior) * alpha,
-      yAnterior + (c.y - yAnterior) * alpha,
+      x,
+      y,
       andando ? 'walk' : 'idle',
       direccionDe(p.dirX, p.dirY),
       this.tiempo,
@@ -891,11 +905,7 @@ export class EscenaMapa implements Escena {
   }
 
   /** La sala en 3D, montada la primera vez que se ve, con un actor por monstruo (y el del ermitaño, si lo hay). */
-  private vistaDe(m: SalaMontada): {
-    sala: VistaSala;
-    actores: Actor[][];
-    ermitano: Actor | null;
-  } {
+  private vistaDe(m: SalaMontada): NonNullable<SalaMontada['vista']> {
     if (m.vista) return m.vista;
     const { mundo, zona, spritesMonstruos } = this.o;
     const sala = mundo.montar(
@@ -915,7 +925,12 @@ export class EscenaMapa implements Escena {
       if (g.grupo[0]?.mapa && lider) mundo.crearSigno(lider);
     });
     const hoja = m.ermitano ? spritesMonstruos.get(this.o.ermitano.sprite) : undefined;
-    m.vista = { sala, actores, ermitano: hoja ? mundo.crearActor(sala, hoja) : null };
+    m.vista = {
+      sala,
+      actores,
+      ermitano: hoja ? mundo.crearActor(sala, hoja) : null,
+      farol: hoja ? mundo.ponerLuzMovil(sala, this.o.ermitano.luz) : null,
+    };
     return m.vista;
   }
 

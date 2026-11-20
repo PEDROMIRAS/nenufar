@@ -346,6 +346,8 @@ export interface DatosEventos {
     /** Cómo se mueve por la sala (píxeles por segundo y radio de paseo) y a cuántos píxeles se le puede hablar. */
     mapa: { velocidad: number; patrulla: number; alcance: number; ancho: number; alto: number };
     sprite: string;
+    /** La luz de su farol, de las de `hd2d.json`, que lo sigue (en el Cauce Seco no se le veía). */
+    luz: string;
     /** Principio del aviso al recibir lo elegido («El ermitaño te da: …»). */
     aviso: string;
     /** Lo que dice al acercarse, por clave de zona (tras `descripcion`). */
