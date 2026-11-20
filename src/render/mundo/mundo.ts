@@ -382,6 +382,26 @@ export class Mundo {
   }
 
   /**
+   * Deja lista la sala `v` para dibujarse sin pararse: la pone como la que se ve (sin dibujarla), sube sus texturas
+   * y prepara sus sombreadores en segundo plano (`compileAsync`). La primera vez que salía un material nuevo, la
+   * imagen se paraba al entrar en la sala; ahora la escena espera en negro a que esto acabe. No se dibuja nada
+   * hasta entonces: dibujar compilaría lo mismo de golpe.
+   */
+  async prepararVista(v: VistaSala): Promise<void> {
+    if (v !== this.vista) this.mostrar(v);
+    v.grupo.traverse((o) => {
+      if (!(o instanceof THREE.Mesh || o instanceof THREE.Points || o instanceof THREE.Sprite))
+        return;
+      for (const m of [o.material as THREE.Material | THREE.Material[]].flat()) {
+        const l = m as THREE.MeshLambertMaterial;
+        if (l.map) this.renderer.initTexture(l.map);
+        if (l.normalMap) this.renderer.initTexture(l.normalMap);
+      }
+    });
+    await this.renderer.compileAsync(this.escena, this.camara);
+  }
+
+  /**
    * Calcula ya el relieve de estas hojas (los monstruos de una zona, al cargarla) para no calcularlo al entrar en
    * una sala. En calidad baja no hace nada: no lleva relieve (si se sube, se calcula al verlas, como antes).
    */
