@@ -530,7 +530,11 @@ export class Mundo {
     const amb = this.zona?.aspecto.ambiente;
     const luz = amb ? this.a.luces[amb.tipo] : undefined;
     if (!amb || !luz) return;
-    const cuantos = cuantasDeAmbiente(v.luces.length, amb, v.azar);
+    // Un altar, círculo o puesto ya usado (apagado) no da luz, pero la sala es la misma que con él encendido: sin
+    // contarlo, al volver a ella salía una luz de ambiente que no estaba la primera vez.
+    let propias = v.luces.length;
+    for (const o of v.sala.objetos) if (o.inf.name === 'altar_apagado') propias++;
+    const cuantos = cuantasDeAmbiente(propias, amb, v.azar);
     if (cuantos === 0) return;
     for (const [x, y] of lugaresDeLuz(v.sala, salidas, cuantos, amb.distancia, v.azar)) {
       const e = crearAmbiente(amb.tipo, v.azar, this.tamPunto());

@@ -12,10 +12,15 @@ import type { Escena } from './escena';
 const LETRAS_TITULO = 30;
 const LETRAS_LINEA = 60;
 
+/** Aire entre el texto y el filete del marco a cada lado, en la interfaz alta. */
+const AIRE = 6;
+
 /** Letras por línea en la forma de interfaz actual: las de siempre o, en la interfaz alta, las que caben. */
 export function letras(): { titulo: number; linea: number } {
   if (!interfaz.alta) return { titulo: LETRAS_TITULO, linea: LETRAS_LINEA };
-  const util = interfaz.ancho - 4 * VERTICAL.menu.margen;
+  // El marco va a `margen` de cada lado y el texto a otro `margen` dentro; y un poco más, para que una línea llena
+  // no toque el filete (letrasEnAncho no deja aire).
+  const util = interfaz.ancho - 4 * VERTICAL.menu.margen - 2 * AIRE;
   return {
     titulo: letrasEnAncho(util, VERTICAL.menu.letraGrande),
     linea: letrasEnAncho(util),

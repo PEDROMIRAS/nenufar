@@ -256,7 +256,7 @@ async function iniciar(): Promise<void> {
           pila,
           [
             ...paginas([...historia.inicio, ...heroe.historia.inicio]),
-            cartel(0),
+            cartel(zonaInicial),
             ...paginaPresagio(partida),
           ],
           () => {},
