@@ -103,8 +103,9 @@ describe('cuantasDeAmbiente', () => {
     }
   });
 
-  it('la Cripta pone fuego fatuo también en salas con candelabros', () => {
+  it('la Cripta y el Cauce ponen su luz de ambiente también en salas con candelabros o braseros', () => {
     expect(HD2D.zonas.cripta?.ambiente?.conLuces).toBe(true);
+    expect(HD2D.zonas.cauce?.ambiente?.conLuces).toBe(true);
   });
 
   it('sin luces propias, entre min y max, y salen las dos cifras', () => {
