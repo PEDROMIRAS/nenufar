@@ -78,12 +78,15 @@ export function dibujarFondo(ctx: CanvasRenderingContext2D): void {
   rellenarArea(ctx);
 }
 
-/** Título centrado de una pantalla: texto grande en lavanda claro y, debajo, un filete con un rombo. */
+/**
+ * Título centrado de una pantalla: texto grande en lavanda claro y, debajo, un filete con un rombo. `alto` es dónde
+ * va el filete bajo `y`: con menos de 24 cruza las letras (la base de la letra grande cae hacia y + 20).
+ */
 export function dibujarCabecera(
   ctx: CanvasRenderingContext2D,
   y: number,
   texto: string,
-  alto = 22,
+  alto = 26,
 ): void {
   const centro = interfaz.ancho / 2;
   escribir(ctx, texto, centro, y, PALETA.claro, 'center', FUENTE_GRANDE);

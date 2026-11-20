@@ -13,6 +13,7 @@ import {
   type Resultado,
 } from '../core/combate';
 import {
+  bajoCartelCombate,
   anticipoAtaque,
   dibujarCombate,
   duracionEfecto,
@@ -92,6 +93,10 @@ const CONTINUAR: Record<Dispositivo, string> = {
 export class EscenaCombate implements Escena {
   readonly conMundo = true;
   readonly alta = true;
+  /** En horizontal, a su altura de siempre el cartel del mando tapaba el nombre y la vida de la heroína. */
+  get bajoCartel(): number | undefined {
+    return bajoCartelCombate();
+  }
 
   private readonly cola: Evento[] = [];
   /** Segundos que faltan para pasar al siguiente evento. */

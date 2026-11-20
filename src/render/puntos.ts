@@ -76,7 +76,7 @@ const SUBE = '#7fd88a';
 /** Pantalla de puntos de mejora: una fila por cosa que se puede mejorar, con − y +, y el menú. */
 export function dibujarPuntos(ctx: CanvasRenderingContext2D, v: VistaPuntos): void {
   dibujarFondo(ctx);
-  dibujarCabecera(ctx, 6, v.titulo, 20);
+  dibujarCabecera(ctx, 6, v.titulo, 24);
   const alta = interfaz.alta;
   const centro = interfaz.ancho / 2;
   escribir(ctx, v.libres, centro, 36, PALETA.texto, 'center');

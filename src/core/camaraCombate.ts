@@ -31,10 +31,35 @@ export function zoomMaximo(d: CamaraCombateJson, fuerte = false): number {
   return 1 + d.zoom * (fuerte ? (d.fuerte ?? 1) : 1);
 }
 
+/** Una franja horizontal de la escena: de `izquierda` a `derecha`, en píxeles lógicos. */
+export interface Lados {
+  izquierda: number;
+  derecha: number;
+}
+
+/**
+ * Dónde poner el centro `p` de un acercamiento `z` en un eje para que lo que va de `a` a `b` quede entre `ma` y `mb`:
+ * con el zoom z alrededor de p, un punto q acaba en z·q − (z − 1)·p. Se mueve p lo menos posible; si no hay sitio
+ * (no debería, el zoom ya se ha limitado), el medio.
+ */
+function centrar(z: number, p: number, a: number, b: number, ma: number, mb: number): number {
+  if (z === 1) return p;
+  const minimo = (z * b - mb) / (z - 1);
+  const maximo = (z * a - ma) / (z - 1);
+  return minimo > maximo ? (minimo + maximo) / 2 : Math.min(maximo, Math.max(minimo, p));
+}
+
+/** Cuánto se puede acercar como mucho para que lo que mide `contenido` quepa en lo que mide `marco`. */
+function cabe(contenido: number, marco: number, zoom: number): number {
+  return contenido > 0 ? marco / contenido : zoom;
+}
+
 /**
  * Encuadre de `zoom` alrededor de (x, y) sin que `contenido` (de los nombres de los enemigos a los pies de la
- * heroína) se salga de `marco` (entre la barra de turnos y el panel). Si no cabe, se acerca lo justo para que quepa;
- * la y se mueve lo menos posible y la x no se toca. Escribe en `salida` y la devuelve (sin asignar memoria).
+ * heroína) se salga de `marco` (entre la barra de turnos y el panel) y, si se dan, sin que `lados` (lo más a la
+ * izquierda y a la derecha que se dibuja) se salga de `marcoLados` (el ancho de la pantalla). Si no cabe, se acerca
+ * lo justo para que quepa, y el punto se mueve lo menos posible. Escribe en `salida` y la devuelve (sin asignar
+ * memoria).
  */
 export function encuadrar(
   zoom: number,
@@ -43,19 +68,25 @@ export function encuadrar(
   contenido: Franja,
   marco: Franja,
   salida: Encuadre,
+  lados?: Lados,
+  marcoLados?: Lados,
 ): Encuadre {
-  const alto = contenido.abajo - contenido.arriba;
-  const cabe = alto > 0 ? (marco.abajo - marco.arriba) / alto : zoom;
-  const z = Math.max(1, Math.min(zoom, cabe));
+  let z = Math.min(
+    zoom,
+    cabe(contenido.abajo - contenido.arriba, marco.abajo - marco.arriba, zoom),
+  );
+  if (lados && marcoLados)
+    z = Math.min(
+      z,
+      cabe(lados.derecha - lados.izquierda, marcoLados.derecha - marcoLados.izquierda, zoom),
+    );
+  z = Math.max(1, z);
   salida.zoom = z;
-  salida.x = x;
-  salida.y = y;
-  if (z === 1) return salida;
-  // Con el zoom z alrededor de y, un punto p acaba en z·p − (z − 1)·y: estos son los límites de y para que
-  // lo de arriba no suba del marco ni lo de abajo baje de él.
-  const minimo = (z * contenido.abajo - marco.abajo) / (z - 1);
-  const maximo = (z * contenido.arriba - marco.arriba) / (z - 1);
-  salida.y = minimo > maximo ? (minimo + maximo) / 2 : Math.min(maximo, Math.max(minimo, y));
+  salida.y = centrar(z, y, contenido.arriba, contenido.abajo, marco.arriba, marco.abajo);
+  salida.x =
+    lados && marcoLados
+      ? centrar(z, x, lados.izquierda, lados.derecha, marcoLados.izquierda, marcoLados.derecha)
+      : x;
   return salida;
 }
 

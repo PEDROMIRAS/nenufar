@@ -88,7 +88,7 @@ export function dibujarEquipo(ctx: CanvasRenderingContext2D, v: VistaEquipo): vo
     dibujarMarco(ctx, rana.x, rana.y, rana.ancho, rana.alto);
     dibujarFotograma(ctx, v.sprite, 'idle', 'down', v.tiempo, centro, rana.y + 98, 3);
   } else {
-    dibujarCabecera(ctx, 6, v.titulo, 20);
+    dibujarCabecera(ctx, 6, v.titulo, 24);
     escribir(ctx, v.pista, ANCHO / 2, 38, PALETA.apagada, 'center');
     dibujarMarco(ctx, 16, 56, 168, 228);
     dibujarFotograma(ctx, v.sprite, 'idle', 'down', v.tiempo, 100, 200, 3);

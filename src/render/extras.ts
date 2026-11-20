@@ -51,8 +51,11 @@ export const PESTANAS = [
   { x: ANCHO / 2 + 4, y: 2, ancho: 150, alto: 32 },
 ];
 
-/** Alto de una fila de logro en la interfaz alta: el nombre y hasta dos líneas de descripción. */
-const FILA_LOGRO = 48;
+/**
+ * Alto de una fila de logro en la interfaz alta: el nombre y hasta tres líneas de descripción («El ciclo» y
+ * «Naturalista» ocupan tres a 320 de ancho; con 48 la última quedaba pegada al filete).
+ */
+const FILA_LOGRO = 58;
 const FILAS_LOGRO_D = {
   ...VERTICAL,
   menu: { ...VERTICAL.menu, fila: FILA_LOGRO, filaMin: FILA_LOGRO },
@@ -133,6 +136,37 @@ export function siluetaDe(s: Sprite): Sprite {
   return { imagen: lienzo, datos: s.datos };
 }
 
+/** Lo más que se aparta el dibujo del ancla a un lado (en píxeles de juego), en el reposo de frente. */
+const MEDIOS = new WeakMap<Sprite['datos'], number>();
+function medioAncho(s: Sprite): number {
+  const guardado = MEDIOS.get(s.datos);
+  if (guardado !== undefined) return guardado;
+  const d = s.datos;
+  const anim = d.animations.idle;
+  const lienzo = s.imagen as HTMLCanvasElement;
+  const ctx = lienzo.getContext?.('2d');
+  let medio = d.frameWidth / 2;
+  if (anim && ctx) {
+    const y0 = d.directions.down * d.frameHeight;
+    const datos = ctx.getImageData(
+      anim.startColumn * d.frameWidth,
+      y0,
+      anim.frames * d.frameWidth,
+      d.frameHeight,
+    ).data;
+    const ancho = anim.frames * d.frameWidth;
+    medio = 0;
+    for (let i = 3; i < datos.length; i += 4) {
+      if (datos[i] === 0) continue;
+      const x = (((i - 3) / 4) % ancho) % d.frameWidth;
+      medio = Math.max(medio, d.anchor.x - x, x + 1 - d.anchor.x);
+    }
+  }
+  const enJuego = medio / escalaHoja(d);
+  MEDIOS.set(d, enJuego);
+  return enJuego;
+}
+
 export function dibujarExtras(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
   dibujarFondo(ctx);
   const esAlta = interfaz.alta;
@@ -175,10 +209,14 @@ function dibujarBestiario(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
     // La casilla elegida solo se marca con las flechas en la rejilla (no en las pestañas ni en Volver).
     const marcada = i === v.elegido && !v.focoPestanas && v.menu.seleccion < 0;
     dibujarCaja(ctx, c.x, c.y, c.ancho, c.alto, marcada ? 'elegida' : 'normal');
-    // Los jefes tienen fotogramas más grandes: todos caben en la casilla, a escalas de medio en medio
-    // para que el pixel art no se deforme (32 px → ×1,5; 48 px → ×1).
+    // Los jefes tienen fotogramas más grandes: todos caben en la casilla, a escalas de medio en medio para que
+    // el pixel art no se deforme (32 px → ×1,5; 48 px → ×1). Si el dibujo (no el fotograma, que deja aire) es
+    // más ancho que la casilla, se achica: en la rejilla vertical el murciélago, con las alas abiertas, se salía.
     const altoJuego = f.sprite.datos.frameHeight / escalaHoja(f.sprite.datos);
-    const escala = Math.max(1, Math.floor((48 / altoJuego) * 2) / 2);
+    let escala = Math.max(1, Math.floor((48 / altoJuego) * 2) / 2);
+    const medio = medioAncho(f.silueta);
+    if (2 * medio * escala > c.ancho - 2)
+      escala = Math.max(0.5, Math.floor(((c.ancho - 2) / (2 * medio)) * 2) / 2);
     const pie = c.y + c.alto - 4;
     dibujarFotograma(
       ctx,
