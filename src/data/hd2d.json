@@ -49,7 +49,8 @@
       "alcance": 5,
       "alto": 0.7,
       "parpadeo": 0.15,
-      "sombra": false
+      "sombra": false,
+      "prioridad": 1
     },
     "grieta": {
       "color": "#ff6a2a",
@@ -194,7 +195,7 @@
       "fondo": "#07060b",
       "modelos": true,
       "niebla": 0.012,
-      "ambiente": { "tipo": "fuego_fatuo", "min": 1, "max": 2, "distancia": 3 },
+      "ambiente": { "tipo": "fuego_fatuo", "min": 1, "max": 2, "distancia": 3, "conLuces": true },
       "cielo": { "arriba": "#8f7ad0", "abajo": "#2a2238", "intensidad": 3.2 },
       "principal": { "color": "#c9b8ff", "intensidad": 2.2 },
       "borde": {

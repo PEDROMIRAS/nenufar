@@ -16,14 +16,14 @@ export function compararLuces(p: LuzHd2d, q: LuzHd2d): number {
 
 /**
  * Cuántas fuentes de luz de ambiente lleva una sala: ninguna si ya tiene luces propias (candelabros, braseros,
- * hoguera…), y si no, entre `min` y `max` al azar.
+ * hoguera…) salvo que la zona las quiera también ahí (`conLuces`), y si no, entre `min` y `max` al azar.
  */
 export function cuantasDeAmbiente(
   lucesPropias: number,
-  ambiente: { min: number; max: number },
+  ambiente: { min: number; max: number; conLuces?: boolean },
   azar: () => number,
 ): number {
-  if (lucesPropias > 0) return 0;
+  if (lucesPropias > 0 && !ambiente.conLuces) return 0;
   return ambiente.min + Math.floor(azar() * (ambiente.max - ambiente.min + 1));
 }
 

@@ -96,6 +96,17 @@ describe('cuantasDeAmbiente', () => {
       expect(cuantasDeAmbiente(3, amb, crearAzar(semilla))).toBe(0);
   });
 
+  it('con conLuces, también las lleva una sala con luces propias', () => {
+    for (let semilla = 1; semilla <= 20; semilla++) {
+      const n = cuantasDeAmbiente(3, { ...amb, conLuces: true }, crearAzar(semilla));
+      expect(n >= amb.min && n <= amb.max).toBe(true);
+    }
+  });
+
+  it('la Cripta pone fuego fatuo también en salas con candelabros', () => {
+    expect(HD2D.zonas.cripta?.ambiente?.conLuces).toBe(true);
+  });
+
   it('sin luces propias, entre min y max, y salen las dos cifras', () => {
     const vistas = new Set<number>();
     for (let semilla = 1; semilla <= 50; semilla++) {
