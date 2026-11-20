@@ -5,7 +5,7 @@ import { focoPortada } from '../core/menu';
 import { formatearTiempo, textoPorDificultad, type Records } from '../core/records';
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
 import { dibujarCaja, PALETA } from '../render/marco';
-import { partirTexto } from '../core/texto';
+import { partirLista } from '../core/texto';
 import { ALTO, ANCHO, area, dentro, interfaz } from '../render/pantalla';
 import type { Portada3d } from '../render/mundo/portada';
 import { ponerMusica, sonar } from '../render/sonido';
@@ -162,8 +162,9 @@ export class EscenaTitulo implements Escena {
     if (letras !== this.letrasRecords) {
       this.letrasRecords = letras;
       this.lineasRecords = [
-        ...partirTexto(this.records, letras),
-        ...partirTexto(this.recordsDificultad, letras),
+        // Por elementos: «· Logros 6/6» empezaba la segunda línea.
+        ...partirLista(this.records, letras),
+        ...partirLista(this.recordsDificultad, letras),
       ];
     }
     const base = interfaz.alto - VERTICAL.margen - this.lineasRecords.length * VERTICAL.linea;
