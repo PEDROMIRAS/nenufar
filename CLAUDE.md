@@ -73,6 +73,8 @@ Todo está fusionado en `main` y publicado; no hay ramas abiertas ni nada sin su
 
 **Récords de la portada en vertical (2026-11-20, rama `records-portada`, a petición de Pedro):** se parten por elementos (`partirLista` en `core/texto.ts`, con test), así que ninguna línea empieza con «·» ni parte un «Logros 6/6». Visto a 390×844 y 360×640.
 
+**Pausa (2026-11-20, rama `pausa-equipo`, a petición de Pedro):** con el cursor en «Equipo» o «Mejorar» la derecha enseña la ficha de la heroína (su equipo y sus estadísticas) en vez de quedarse en lo último visto («Objetos»); `elegirFila` en `escenas/pausa.ts`. Visto a 1280×800 y 390×844.
+
 **Hecho el 2026-11-19** (detalle en el documento de desarrollo y en cada spec):
 - **Auditoría ponytail:** guardar al ganar un combate antes de sus pantallas (`despuesDelCombate` en `core/trasCombate.ts`, con test); anuncios del lector de pantalla en el primer `update`; sonido del cofre trampa al volver al mapa; código sin uso fuera; menores (ermitaño sin objeto por fotograma, un solo «¡Nivel N!», `claveDe`, comentario de `vivos`).
 - **`main.ts` partido:** `main.ts` = arranque, portada y bucle; la partida en `src/partida/` (`partida.ts` con `Partida`, `guardado` y `sesion`; `relato`, `combates`, `eventos`, `zona`, `fin`).
@@ -88,7 +90,7 @@ Todo está fusionado en `main` y publicado; no hay ramas abiertas ni nada sin su
 - **Puesto del mercader** (cuarta sala de evento, opción A elegida por Pedro): spec y resultado en `docs/superpowers/specs/2026-11-19-mercader-design.md`. La mitad de los altares; el altar en dorado; hasta 3 piezas de la mochila por `base + ⌊bono/porBono⌋` consumibles del tipo que menos se lleva, solo lo que cabe; un trueque y se apaga; lo vendido va a `inventario.vendidas` y los botines no lo repiten (`yaSalio`). Equilibrado: ninguna celda se mueve más de 0,4 (2400 partidas). Atajo `?mercader`.
 
 **Para la próxima sesión** (casi todo depende de Pedro):
-0. **Decisiones de la revisión visual del 2026-11-20** (también en el documento, pestaña «Versión 2: lo nuevo»): en la pausa, con el cursor en «Equipo» la derecha muestra «Objetos»; las salas del Cauce miden 15×11 (la rana se ve más grande).
+0. **Decisiones de la revisión visual del 2026-11-20** (también en el documento, pestaña «Versión 2: lo nuevo»): las salas del Cauce miden 15×11 (la rana se ve más grande).
 1. **Que Pedro juegue lo publicado sin probar** (ordenador, móvil y mando) y diga qué afinar: la luz y el relieve (¿zonas demasiado oscuras, sobre todo Cauce Seco y Cripta?), la cámara del combate (¿le basta el ~7 % contra jefes, o prefiere más aunque se corten los pies?), el reto del día (duración, nivel 3, banda 55-75 %), el mando (vibración, stick: `zonaMuerta`, `zonaMuertaSalida`, `anchoDiagonal` en `controles.json`), el cartel «Mando conectado» al 62 %, el mapa vivo, el peso de los golpes, el ermitaño y el mercader.
 2. **Aspecto que tiene que aprobar Pedro:** el puesto del mercader (el altar en dorado; si quiere un mercader con sprite, hace falta su imagen), la banda oscura de la portada, el suelo exterior sin relieve y la penumbra de la mitad de abajo en las salas del Cauce con braseros solo arriba.
 3. **Arte que falta:** imágenes de Pedro para el dragón negro, el murciélago, el sacerdote y el cofre trampa; las ranas a doble resolución (proyecto aparte, con su visto bueno); monstruos nuevos (bloque 3 de la variedad).
