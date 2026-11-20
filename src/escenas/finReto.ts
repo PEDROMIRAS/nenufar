@@ -9,6 +9,10 @@ import type { Escena } from './escena';
 
 const ALTO_FILA = 32;
 const MARGEN = 32;
+/** Primera y última línea de texto de la tarjeta (sin desplazar) y el aire entre el texto y los botones en vertical. */
+const ARRIBA = 36;
+const FIN_TEXTO = 230;
+const AIRE_BOTONES = 28;
 const OPCIONES = ['Otra vez', 'Portada'] as const;
 
 /** Lo que dice la tarjeta, ya escrito. */
@@ -64,8 +68,19 @@ export class EscenaFinReto implements Escena {
   }
   exit(): void {}
 
-  /** Dónde empiezan los botones: abajo, dentro del marco. */
+  /**
+   * Cuánto baja todo: en la interfaz alta, el texto y los botones van juntos y centrados en la pantalla (con los
+   * botones abajo del todo quedaba un hueco de media pantalla); en horizontal, nada.
+   */
+  private bajar(): number {
+    if (!interfaz.alta) return 0;
+    const alto = FIN_TEXTO - ARRIBA + AIRE_BOTONES + OPCIONES.length * ALTO_FILA;
+    return Math.max(0, Math.round((interfaz.alto - alto) / 2) - ARRIBA);
+  }
+
+  /** Dónde empiezan los botones: en horizontal, abajo, dentro del marco; en vertical, bajo el texto. */
   private yFilas(): number {
+    if (interfaz.alta) return FIN_TEXTO + AIRE_BOTONES + this.bajar();
     return interfaz.alto - 32 - OPCIONES.length * ALTO_FILA - 12;
   }
 
@@ -108,13 +123,14 @@ export class EscenaFinReto implements Escena {
     dibujarFondo(ctx);
     dibujarMarco(ctx, 16, 16, interfaz.ancho - 32, interfaz.alto - 32);
     const centro = interfaz.ancho / 2;
-    escribir(ctx, 'Reto del día', centro, 36, PALETA.apagada, 'center');
-    escribir(ctx, l.titulo, centro, 62, PALETA.elegida, 'center', FUENTE_GRANDE);
-    escribir(ctx, l.resultado, centro, 104, PALETA.texto, 'center');
-    escribir(ctx, l.mejor, centro, 140, PALETA.claro, 'center');
-    escribir(ctx, l.mejorValor, centro, 160, PALETA.claro, 'center');
-    if (l.nuevo) escribir(ctx, '¡Nuevo récord!', centro, 186, PALETA.cursor, 'center');
-    escribir(ctx, l.dias, centro, 216, PALETA.apagada, 'center');
+    const b = this.bajar();
+    escribir(ctx, 'Reto del día', centro, ARRIBA + b, PALETA.apagada, 'center');
+    escribir(ctx, l.titulo, centro, 62 + b, PALETA.elegida, 'center', FUENTE_GRANDE);
+    escribir(ctx, l.resultado, centro, 104 + b, PALETA.texto, 'center');
+    escribir(ctx, l.mejor, centro, 140 + b, PALETA.claro, 'center');
+    escribir(ctx, l.mejorValor, centro, 160 + b, PALETA.claro, 'center');
+    if (l.nuevo) escribir(ctx, '¡Nuevo récord!', centro, 186 + b, PALETA.cursor, 'center');
+    escribir(ctx, l.dias, centro, 216 + b, PALETA.apagada, 'center');
     const y = this.yFilas();
     for (let i = 0; i < OPCIONES.length; i++)
       dibujarFila(
