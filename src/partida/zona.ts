@@ -110,6 +110,21 @@ export async function crearZona(
     violeta = monstruo(clave);
   }
   partida.zona = datos.nombre;
+  // El relieve de los monstruos de la zona, ya: si no, se calculaba al entrar en la sala donde sale cada uno y la
+  // imagen se paraba (en un móvil medio, ~235 ms).
+  const deLaZona = new Set<string>([
+    ...datos.grupos.flatMap((g) => g.monstruos.map((c) => monstruo(c).sprite)),
+    monstruo(datos.jefe).sprite,
+    monstruo(datos.cofreTrampa).sprite,
+    EVENTOS.ermitano.sprite,
+    ...(violeta ? [violeta.sprite] : []),
+  ]);
+  partida.mundo.prepararRelieve(
+    [...deLaZona].flatMap((clave) => {
+      const hoja = partida.hojas.get(clave);
+      return hoja ? [hoja] : [];
+    }),
+  );
   const hayOtra = indice + 1 < ORDEN.length;
   const escena: EscenaMapa = new EscenaMapa({
     zona,
