@@ -43,9 +43,11 @@ import {
   ajustarPixelArt,
   cuentaColores,
   materialRuido,
+  olvidarRuido,
   paleta,
   pintar,
   textura,
+  prepararNormales,
   texturaNormales,
 } from './texturas';
 import { transparentar, uniformesTransparencia } from './transparencia';
@@ -376,6 +378,17 @@ export class Mundo {
     this.zona = null;
     this.vista = null;
     this.puntos.length = 0;
+    olvidarRuido();
+  }
+
+  /**
+   * Calcula ya el relieve de estas hojas (los monstruos de una zona, al cargarla) para no calcularlo al entrar en
+   * una sala. En calidad baja no hace nada: no lleva relieve (si se sube, se calcula al verlas, como antes).
+   */
+  prepararRelieve(sprites: Iterable<Sprite>): void {
+    const rel = this.a.relieve;
+    if (!rel || !calidadAlta) return;
+    for (const s of sprites) prepararNormales(s.imagen as HTMLImageElement, rel);
   }
 
   /** Monta una sala en 3D. `semilla` fija el azar de su decorado; `encuadre`, si no se ve entera. */

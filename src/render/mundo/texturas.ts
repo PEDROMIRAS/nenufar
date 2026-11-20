@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { Tile } from '../../core/sala';
+import { crearAzar } from '../../core/azar';
 import { normalesDeSprite, type OpcionesRelieve } from '../../core/relieve';
 import { dibujarTile } from '../sala';
 
@@ -72,12 +73,17 @@ export function ruido(
   return tex;
 }
 
-/** Cuántos píxeles opacos hay de cada color en el tile `t`. */
+/** Colores ya contados, por tile: cada objeto de la sala pedía los de su tile y leer los píxeles es caro. */
+const CUENTAS = new WeakMap<Tile, Map<number, number>>();
+
+/** Cuántos píxeles opacos hay de cada color en el tile `t`. No se modifica lo devuelto (se comparte). */
 export function cuentaColores(
   imagenes: readonly HTMLImageElement[],
   t: Tile,
   tam: number,
 ): Map<number, number> {
+  const guardada = CUENTAS.get(t);
+  if (guardada) return guardada;
   const ctx = tileSuelto(imagenes, t, tam).getContext('2d')!;
   const px = ctx.getImageData(0, 0, tam, tam).data;
   const cuenta = new Map<number, number>();
@@ -86,6 +92,7 @@ export function cuentaColores(
     const color = ((px[i] ?? 0) << 16) | ((px[i + 1] ?? 0) << 8) | (px[i + 2] ?? 0);
     cuenta.set(color, (cuenta.get(color) ?? 0) + 1);
   }
+  CUENTAS.set(t, cuenta);
   return cuenta;
 }
 
@@ -175,16 +182,45 @@ function manchas(
   return tex;
 }
 
-/** Material de los modelos: manchas de los colores del sprite, con filtro lineal y mipmaps, y caras facetadas. */
+/** Variantes de cada textura de manchas que se reutilizan (por colores, pesos y repetición). */
+const VARIANTES_RUIDO = 3;
+const RUIDO = new Map<string, THREE.CanvasTexture[]>();
+
+/** Semilla estable de un texto (FNV-1a), para que cada variante salga igual sea cual sea el orden de las salas. */
+function semillaDe(texto: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < texto.length; i++) h = Math.imul(h ^ texto.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+
+/**
+ * Material de los modelos: manchas de los colores del sprite, con filtro lineal y mipmaps, y caras facetadas. La
+ * textura es una de `VARIANTES_RUIDO` por colores y pesos, hecha una vez por zona (`olvidarRuido` las olvida al
+ * vaciarla): hacer una por roca o columna costaba ~135 ms al entrar en una sala en un móvil medio. Gasta siempre
+ * un número del azar, haya que hacer la textura o no, para que lo que venga después salga igual.
+ */
 export function materialRuido(
   colores: readonly (number | string)[],
   pesos: readonly number[],
   azar: () => number,
   repetir = 1,
 ): THREE.MeshLambertMaterial {
-  const map = manchas(colores, pesos, azar);
-  map.repeat.set(repetir, repetir);
+  const clave = `${colores.join(',')}|${pesos.join(',')}|${repetir}`;
+  const variante = Math.floor(azar() * VARIANTES_RUIDO);
+  let lista = RUIDO.get(clave);
+  if (!lista) RUIDO.set(clave, (lista = []));
+  let map = lista[variante];
+  if (!map) {
+    map = manchas(colores, pesos, crearAzar(semillaDe(clave) + variante));
+    map.repeat.set(repetir, repetir);
+    lista[variante] = map;
+  }
   return new THREE.MeshLambertMaterial({ map, flatShading: true });
+}
+
+/** Olvida las texturas de manchas de la zona (al vaciarla, que las suelta con sus materiales). */
+export function olvidarRuido(): void {
+  RUIDO.clear();
 }
 
 /**
@@ -199,6 +235,24 @@ const NORMALES = new WeakMap<object, THREE.Texture>();
  * sin suavizado, con la misma rejilla que la hoja; cada llamada da una copia propia que se puede soltar.
  */
 export function texturaNormales(
+  img: HTMLImageElement | HTMLCanvasElement,
+  o: OpcionesRelieve,
+): THREE.Texture {
+  return normalesBase(img, o).clone();
+}
+
+/**
+ * Calcula ya el mapa de normales de una hoja, sin dar copia: al cargar una zona, para que entrar en una sala con
+ * un monstruo nuevo no se pare a calcularlo (~235 ms en un móvil medio).
+ */
+export function prepararNormales(
+  img: HTMLImageElement | HTMLCanvasElement,
+  o: OpcionesRelieve,
+): void {
+  normalesBase(img, o);
+}
+
+function normalesBase(
   img: HTMLImageElement | HTMLCanvasElement,
   o: OpcionesRelieve,
 ): THREE.Texture {
@@ -219,5 +273,5 @@ export function texturaNormales(
     base.colorSpace = THREE.NoColorSpace;
     NORMALES.set(img, base);
   }
-  return base.clone();
+  return base;
 }
