@@ -77,6 +77,20 @@ describe('lugaresDeLuz', () => {
       }
   });
 
+  it('ninguna sobre un autotile (camino, agua, lava)', () => {
+    // Un camino en cruz: la fila 6 y la columna 10.
+    const conCamino = {
+      ...sala(),
+      base: Array.from({ length: 21 * 13 }, (_, i) => ({
+        name: i % 21 === 10 || Math.floor(i / 21) === 6 ? 'lecho_5' : 'suelo',
+      })),
+    };
+    for (let semilla = 1; semilla <= 30; semilla++)
+      for (const [x, y] of lugaresDeLuz(conCamino, salidas, 3, 2, crearAzar(semilla))) {
+        expect(x === 10 || y === 6).toBe(false);
+      }
+  });
+
   it('en una sala toda sólida, ninguna', () => {
     expect(lugaresDeLuz(sala(true), salidas, 2, 3, crearAzar(1))).toEqual([]);
   });
