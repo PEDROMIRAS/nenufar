@@ -111,7 +111,8 @@ export function dibujarPuntos(ctx: CanvasRenderingContext2D, v: VistaPuntos): vo
       const y = r.y + 7;
       escribir(ctx, f.nombre, r.x + 16, y, colorNombre);
       escribir(ctx, f.porPunto, r.x + 120, y, PALETA.claro);
-      escribir(ctx, f.valor, r.x + 200, y, f.sube ? SUBE : PALETA.texto);
+      // «+0.1/punto» mide 10 letras (~74 px): el valor va detrás con aire.
+      escribir(ctx, f.valor, r.x + 206, y, f.sube ? SUBE : PALETA.texto);
     }
     dibujarSigno(ctx, r.x + signo.menos, r.y, r.alto, '−', f.activa, f.puedeQuitar);
     dibujarSigno(ctx, r.x + signo.mas, r.y, r.alto, '+', f.activa, f.puedePoner);
