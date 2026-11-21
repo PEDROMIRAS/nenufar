@@ -26,6 +26,7 @@
     "murcielago": [496, 182],
     "limo": [500, 278]
   },
+  "sinLuz": ["brasero"],
   "luces": {
     "luciernagas": {
       "color": "#c8ff6a",
@@ -56,7 +57,7 @@
       "color": "#ff6a2a",
       "intensidad": 7,
       "alcance": 4.5,
-      "alto": 0.2,
+      "alto": 0.8,
       "parpadeo": 0.2,
       "sombra": false,
       "prioridad": 1

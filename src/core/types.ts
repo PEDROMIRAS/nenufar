@@ -513,6 +513,11 @@ export interface ZonaHd2d {
 
 /** `src/data/hd2d.json`: el aspecto HD-2D del mapa. */
 export interface Hd2dJson {
+  /**
+   * Objetos de sprite que se dibujan sin iluminar, con su color tal cual: los que dan luz (la llama del brasero
+   * salía saturada en amarillo y, oscurecida en el fondo del combate, verde).
+   */
+  sinLuz?: string[];
   /** Grados que mira hacia abajo la cámara, su campo de visión vertical y casillas de margen alrededor de la sala. */
   camara: { inclinacion: number; fov: number; margen: number };
   /** Casillas de decorado fuera de la sala, para llenar la pantalla más allá del canvas 2D. */

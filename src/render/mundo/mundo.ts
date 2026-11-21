@@ -660,8 +660,12 @@ export class Mundo {
         const pieza = { tiles, ctx: lienzo.getContext('2d')!, tex: textura(lienzo), frame: -1 };
         pintarPieza(pieza, imagenes, tam, 0);
         if (tiles.some((t) => t.frames)) v.piezas.set(o, pieza);
+        // Lo que da luz (el brasero), sin iluminar: si no, su llama se saturaba en amarillo.
+        const opciones = { map: pieza.tex, alphaTest: 0.5, side: THREE.DoubleSide };
         const plano = carton(
-          new THREE.MeshLambertMaterial({ map: pieza.tex, alphaTest: 0.5, side: THREE.DoubleSide }),
+          this.a.sinLuz?.includes(o.inf.name)
+            ? new THREE.MeshBasicMaterial(opciones)
+            : new THREE.MeshLambertMaterial(opciones),
           1,
           tiles.length,
           0,
@@ -1074,13 +1078,13 @@ export class Mundo {
 }
 
 /** Plano de `ancho` × `alto` casillas con el origen `pie` casillas por encima de su borde inferior; `dx` lo corre a la derecha. */
-function carton(
-  material: THREE.MeshLambertMaterial,
+function carton<M extends THREE.MeshLambertMaterial | THREE.MeshBasicMaterial>(
+  material: M,
   ancho: number,
   alto: number,
   pie: number,
   dx = 0,
-): THREE.Mesh<THREE.PlaneGeometry, THREE.MeshLambertMaterial> {
+): THREE.Mesh<THREE.PlaneGeometry, M> {
   const geometria = new THREE.PlaneGeometry(ancho, alto);
   geometria.translate(dx, alto / 2 - pie, 0);
   const plano = new THREE.Mesh(geometria, material);
