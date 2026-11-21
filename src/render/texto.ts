@@ -19,7 +19,10 @@ export async function cargarFuente(): Promise<void> {
   }
 }
 
-/** Texto con sombra de 1 px, legible sobre cualquier fondo. */
+/**
+ * Texto con sombra, legible sobre cualquier fondo: de 1 px en la letra normal y de 2 px en los títulos grandes
+ * (con 1 px se veían planos).
+ */
 export function escribir(
   ctx: CanvasRenderingContext2D,
   texto: string,
@@ -32,8 +35,9 @@ export function escribir(
   ctx.font = fuente;
   ctx.textAlign = alinear;
   ctx.textBaseline = 'top';
+  const sombra = fuente === FUENTE || fuente === FUENTE_BOTON ? 1 : 2;
   ctx.fillStyle = '#000';
-  ctx.fillText(texto, x + 1, y + 1);
+  ctx.fillText(texto, x + sombra, y + sombra);
   ctx.fillStyle = color;
   ctx.fillText(texto, x, y);
 }
