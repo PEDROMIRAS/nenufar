@@ -14,9 +14,9 @@ Hace mil años, la luna se apagó y el Rey sin Charca se bebió el agua del mund
 
 | El Bosque | Las Ruinas |
 | --- | --- |
-| ![Sala del Bosque con las puertas cerradas y limos y un jabalí acercándose entre los árboles](docs/capturas/bosque.png) | ![Sala de las Ruinas con charcos, columnas rotas, un haz de luz y arañas y murciélagos](docs/capturas/ruinas.png) |
+| ![Sala del Bosque con pinos, charcas, luciérnagas y un monstruo al acecho entre los árboles](docs/capturas/bosque.png) | ![Sala de las Ruinas con charcos, columnas rotas, un haz de luz y arañas y murciélagos](docs/capturas/ruinas.png) |
 | **La Cripta** | **El Cauce Seco** |
-| ![Sala de la Cripta con alfombra morada, fosas, candelabros encendidos y un monstruo junto a la heroína](docs/capturas/cripta.png) | ![Sala del Cauce Seco con braseros, pilares con grietas de brasa, salamandras y un acólito](docs/capturas/cauce.png) |
+| ![Sala de la Cripta con alfombra morada, fosas, candelabros y fuegos fatuos, con las puertas cerradas](docs/capturas/cripta.png) | ![Sala del Cauce Seco con braseros, pilares con grietas de brasa, salamandras y un acólito](docs/capturas/cauce.png) |
 
 Al tocar un monstruo empieza el combate, con la sala de fondo. Cada acción dice lo que hace antes de elegirla, y los monstruos anuncian su golpe cargado un turno antes: es el momento de Defender.
 
@@ -29,8 +29,8 @@ Al tocar un monstruo empieza el combate, con la sala de fondo. Cada acción dice
 - **Dos heroínas que se juegan distinto:** la ronin golpea fuerte y recupera maná atacando; la maga lanza fuego morado y se cura con hechizos. Tres dificultades, cada una con sus récords.
 - **Monstruos que te ven:** patrullan la sala, un «¡!» avisa cuando te descubren y, si los pillas por la espalda, atacas primero.
 - **Progresión:** cada nivel da puntos para repartir; el equipo sale de los cofres y del botín, y la heroína lo lleva puesto.
-- **Variedad entre partidas:** presagios por zona (luna roja, manada, fuente seca, coraza), salas violetas con un jefe opcional, un cofre que muerde y salas de evento: un altar que cambia vida o magia por experiencia, un desafío de tres combates seguidos y un ermitaño que comparte sus provisiones.
-- **Reto del día:** el Bosque en corto, con el mismo mapa para todo el mundo durante el día y un récord por rana.
+- **Variedad entre partidas:** presagios por zona (luna roja, manada, fuente seca, coraza), salas violetas con un jefe opcional, un cofre que muerde y salas de evento: un altar que cambia vida o magia por experiencia, un desafío de tres combates seguidos, un ermitaño que comparte sus provisiones y un puesto donde cambiar el equipo que sobra por pociones.
+- **Reto del día:** el Bosque en corto, con el mismo mapa para todo el mundo durante el día y un récord por rana. Se puede quitar de la portada en Controles o en Ajustes.
 - **Bestiario y logros**, y la partida se guarda al entrar en cada sala por si se cierra el navegador (sin trampas: un combate a medias se repite desde el principio).
 
 | Elige heroína | Inventario | Bestiario |
