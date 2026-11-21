@@ -87,9 +87,15 @@ export class EscenaMensaje implements Escena {
     dibujarFondo(ctx);
     const centro = interfaz.ancho / 2;
     dibujarMarco(ctx, 16, 16, interfaz.ancho - 32, interfaz.alto - 32);
+    // El título y el texto, juntos y centrados en alto (un mensaje corto quedaba pegado arriba con la pantalla vacía
+    // debajo); uno largo empieza arriba, como siempre.
+    const altoTitulos = this.titulos.length * 30;
+    const separacion = Math.max(26, 56 - altoTitulos);
+    const altoBloque = altoTitulos + separacion + this.lineas.length * 20;
+    const arriba = Math.max(40, Math.round((interfaz.alto - 40 - altoBloque) / 2));
     for (let i = 0; i < this.titulos.length; i++)
-      escribir(ctx, this.titulos[i]!, centro, 40 + i * 30, this.color, 'center', FUENTE_GRANDE);
-    const y = Math.max(96, 40 + this.titulos.length * 30 + 26);
+      escribir(ctx, this.titulos[i]!, centro, arriba + i * 30, this.color, 'center', FUENTE_GRANDE);
+    const y = arriba + altoTitulos + separacion;
     for (let i = 0; i < this.lineas.length; i++)
       escribir(ctx, this.lineas[i]!, centro, y + i * 20, PALETA.texto, 'center');
     escribir(ctx, this.pie, centro, interfaz.alto - 40, PALETA.apagada, 'center');
