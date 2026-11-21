@@ -1,7 +1,7 @@
 import { dispositivo, type Dispositivo } from '../input/dispositivo';
 import { botonesAltosCacheados, letrasEnAncho } from '../core/disposicion';
 import { VERTICAL } from '../data/datos';
-import { dibujarMenu, type MenuVista } from './combate';
+import { dibujarMenu, type MenuVista } from './menu';
 import { dibujarCabecera, dibujarFondo, dibujarMarco, PALETA } from './marco';
 import { ANCHO, interfaz } from './pantalla';
 import { escribir, FUENTE_GRANDE } from './texto';

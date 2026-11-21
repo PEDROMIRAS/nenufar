@@ -15,7 +15,7 @@ import type { Inventario } from '../core/inventario';
 import { instantanea, type Instantanea } from '../core/progresion';
 import type { EquipoJson, EstadoJson, Estadisticas, ObjetosJson } from '../core/types';
 import { anunciar } from '../render/accesibilidad';
-import { opcionTocada, type MenuVista } from '../render/combate';
+import { opcionTocada, type MenuVista } from '../render/menu';
 import {
   ANCHO_FLECHA,
   dibujarEquipo,

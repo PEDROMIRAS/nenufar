@@ -6,7 +6,7 @@ import type { Records } from '../core/records';
 import { partirTexto } from '../core/texto';
 import type { MonstruoJson } from '../core/types';
 import { anunciar } from '../render/accesibilidad';
-import { opcionTocada, type MenuVista } from '../render/combate';
+import { opcionTocada, type MenuVista } from '../render/menu';
 import {
   celdas,
   columnasBestiario,

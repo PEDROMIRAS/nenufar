@@ -6,7 +6,7 @@ import {
 } from '../src/core/jugadora';
 import JUGADORA from '../src/data/jugadora.json';
 import { luchadorDeHeroe, type Luchador } from '../src/core/combate';
-import { abrirCofre, bonosDe, inventarioInicial } from '../src/core/equipo';
+import { abrirCofre, inventarioInicial, valorPieza } from '../src/core/equipo';
 import {
   aplicarAltar,
   aplicarErmitano,
@@ -127,10 +127,7 @@ function tratarConErmitano(h: Luchador, inv: Inventario): void {
  * `sobrantes`), valorada con su nivel como en el juego, y se lleva su lote.
  */
 function tratarConMercader(h: Luchador, inv: Inventario, sobrantes: string[]): void {
-  const valor = (k: string): number => {
-    const p = OBJETOS.equipo[k];
-    return p ? Object.values(bonosDe(p, h.nivel)).reduce((a: number, b) => a + (b ?? 0), 0) : 0;
-  };
+  const valor = (k: string): number => valorPieza(OBJETOS.equipo[k], h.nivel);
   const pieza = [...sobrantes].sort((a, b) => valor(b) - valor(a))[0];
   if (!pieza) return;
   sobrantes.splice(sobrantes.indexOf(pieza), 1);

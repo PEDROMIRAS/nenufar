@@ -39,6 +39,15 @@ export function inventarioInicial(l: Luchador, heroe: HeroeJson, objetos: Objeto
 export const bonoDe = (pieza: EquipoJson, clave: keyof Estadisticas, nivel: number): number =>
   (pieza.bonos[clave] ?? 0) + (pieza.bonosPorNivel?.[clave] ?? 0) * (nivel - 1);
 
+/**
+ * Lo que vale una pieza: la suma de sus bonos con la heroína en `nivel` (las especiales crecen con ella). La usan
+ * el mercader para pagarla y la jugadora simulada para decidir qué ponerse y qué dejar.
+ */
+export function valorPieza(pieza: EquipoJson | undefined, nivel: number): number {
+  if (!pieza) return 0;
+  return Object.values(bonosDe(pieza, nivel)).reduce((a: number, b) => a + (b ?? 0), 0);
+}
+
 /** Todos los bonos de una pieza con la heroína en `nivel`. */
 export function bonosDe(pieza: EquipoJson, nivel: number): Partial<Estadisticas> {
   const bonos: Partial<Estadisticas> = {};

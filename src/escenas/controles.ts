@@ -2,7 +2,7 @@ import { dispositivo, type Dispositivo } from '../input/dispositivo';
 import type { Acciones } from '../core/acciones';
 import { anunciar } from '../render/accesibilidad';
 import { cargarAjustes, guardarAjustes } from '../render/almacen';
-import { dibujarMenu, opcionTocada, type MenuVista } from '../render/combate';
+import { dibujarMenu, opcionTocada, type MenuVista } from '../render/menu';
 import { ALTO_FILA, ayudaControles, dibujarControles, textoControles } from '../render/controles';
 import { dibujarCabecera, dibujarFondo, dibujarMarco } from '../render/marco';
 import { interfaz } from '../render/pantalla';

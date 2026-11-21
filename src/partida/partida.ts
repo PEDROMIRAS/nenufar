@@ -27,6 +27,7 @@ import plantillasCripta from '../data/salas/plantillas_cripta.json';
 import plantillasRuinas from '../data/salas/plantillas_ruinas.json';
 import zonas from '../data/zonas.json';
 import type { PilaEscenas } from '../escenas/pila';
+import { borrarPartida } from '../render/almacen';
 import { type Casilla, type Deslizador } from '../render/deslizador';
 import { Mundo } from '../render/mundo/mundo';
 import { type Sprite } from '../render/recursos';
@@ -151,6 +152,16 @@ export function mostrarError(error: unknown): void {
   // Sin esto, en un móvil un fallo de carga es solo una pantalla negra.
   document.body.style.color = '#fff';
   document.body.textContent = `Error: ${error instanceof Error ? error.message : String(error)}`;
+  // Si el fallo viene de recuperar la partida guardada, se repetiría en cada recarga: este botón la borra y
+  // vuelve a empezar (un fallo de red no pierde nada, la partida se vuelve a guardar al entrar en una sala).
+  const boton = document.createElement('button');
+  boton.textContent = 'Empezar de nuevo';
+  boton.style.cssText = 'display:block;margin:16px 0;padding:10px 16px;font:inherit;cursor:pointer';
+  boton.addEventListener('click', () => {
+    borrarPartida();
+    location.reload();
+  });
+  document.body.append(boton);
   console.error(error);
 }
 

@@ -1,6 +1,6 @@
 import { elegirConPeso } from './azar';
 import type { Luchador } from './combate';
-import { bonosDe, crecerEquipo } from './equipo';
+import { crecerEquipo, valorPieza } from './equipo';
 import { guardar, type Inventario } from './inventario';
 import { experienciaParaSubir, ganarExperiencia } from './progresion';
 import type { DatosEventos, ObjetosJson, ReglasCombate, ReglasProgresion } from './types';
@@ -177,16 +177,6 @@ export function despedidaErmitano(e: Ermitano, azar: () => number): string {
 }
 
 /**
- * Lo que vale una pieza para el mercader: la suma de sus bonos con la heroína en `nivel` (las especiales de los jefes
- * violeta crecen con ella; con sus bonos de base solo pagaban 1 o 2 consumibles).
- */
-function valorPieza(clave: string, objetos: ObjetosJson, nivel: number): number {
-  const pieza = objetos.equipo[clave];
-  if (!pieza) return 0;
-  return Object.values(bonosDe(pieza, nivel)).reduce((a: number, b) => a + (b ?? 0), 0);
-}
-
-/**
  * Lo que da el mercader por la pieza `clave`: `base` más uno por cada `porBono` de su valor, y cada unidad del
  * consumible de `paga` del que menos se lleva (contando lo que ya suma el lote; a igualdad, el primero de la lista).
  * Solo da lo que cabe: con todo al máximo, el lote sale más corto o vacío (y la oferta se apaga). `nivel` es el de
@@ -199,7 +189,7 @@ export function loteMercader(
   objetos: ObjetosJson,
   nivel = 1,
 ): string[] {
-  const n = m.base + Math.floor(valorPieza(clave, objetos, nivel) / m.porBono);
+  const n = m.base + Math.floor(valorPieza(objetos.equipo[clave], nivel) / m.porBono);
   const cuenta = new Map(m.paga.map((c) => [c, inv.consumibles[c] ?? 0]));
   const lote: string[] = [];
   for (let i = 0; i < n; i++) {
@@ -242,7 +232,7 @@ export function opcionesMercader(
 ): OpcionEvento[] {
   const piezas = inv.mochila
     .filter((k) => objetos.equipo[k])
-    .map((k, i) => ({ k, i, v: valorPieza(k, objetos, nivel) }))
+    .map((k, i) => ({ k, i, v: valorPieza(objetos.equipo[k], nivel) }))
     .sort((a, b) => b.v - a.v || a.i - b.i)
     .slice(0, m.cuantas);
   const ofertas: OpcionEvento[] = piezas.map(({ k }) => {

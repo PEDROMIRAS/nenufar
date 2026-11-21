@@ -151,6 +151,8 @@ interface ZonaMontada {
  */
 export class Mundo {
   private readonly renderer: THREE.WebGLRenderer;
+  /** La preparación de sombreadores en curso (`prepararVista`), si la hay: `vaciar` espera a que acabe para soltar. */
+  private preparando: Promise<void> | null = null;
   private readonly composer: EffectComposer;
   private readonly escena = new THREE.Scene();
   private readonly camara: THREE.PerspectiveCamera;
@@ -355,8 +357,23 @@ export class Mundo {
   vaciar(): void {
     this.vaciarPolvo();
     if (!this.zona) return;
-    for (const v of this.zona.vistas) {
-      if (v.grupo.parent) v.grupo.parent.remove(v.grupo);
+    const vistas = this.zona.vistas;
+    for (const v of vistas) if (v.grupo.parent) v.grupo.parent.remove(v.grupo);
+    // Si aún se preparan sombreadores (`prepararVista` pasó su tope), three los sigue mirando: soltar ahora sus
+    // materiales haría fallar esa comprobación. Se sueltan cuando acabe.
+    if (this.preparando) {
+      const pendiente = this.preparando;
+      void pendiente.finally(() => this.soltarVistas(vistas));
+    } else this.soltarVistas(vistas);
+    this.zona = null;
+    this.vista = null;
+    this.puntos.length = 0;
+    olvidarRuido();
+  }
+
+  /** Suelta geometrías, materiales y texturas de unas salas que ya no se ven. */
+  private soltarVistas(vistas: readonly VistaSala[]): void {
+    for (const v of vistas) {
       v.grupo.traverse((o) => {
         // Los sprites (el halo del fuego fatuo) comparten la geometría de three: solo su material y su textura.
         if (o instanceof THREE.Sprite) {
@@ -376,10 +393,6 @@ export class Mundo {
         }
       });
     }
-    this.zona = null;
-    this.vista = null;
-    this.puntos.length = 0;
-    olvidarRuido();
   }
 
   /**
@@ -399,7 +412,13 @@ export class Mundo {
         if (l.normalMap) this.renderer.initTexture(l.normalMap);
       }
     });
-    await this.renderer.compileAsync(this.escena, this.camara);
+    const compilar = this.renderer.compileAsync(this.escena, this.camara).then(() => {});
+    this.preparando = compilar;
+    try {
+      await compilar;
+    } finally {
+      if (this.preparando === compilar) this.preparando = null;
+    }
   }
 
   /**
