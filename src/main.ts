@@ -40,7 +40,14 @@ import { colocarContexto, esTactil, fijarModo, prepararPantalla } from './render
 import { crearCasilla, crearDeslizador } from './render/deslizador';
 import { crearCampoNombre } from './render/campoNombre';
 import { LARGO_NOMBRE, RECT_CAMPO } from './render/nombre';
-import { RECT_CALIDAD, RECT_EFECTOS, RECT_MUSICA, RECT_SONIDO, RECT_TEMBLOR } from './render/pausa';
+import {
+  RECT_CALIDAD,
+  RECT_EFECTOS,
+  RECT_MUSICA,
+  RECT_RETO,
+  RECT_SONIDO,
+  RECT_TEMBLOR,
+} from './render/pausa';
 import { prepararSonido } from './render/sonido';
 import { Mundo } from './render/mundo/mundo';
 import { crearPortada, type Portada3d } from './render/mundo/portada';
@@ -136,6 +143,7 @@ async function iniciar(): Promise<void> {
   const sonidoHtml = {
     sonido: crearCasilla(canvas, RECT_SONIDO, 'Sonido'),
     calidad: crearCasilla(canvas, RECT_CALIDAD, 'Calidad alta: desenfoque y sombras'),
+    reto: crearCasilla(canvas, RECT_RETO, 'Botón Reto del día en la portada'),
     musica: crearDeslizador(canvas, RECT_MUSICA, 'Volumen de la música'),
     efectos: crearDeslizador(canvas, RECT_EFECTOS, 'Volumen de los efectos'),
     temblor: crearDeslizador(canvas, RECT_TEMBLOR, 'Temblor de la pantalla'),

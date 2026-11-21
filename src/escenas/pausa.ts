@@ -34,6 +34,7 @@ import {
 import { dibujarInventarioAlto, objetosAltos } from '../render/pausaAlta';
 import type { Sprite } from '../render/recursos';
 import type { Casilla, Deslizador } from '../render/deslizador';
+import { cargarAjustes, guardarAjustes } from '../render/almacen';
 import { esCalidadAlta, ponerCalidadAlta } from '../render/mundo/mundo';
 import {
   estaSilenciado,
@@ -87,6 +88,7 @@ export class EscenaPausa implements Escena {
     private readonly controles: {
       sonido: Casilla;
       calidad: Casilla;
+      reto: Casilla;
       musica: Deslizador;
       efectos: Deslizador;
       temblor: Deslizador;
@@ -110,17 +112,21 @@ export class EscenaPausa implements Escena {
     };
     // Con el foco en un control HTML, ↑ y ↓ van de uno a otro (Sonido, Calidad, Música, Efectos); ↑ desde
     // Sonido y ↓ desde Efectos devuelven las teclas a la lista.
-    const { sonido, calidad, musica, efectos } = controles;
+    const { sonido, calidad, reto, musica, efectos } = controles;
     sonido.enlazar(
       () => this.anunciarFila(),
       () => calidad.enfocar(),
     );
     calidad.enlazar(
       () => sonido.enfocar(),
+      () => reto.enfocar(),
+    );
+    reto.enlazar(
+      () => calidad.enfocar(),
       () => musica.enfocar(),
     );
     musica.enlazar(
-      () => calidad.enfocar(),
+      () => reto.enfocar(),
       () => efectos.enfocar(),
     );
     efectos.enlazar(() => musica.enfocar(), null);
@@ -299,7 +305,11 @@ export class EscenaPausa implements Escena {
   private controlEnfocado(): boolean {
     const c = this.controles;
     return (
-      c.sonido.enfocado() || c.calidad.enfocado() || c.musica.enfocado() || c.efectos.enfocado()
+      c.sonido.enfocado() ||
+      c.calidad.enfocado() ||
+      c.reto.enfocado() ||
+      c.musica.enfocado() ||
+      c.efectos.enfocado()
     );
   }
 
@@ -307,6 +317,7 @@ export class EscenaPausa implements Escena {
     const c = this.controles;
     c.sonido.soltar();
     c.calidad.soltar();
+    c.reto.soltar();
     c.musica.soltar();
     c.efectos.soltar();
   }
@@ -340,7 +351,10 @@ export class EscenaPausa implements Escena {
           ]
         : this.pagina === 'objetos'
           ? f.objetos.map((o) => `${o.nombre} ${o.cantidad}: ${o.lineas.join(' ')}`)
-          : ['Sonido, calidad, música y efectos', `Controles. ${textoControles()}`];
+          : [
+              'Sonido, calidad, reto del día en la portada, música, efectos y temblor',
+              `Controles. ${textoControles()}`,
+            ];
     anunciar([`Inventario, ${NOMBRE_SECCION[this.pagina]}`, ...contenido].join('. '));
   }
 
@@ -353,6 +367,9 @@ export class EscenaPausa implements Escena {
     ajustarControlesAjustes();
     this.controles.sonido.mostrar(!estaSilenciado(), (si) => silenciar(!si));
     this.controles.calidad.mostrar(esCalidadAlta(), ponerCalidadAlta);
+    this.controles.reto.mostrar(!cargarAjustes().retoOculto, (si) =>
+      guardarAjustes({ retoOculto: !si }),
+    );
     this.controles.musica.mostrar(leerVolumenMusica(), ponerVolumenMusica);
     this.controles.efectos.mostrar(leerVolumenEfectos(), ponerVolumenEfectos);
     this.controles.temblor.mostrar(leerTemblor(), ponerTemblor);
@@ -361,6 +378,7 @@ export class EscenaPausa implements Escena {
   private ocultarControles(): void {
     this.controles.sonido.ocultar();
     this.controles.calidad.ocultar();
+    this.controles.reto.ocultar();
     this.controles.musica.ocultar();
     this.controles.efectos.ocultar();
     this.controles.temblor.ocultar();

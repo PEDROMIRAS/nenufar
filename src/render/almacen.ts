@@ -30,6 +30,8 @@ export interface Ajustes {
   calidadBaja: boolean;
   /** Cuánto tiembla la pantalla con los golpes, de 0 a 1 (con «menos movimiento» del sistema, nada). */
   temblor: number;
+  /** Sin el botón «Reto del día» en la portada (casilla «Reto» de Ajustes). */
+  retoOculto: boolean;
 }
 
 /** Ajustes guardados; si faltan o están dañados, los de por defecto (nada de lo leído se da por bueno sin comprobarlo). */
@@ -44,6 +46,7 @@ export function cargarAjustes(): Ajustes {
       pistasVistas: a?.pistasVistas === true,
       calidadBaja: a?.calidadBaja === true,
       temblor: typeof a?.temblor === 'number' && a.temblor >= 0 && a.temblor <= 1 ? a.temblor : 1,
+      retoOculto: a?.retoOculto === true,
     };
   } catch {
     return {
@@ -54,6 +57,7 @@ export function cargarAjustes(): Ajustes {
       pistasVistas: false,
       calidadBaja: false,
       temblor: 1,
+      retoOculto: false,
     };
   }
 }

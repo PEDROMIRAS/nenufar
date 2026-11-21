@@ -4,6 +4,7 @@ import { letrasEnAncho } from '../core/disposicion';
 import { focoPortada } from '../core/menu';
 import { formatearTiempo, textoPorDificultad, type Records } from '../core/records';
 import { anunciar, movimientoReducido } from '../render/accesibilidad';
+import { cargarAjustes } from '../render/almacen';
 import { dibujarCaja, PALETA } from '../render/marco';
 import { partirLista } from '../core/texto';
 import { ALTO, ANCHO, area, dentro, interfaz } from '../render/pantalla';
@@ -55,6 +56,8 @@ export class EscenaTitulo implements Escena {
   private tiempo = 0;
   /** Índice en FOCOS: con las flechas en un botón de arriba (Enter lo abre) o en empezar. */
   private foco = 1;
+  /** El botón del reto está en la portada (se puede quitar con la casilla «Reto» de Ajustes). */
+  private conReto = true;
   private ultimoX = 0;
   private ultimoY = 0;
   /** Récords generales y, debajo, los de cada dificultad (o el mejor tiempo, si aún no hay). */
@@ -98,6 +101,7 @@ export class EscenaTitulo implements Escena {
   enter(): void {
     this.arte.preparar();
     this.foco = 1;
+    this.conReto = !cargarAjustes().retoOculto;
     anunciar(['Nenúfar', this.records, this.recordsDificultad, AVISO].filter((t) => t).join('. '));
   }
   exit(): void {
@@ -114,6 +118,8 @@ export class EscenaTitulo implements Escena {
     let foco = this.foco;
     if (dx !== 0 && dx !== this.ultimoX) foco = focoPortada(foco, dx, 0, interfaz.alta);
     else if (dy !== 0 && dy !== this.ultimoY) foco = focoPortada(foco, 0, dy, interfaz.alta);
+    // Sin el botón del reto, la flecha que llevaría a él no hace nada.
+    if (!this.conReto && FOCOS[foco] === 'reto') foco = this.foco;
     this.ultimoX = dx;
     this.ultimoY = dy;
     if (foco !== this.foco) {
@@ -124,7 +130,7 @@ export class EscenaTitulo implements Escena {
     const { toqueX: x, toqueY: y } = acciones;
     if (acciones.info || dentro(x, y, BOTON_EXTRAS)) this.alExtras();
     else if (dentro(x, y, BOTON_CONTROLES)) this.alControles();
-    else if (dentro(x, y, BOTON_RETO)) this.alReto();
+    else if (this.conReto && dentro(x, y, BOTON_RETO)) this.alReto();
     else if (x >= 0) this.alEmpezar();
     else if (acciones.confirmar) {
       const elegido = FOCOS[this.foco];
@@ -155,7 +161,7 @@ export class EscenaTitulo implements Escena {
       BOTON_RETO.y = ALTO - 98;
       BOTON_RETO.ancho = 160;
       BOTON_RETO.alto = 30;
-      this.bandaY = BOTON_RETO.y - VERTICAL.margen;
+      this.bandaY = this.conReto ? BOTON_RETO.y - VERTICAL.margen : this.avisoY - 12;
       return;
     }
     const letras = letrasEnAncho(interfaz.ancho - 2 * VERTICAL.margen);
@@ -180,7 +186,7 @@ export class EscenaTitulo implements Escena {
     BOTON_RETO.ancho = interfaz.ancho - 2 * VERTICAL.margen;
     BOTON_RETO.alto = VERTICAL.botones;
     BOTON_RETO.y = y - VERTICAL.margen - VERTICAL.botones;
-    this.bandaY = BOTON_RETO.y - VERTICAL.margen;
+    this.bandaY = (this.conReto ? BOTON_RETO.y : y) - VERTICAL.margen;
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
@@ -206,7 +212,7 @@ export class EscenaTitulo implements Escena {
       FOCOS[this.foco] === 'extras',
     );
     this.boton(ctx, BOTON_CONTROLES, 'Controles', '', FOCOS[this.foco] === 'controles');
-    this.boton(ctx, BOTON_RETO, TEXTO_RETO, '', FOCOS[this.foco] === 'reto');
+    if (this.conReto) this.boton(ctx, BOTON_RETO, TEXTO_RETO, '', FOCOS[this.foco] === 'reto');
 
     // El aviso pulsa de opacidad en vez de desaparecer (y se queda fijo con menos movimiento).
     ctx.globalAlpha = movimientoReducido() ? 1 : 0.6 + 0.4 * Math.abs(Math.sin(t * 2.5));
