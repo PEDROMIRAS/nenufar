@@ -300,8 +300,8 @@ async function iniciar(): Promise<void> {
             pila,
             [
               {
-                titulo: `Reto del día · ${fecha.dia}/${fecha.mes}/${fecha.anio}`,
-                texto: 'Llega al Guardián del Bosque',
+                titulo: 'Reto del día',
+                texto: `${fecha.dia}/${fecha.mes}/${fecha.anio}. Llega al Guardián del Bosque.`,
               },
             ],
             () => {},
