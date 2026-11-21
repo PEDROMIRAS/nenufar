@@ -37,6 +37,7 @@ import { crearToque } from './input/toque';
 import { iniciarBucle } from './render/bucle';
 import { vigilarActualizaciones } from './render/actualizacion';
 import { colocarContexto, esTactil, fijarModo, prepararPantalla } from './render/pantalla';
+import { cargarFuente } from './render/texto';
 import { crearCasilla, crearDeslizador } from './render/deslizador';
 import { crearCampoNombre } from './render/campoNombre';
 import { LARGO_NOMBRE, RECT_CAMPO } from './render/nombre';
@@ -119,6 +120,7 @@ async function iniciar(): Promise<void> {
   ];
   const acciones = crearAcciones();
   const pila = new PilaEscenas(fijarModo);
+  await cargarFuente();
   const opciones = await Promise.all(
     Object.values(HEROES).map(async (heroe) => ({
       heroe,

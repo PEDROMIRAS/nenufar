@@ -13,7 +13,7 @@ import { ANCHO, aPixel, area, dentro, interfaz, rellenarArea } from './pantalla'
 import { movimientoReducido } from './accesibilidad';
 import { dibujarFotograma, type Sprite } from './recursos';
 import type { FondoSala } from './mundo/mundo';
-import { escribir, FUENTE_BOTON, FUENTE_GRANDE } from './texto';
+import { escribir, FAMILIA, FUENTE_BOTON, FUENTE_GRANDE } from './texto';
 import {
   dibujarCaja,
   dibujarFila,
@@ -361,8 +361,9 @@ function dibujarDestello(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
 
 // Ancho de una letra de la fuente normal y de la de los botones (monoespaciadas, 0,6 de su tamaño) y
 // alto de cada línea de un botón.
-const ANCHO_LETRA = 7.2;
-const ANCHO_LETRA_BOTON = 8.4;
+/** Ancho de una letra de Space Mono en negrita a 12 y 14 px (0,612 de su tamaño). */
+const ANCHO_LETRA = 7.35;
+const ANCHO_LETRA_BOTON = 8.57;
 const LINEA_BOTON = 15;
 /** Textos de botón ya partidos en líneas, por ancho de botón: se parten una vez, no en cada fotograma. */
 const PARTIDOS = new Map<number, Map<string, readonly string[]>>();
@@ -1026,7 +1027,7 @@ function dibujarEfecto(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
 }
 
 /** Letras del número que flota, de 0 a 64 px, hechas una vez (no se crea un texto nuevo en cada fotograma). */
-const FUENTES_NUMERO = Array.from({ length: 65 }, (_, px) => `bold ${px}px monospace`);
+const FUENTES_NUMERO = Array.from({ length: 65 }, (_, px) => `bold ${px}px ${FAMILIA}`);
 const TAMANO_NUMERO = 24;
 
 /** Letra del número que flota: aparece un poco más grande y se asienta en su tamaño, sin rebote. */

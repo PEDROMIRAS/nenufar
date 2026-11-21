@@ -28,6 +28,13 @@
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <style>
+      /* La letra del juego (Space Mono, licencia OFL: assets/fuentes/SpaceMono-OFL.txt). */
+      @font-face {
+        font-family: 'Space Mono';
+        src: url('assets/fuentes/space-mono-700.woff2') format('woff2');
+        font-weight: 700;
+        font-display: swap;
+      }
       html,
       body {
         margin: 0;
@@ -74,7 +81,9 @@
         border: 2px solid #9b7fd6;
         background: #120e20;
         color: #efe9da;
-        font: bold 14px monospace;
+        font:
+          bold 14px 'Space Mono',
+          monospace;
       }
       #actualizacion[hidden] {
         display: none;

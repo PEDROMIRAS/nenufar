@@ -33,6 +33,7 @@ import {
   type MaterialesBosque,
   type SombraSuelo,
 } from './borde';
+import { FAMILIA } from '../texto';
 import { crearElemento } from './elementos';
 import { crearFuente } from './fuente';
 import { crearHundidos } from './hundidos';
@@ -1136,7 +1137,7 @@ function texturaSigno(texto: string, color: string): THREE.Texture {
   lienzo.width = 32;
   lienzo.height = 32;
   const ctx = lienzo.getContext('2d')!;
-  ctx.font = 'bold 26px monospace';
+  ctx.font = `bold 26px ${FAMILIA}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.lineWidth = 5;

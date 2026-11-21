@@ -1,11 +1,23 @@
 import { partirTexto } from '../core/texto';
-// Fuentes fijas: construir el texto de la fuente en cada fotograma crearía cadenas en el bucle.
-export const FUENTE = 'bold 12px monospace';
-export const FUENTE_GRANDE = 'bold 24px monospace';
+// Fuentes fijas: construir el texto de la fuente en cada fotograma crearía cadenas en el bucle. La letra es Space
+// Mono (index.html la declara; `cargarFuente` la espera antes de dibujar); monoespaciada, como la de antes, para
+// que los repartos por número de letras sigan valiendo (ancho de letra en `ANCHO_LETRA`).
+export const FAMILIA = "'Space Mono', monospace";
+export const FUENTE = `bold 12px ${FAMILIA}`;
+export const FUENTE_GRANDE = `bold 24px ${FAMILIA}`;
 /** Botones de los menús: algo mayor que el texto normal, que en el móvil se quedaba pequeño. */
-export const FUENTE_BOTON = 'bold 14px monospace';
-export const FUENTE_LOGO = 'bold 48px monospace';
-export const FUENTE_TITULO = 'bold 32px monospace';
+export const FUENTE_BOTON = `bold 14px ${FAMILIA}`;
+export const FUENTE_LOGO = `bold 48px ${FAMILIA}`;
+export const FUENTE_TITULO = `bold 32px ${FAMILIA}`;
+
+/** Espera a que la letra del juego esté cargada (si no carga, se sigue con la monoespaciada del sistema). */
+export async function cargarFuente(): Promise<void> {
+  try {
+    await document.fonts.load(FUENTE);
+  } catch {
+    // Sin la letra, la del sistema: el juego sigue.
+  }
+}
 
 /** Texto con sombra de 1 px, legible sobre cualquier fondo. */
 export function escribir(

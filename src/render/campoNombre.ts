@@ -39,7 +39,7 @@ export function crearCampoNombre(
   campo.setAttribute('aria-label', 'Nombre de tu rana');
   campo.style.cssText =
     'position:fixed;display:none;box-sizing:border-box;margin:0;padding:0 8px;border:2px solid ' +
-    `${PALETA.filete};background:#0b0814;color:${PALETA.texto};font-family:monospace;font-weight:bold;text-align:center;outline:none`;
+    `${PALETA.filete};background:#0b0814;color:${PALETA.texto};font-family:'Space Mono',monospace;font-weight:bold;text-align:center;outline:none`;
   document.body.append(campo);
 
   const colocar = (): void => {

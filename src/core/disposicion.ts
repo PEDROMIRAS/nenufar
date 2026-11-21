@@ -28,7 +28,7 @@ const poner = (r: Rect, x: number, y: number, ancho: number, alto: number): void
 };
 
 /** Ancho de una letra de la fuente normal (monoespaciada, 0,6 de su tamaño). */
-const ANCHO_LETRA = 7.2;
+const ANCHO_LETRA = 7.35;
 
 /** Letras que caben en el nombre de un enemigo al que le tocan `separacion` píxeles, con un respiro a cada lado. */
 export function anchoNombre(separacion: number): number {
