@@ -777,17 +777,19 @@ function dibujarPanelVertical(ctx: CanvasRenderingContext2D, v: VistaCombate): v
   const f = d.ficha;
   const fx = f.x + 8;
   const ancho = f.ancho - 16 - 46;
-  escribir(ctx, h.nombre, fx, f.y + 2, PALETA.texto);
-  // Los estados caben en lo que deja el nombre; si no, se cortan.
+  // Los estados van tras el nombre si caben; si no, en su lugar (saber que está quemada importa más que leer su
+  // nombre, y «Quemadura» se quedaba en «Quema…»), y solo se cortan si ni así caben.
   const estados = v.estados.get(h) ?? '';
-  const sitio = Math.floor((f.x + f.ancho - 8 - (fx + 80)) / ANCHO_LETRA);
-  escribir(
-    ctx,
-    estados.length > sitio ? `${estados.slice(0, Math.max(0, sitio - 1))}…` : estados,
-    fx + 80,
-    f.y + 2,
-    COLOR.estado,
-  );
+  const xEstados = fx + (h.nombre.length + 1) * ANCHO_LETRA;
+  const fin = f.x + f.ancho - 8;
+  if (estados === '' || xEstados + estados.length * ANCHO_LETRA <= fin) {
+    escribir(ctx, h.nombre, fx, f.y + 2, PALETA.texto);
+    escribir(ctx, estados, xEstados, f.y + 2, COLOR.estado);
+  } else {
+    const sitio = Math.floor((fin - fx) / ANCHO_LETRA);
+    const texto = estados.length > sitio ? `${estados.slice(0, Math.max(0, sitio - 1))}…` : estados;
+    escribir(ctx, texto, fx, f.y + 2, COLOR.estado);
+  }
   barra(ctx, fx, f.y + 18, ancho, (v.pv.get(h) ?? h.pv) / h.pvMax, COLOR.pv);
   escribir(ctx, v.textoPv.get(h) ?? '', fx + ancho + 6, f.y + 14);
   barra(ctx, fx, f.y + 32, ancho, v.pmHeroina / Math.max(1, h.pmMax), COLOR.pm);
