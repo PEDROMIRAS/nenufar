@@ -8,24 +8,6 @@ export interface DatosVertical {
   interfazAncho: number;
   /** Tope de la escala de la interfaz alta (píxeles CSS por unidad lógica): en una tableta no se agranda más. */
   escalaMax: number;
-  /** Alto lógico mínimo de la escena del combate, sobre el panel. */
-  escenaMin: number;
-  /** Medidas del panel del combate vertical (dos columnas, como en horizontal), en unidades lógicas. */
-  combate: {
-    margen: number;
-    /** Filas que se reservan en el panel aunque el menú tenga menos, para que la escena no salte de un menú a otro. */
-    filas: number;
-    /** Alto de una fila de la lista: lo bastante para un dedo. */
-    fila: number;
-    /** Lo mínimo a lo que se encoge una fila cuando hay muchas opciones. */
-    filaMin: number;
-    /** Fracción del ancho del panel que ocupa la columna izquierda (la lista o el registro). */
-    columnaIzquierda: number;
-    /** Alto de la ficha de la heroína, abajo en la columna derecha. */
-    alturaFicha: number;
-    /** Sitio sobre la lista para la pestaña con el nombre del menú. */
-    alturaPestana: number;
-  };
   /** Medidas de los menús en la interfaz alta (pausa, elegir rana, listas, bestiario), en unidades lógicas. */
   menu: {
     margen: number;

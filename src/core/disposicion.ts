@@ -1,23 +1,6 @@
+import type { DatosMenuCombate } from './types';
 import type { DatosVertical } from './encuadre';
 import type { Rect } from './menu';
-
-/** Dónde va cada parte del combate en la interfaz alta (ventana vertical), en unidades lógicas. */
-export interface DisposicionCombate {
-  /** Arriba: enemigos y heroína. */
-  escena: Rect;
-  /** Todo el panel de abajo (con el sitio de la pestaña encima de la lista). */
-  panel: Rect;
-  /** Columna izquierda: las opciones del menú, de arriba abajo. */
-  lista: Rect;
-  /** La misma columna, entera, para el registro mientras se animan los turnos. */
-  registro: Rect;
-  /** Alto de cada fila de la lista. */
-  fila: number;
-  /** Columna derecha, arriba: qué hace lo elegido. */
-  descripcion: Rect;
-  /** Columna derecha, abajo: la ficha de la heroína. */
-  ficha: Rect;
-}
 
 const rect = (): Rect => ({ x: 0, y: 0, ancho: 0, alto: 0 });
 const poner = (r: Rect, x: number, y: number, ancho: number, alto: number): void => {
@@ -35,49 +18,122 @@ export function anchoNombre(separacion: number): number {
   return Math.floor((separacion - 8) / ANCHO_LETRA);
 }
 
+/** Dónde va cada cosa en el combate sin panel (ver `disposicionCombate`), en unidades lógicas de la interfaz. */
+export interface DisposicionCombate {
+  /** Banda de los últimos mensajes, bajo la barra de turnos. */
+  mensajes: Rect;
+  /** Pies de los enemigos. */
+  enemigoY: number;
+  /** Pies de la heroína. */
+  heroina: { x: number; y: number };
+  /** Las filas de la lista (sin su pestaña ni el relleno de la caja): solo se dibuja con un menú abierto. */
+  lista: Rect;
+  fila: number;
+  /** Filas que caben a la vez (las demás se alcanzan desplazando). */
+  visibles: number;
+  ficha: Rect;
+  /** Franja de abajo con qué hace lo elegido (solo con un menú abierto). */
+  explicacion: Rect;
+}
+
 /**
- * Reparte la interfaz alta de `ancho`×`alto` para un combate con un menú de `n` opciones: la escena arriba y,
- * pegado abajo, un panel bajo de dos columnas, como en horizontal. A la izquierda, la lista (o el registro); a la
- * derecha, qué hace lo elegido y, debajo, la ficha de la heroína. Las filas se encogen (hasta `filaMin`) para que
- * la escena conserve `escenaMin`; si ni así cabe todo, manda el panel.
+ * Reparte el combate sin panel en una interfaz de `ancho`×`alto` para un menú de `n` opciones, en horizontal o en
+ * la interfaz alta (`alta`). De arriba abajo: la barra de turnos, la banda de mensajes, los enemigos (el nombre de
+ * un jefe alto empieza bajo la banda), y abajo la explicación pegada al borde y la ficha encima (en horizontal, una
+ * caja a la derecha; en vertical, a lo ancho). La lista va a la derecha de la heroína, con su borde de abajo sobre la
+ * explicación (horizontal) o la ficha (vertical), y crece hacia arriba sin subir sobre lo de los enemigos: las
+ * filas se encogen hasta su mínimo y, si ni así caben, `visibles` es menor que `n`.
  * Si se pasa `fuera` se rellena y se devuelve (se pide en cada fotograma: sin asignar memoria).
  */
 export function disposicionCombate(
   ancho: number,
   alto: number,
   n: number,
-  d: DatosVertical,
+  alta: boolean,
+  d: DatosMenuCombate,
   fuera: DisposicionCombate = {
-    escena: rect(),
-    panel: rect(),
+    mensajes: rect(),
+    enemigoY: 0,
+    heroina: { x: 0, y: 0 },
     lista: rect(),
-    registro: rect(),
     fila: 0,
-    descripcion: rect(),
+    visibles: 0,
     ficha: rect(),
+    explicacion: rect(),
   },
 ): DisposicionCombate {
-  const c = d.combate;
-  const util = ancho - 2 * c.margen;
-  const disponible = alto - c.margen - c.alturaPestana - d.escenaMin;
-  const fila = Math.min(c.fila, Math.max(c.filaMin, disponible / Math.max(1, n)));
-  const cuerpo = n * fila;
-  const izquierda = Math.round(util * c.columnaIzquierda);
+  const m = d.margen;
+  const o = alta ? d.vertical : d.horizontal;
+  const yMensajes = d.finTurnos + 2;
+  poner(fuera.mensajes, m, yMensajes, ancho - 2 * m, d.mensajes * d.lineaMensaje);
+  const finMensajes = yMensajes + d.mensajes * d.lineaMensaje;
+  fuera.enemigoY = finMensajes + d.nombre + d.altoMaxEnemigo + 2;
 
-  const yPanel = alto - c.margen - c.alturaPestana - cuerpo;
-  const yCuerpo = yPanel + c.alturaPestana;
-  const xDerecha = c.margen + izquierda;
-  const anchoDerecha = util - izquierda;
-  const yFicha = yCuerpo + cuerpo - c.alturaFicha;
+  let bajoLista: number;
+  if (alta) {
+    const yExplicacion = alto - m - d.vertical.explicacion;
+    poner(fuera.explicacion, m, yExplicacion, ancho - 2 * m, d.vertical.explicacion);
+    const yFicha = yExplicacion - d.separacion - d.vertical.ficha;
+    poner(fuera.ficha, m, yFicha, ancho - 2 * m, d.vertical.ficha);
+    bajoLista = yFicha - d.separacion;
+  } else {
+    // En horizontal no hay sitio abajo para la explicación: va arriba, en la banda de los mensajes (mientras se
+    // elige no hay mensajes nuevos), y la lista llega hasta abajo, con filas de dedo.
+    poner(
+      fuera.explicacion,
+      fuera.mensajes.x,
+      fuera.mensajes.y,
+      fuera.mensajes.ancho,
+      fuera.mensajes.alto,
+    );
+    const [anchoFicha, altoFicha] = d.horizontal.ficha;
+    poner(fuera.ficha, ancho - m - anchoFicha, alto - m - altoFicha, anchoFicha, altoFicha);
+    bajoLista = alto - m;
+  }
 
+  const xLista = o.heroinaX + d.medioCuerpo + d.separacionLista;
+  const anchoLista = alta ? ancho - m - xLista : d.horizontal.anchoLista;
+  // Lo que deja el borde de abajo de la lista hasta lo de los enemigos, sin la pestaña ni el relleno de la caja.
+  const sitio =
+    bajoLista - d.rellenoLista - (fuera.enemigoY + d.bajoEnemigo + d.tituloLista + d.rellenoLista);
+  const cuantas = Math.max(1, n);
+  const fila = Math.floor(Math.min(o.fila, Math.max(o.filaMin, sitio / cuantas)));
+  const visibles = Math.max(1, Math.min(cuantas, Math.floor(sitio / fila)));
   fuera.fila = fila;
-  poner(fuera.lista, c.margen, yCuerpo, izquierda, cuerpo);
-  poner(fuera.registro, c.margen, yCuerpo, izquierda, cuerpo);
-  poner(fuera.descripcion, xDerecha, yCuerpo, anchoDerecha, Math.max(0, cuerpo - c.alturaFicha));
-  poner(fuera.ficha, xDerecha, yFicha, anchoDerecha, c.alturaFicha);
-  poner(fuera.panel, c.margen, yPanel, util, alto - c.margen - yPanel);
-  poner(fuera.escena, 0, 0, ancho, Math.max(0, yPanel));
+  fuera.visibles = visibles;
+  const yLista = bajoLista - d.rellenoLista - visibles * fila;
+  poner(fuera.lista, xLista, yLista, anchoLista, visibles * fila);
+  fuera.heroina.x = o.heroinaX;
+  fuera.heroina.y = yLista + visibles * fila;
   return fuera;
+}
+
+/**
+ * La primera fila a la vista tras tocar la opción `tocada`: si es la última visible y hay más abajo, se desplaza una;
+ * si es la primera visible y hay más arriba, también. Así con el dedo se llega a las opciones ocultas.
+ */
+export function primeraTrasToque(
+  tocada: number,
+  primera: number,
+  visibles: number,
+  n: number,
+): number {
+  if (tocada === primera + visibles - 1 && tocada < n - 1) return primera + 1;
+  if (tocada === primera && primera > 0) return primera - 1;
+  return primera;
+}
+
+/** La primera fila que se ve de una lista de `n` con `visibles` a la vista, para que la `seleccion` se vea. */
+export function primeraVisible(
+  seleccion: number,
+  primera: number,
+  visibles: number,
+  n: number,
+): number {
+  let p = primera;
+  if (seleccion < p) p = seleccion;
+  else if (seleccion >= p + visibles) p = seleccion - visibles + 1;
+  return Math.max(0, Math.min(p, Math.max(0, n - visibles)));
 }
 
 const r = (x: number, y: number, ancho: number, alto: number): Rect => ({ x, y, ancho, alto });

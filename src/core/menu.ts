@@ -15,6 +15,25 @@ export function filaTocada(x: number, y: number, caja: Rect, altoFila: number, n
 }
 
 /**
+ * Opción de una lista desplazada bajo el toque (x, y): `zona` son las filas a la vista, de alto `fila`; la primera a
+ * la vista es la opción `primera` de `n`. −1 fuera de la zona o en una fila sin opción.
+ */
+export function filaDeToque(
+  x: number,
+  y: number,
+  zona: Rect,
+  fila: number,
+  primera: number,
+  visibles: number,
+  n: number,
+): number {
+  const i = filaTocada(x, y, zona, fila, visibles);
+  if (i < 0) return -1;
+  const opcion = primera + i;
+  return opcion < n ? opcion : -1;
+}
+
+/**
  * Qué hace un toque en la fila `tocada` cuando está elegida `elegida`. Con dos toques (lo que gasta
  * PM u objetos), el primero solo elige, para ver qué hace, y el segundo la usa.
  */

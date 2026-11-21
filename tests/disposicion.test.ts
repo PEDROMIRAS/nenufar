@@ -17,11 +17,13 @@ import {
   toquePuntos,
   toqueEquipo,
   tarjetasAltas,
+  primeraTrasToque,
+  primeraVisible,
   type DisposicionCombate,
 } from '../src/core/disposicion';
 import { partirTexto } from '../src/core/texto';
 import type { Rect } from '../src/core/menu';
-import { MONSTRUOS, VERTICAL } from '../src/data/datos';
+import { MENU_COMBATE, MONSTRUOS, VERTICAL } from '../src/data/datos';
 
 const dentroDe = (r: Rect, ancho: number, alto: number): boolean =>
   r.x >= 0 &&
@@ -34,75 +36,100 @@ const seCruzan = (a: Rect, b: Rect): boolean =>
   a.x < b.x + b.ancho && b.x < a.x + a.ancho && a.y < b.y + b.alto && b.y < a.y + a.alto;
 const sePisan = (r: Rect[]): boolean =>
   r.some((a, i) => r.slice(i + 1).some((b) => seCruzan(a, b)));
-const piezas = (d: DisposicionCombate): Rect[] => [d.escena, d.lista, d.descripcion, d.ficha];
-
-function compruebaOrdenado(d: DisposicionCombate, ancho: number, alto: number): void {
-  for (const r of [...piezas(d), d.panel]) expect(dentroDe(r, ancho, alto)).toBe(true);
-  const p = piezas(d);
-  for (let i = 0; i < p.length; i++)
-    for (let j = i + 1; j < p.length; j++) expect(seCruzan(p[i]!, p[j]!)).toBe(false);
-}
 
 describe('disposicionCombate', () => {
-  test.each([4, 6, 8])('en 320×692 con %i opciones todo cabe, sin pisarse y con escena', (n) => {
-    const d = disposicionCombate(320, 692, n, VERTICAL);
-    compruebaOrdenado(d, 320, 692);
-    expect(d.escena.alto).toBeGreaterThanOrEqual(VERTICAL.escenaMin);
-    expect(d.fila).toBeGreaterThanOrEqual(VERTICAL.combate.filaMin);
-    expect(d.lista.alto).toBeCloseTo(n * d.fila);
+  const D = MENU_COMBATE;
+  const piezas = (d: DisposicionCombate): Rect[] => [d.mensajes, d.lista, d.ficha, d.explicacion];
+  const tamanos: [number, number, boolean][] = [
+    [480, 352, false],
+    [320, 569, true],
+    [320, 692, true],
+    [480, 640, true],
+  ];
+
+  test.each(tamanos)('%ix%i: nada se pisa ni se sale con 1 a 7 opciones', (ancho, alto, alta) => {
+    for (let n = 1; n <= 7; n++) {
+      const d = disposicionCombate(ancho, alto, n, alta, D);
+      // En horizontal la explicación va en la banda de los mensajes (nunca a la vez): no cuenta como otra pieza.
+      const p = alta ? piezas(d) : [d.mensajes, d.lista, d.ficha];
+      for (const r of p) expect(dentroDe(r, ancho, alto), `n=${n}`).toBe(true);
+      for (let a = 0; a < p.length; a++)
+        for (let b = a + 1; b < p.length; b++) expect(seCruzan(p[a]!, p[b]!), `n=${n}`).toBe(false);
+    }
   });
 
-  test('el panel va pegado abajo y la escena arriba hasta el panel', () => {
-    const d = disposicionCombate(320, 692, 4, VERTICAL);
-    expect(d.escena.y).toBe(0);
-    expect(d.escena.alto).toBeCloseTo(d.panel.y);
-    expect(d.panel.y + d.panel.alto).toBeCloseTo(692 - VERTICAL.combate.margen);
+  test.each(tamanos)('%ix%i: la lista nunca sube sobre lo de los enemigos', (ancho, alto, alta) => {
+    for (let n = 1; n <= 7; n++) {
+      const d = disposicionCombate(ancho, alto, n, alta, D);
+      expect(d.lista.y).toBeGreaterThanOrEqual(d.enemigoY + D.bajoEnemigo);
+    }
   });
 
-  test('con 12 opciones en 360×640 la lista no se sale: manda el panel, con filas mínimas', () => {
-    const d = disposicionCombate(320, 569, 12, VERTICAL);
-    compruebaOrdenado(d, 320, 569);
-    expect(d.fila).toBe(VERTICAL.combate.filaMin);
+  test.each(tamanos)(
+    '%ix%i: el nombre de un jefe alto queda bajo los mensajes',
+    (ancho, alto, alta) => {
+      const d = disposicionCombate(ancho, alto, 4, alta, D);
+      expect(d.enemigoY - D.altoMaxEnemigo - D.nombre).toBeGreaterThanOrEqual(
+        d.mensajes.y + d.mensajes.alto,
+      );
+    },
+  );
+
+  test('en horizontal caben 6 opciones sin desplazar, con filas de dedo', () => {
+    const d = disposicionCombate(480, 352, 6, false, D);
+    expect(d.visibles).toBe(6);
+    expect(d.fila).toBeGreaterThanOrEqual(18);
   });
 
-  test('en 360×500 los rectángulos caben aunque la escena quede corta', () => {
-    const d = disposicionCombate(320, 444, 4, VERTICAL);
-    compruebaOrdenado(d, 320, 444);
-    expect(d.escena.alto).toBeGreaterThan(0);
+  test('en horizontal la explicación va arriba, en la banda de los mensajes', () => {
+    const d = disposicionCombate(480, 352, 5, false, D);
+    expect(d.explicacion).toEqual(d.mensajes);
   });
 
-  test('en una tableta (interfaz de 480×640) las dos columnas llenan el ancho entre márgenes', () => {
-    const d = disposicionCombate(480, 640, 4, VERTICAL);
-    compruebaOrdenado(d, 480, 640);
-    expect(d.lista.ancho + d.descripcion.ancho).toBe(480 - 2 * VERTICAL.combate.margen);
-    expect(d.escena.alto).toBeGreaterThanOrEqual(VERTICAL.escenaMin);
+  test('con 7 opciones en 320×569 las filas no bajan de filaMin y las que no caben se desplazan', () => {
+    const d = disposicionCombate(320, 569, 7, true, D);
+    expect(d.fila).toBeGreaterThanOrEqual(D.vertical.filaMin);
+    expect(d.visibles).toBeLessThanOrEqual(7);
+    expect(d.visibles * d.fila).toBeLessThanOrEqual(d.lista.alto);
   });
 
-  test('lista y registro ocupan la misma columna izquierda; descripción y ficha, la derecha', () => {
-    const d = disposicionCombate(320, 692, 5, VERTICAL);
-    expect(d.registro).toEqual(d.lista);
-    expect(d.descripcion.x).toBeCloseTo(d.lista.x + d.lista.ancho);
-    expect(d.ficha.x).toBe(d.descripcion.x);
-    expect(d.ficha.y).toBeCloseTo(d.descripcion.y + d.descripcion.alto);
-    expect(d.ficha.alto).toBe(VERTICAL.combate.alturaFicha);
+  test('en vertical las filas son de dedo', () => {
+    expect(disposicionCombate(320, 692, 5, true, D).fila).toBe(D.vertical.fila);
   });
 
-  test('con las filas reservadas el panel es bajo: la escena se queda con más de dos tercios', () => {
-    const d = disposicionCombate(320, 692, VERTICAL.combate.filas, VERTICAL);
-    expect(d.escena.alto).toBeGreaterThan(692 * 0.66);
+  test('la lista va a la derecha de la heroína y la heroína pisa el borde de abajo de la lista', () => {
+    const d = disposicionCombate(480, 352, 5, false, D);
+    expect(d.lista.x).toBeGreaterThan(d.heroina.x);
+    expect(d.heroina.y).toBe(d.lista.y + d.lista.alto);
   });
 
-  test('si se pasa el objeto de salida, se rellena y se devuelve el mismo', () => {
-    const fuera = disposicionCombate(320, 692, 4, VERTICAL);
-    const otra = disposicionCombate(320, 600, 5, VERTICAL, fuera);
-    expect(otra).toBe(fuera);
-    expect(fuera.panel.y + fuera.panel.alto).toBeCloseTo(600 - VERTICAL.combate.margen);
+  test('en un móvil pequeño de pie (320×468) cabe el menú de acción entero', () => {
+    expect(disposicionCombate(320, 468, 5, true, D).visibles).toBe(5);
   });
 
-  test('con el mismo tamaño sale la misma disposición y al girar el móvil cambia', () => {
-    const a = JSON.stringify(disposicionCombate(320, 692, 4, VERTICAL));
-    expect(JSON.stringify(disposicionCombate(320, 692, 4, VERTICAL))).toBe(a);
-    expect(JSON.stringify(disposicionCombate(320, 569, 4, VERTICAL))).not.toBe(a);
+  test('en horizontal la lista es ancha: «Tajo de llama morada» y su coste no se pisan', () => {
+    const d = disposicionCombate(480, 352, 5, false, D);
+    // Nombre desde x+16 a 7,35 por letra; coste («12 PM», 5 letras) pegado a la derecha con 8 de margen.
+    expect(16 + 20 * 7.35).toBeLessThanOrEqual(d.lista.ancho - 8 - 5 * 7.35);
+  });
+
+  test('tocar la última fila a la vista desplaza una hacia abajo; la primera, una hacia arriba', () => {
+    // 7 opciones, 5 a la vista desde la 0: tocar la 4 (última visible) deja ver la 5.
+    expect(primeraTrasToque(4, 0, 5, 7)).toBe(1);
+    // Desde la 2, tocar la 2 (primera visible) deja ver la 1.
+    expect(primeraTrasToque(2, 2, 5, 7)).toBe(1);
+    // En los extremos no se pasa: la 6 es la última opción, la 0 la primera.
+    expect(primeraTrasToque(6, 2, 5, 7)).toBe(2);
+    expect(primeraTrasToque(0, 0, 5, 7)).toBe(0);
+    // Si caben todas, nada.
+    expect(primeraTrasToque(4, 0, 7, 7)).toBe(0);
+  });
+
+  test('primeraVisible deja la elegida a la vista desplazando lo justo', () => {
+    expect(primeraVisible(0, 0, 5, 7)).toBe(0);
+    expect(primeraVisible(6, 0, 5, 7)).toBe(2);
+    expect(primeraVisible(1, 2, 5, 7)).toBe(1);
+    expect(primeraVisible(3, 0, 7, 7)).toBe(0);
   });
 });
 
