@@ -5,6 +5,10 @@ import {
   mensajesQueCaben,
   opacidadMensaje,
 } from '../src/core/mensajes';
+import { describirEstado } from '../src/core/descripciones';
+import { letrasEnAncho } from '../src/core/disposicion';
+import { partirTexto } from '../src/core/texto';
+import { HEROES, MENU_COMBATE, MONSTRUOS, REGLAS } from '../src/data/datos';
 
 const R = { cuantos: 3, duran: 4, apagar: 0.6, tenues: [1, 0.65, 0.35] };
 
@@ -49,5 +53,36 @@ describe('mensajesQueCaben', () => {
 
   test('el último siempre sale, aunque ocupe más que la banda', () => {
     expect(mensajesQueCaben([1, 4], 3)).toBe(1);
+  });
+});
+
+describe('mensajes largos en la banda de arriba', () => {
+  /** Todos los textos `aviso` de un monstruo (golpe cargado, invocación, transformación), estén donde estén. */
+  const avisos = (o: unknown): string[] =>
+    typeof o !== 'object' || o === null
+      ? []
+      : Object.entries(o).flatMap(([k, v]) =>
+          k === 'aviso' && typeof v === 'string' ? [v] : avisos(v),
+        );
+  const largo = (nombres: string[]): string =>
+    nombres.reduce((a, b) => (b.length > a.length ? b : a));
+
+  test('los más largos caben enteros en 3 líneas en el móvil de pie más estrecho', () => {
+    const monstruos = Object.values(MONSTRUOS);
+    const monstruo = largo(monstruos.map((m) => m.nombre));
+    const heroina = largo(Object.values(HEROES).map((h) => h.nombre));
+    const estados = Object.values(REGLAS.estados);
+    const textos = [
+      `${monstruo} descarga su golpe sobre ${heroina}: 999 ¡crítico!`,
+      `${heroina} descarga su golpe sobre ${monstruo}: 999 ¡crítico!`,
+      ...monstruos.flatMap((m) => avisos(m).map((a) => `${m.nombre} ${a}`)),
+      ...estados.map((e) => describirEstado(e)),
+      ...estados.map((e) => `Se acaba ${e.nombre} en ${monstruo}`),
+      ...estados.map((e) => `${monstruo} pierde 999 PV por ${e.nombre}`),
+    ];
+    // La banda va de margen a margen de la interfaz alta más estrecha (320).
+    const letras = letrasEnAncho(320 - 2 * MENU_COMBATE.margen);
+    for (const t of textos)
+      expect(partirTexto(t, letras).length, t).toBeLessThanOrEqual(MENU_COMBATE.mensajes);
   });
 });

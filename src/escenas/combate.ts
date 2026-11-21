@@ -28,7 +28,6 @@ import {
   describirConsumible,
   describirEstado,
   describirHabilidad,
-  partirEnLineas,
 } from '../core/descripciones';
 import { haceAlgo } from '../core/inventario';
 import { efectoToque, filaDeToque } from '../core/menu';
@@ -70,9 +69,7 @@ type Modo = 'principal' | 'habilidades' | 'objetos' | 'objetivo';
 const LECTURA = ritmo.lectura;
 const MENSAJES_GUARDADOS = ritmo.mensajes.cuantos;
 
-/** Líneas que caben en el panel del registro. */
-const LARGO_LINEA = 57; // deja sitio al botón «i»
-/** Texto de la pestaña del panel en cada menú. */
+/** Texto de la pestaña de la lista en cada menú. */
 const PESTANA: Record<Modo, string> = {
   principal: 'Acción',
   habilidades: 'Habilidad',
@@ -80,7 +77,8 @@ const PESTANA: Record<Modo, string> = {
   objetivo: 'Objetivo',
 };
 
-const ayuda = (texto: string): string[] => partirEnLineas(texto, LARGO_LINEA);
+/** La ayuda va entera: la explicación la parte al ancho de su franja al dibujarla. */
+const ayuda = (texto: string): string[] => [texto];
 
 const textoVida = (pv: number, max: number): string => `${pv}/${max}`;
 
@@ -95,9 +93,9 @@ const CONTINUAR: Record<Dispositivo, string> = {
 export class EscenaCombate implements Escena {
   readonly conMundo = true;
   readonly alta = true;
-  /** En horizontal, a su altura de siempre el cartel del mando tapaba el nombre y la vida de la heroína. */
-  get bajoCartel(): number | undefined {
-    return bajoCartelCombate();
+  /** A su altura de siempre el cartel del mando tapaba la ficha de la heroína o la lista abierta. */
+  get bajoCartel(): number {
+    return bajoCartelCombate(this.v);
   }
 
   private readonly cola: Evento[] = [];
@@ -113,7 +111,7 @@ export class EscenaCombate implements Escena {
   private seleccionPrincipal = 0;
   /** Estados que se ven sobre cada luchador, en el orden en que aparecieron. */
   private readonly estadosVistos = new Map<Luchador, string[]>();
-  /** Estados cuya explicación ya salió en el registro de este combate. */
+  /** Estados cuya explicación ya salió en los mensajes de este combate. */
   private readonly estadosExplicados = new Set<string>();
   private readonly v: VistaCombate;
   /** Quién hizo el último golpe enseñado, para no repetir su animación en un ataque a varios. */
@@ -293,7 +291,8 @@ export class EscenaCombate implements Escena {
       if (acciones.confirmar || acciones.toqueX >= 0) this.saliendo = 0;
       return;
     }
-    // Antes de abrir el menú, un respiro: la lista tapa el registro y así se ve cómo acabó la ronda.
+    // Antes de abrir el menú, un respiro para leer cómo acabó la ronda (en horizontal, la explicación ocupa la
+    // banda de los mensajes en cuanto se abre).
     if (this.combate.esperando && !v.menu && this.respiroPendiente) {
       this.respiroPendiente = false;
       this.espera = ritmo.antesDelMenu;
@@ -306,7 +305,7 @@ export class EscenaCombate implements Escena {
     dibujarCombate(ctx, this.v);
   }
 
-  /** Aplica a la vista lo que cuenta un evento: vida, aviso, registro... */
+  /** Aplica a la vista lo que cuenta un evento: vida, aviso, mensajes... */
   private mostrar(e: Evento): void {
     const v = this.v;
     this.pesar(e);

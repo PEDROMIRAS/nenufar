@@ -19,6 +19,7 @@ import {
   tarjetasAltas,
   primeraTrasToque,
   primeraVisible,
+  topeCartelCombate,
   type DisposicionCombate,
 } from '../src/core/disposicion';
 import { partirTexto } from '../src/core/texto';
@@ -124,6 +125,18 @@ describe('disposicionCombate', () => {
     // Si caben todas, nada.
     expect(primeraTrasToque(4, 0, 7, 7)).toBe(0);
   });
+
+  test.each(tamanos)(
+    '%ix%i: el cartel del mando no tapa la lista ni la ficha',
+    (ancho, alto, alta) => {
+      for (let n = 1; n <= 7; n++) {
+        const d = disposicionCombate(ancho, alto, n, alta, D);
+        const pestana = d.lista.y - D.rellenoLista - D.tituloLista;
+        expect(topeCartelCombate(d, true, D), `n=${n}`).toBeLessThanOrEqual(pestana);
+        expect(topeCartelCombate(d, false, D)).toBeLessThanOrEqual(d.ficha.y);
+      }
+    },
+  );
 
   test('primeraVisible deja la elegida a la vista desplazando lo justo', () => {
     expect(primeraVisible(0, 0, 5, 7)).toBe(0);
