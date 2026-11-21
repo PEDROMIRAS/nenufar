@@ -1,0 +1,30 @@
+{
+  "finTurnos": 26,
+  "margen": 6,
+  "lineaMensaje": 12,
+  "mensajes": 3,
+  "altoMaxEnemigo": 84,
+  "bajoEnemigo": 46,
+  "nombre": 16,
+  "tituloLista": 14,
+  "rellenoLista": 3,
+  "separacionLista": 12,
+  "separacion": 4,
+  "entradaLista": 0.12,
+  "deslizamiento": 12,
+  "horizontal": {
+    "heroinaX": 48,
+    "anchoLista": 168,
+    "fila": 16,
+    "filaMin": 14,
+    "ficha": [164, 46],
+    "explicacion": 24
+  },
+  "vertical": {
+    "heroinaX": 40,
+    "fila": 34,
+    "filaMin": 24,
+    "ficha": 44,
+    "explicacion": 64
+  }
+}

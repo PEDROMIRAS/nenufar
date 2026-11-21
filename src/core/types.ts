@@ -567,3 +567,44 @@ export interface Hd2dJson {
   luces: Record<string, LuzHd2d>;
   zonas: Record<string, ZonaHd2d>;
 }
+
+/** Medidas del combate sin panel (src/data/menu_combate.json), en unidades lógicas de la interfaz. */
+export interface DatosMenuCombate {
+  /** Borde de abajo de la barra de turnos. */
+  finTurnos: number;
+  margen: number;
+  /** Alto de una línea de los mensajes de arriba y cuántas líneas se reservan. */
+  lineaMensaje: number;
+  mensajes: number;
+  /** Lo más que sube un enemigo sobre sus pies (un jefe alto) y lo que ocupa debajo (barra, PV y estados). */
+  altoMaxEnemigo: number;
+  bajoEnemigo: number;
+  /** Alto del nombre de un enemigo, sobre su cabeza. */
+  nombre: number;
+  /** Pestaña con el nombre del menú sobre la lista, relleno de la caja y hueco entre la rana y la lista. */
+  tituloLista: number;
+  rellenoLista: number;
+  separacionLista: number;
+  /** Hueco entre la lista, la ficha y la explicación. */
+  separacion: number;
+  /** Segundos que tarda la lista en entrar y cuánto se desliza al hacerlo. */
+  entradaLista: number;
+  deslizamiento: number;
+  horizontal: {
+    heroinaX: number;
+    anchoLista: number;
+    fila: number;
+    filaMin: number;
+    /** Ancho y alto de la caja de la ficha, abajo a la derecha. */
+    ficha: [number, number];
+    explicacion: number;
+  };
+  vertical: {
+    heroinaX: number;
+    fila: number;
+    filaMin: number;
+    /** Alto de la ficha, a lo ancho. */
+    ficha: number;
+    explicacion: number;
+  };
+}

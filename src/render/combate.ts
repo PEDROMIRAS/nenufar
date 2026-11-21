@@ -2,7 +2,11 @@ import { camaraAtaque, encuadrar, zoomMaximo, type Encuadre } from '../core/cama
 import type { Combate, Luchador } from '../core/combate';
 import { escalaHoja } from '../core/hoja';
 import { partirTexto } from '../core/texto';
-import { anchoNombre, disposicionCombate, type DisposicionCombate } from '../core/disposicion';
+import {
+  anchoNombre,
+  disposicionPanelVertical as disposicionCombate,
+  type DisposicionPanelVertical as DisposicionCombate,
+} from '../core/disposicion';
 import { IMPACTO, VERTICAL } from '../data/datos';
 import { ANCHO, aPixel, area, interfaz, rellenarArea } from './pantalla';
 import { movimientoReducido } from './accesibilidad';
