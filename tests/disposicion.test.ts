@@ -50,7 +50,8 @@ describe('disposicionCombate', () => {
   test.each(tamanos)('%ix%i: nada se pisa ni se sale con 1 a 7 opciones', (ancho, alto, alta) => {
     for (let n = 1; n <= 7; n++) {
       const d = disposicionCombate(ancho, alto, n, alta, D);
-      const p = piezas(d);
+      // En horizontal la explicación va en la banda de los mensajes (nunca a la vez): no cuenta como otra pieza.
+      const p = alta ? piezas(d) : [d.mensajes, d.lista, d.ficha];
       for (const r of p) expect(dentroDe(r, ancho, alto), `n=${n}`).toBe(true);
       for (let a = 0; a < p.length; a++)
         for (let b = a + 1; b < p.length; b++) expect(seCruzan(p[a]!, p[b]!), `n=${n}`).toBe(false);
@@ -74,8 +75,15 @@ describe('disposicionCombate', () => {
     },
   );
 
-  test('en horizontal caben 6 opciones sin desplazar', () => {
-    expect(disposicionCombate(480, 352, 6, false, D).visibles).toBe(6);
+  test('en horizontal caben 6 opciones sin desplazar, con filas de dedo', () => {
+    const d = disposicionCombate(480, 352, 6, false, D);
+    expect(d.visibles).toBe(6);
+    expect(d.fila).toBeGreaterThanOrEqual(18);
+  });
+
+  test('en horizontal la explicación va arriba, en la banda de los mensajes', () => {
+    const d = disposicionCombate(480, 352, 5, false, D);
+    expect(d.explicacion).toEqual(d.mensajes);
   });
 
   test('con 7 opciones en 320×569 las filas no bajan de filaMin y las que no caben se desplazan', () => {

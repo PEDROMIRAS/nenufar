@@ -69,24 +69,26 @@ export function disposicionCombate(
   const finMensajes = yMensajes + d.mensajes * d.lineaMensaje;
   fuera.enemigoY = finMensajes + d.nombre + d.altoMaxEnemigo + 2;
 
-  const altoExplicacion = o.explicacion;
-  const yExplicacion = alto - m - altoExplicacion;
-  poner(fuera.explicacion, m, yExplicacion, ancho - 2 * m, altoExplicacion);
   let bajoLista: number;
   if (alta) {
+    const yExplicacion = alto - m - d.vertical.explicacion;
+    poner(fuera.explicacion, m, yExplicacion, ancho - 2 * m, d.vertical.explicacion);
     const yFicha = yExplicacion - d.separacion - d.vertical.ficha;
     poner(fuera.ficha, m, yFicha, ancho - 2 * m, d.vertical.ficha);
     bajoLista = yFicha - d.separacion;
   } else {
-    const [anchoFicha, altoFicha] = d.horizontal.ficha;
+    // En horizontal no hay sitio abajo para la explicación: va arriba, en la banda de los mensajes (mientras se
+    // elige no hay mensajes nuevos), y la lista llega hasta abajo, con filas de dedo.
     poner(
-      fuera.ficha,
-      ancho - m - anchoFicha,
-      yExplicacion - d.separacion - altoFicha,
-      anchoFicha,
-      altoFicha,
+      fuera.explicacion,
+      fuera.mensajes.x,
+      fuera.mensajes.y,
+      fuera.mensajes.ancho,
+      fuera.mensajes.alto,
     );
-    bajoLista = yExplicacion - d.separacion;
+    const [anchoFicha, altoFicha] = d.horizontal.ficha;
+    poner(fuera.ficha, ancho - m - anchoFicha, alto - m - altoFicha, anchoFicha, altoFicha);
+    bajoLista = alto - m;
   }
 
   const xLista = o.heroinaX + d.medioCuerpo + d.separacionLista;

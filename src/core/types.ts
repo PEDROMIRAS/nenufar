@@ -603,7 +603,6 @@ export interface DatosMenuCombate {
     filaMin: number;
     /** Ancho y alto de la caja de la ficha, abajo a la derecha. */
     ficha: [number, number];
-    explicacion: number;
   };
   vertical: {
     heroinaX: number;

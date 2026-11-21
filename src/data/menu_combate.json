@@ -15,13 +15,12 @@
   "horizontal": {
     "heroinaX": 48,
     "anchoLista": 210,
-    "fila": 16,
+    "fila": 20,
     "filaMin": 14,
     "ficha": [
       164,
       46
-    ],
-    "explicacion": 24
+    ]
   },
   "vertical": {
     "heroinaX": 40,

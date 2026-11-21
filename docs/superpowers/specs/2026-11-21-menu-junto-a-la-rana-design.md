@@ -94,3 +94,8 @@ En el aspecto, Pedro eligió la **A (Octopath fiel)** frente a la B (lista flota
 - Capturas en 1280×800 y 390×844 de: menú de acción, habilidades, objetivo con 3+ enemigos, turno de un monstruo, un jefe alto, un aviso «No quedan PM», el final («¡Victoria!»).
 - Probar con el dedo (toque) y con teclado; el mando sigue el mismo camino que el teclado.
 - Suite completa, lint y build.
+
+## Cambio tras la revisión final (2026-11-21, decidido por Pedro)
+
+En horizontal la pantalla es baja: con la banda de mensajes arriba, la franja de explicación abajo solo tenía una línea (se cortaban las explicaciones largas, como la de Fuego fatuo) y las filas de la lista se quedaban en 16 (pequeñas para el dedo). Pedro eligió, entre tres salidas, **poner la explicación arriba mientras se elige**: en horizontal, con el menú abierto, la banda de los mensajes muestra qué hace lo elegido (o el aviso) y no hay franja abajo; la lista llega hasta abajo, con filas de unos 19-20, y caben las 7 opciones de un combate con 6 enemigos. Al cerrar el menú vuelven los mensajes. En vertical no cambia (franja abajo, de 50).
+

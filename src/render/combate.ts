@@ -260,7 +260,8 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   // Sin panel: los mensajes arriba, la ficha abajo y, cuando le toca a la heroína, la lista junto a ella y la
   // explicación abajo del todo.
   const d = disposicion(v.menu?.opciones.length ?? 0);
-  dibujarMensajes(ctx, v, d);
+  // En horizontal, mientras se elige, la banda de arriba es de la explicación (ver `disposicionCombate`).
+  if (interfaz.alta || !v.menu) dibujarMensajes(ctx, v, d);
   dibujarFicha(ctx, v, d);
   if (v.menu) {
     dibujarLista(ctx, v, d);
@@ -632,16 +633,20 @@ function dibujarExplicacion(
   const ayuda = v.menu?.opciones[v.menu.seleccion]?.ayuda;
   // Sin nada que decir (elegir enemigo, Volver), no hay franja: una caja vacía abajo era otro panel fijo.
   if (v.aviso === 0 && !ayuda) return;
-  dibujarCaja(ctx, e.x, e.y, e.ancho, e.alto, 'normal');
-  const letras = letrasPara(AVISOS, e.ancho - 20);
-  const maxLineas = Math.max(1, Math.floor((e.alto - 8) / LINEA));
-  const x = e.x + 10;
-  const y = e.y + 6;
-  if (v.aviso > 0) dibujarAviso(ctx, v, x, y, letras, maxLineas, AVISOS);
+  // En vertical, una franja con caja abajo; en horizontal, la banda de arriba, sin caja y con el paso de los
+  // mensajes (es donde estaban).
+  const abajo = interfaz.alta;
+  if (abajo) dibujarCaja(ctx, e.x, e.y, e.ancho, e.alto, 'normal');
+  const paso = abajo ? LINEA : D.lineaMensaje;
+  const letras = letrasPara(AVISOS, e.ancho - (abajo ? 20 : 0));
+  const maxLineas = abajo ? Math.max(1, Math.floor((e.alto - 8) / LINEA)) : D.mensajes;
+  const x = e.x + (abajo ? 10 : 0);
+  const y = e.y + (abajo ? 6 : 0);
+  if (v.aviso > 0) dibujarAviso(ctx, v, x, y, letras, maxLineas, paso);
   else if (ayuda) {
     const lineas = ayudaPartida(ayuda, letras);
     for (let i = 0; i < lineas.length && i < maxLineas; i++)
-      escribir(ctx, lineas[i]!, x, y + i * LINEA, PALETA.texto);
+      escribir(ctx, lineas[i]!, x, y + i * paso, PALETA.texto);
   }
 }
 
@@ -653,14 +658,14 @@ function dibujarAviso(
   y: number,
   letras: number,
   maxLineas: number,
-  cache: Map<string, readonly string[]>,
+  paso: number,
 ): void {
   const reg = v.mensajes.textos;
   let linea = 0;
   for (let r = Math.max(0, reg.length - Math.min(v.aviso, 2)); r < reg.length; r++) {
-    const lineas = avisoPartido(reg[r]!, cache, letras);
+    const lineas = avisoPartido(reg[r]!, AVISOS, letras);
     for (let i = 0; i < lineas.length && linea < maxLineas; i++, linea++)
-      escribir(ctx, lineas[i]!, x, y + linea * LINEA, COLOR.aviso);
+      escribir(ctx, lineas[i]!, x, y + linea * paso, COLOR.aviso);
   }
 }
 
