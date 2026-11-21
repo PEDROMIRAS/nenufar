@@ -27,11 +27,15 @@ export function cuantasDeAmbiente(
   return ambiente.min + Math.floor(azar() * (ambiente.max - ambiente.min + 1));
 }
 
+/** Nombre de un tile de autotile (`camino_5`, `lava_12`): el tipo y su máscara de vecinos. */
+const AUTOTILE = /_\d+$/;
+
 /**
  * Dónde poner hasta `cuantos` fuentes de luz de ambiente en una sala: casillas libres (no sólidas, sin objeto y sin
  * la parte de arriba de un objeto alto, como la copa de un árbol) que no toquen nada sólido ni el borde (el haz de
- * las Ruinas, inclinado, atravesaba el muro si caía pegado a él), a `distancia` o más (en casillas, en cualquier
- * dirección) de cada entrada y entre sí. Determinista con el mismo azar.
+ * las Ruinas, inclinado, atravesaba el muro si caía pegado a él) y fuera de los autotiles de `base` (caminos, agua,
+ * lava: una grieta de brasa salía en el cruce de caminos, bajo los pies de la heroína), a `distancia` o más (en
+ * casillas, en cualquier dirección) de cada entrada y entre sí. Determinista con el mismo azar.
  */
 export function lugaresDeLuz(
   sala: {
@@ -40,6 +44,8 @@ export function lugaresDeLuz(
     solido: readonly boolean[];
     /** `sup`, si lo tiene, ocupa además la casilla de encima (los objetos de dos casillas de alto). */
     objetos: readonly { x: number; y: number; sup?: unknown }[];
+    /** Tile de fondo por casilla: los de autotile se llaman `<tipo>_<máscara>`. */
+    base?: readonly { name: string }[];
   },
   salidas: readonly { entrada: readonly [number, number] }[],
   cuantos: number,
@@ -67,7 +73,7 @@ export function lugaresDeLuz(
   for (let y = 0; y < sala.alto; y++)
     for (let x = 0; x < sala.ancho; x++) {
       const i = y * sala.ancho + x;
-      if (conObjeto.has(i) || pegada(x, y)) continue;
+      if (conObjeto.has(i) || pegada(x, y) || AUTOTILE.test(sala.base?.[i]?.name ?? '')) continue;
       if (salidas.every((s) => lejos(x, y, s.entrada))) libres.push([x, y]);
     }
   const elegidas: [number, number][] = [];
