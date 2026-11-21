@@ -1,7 +1,7 @@
 import { botonesAltosCacheados, filasLista, letrasEnAncho } from '../core/disposicion';
 import type { Rect } from '../core/menu';
 import { VERTICAL } from '../data/datos';
-import { dibujarMenu, type MenuVista } from './combate';
+import { dibujarMenu, type MenuVista } from './menu';
 import {
   dibujarCabecera,
   dibujarCaja,

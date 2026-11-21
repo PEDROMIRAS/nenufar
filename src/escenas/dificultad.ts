@@ -2,7 +2,7 @@ import type { Acciones } from '../core/acciones';
 import { partirEnLineas } from '../core/descripciones';
 import type { DificultadJson } from '../core/types';
 import { anunciar } from '../render/accesibilidad';
-import { opcionTocada, type MenuVista } from '../render/combate';
+import { opcionTocada, type MenuVista } from '../render/menu';
 import { dibujarDificultad, letrasFicha, type FichaDificultad } from '../render/dificultad';
 import { ponerMusica, sonar } from '../render/sonido';
 import type { Escena } from './escena';

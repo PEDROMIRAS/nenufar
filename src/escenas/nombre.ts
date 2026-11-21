@@ -4,7 +4,7 @@ import { limpiarNombre } from '../core/nombre';
 import type { HeroeJson } from '../core/types';
 import { anunciar } from '../render/accesibilidad';
 import type { CampoNombre } from '../render/campoNombre';
-import { opcionTocada, type MenuVista } from '../render/combate';
+import { opcionTocada, type MenuVista } from '../render/menu';
 import { ajustarCampoNombre, dibujarNombre, LARGO_NOMBRE } from '../render/nombre';
 import type { Sprite } from '../render/recursos';
 import { ponerMusica, sonar } from '../render/sonido';

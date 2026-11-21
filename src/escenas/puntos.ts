@@ -5,7 +5,7 @@ import type { Luchador } from '../core/combate';
 import { mejorar } from '../core/progresion';
 import type { Mejora, ReglasCombate } from '../core/types';
 import { anunciar } from '../render/accesibilidad';
-import { opcionTocada, type MenuVista } from '../render/combate';
+import { opcionTocada, type MenuVista } from '../render/menu';
 import {
   dibujarPuntos,
   filasPuntos,

@@ -9,16 +9,10 @@ import {
   type Combate,
   type Luchador,
 } from './combate';
-import { equipar } from './equipo';
+import { equipar, valorPieza } from './equipo';
 import type { Inventario } from './inventario';
 import { repartirPuntos } from './progresion';
-import type {
-  EquipoJson,
-  MonstruoJson,
-  ObjetosJson,
-  ReglasCombate,
-  ReglasProgresion,
-} from './types';
+import type { MonstruoJson, ObjetosJson, ReglasCombate, ReglasProgresion } from './types';
 
 /**
  * La jugadora simulada: una persona razonable jugando un combate. La usan los tests de equilibrado y el reto del día,
@@ -89,10 +83,7 @@ function decidir(c: Combate, azar: () => number, p: PoliticaJugadora): AccionHer
   return { tipo: 'atacar', objetivo };
 }
 
-const valor = (p: EquipoJson | undefined): number =>
-  p ? Object.values(p.bonos).reduce((a, b) => a + (b ?? 0), 0) : 0;
-
-/** Se pone la pieza si suma más que la que lleva en ese hueco. */
+/** Se pone la pieza si suma más que la que lleva en ese hueco, con lo que crecen las dos en su nivel. */
 export function quizaEquipar(
   h: Luchador,
   inv: Inventario,
@@ -101,7 +92,10 @@ export function quizaEquipar(
 ): void {
   const nueva = objetos.equipo[clave];
   const actual = nueva && inv[nueva.hueco];
-  if (nueva && valor(nueva) > valor(actual ? objetos.equipo[actual] : undefined)) {
+  if (
+    nueva &&
+    valorPieza(nueva, h.nivel) > valorPieza(actual ? objetos.equipo[actual] : undefined, h.nivel)
+  ) {
     equipar(h, inv, objetos, clave);
   }
 }

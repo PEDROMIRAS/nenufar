@@ -1,5 +1,6 @@
 import { vibrar } from '../input/mando';
 import { dispositivo, type Dispositivo } from '../input/dispositivo';
+import type { MenuVista } from '../render/menu';
 import type { Acciones } from '../core/acciones';
 import {
   actuar,
@@ -20,7 +21,6 @@ import {
   aPanel,
   filaCombate,
   listaCombate,
-  type MenuVista,
   type VistaCombate,
 } from '../render/combate';
 import {
