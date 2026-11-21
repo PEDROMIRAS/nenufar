@@ -2,26 +2,16 @@ import { camaraAtaque, encuadrar, zoomMaximo, type Encuadre } from '../core/cama
 import type { Combate, Luchador } from '../core/combate';
 import { escalaHoja } from '../core/hoja';
 import { partirTexto } from '../core/texto';
-import {
-  anchoNombre,
-  disposicionPanelVertical as disposicionCombate,
-  type DisposicionPanelVertical as DisposicionCombate,
-} from '../core/disposicion';
-import { IMPACTO, VERTICAL } from '../data/datos';
+import { anchoNombre, disposicionCombate, type DisposicionCombate } from '../core/disposicion';
+import { opacidadMensaje, type MensajesCombate } from '../core/mensajes';
+import { IMPACTO, MENU_COMBATE } from '../data/datos';
+import ritmo from '../data/ritmo.json';
 import { ANCHO, aPixel, area, interfaz, rellenarArea } from './pantalla';
 import { movimientoReducido } from './accesibilidad';
 import { dibujarFotograma, type Sprite } from './recursos';
 import type { FondoSala } from './mundo/mundo';
 import { conRelieve, escribir, FAMILIA, FUENTE_GRANDE } from './texto';
-import {
-  dibujarCaja,
-  dibujarFila,
-  dibujarMarco,
-  dibujarPestana,
-  dibujarTitulo,
-  PALETA,
-  rombo,
-} from './marco';
+import { dibujarCaja, dibujarFila, dibujarMarco, dibujarPestana, PALETA, rombo } from './marco';
 import type { Rect } from '../core/menu';
 import type { MenuVista } from './menu';
 
@@ -47,8 +37,11 @@ export interface VistaCombate {
   textoPm: string;
   /** Estados activos que se ven, como texto («Veneno · Furia»). */
   estados: Map<Luchador, string>;
-  /** Historial de lo que ha pasado, lo último al final: se ve en el panel mientras corren los turnos. */
-  registro: string[];
+  /** Los últimos mensajes del combate, que se ven arriba y se apagan solos (`core/mensajes.ts`). */
+  mensajes: MensajesCombate;
+  /** Primera opción a la vista de la lista (cuando no caben todas) y segundos desde que se abrió el menú. */
+  primera: number;
+  entrada: number;
   /** Menú de la heroína; null mientras no le toca elegir. */
   menu: MenuVista | null;
   /** Enemigo señalado mientras se elige objetivo. */
@@ -88,17 +81,17 @@ export interface VistaCombate {
   defendiendo: boolean;
   /** Texto grande del final («¡Victoria!»…); vacío mientras se lucha. */
   titulo: string;
-  /** Nombre del menú abierto, en la pestaña del panel («Acción», «Habilidad»…). */
+  /** Nombre del menú abierto, en la pestaña sobre la lista («Acción», «Habilidad»…). */
   pestana: string;
   /**
-   * Cuántos de los últimos mensajes del registro se dieron con el menú abierto («No quedan PM…»): ocupan el
-   * sitio de la descripción hasta que se mueve el cursor o cambia el menú. 0 si no hay ninguno. Lo que pasó
-   * en los turnos de antes no la tapa.
+   * Cuántos de los últimos mensajes se dieron con el menú abierto («No quedan PM…»): ocupan la franja de la
+   * explicación hasta que se mueve el cursor o cambia el menú. 0 si no hay ninguno. Lo que pasó en los turnos de
+   * antes no la tapa.
    */
   aviso: number;
   /** Segundos desde que empezó el combate, también durante la pausa de impacto (mueve el ruido del temblor). */
   tiempoReal: number;
-  /** Cuánto se desplaza la escena en este fotograma (píxeles lógicos); el panel no se mueve. */
+  /** Cuánto se desplaza la escena en este fotograma (píxeles lógicos); la lista, la ficha y los textos, no. */
   temblor: { x: number; y: number };
   /** Opacidad con que empezó el último destello del impacto y segundos desde entonces. */
   destello: number;
@@ -119,16 +112,16 @@ const COLOR = {
   barraFondo: '#3a2a2a',
   aviso: PALETA.elegida,
   estado: '#c89bff',
-  /** Color de cada mensaje del registro según su antigüedad: el último, el anterior y los demás. */
-  registro: [PALETA.texto, '#c4bdd6', PALETA.apagada],
 };
-/** Alto de una línea de texto del panel. */
+/** Alto de una línea de la explicación. */
 const LINEA = 14;
+/** Medidas del combate sin panel (src/data/menu_combate.json). */
+const D = MENU_COMBATE;
 const ENEMIGO = { y: 128, escala: 2, separacion: 140, alto: 56, topeMinimo: 44 };
 /** Primera línea libre bajo la barra de turnos (su texto empieza en y = 10). */
 const FIN_BARRA_TURNOS = 26;
-/** La heroína, abajo a la izquierda, sobre el panel; su ficha va dentro del panel (ver `dibujarPanel`). */
-const HEROINA = { x: 48, y: 184, escala: 2 };
+/** Escala de la heroína (su sitio, abajo a la izquierda junto a la lista, lo da `disposicionCombate`). */
+const HEROINA = { escala: 2 };
 /** Centro de los enemigos: algo a la derecha, para dejar sitio a la heroína. */
 const CENTRO_ENEMIGOS = ANCHO / 2 + 30;
 /**
@@ -143,20 +136,14 @@ const G = {
   /** Lo que tiene cada nombre de enemigo a lo ancho: la separación o, si va solo, lo que hay hasta el borde. */
   anchoNombre: ENEMIGO.separacion,
   centro: CENTRO_ENEMIGOS,
-  heroinaX: HEROINA.x,
-  heroinaY: HEROINA.y,
+  heroinaX: D.horizontal.heroinaX,
+  heroinaY: 0,
   tituloY: 112,
 };
-/** Reparto del panel apilado en vertical; se rellena de nuevo en cada llamada (sin asignar memoria). */
-const DISP: DisposicionCombate = disposicionCombate(1, 1, 1, VERTICAL);
+/** Reparto del combate (`disposicionCombate`); se rellena de nuevo en cada llamada (sin asignar memoria). */
+const DISP: DisposicionCombate = disposicionCombate(1, 1, 1, false, D);
 function disposicion(n: number): DisposicionCombate {
-  return disposicionCombate(
-    interfaz.ancho,
-    interfaz.alto,
-    Math.max(VERTICAL.combate.filas, n),
-    VERTICAL,
-    DISP,
-  );
+  return disposicionCombate(interfaz.ancho, interfaz.alto, n, interfaz.alta, D, DISP);
 }
 
 function colocar(v: VistaCombate): void {
@@ -168,23 +155,20 @@ function colocar(v: VistaCombate): void {
 
 function colocarEscena(v: VistaCombate): void {
   G.ancho = interfaz.ancho;
+  // Los pies de enemigos y heroína no dependen del menú abierto: la escena no salta al cambiar de menú.
+  const d = disposicion(v.menu?.opciones.length ?? 0);
+  G.enemigoY = d.enemigoY;
+  G.heroinaX = d.heroina.x;
+  G.heroinaY = d.heroina.y;
+  G.tituloY = Math.round((interfaz.alto - 92) / 2);
   if (!interfaz.alta) {
-    G.enemigoY = ENEMIGO.y;
     G.escala = ENEMIGO.escala;
     G.separacion = ENEMIGO.separacion;
     G.centro = CENTRO_ENEMIGOS;
-    G.heroinaX = HEROINA.x;
-    G.heroinaY = HEROINA.y;
-    G.tituloY = 112;
     return;
   }
-  const e = disposicion(v.menu?.opciones.length ?? 0).escena;
-  G.separacion = e.ancho / Math.max(1, v.enemigos.length);
-  G.centro = e.ancho / 2;
-  G.enemigoY = Math.max(ENEMIGO.y, Math.round(e.alto * 0.42));
-  G.heroinaX = 40;
-  G.heroinaY = e.alto - 16;
-  G.tituloY = Math.round(e.alto / 2 - 46);
+  G.separacion = interfaz.ancho / Math.max(1, v.enemigos.length);
+  G.centro = interfaz.ancho / 2;
   // Los sprites se achican lo justo para que no se pisen con los de al lado.
   let ancho = 1;
   for (const en of v.enemigos) {
@@ -269,14 +253,14 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   ctx.restore();
   dibujarDestello(ctx, v);
 
-  if (interfaz.alta) dibujarPanelVertical(ctx, v);
-  else {
-    ctx.save();
-    ctx.translate(ANCLA_PANEL.x, ANCLA_PANEL.y);
-    ctx.scale(PANEL_ESCALA, PANEL_ESCALA);
-    ctx.translate(-ANCLA_PANEL.x, -ANCLA_PANEL.y);
-    dibujarPanel(ctx, v);
-    ctx.restore();
+  // Sin panel: los mensajes arriba, la ficha abajo y, cuando le toca a la heroína, la lista junto a ella y la
+  // explicación abajo del todo.
+  const d = disposicion(v.menu?.opciones.length ?? 0);
+  dibujarMensajes(ctx, v, d);
+  dibujarFicha(ctx, v, d);
+  if (v.menu) {
+    dibujarLista(ctx, v, d);
+    dibujarExplicacion(ctx, v, d);
   }
 
   if (v.titulo) {
@@ -303,12 +287,12 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   }
 }
 
-/** Destello blanco del impacto sobre la escena (no sobre el panel), que se apaga enseguida. */
+/** Destello blanco del impacto sobre la escena (no sobre la lista ni la ficha), que se apaga enseguida. */
 function dibujarDestello(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   const opacidad = v.destello * Math.max(0, 1 - v.tiempoDestello / IMPACTO.destello.duracion);
   if (opacidad <= 0) return;
-  // Hasta donde empieza el panel.
-  const abajo = bordePanel(v);
+  // Hasta lo de abajo (la lista, si está abierta, o la ficha).
+  const abajo = bordeCamara(v);
   ctx.fillStyle = '#fff';
   ctx.globalAlpha = opacidad;
   ctx.fillRect(area.x, area.y, area.ancho, abajo - area.y);
@@ -493,51 +477,29 @@ function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   if (v.defendiendo) escribir(ctx, 'Defendiendo', x, y - 76, COLOR.pm, 'center');
 }
 
-/** El panel de abajo se dibuja a esta fracción de su tamaño, anclado abajo en el centro; sus medidas son de ese espacio. */
-const PANEL_ESCALA = 1;
-const ANCLA_PANEL = { x: ANCHO / 2, y: 346 };
-
-/** Punto de la pantalla → el mismo punto en el espacio del panel (para saber qué fila se toca). */
-export function aPanel(x: number, y: number): [number, number] {
-  return [
-    ANCLA_PANEL.x + (x - ANCLA_PANEL.x) / PANEL_ESCALA,
-    ANCLA_PANEL.y + (y - ANCLA_PANEL.y) / PANEL_ESCALA,
-  ];
-}
-
-/** Panel de abajo: dos columnas (lista y qué hace lo elegido) y, debajo a la derecha, la ficha de la heroína. */
-export const LISTA_COMBATE: Rect = { x: 8, y: 201, ancho: 210, alto: 144 };
-export const FILA_COMBATE = 24;
-/** La lista del menú abierto (`n` opciones) y el alto de sus filas, donde cae el toque: en vertical, apilada abajo. */
+/** Las filas de la lista del menú abierto (`n` opciones), su alto y cuántas se ven: donde cae el toque. */
 export function listaCombate(n: number): Rect {
-  return interfaz.alta ? disposicion(n).lista : LISTA_COMBATE;
+  return disposicion(n).lista;
 }
 export function filaCombate(n: number): number {
-  return interfaz.alta ? disposicion(n).fila : FILA_COMBATE;
+  return disposicion(n).fila;
 }
-const PANEL = { x: 8, y: 200, ancho: 464, alto: 146 };
+export function visiblesCombate(n: number): number {
+  return disposicion(n).visibles;
+}
 
-/** Dónde acaba el cartel del mando en el combate: en horizontal, justo sobre el panel; en vertical, donde siempre. */
+/** Dónde acaba el cartel del mando en el combate: en horizontal, justo sobre la ficha; en vertical, donde siempre. */
 export function bajoCartelCombate(): number | undefined {
-  return interfaz.alta ? undefined : PANEL.y - 4;
+  return interfaz.alta ? undefined : disposicion(0).ficha.y - 4;
 }
-/** Columna derecha: arriba la ficha de la heroína (Pedro, 2026-10-26) y debajo qué hace lo elegido. */
-const DERECHA = {
-  x: 230,
-  ancho: 230,
-  yFicha: PANEL.y + 12,
-  yTitulo: PANEL.y + 66,
-  yTexto: PANEL.y + 90,
-};
-/** Letras por línea de la descripción en la columna derecha. */
-const LETRAS_DERECHA = Math.floor(DERECHA.ancho / 7.2);
-/** La ayuda de cada opción, partida al ancho de la columna derecha (una vez por texto). */
+
+/** La ayuda de cada opción, partida a un ancho (una vez por texto y ancho). */
 const AYUDA_PARTIDA = new WeakMap<
   readonly string[],
   { letras: number; lineas: readonly string[] }
 >();
 
-function ayudaPartida(ayuda: readonly string[], letras = LETRAS_DERECHA): readonly string[] {
+function ayudaPartida(ayuda: readonly string[], letras: number): readonly string[] {
   let c = AYUDA_PARTIDA.get(ayuda);
   if (!c || c.letras !== letras) {
     c = { letras, lineas: partirTexto(ayuda.join(' '), letras) };
@@ -546,17 +508,15 @@ function ayudaPartida(ayuda: readonly string[], letras = LETRAS_DERECHA): readon
   return c.lineas;
 }
 
-/** Letras por línea del registro en la columna izquierda, sin llegar a la ficha. */
-const LETRAS_IZQUIERDA = Math.floor((DERECHA.x - 8 - (PANEL.x + 14)) / 7.2);
-
-/** Avisos del registro partidos al ancho de cada columna (cambian poco: se guardan). */
+/** Mensajes y avisos partidos a un ancho (cambian poco: se guardan; uno por ancho de uso). */
 const AVISOS = new Map<string, readonly string[]>();
-const REGISTRO = new Map<string, readonly string[]>();
-/** Lo mismo para el panel apilado de la interfaz alta, que parte a otro ancho. */
-const AVISOS_V = new Map<string, readonly string[]>();
-const REGISTRO_V = new Map<string, readonly string[]>();
+const MENSAJES = new Map<string, readonly string[]>();
 
-function avisoPartido(texto: string, cache = AVISOS, letras = LETRAS_DERECHA): readonly string[] {
+function avisoPartido(
+  texto: string,
+  cache: Map<string, readonly string[]>,
+  letras: number,
+): readonly string[] {
   let lineas = cache.get(texto);
   if (!lineas) {
     // Los avisos llevan números (daño…): se vacía de vez en cuando para que no crezca sin fin.
@@ -567,35 +527,108 @@ function avisoPartido(texto: string, cache = AVISOS, letras = LETRAS_DERECHA): r
   return lineas;
 }
 
+/** Cuántas letras caben en `ancho` con `letras` cacheadas por ancho: se vacía la caché si cambia (girar el móvil). */
+const ANCHOS_CACHE = new Map<Map<string, readonly string[]>, number>();
+function letrasPara(cache: Map<string, readonly string[]>, ancho: number): number {
+  const letras = Math.max(1, Math.floor(ancho / ANCHO_LETRA));
+  if (ANCHOS_CACHE.get(cache) !== letras) {
+    cache.clear();
+    ANCHOS_CACHE.set(cache, letras);
+  }
+  return letras;
+}
+
 /**
- * Historial del combate: lo último abajo y más claro, lo anterior más tenue. Se llena desde arriba y, cuando
- * no cabe, se queda con lo más reciente.
+ * Los últimos mensajes, arriba bajo la barra de turnos: el más nuevo en la última línea de la banda y los
+ * anteriores encima, cada uno con su opacidad (`opacidadMensaje`): se apagan solos.
  */
-function dibujarRegistro(
+function dibujarMensajes(
   ctx: CanvasRenderingContext2D,
   v: VistaCombate,
-  x: number,
-  y: number,
-  letras: number,
-  maxLineas: number,
-  cache: Map<string, readonly string[]>,
+  d: DisposicionCombate,
 ): void {
-  const reg = v.registro;
-  let usadas = 0;
-  let primero = reg.length;
-  while (primero > 0) {
-    const n = avisoPartido(reg[primero - 1]!, cache, letras).length;
-    if (primero < reg.length && usadas + n > maxLineas) break;
-    usadas += n;
-    primero--;
-    if (usadas >= maxLineas) break;
+  const b = d.mensajes;
+  const m = v.mensajes;
+  const letras = letrasPara(MENSAJES, b.ancho);
+  let linea = D.mensajes;
+  for (let i = m.textos.length - 1; i >= 0 && linea > 0; i--) {
+    const alfa = opacidadMensaje(m, i, v.tiempoReal, ritmo.mensajes);
+    const lineas = avisoPartido(m.textos[i]!, MENSAJES, letras);
+    for (let k = lineas.length - 1; k >= 0 && linea > 0; k--) {
+      linea--;
+      if (alfa <= 0) continue;
+      ctx.globalAlpha = alfa;
+      escribir(ctx, lineas[k]!, b.x, b.y + linea * D.lineaMensaje, PALETA.texto);
+    }
   }
-  let linea = 0;
-  for (let r = primero; r < reg.length && linea < maxLineas; r++) {
-    const lineas = avisoPartido(reg[r]!, cache, letras);
-    const color = COLOR.registro[Math.min(reg.length - 1 - r, COLOR.registro.length - 1)]!;
-    for (let i = 0; i < lineas.length && linea < maxLineas; i++, linea++)
-      escribir(ctx, lineas[i]!, x, y + linea * LINEA, color);
+  ctx.globalAlpha = 1;
+}
+
+/**
+ * La lista del menú abierto, junto a la heroína: la pestaña con el nombre del menú encima, las filas que caben
+ * (desde `v.primera`) y una flecha en el borde si hay más arriba o abajo. Entra deslizándose desde la rana (sin
+ * deslizar con «menos movimiento»).
+ */
+function dibujarLista(ctx: CanvasRenderingContext2D, v: VistaCombate, d: DisposicionCombate): void {
+  const menu = v.menu!;
+  const n = menu.opciones.length;
+  const r = d.lista;
+  const pad = D.rellenoLista;
+  const p = movimientoReducido() ? 1 : Math.min(1, v.entrada / D.entradaLista);
+  const x = r.x - Math.round((1 - p) * D.deslizamiento);
+  ctx.globalAlpha = p;
+  dibujarCaja(ctx, x - pad, r.y - pad, r.ancho + 2 * pad, r.alto + 2 * pad, 'normal');
+  dibujarPestana(ctx, x + 4, r.y - pad - D.tituloLista, v.pestana);
+  for (let k = 0; k < d.visibles; k++) {
+    const i = v.primera + k;
+    if (i >= n) break;
+    const o = menu.opciones[i]!;
+    const elegida = i === menu.seleccion;
+    const estado = o.disponible
+      ? elegida
+        ? 'elegida'
+        : 'normal'
+      : elegida
+        ? 'elegidaApagada'
+        : 'apagada';
+    // En filas altas (el móvil de pie) el coste va bajo el nombre: en una columna estrecha no cabe al lado.
+    dibujarFila(
+      ctx,
+      x,
+      r.y + k * d.fila,
+      r.ancho,
+      d.fila,
+      o.texto,
+      o.detalle,
+      estado,
+      d.fila >= 30,
+    );
+  }
+  if (v.primera > 0) escribir(ctx, '▲', x + r.ancho - 4, r.y - pad - 12, PALETA.cursor, 'right');
+  if (v.primera + d.visibles < n)
+    escribir(ctx, '▼', x + r.ancho - 4, r.y + r.alto - 2, PALETA.cursor, 'right');
+  ctx.globalAlpha = 1;
+}
+
+/** La franja de abajo: qué hace lo elegido o, si acaba de darse con el menú abierto, el aviso («No quedan PM»). */
+function dibujarExplicacion(
+  ctx: CanvasRenderingContext2D,
+  v: VistaCombate,
+  d: DisposicionCombate,
+): void {
+  const e = d.explicacion;
+  dibujarCaja(ctx, e.x, e.y, e.ancho, e.alto, 'normal');
+  const letras = letrasPara(AVISOS, e.ancho - 20);
+  const maxLineas = Math.max(1, Math.floor((e.alto - 8) / LINEA));
+  const x = e.x + 10;
+  const y = e.y + 6;
+  if (v.aviso > 0) dibujarAviso(ctx, v, x, y, letras, maxLineas, AVISOS);
+  else {
+    const ayuda = v.menu?.opciones[v.menu.seleccion]?.ayuda;
+    if (!ayuda) return;
+    const lineas = ayudaPartida(ayuda, letras);
+    for (let i = 0; i < lineas.length && i < maxLineas; i++)
+      escribir(ctx, lineas[i]!, x, y + i * LINEA, PALETA.texto);
   }
 }
 
@@ -609,7 +642,7 @@ function dibujarAviso(
   maxLineas: number,
   cache: Map<string, readonly string[]>,
 ): void {
-  const reg = v.registro;
+  const reg = v.mensajes.textos;
   let linea = 0;
   for (let r = Math.max(0, reg.length - Math.min(v.aviso, 2)); r < reg.length; r++) {
     const lineas = avisoPartido(reg[r]!, cache, letras);
@@ -618,66 +651,11 @@ function dibujarAviso(
   }
 }
 
-/** Panel de la interfaz alta: dos columnas como en horizontal, la lista (o el registro) y, a la derecha, qué hace lo elegido y la ficha. */
-function dibujarPanelVertical(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
-  const menu = v.menu;
-  const n = menu?.opciones.length ?? 0;
-  const d = disposicion(n);
-  const c = VERTICAL.combate;
-  dibujarMarco(
-    ctx,
-    d.panel.x,
-    d.panel.y + c.alturaPestana,
-    d.panel.ancho,
-    d.panel.alto - c.alturaPestana,
-  );
-  // Raya entre las dos columnas.
-  ctx.fillStyle = PALETA.interior;
-  ctx.fillRect(d.descripcion.x, d.lista.y + 8, 1, d.lista.alto - 16);
-  const der = d.descripcion;
-  const letras = Math.floor((der.ancho - 16) / ANCHO_LETRA);
-  const maxLineas = Math.floor((der.alto - 4) / LINEA);
-  if (menu) {
-    dibujarPestana(ctx, d.panel.x + 8, d.panel.y + c.alturaPestana - 14, v.pestana);
-    for (let i = 0; i < n; i++) {
-      const o = menu.opciones[i]!;
-      const elegida = i === menu.seleccion;
-      const estado = o.disponible
-        ? elegida
-          ? 'elegida'
-          : 'normal'
-        : elegida
-          ? 'elegidaApagada'
-          : 'apagada';
-      // El coste va bajo el nombre: en una columna estrecha no cabe al lado de «Tajo de llama morada».
-      dibujarFila(
-        ctx,
-        d.lista.x,
-        d.lista.y + i * d.fila,
-        d.lista.ancho,
-        d.fila,
-        o.texto,
-        o.detalle,
-        estado,
-        d.fila >= 30,
-      );
-    }
-    const ayuda = menu.opciones[menu.seleccion]?.ayuda;
-    if (v.aviso > 0) dibujarAviso(ctx, v, der.x + 8, der.y + 4, letras, maxLineas, AVISOS_V);
-    else if (ayuda) {
-      const lineas = ayudaPartida(ayuda, letras);
-      for (let i = 0; i < lineas.length && i < maxLineas; i++)
-        escribir(ctx, lineas[i]!, der.x + 8, der.y + 4 + i * LINEA, PALETA.texto);
-    }
-  } else {
-    // Mientras se animan los turnos, el registro ocupa el sitio de la lista.
-    const r = d.registro;
-    const letrasRegistro = Math.floor((r.ancho - 16) / ANCHO_LETRA);
-    const lineasRegistro = Math.floor((r.alto - 12) / LINEA);
-    dibujarRegistro(ctx, v, r.x + 8, r.y + 8, letrasRegistro, lineasRegistro, REGISTRO_V);
-  }
-  const h = v.combate.heroina;
+/** La ficha de la heroína, siempre a la vista: nombre (o su estado, si no cabe al lado), PV y PM. */
+function dibujarFicha(ctx: CanvasRenderingContext2D, v: VistaCombate, d: DisposicionCombate): void {
   const f = d.ficha;
+  dibujarCaja(ctx, f.x, f.y, f.ancho, f.alto, 'normal');
+  const h = v.combate.heroina;
   const fx = f.x + 8;
   const ancho = f.ancho - 16 - 46;
   // Los estados van tras el nombre si caben; si no, en su lugar (saber que está quemada importa más que leer su
@@ -685,67 +663,19 @@ function dibujarPanelVertical(ctx: CanvasRenderingContext2D, v: VistaCombate): v
   const estados = v.estados.get(h) ?? '';
   const xEstados = fx + (h.nombre.length + 1) * ANCHO_LETRA;
   const fin = f.x + f.ancho - 8;
+  const y = f.y + 3;
   if (estados === '' || xEstados + estados.length * ANCHO_LETRA <= fin) {
-    escribir(ctx, h.nombre, fx, f.y + 2, PALETA.texto);
-    escribir(ctx, estados, xEstados, f.y + 2, COLOR.estado);
+    escribir(ctx, h.nombre, fx, y, PALETA.texto);
+    escribir(ctx, estados, xEstados, y, COLOR.estado);
   } else {
     const sitio = Math.floor((fin - fx) / ANCHO_LETRA);
     const texto = estados.length > sitio ? `${estados.slice(0, Math.max(0, sitio - 1))}…` : estados;
-    escribir(ctx, texto, fx, f.y + 2, COLOR.estado);
+    escribir(ctx, texto, fx, y, COLOR.estado);
   }
-  barra(ctx, fx, f.y + 18, ancho, (v.pv.get(h) ?? h.pv) / h.pvMax, COLOR.pv);
-  escribir(ctx, v.textoPv.get(h) ?? '', fx + ancho + 6, f.y + 14);
-  barra(ctx, fx, f.y + 32, ancho, v.pmHeroina / Math.max(1, h.pmMax), COLOR.pm);
-  escribir(ctx, v.textoPm, fx + ancho + 6, f.y + 28);
-}
-
-function dibujarPanel(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
-  dibujarMarco(ctx, PANEL.x, PANEL.y, PANEL.ancho, PANEL.alto);
-  const menu = v.menu;
-  if (menu) {
-    dibujarPestana(ctx, PANEL.x + 8, PANEL.y - 14, v.pestana);
-    const n = menu.opciones.length;
-    const { x, y, ancho } = LISTA_COMBATE;
-    for (let i = 0; i < n; i++) {
-      const o = menu.opciones[i]!;
-      const elegida = i === menu.seleccion;
-      const estado = o.disponible
-        ? elegida
-          ? 'elegida'
-          : 'normal'
-        : elegida
-          ? 'elegidaApagada'
-          : 'apagada';
-      dibujarFila(ctx, x, y + i * FILA_COMBATE, ancho, FILA_COMBATE, o.texto, o.detalle, estado);
-    }
-    const elegida = menu.opciones[menu.seleccion];
-    if (elegida) dibujarTitulo(ctx, DERECHA.x, DERECHA.yTitulo, DERECHA.ancho, elegida.texto);
-    if (v.aviso > 0) {
-      // Un aviso reciente con el menú abierto («No quedan PM…» y la pista que lo sigue) ocupa el
-      // sitio de la descripción hasta que se mueve el cursor o cambia el menú.
-      const lineas = Math.floor((PANEL.y + PANEL.alto - DERECHA.yTexto) / LINEA);
-      dibujarAviso(ctx, v, DERECHA.x, DERECHA.yTexto, LETRAS_DERECHA, lineas, AVISOS);
-    } else if (elegida?.ayuda) {
-      const lineas = ayudaPartida(elegida.ayuda);
-      for (let i = 0; i < lineas.length; i++)
-        escribir(ctx, lineas[i]!, DERECHA.x, DERECHA.yTexto + i * 14, PALETA.texto);
-    }
-  } else {
-    // Mientras se animan los turnos, el panel cuenta lo que pasa en la columna izquierda
-    // (la derecha es de la ficha).
-    const lineas = Math.floor((PANEL.alto - 22) / LINEA);
-    dibujarRegistro(ctx, v, PANEL.x + 14, PANEL.y + 14, LETRAS_IZQUIERDA, lineas, REGISTRO);
-  }
-  // La ficha de la heroína, siempre a la vista.
-  const h = v.combate.heroina;
-  const fx = DERECHA.x;
-  const fy = DERECHA.yFicha;
-  escribir(ctx, h.nombre, fx, fy, PALETA.texto);
-  escribir(ctx, v.estados.get(h) ?? '', fx + 120, fy, COLOR.estado);
-  barra(ctx, fx, fy + 18, 140, (v.pv.get(h) ?? h.pv) / h.pvMax, COLOR.pv);
-  escribir(ctx, v.textoPv.get(h) ?? '', fx + 148, fy + 14);
-  barra(ctx, fx, fy + 34, 140, v.pmHeroina / Math.max(1, h.pmMax), COLOR.pm);
-  escribir(ctx, v.textoPm, fx + 148, fy + 30);
+  barra(ctx, fx, y + 17, ancho, (v.pv.get(h) ?? h.pv) / h.pvMax, COLOR.pv);
+  escribir(ctx, v.textoPv.get(h) ?? '', fx + ancho + 6, y + 13);
+  barra(ctx, fx, y + 30, ancho, v.pmHeroina / Math.max(1, h.pmMax), COLOR.pm);
+  escribir(ctx, v.textoPm, fx + ancho + 6, y + 26);
 }
 
 /** Lo de la escena que la cámara no debe sacar del marco, el marco y el encuadre pedido (reutilizados). */
@@ -763,19 +693,14 @@ const PIES_HEROINA = 4;
 /** Lo que ocupa bajo su ancla un enemigo: barra de vida, PV y estados (`dibujarEnemigo`). */
 const BAJO_ENEMIGO = 46;
 
-/** Borde de arriba del panel: en vertical, el del panel apilado; si no, el de su pestaña. */
-function bordePanel(v: VistaCombate): number {
-  if (!interfaz.alta) return PANEL.y - 14;
-  const e = disposicion(v.menu?.opciones.length ?? 0).escena;
-  return e.y + e.alto;
-}
-
 /**
- * Borde de abajo del marco de la cámara: durante un ataque el menú está cerrado y no se dibuja la pestaña del
- * panel, así que en horizontal llega hasta el panel mismo.
+ * Borde de abajo de la escena: con el menú abierto, lo alto de la lista (con su pestaña); sin él, la ficha en
+ * vertical (va a lo ancho) y casi el borde de la pantalla en horizontal (la ficha va a la derecha, encima).
  */
 function bordeCamara(v: VistaCombate): number {
-  return interfaz.alta || v.menu ? bordePanel(v) : PANEL.y;
+  const d = disposicion(v.menu?.opciones.length ?? 0);
+  if (v.menu) return d.lista.y - D.rellenoLista - D.tituloLista;
+  return interfaz.alta ? d.ficha.y : interfaz.alto - D.margen;
 }
 
 /**

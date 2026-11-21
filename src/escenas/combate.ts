@@ -18,9 +18,9 @@ import {
   anticipoAtaque,
   dibujarCombate,
   duracionEfecto,
-  aPanel,
   filaCombate,
   listaCombate,
+  visiblesCombate,
   type VistaCombate,
 } from '../render/combate';
 import {
@@ -31,7 +31,9 @@ import {
   partirEnLineas,
 } from '../core/descripciones';
 import { haceAlgo } from '../core/inventario';
-import { efectoToque, filaTocada } from '../core/menu';
+import { efectoToque, filaDeToque } from '../core/menu';
+import { primeraVisible } from '../core/disposicion';
+import { apuntarMensaje, crearMensajes } from '../core/mensajes';
 import {
   decaerTrauma,
   desplazamiento,
@@ -64,7 +66,7 @@ const TITULO: Record<Resultado, string> = {
 const PRINCIPAL = ['Atacar', 'Habilidad', 'Objeto', 'Defender', 'Huir'] as const;
 type Modo = 'principal' | 'habilidades' | 'objetos' | 'objetivo';
 
-/** Cuánto se tarda en leer un mensaje, y cuántos se guardan en el historial (src/data/ritmo.json). */
+/** Cuánto se tarda en leer un mensaje, y cuántos se ven arriba (src/data/ritmo.json). */
 const LECTURA = ritmo.lectura;
 const MENSAJES_GUARDADOS = ritmo.mensajes.cuantos;
 
@@ -161,7 +163,9 @@ export class EscenaCombate implements Escena {
       pmHeroina: h.pm,
       textoPm: textoVida(h.pm, h.pmMax),
       estados: new Map(),
-      registro: [`¡Aparece ${combate.enemigos.map((e) => e.nombre).join(' y ')}!`],
+      mensajes: crearMensajes(),
+      primera: 0,
+      entrada: 0,
       menu: null,
       apuntado: null,
       golpeado: null,
@@ -195,7 +199,7 @@ export class EscenaCombate implements Escena {
   }
 
   enter(): void {
-    anunciar(this.v.registro[0]!);
+    this.registrar(`¡Aparece ${this.combate.enemigos.map((e) => e.nombre).join(' y ')}!`);
     this.cola.push(...avanzar(this.combate));
   }
 
@@ -208,6 +212,7 @@ export class EscenaCombate implements Escena {
     // El temblor, el destello y la entrada desde negro siguen en tiempo real, también durante la pausa de impacto.
     v.tiempoReal += dt;
     v.tiempoDestello += dt;
+    v.entrada += dt;
     this.trauma = decaerTrauma(this.trauma, dt, IMPACTO);
     desplazamiento(this.trauma, v.tiempoReal, temblorEfectivo(), IMPACTO, v.temblor);
     if (this.saliendo >= 0) {
@@ -532,9 +537,8 @@ export class EscenaCombate implements Escena {
 
   private registrar(texto: string): void {
     const v = this.v;
-    v.registro.push(texto);
-    if (v.registro.length > MENSAJES_GUARDADOS) v.registro.shift();
-    // Con el menú abierto es un aviso que se ve en lugar de la descripción; si no, es parte de la ronda.
+    apuntarMensaje(v.mensajes, texto, v.tiempoReal, MENSAJES_GUARDADOS);
+    // Con el menú abierto es un aviso que se ve en la franja de la explicación; si no, es parte de la ronda.
     v.aviso = v.menu !== null ? v.aviso + 1 : 0;
     this.lectura += LECTURA.base + LECTURA.porLetra * texto.length;
     anunciar(texto);
@@ -554,6 +558,9 @@ export class EscenaCombate implements Escena {
     this.modo = modo;
     this.v.pestana = PESTANA[modo];
     this.v.aviso = 0;
+    // Una lista nueva entra deslizándose desde la rana y empieza por arriba.
+    this.v.entrada = 0;
+    this.v.primera = 0;
     const h = this.combate.heroina;
     let menu: MenuVista;
     if (modo === 'principal') {
@@ -628,12 +635,19 @@ export class EscenaCombate implements Escena {
     }
     const menu = this.v.menu!;
     const n = menu.opciones.length;
-    // En Habilidad, Objeto y la elección de enemigo, el primer toque solo elige (y la derecha del panel
-    // dice qué hace) y el segundo la usa: así no se gastan PM ni objetos sin querer. El menú principal
-    // y «Volver» (la última fila) van al primer toque.
+    // En Habilidad, Objeto y la elección de enemigo, el primer toque solo elige (y la franja de abajo dice
+    // qué hace) y el segundo la usa: así no se gastan PM ni objetos sin querer. El menú principal y «Volver»
+    // (la última fila) van al primer toque.
     if (a.toqueX >= 0) {
-      const [px, py] = aPanel(a.toqueX, a.toqueY);
-      const i = filaTocada(px, py, listaCombate(n), filaCombate(n), n);
+      const i = filaDeToque(
+        a.toqueX,
+        a.toqueY,
+        listaCombate(n),
+        filaCombate(n),
+        this.v.primera,
+        visiblesCombate(n),
+        n,
+      );
       if (i < 0) return;
       const dobleToque = this.modo !== 'principal' && i !== n - 1;
       const soloElegir = efectoToque(menu.seleccion, i, dobleToque) === 'elegir';
@@ -656,6 +670,7 @@ export class EscenaCombate implements Escena {
     const salto = (dy !== this.ultimoY ? dy : 0) || (dx !== this.ultimoX ? dx : 0);
     if (salto !== 0) {
       menu.seleccion = (((menu.seleccion + salto) % n) + n) % n;
+      this.v.primera = primeraVisible(menu.seleccion, this.v.primera, visiblesCombate(n), n);
       sonar('cursor');
       this.anunciarOpcion();
     }

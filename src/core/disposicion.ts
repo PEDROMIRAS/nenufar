@@ -2,24 +2,6 @@ import type { DatosMenuCombate } from './types';
 import type { DatosVertical } from './encuadre';
 import type { Rect } from './menu';
 
-/** Dónde va cada parte del combate en la interfaz alta (ventana vertical), en unidades lógicas. */
-export interface DisposicionPanelVertical {
-  /** Arriba: enemigos y heroína. */
-  escena: Rect;
-  /** Todo el panel de abajo (con el sitio de la pestaña encima de la lista). */
-  panel: Rect;
-  /** Columna izquierda: las opciones del menú, de arriba abajo. */
-  lista: Rect;
-  /** La misma columna, entera, para el registro mientras se animan los turnos. */
-  registro: Rect;
-  /** Alto de cada fila de la lista. */
-  fila: number;
-  /** Columna derecha, arriba: qué hace lo elegido. */
-  descripcion: Rect;
-  /** Columna derecha, abajo: la ficha de la heroína. */
-  ficha: Rect;
-}
-
 const rect = (): Rect => ({ x: 0, y: 0, ancho: 0, alto: 0 });
 const poner = (r: Rect, x: number, y: number, ancho: number, alto: number): void => {
   r.x = x;
@@ -34,51 +16,6 @@ const ANCHO_LETRA = 7.35;
 /** Letras que caben en el nombre de un enemigo al que le tocan `separacion` píxeles, con un respiro a cada lado. */
 export function anchoNombre(separacion: number): number {
   return Math.floor((separacion - 8) / ANCHO_LETRA);
-}
-
-/**
- * Reparte la interfaz alta de `ancho`×`alto` para un combate con un menú de `n` opciones: la escena arriba y,
- * pegado abajo, un panel bajo de dos columnas, como en horizontal. A la izquierda, la lista (o el registro); a la
- * derecha, qué hace lo elegido y, debajo, la ficha de la heroína. Las filas se encogen (hasta `filaMin`) para que
- * la escena conserve `escenaMin`; si ni así cabe todo, manda el panel.
- * Si se pasa `fuera` se rellena y se devuelve (se pide en cada fotograma: sin asignar memoria).
- */
-export function disposicionPanelVertical(
-  ancho: number,
-  alto: number,
-  n: number,
-  d: DatosVertical,
-  fuera: DisposicionPanelVertical = {
-    escena: rect(),
-    panel: rect(),
-    lista: rect(),
-    registro: rect(),
-    fila: 0,
-    descripcion: rect(),
-    ficha: rect(),
-  },
-): DisposicionPanelVertical {
-  const c = d.combate;
-  const util = ancho - 2 * c.margen;
-  const disponible = alto - c.margen - c.alturaPestana - d.escenaMin;
-  const fila = Math.min(c.fila, Math.max(c.filaMin, disponible / Math.max(1, n)));
-  const cuerpo = n * fila;
-  const izquierda = Math.round(util * c.columnaIzquierda);
-
-  const yPanel = alto - c.margen - c.alturaPestana - cuerpo;
-  const yCuerpo = yPanel + c.alturaPestana;
-  const xDerecha = c.margen + izquierda;
-  const anchoDerecha = util - izquierda;
-  const yFicha = yCuerpo + cuerpo - c.alturaFicha;
-
-  fuera.fila = fila;
-  poner(fuera.lista, c.margen, yCuerpo, izquierda, cuerpo);
-  poner(fuera.registro, c.margen, yCuerpo, izquierda, cuerpo);
-  poner(fuera.descripcion, xDerecha, yCuerpo, anchoDerecha, Math.max(0, cuerpo - c.alturaFicha));
-  poner(fuera.ficha, xDerecha, yFicha, anchoDerecha, c.alturaFicha);
-  poner(fuera.panel, c.margen, yPanel, util, alto - c.margen - yPanel);
-  poner(fuera.escena, 0, 0, ancho, Math.max(0, yPanel));
-  return fuera;
 }
 
 /** Dónde va cada cosa en el combate sin panel (ver `disposicionCombate`), en unidades lógicas de la interfaz. */
