@@ -1,0 +1,55 @@
+/**
+ * Los últimos mensajes del combate, que se ven arriba: el más nuevo claro, los anteriores cada vez más tenues, y se
+ * apagan todos un rato después del último (si llega otro, vuelven a encenderse).
+ */
+
+/** Ritmo de los mensajes (src/data/ritmo.json → `mensajes`). */
+export interface RitmoMensajes {
+  /** Cuántos se guardan y se ven. */
+  cuantos: number;
+  /** Segundos que se ven tras llegar el último, y lo que tardan en apagarse después. */
+  duran: number;
+  apagar: number;
+  /** Opacidad de cada uno según lo reciente que es: el último, el anterior… */
+  tenues: number[];
+}
+
+/** Los mensajes, del más viejo al más nuevo, y el momento (en segundos de combate) en que llegó cada uno. */
+export interface MensajesCombate {
+  textos: string[];
+  desde: number[];
+}
+
+export const crearMensajes = (): MensajesCombate => ({ textos: [], desde: [] });
+
+/** Apunta un mensaje que llega en `ahora`; si pasan de `cuantos`, se olvida el más viejo. */
+export function apuntarMensaje(
+  m: MensajesCombate,
+  texto: string,
+  ahora: number,
+  cuantos: number,
+): void {
+  m.textos.push(texto);
+  m.desde.push(ahora);
+  while (m.textos.length > cuantos) {
+    m.textos.shift();
+    m.desde.shift();
+  }
+}
+
+/** Opacidad (0 a 1) del mensaje `i` en `ahora`. */
+export function opacidadMensaje(
+  m: MensajesCombate,
+  i: number,
+  ahora: number,
+  r: RitmoMensajes,
+): number {
+  const n = m.textos.length;
+  if (i < 0 || i >= n) return 0;
+  const base = r.tenues[Math.min(n - 1 - i, r.tenues.length - 1)] ?? 0;
+  const ultimo = m.desde[n - 1] ?? 0;
+  const pasado = ahora - ultimo - r.duran;
+  if (pasado <= 0) return base;
+  if (pasado >= r.apagar) return 0;
+  return base * (1 - pasado / r.apagar);
+}

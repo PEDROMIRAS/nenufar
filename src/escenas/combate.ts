@@ -66,7 +66,7 @@ type Modo = 'principal' | 'habilidades' | 'objetos' | 'objetivo';
 
 /** Cuánto se tarda en leer un mensaje, y cuántos se guardan en el historial (src/data/ritmo.json). */
 const LECTURA = ritmo.lectura;
-const MENSAJES_GUARDADOS = ritmo.historial;
+const MENSAJES_GUARDADOS = ritmo.mensajes.cuantos;
 
 /** Líneas que caben en el panel del registro. */
 const LARGO_LINEA = 57; // deja sitio al botón «i»
