@@ -107,12 +107,12 @@ describe('disposicionCombate', () => {
 });
 
 describe('anchoNombre', () => {
-  test('con 140 de separación (horizontal) caben 18 letras', () => {
-    expect(anchoNombre(140)).toBe(18);
+  test('con 140 de separación (horizontal) caben 17 letras', () => {
+    expect(anchoNombre(140)).toBe(17);
   });
 
-  test('con cuatro enemigos en 320 caben 10 letras', () => {
-    expect(anchoNombre(320 / 4)).toBe(10);
+  test('con cuatro enemigos en 320 caben 9 letras', () => {
+    expect(anchoNombre(320 / 4)).toBe(9);
   });
 
   test('«Acólito de la luna falsa A» se parte en líneas que caben donde le toca a cada enemigo', () => {
@@ -263,7 +263,7 @@ describe('elegir rana y dificultad en vertical', () => {
   });
 
   test('letrasEnAncho: letras de la fuente normal que caben en un ancho', () => {
-    expect(letrasEnAncho(72)).toBe(10);
+    expect(letrasEnAncho(73.5)).toBe(10);
     expect(letrasEnAncho(272)).toBe(37);
     expect(letrasEnAncho(0)).toBe(0);
   });
@@ -385,6 +385,6 @@ describe('nombres de jefe en la presentación vertical', () => {
 
   test('letrasEnAncho admite el ancho de letra de otra fuente', () => {
     expect(letrasEnAncho(288, 14.4)).toBe(20);
-    expect(letrasEnAncho(288)).toBe(40);
+    expect(letrasEnAncho(288)).toBe(39);
   });
 });

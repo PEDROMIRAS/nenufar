@@ -14,8 +14,8 @@ La música y los efectos se sintetizan en el navegador con Web Audio a partir de
 
 ## Assets de terceros
 
-El proyecto no usa assets de terceros. Si en el futuro se añade alguno (música, sonidos, fuentes), se anotará aquí con su autor, enlace y licencia. Solo se aceptan licencias CC0, CC-BY o CC-BY-SA.
+El único asset de terceros es la letra. Cualquier otro que se añada (música, sonidos) se anotará aquí con su autor, enlace y licencia. Solo se aceptan licencias CC0, CC-BY, CC-BY-SA o, para fuentes, SIL OFL.
 
 | Asset | Autor | Licencia | Enlace |
 | --- | --- | --- | --- |
-| — | — | — | — |
+| Space Mono Bold (`public/assets/fuentes/space-mono-700.woff2`, licencia completa al lado) | The Space Mono Project Authors (Colophon Foundry para Google Fonts) | SIL Open Font License 1.1 | https://github.com/googlefonts/spacemono |

@@ -62,7 +62,7 @@ export const LETRAS_COLUMNA = 20;
 export const RECT_SONIDO = { x: DX, y: 44, ancho: 40, alto: 40 };
 /** Calidad del mapa en 3D y el botón del reto en la portada, a la derecha de Sonido (alineados con los deslizadores). */
 export const RECT_CALIDAD = { x: DX + 102, y: 44, ancho: 40, alto: 40 };
-export const RECT_RETO = { x: DX + 204, y: 44, ancho: 40, alto: 40 };
+export const RECT_RETO = { x: DX + 214, y: 44, ancho: 40, alto: 40 };
 /** Música, Efectos y Temblor, uno al lado del otro: así cabe debajo la lista de controles. */
 export const RECT_MUSICA = { x: DX, y: 112, ancho: 90, alto: 40 };
 export const RECT_EFECTOS = { x: DX + 102, y: 112, ancho: 90, alto: 40 };
