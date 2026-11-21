@@ -60,8 +60,9 @@ export const LETRAS_COLUMNA = 20;
 
 /** Controles HTML de Ajustes, dentro del panel derecho. 40 px de alto: con el dedo, ~44 px CSS. */
 export const RECT_SONIDO = { x: DX, y: 44, ancho: 40, alto: 40 };
-/** Calidad del mapa en 3D, a la derecha de Sonido. */
-export const RECT_CALIDAD = { x: DX + 150, y: 44, ancho: 40, alto: 40 };
+/** Calidad del mapa en 3D y el botón del reto en la portada, a la derecha de Sonido (alineados con los deslizadores). */
+export const RECT_CALIDAD = { x: DX + 102, y: 44, ancho: 40, alto: 40 };
+export const RECT_RETO = { x: DX + 204, y: 44, ancho: 40, alto: 40 };
 /** Música, Efectos y Temblor, uno al lado del otro: así cabe debajo la lista de controles. */
 export const RECT_MUSICA = { x: DX, y: 112, ancho: 90, alto: 40 };
 export const RECT_EFECTOS = { x: DX + 102, y: 112, ancho: 90, alto: 40 };
@@ -70,6 +71,7 @@ export const RECT_TEMBLOR = { x: DX + 204, y: 112, ancho: 90, alto: 40 };
 const HORIZONTAL = {
   sonido: { ...RECT_SONIDO },
   calidad: { ...RECT_CALIDAD },
+  reto: { ...RECT_RETO },
   musica: { ...RECT_MUSICA },
   efectos: { ...RECT_EFECTOS },
   temblor: { ...RECT_TEMBLOR },
@@ -90,6 +92,7 @@ export function ajustarControlesAjustes(): void {
   if (!interfaz.alta) {
     copiar(RECT_SONIDO, HORIZONTAL.sonido);
     copiar(RECT_CALIDAD, HORIZONTAL.calidad);
+    copiar(RECT_RETO, HORIZONTAL.reto);
     copiar(RECT_MUSICA, HORIZONTAL.musica);
     copiar(RECT_EFECTOS, HORIZONTAL.efectos);
     copiar(RECT_TEMBLOR, HORIZONTAL.temblor);
@@ -101,6 +104,7 @@ export function ajustarControlesAjustes(): void {
   );
   copiar(RECT_SONIDO, a.sonido);
   copiar(RECT_CALIDAD, a.calidad);
+  copiar(RECT_RETO, a.reto);
   copiar(RECT_MUSICA, a.musica);
   copiar(RECT_EFECTOS, a.efectos);
   copiar(RECT_TEMBLOR, a.temblor);
@@ -308,6 +312,7 @@ function dibujarAjustes(ctx: CanvasRenderingContext2D): void {
     RECT_CALIDAD.y + 14,
     PALETA.texto,
   );
+  escribir(ctx, 'Reto', RECT_RETO.x + RECT_RETO.ancho + 8, RECT_RETO.y + 14, PALETA.texto);
   escribir(ctx, 'Música', RECT_MUSICA.x, RECT_MUSICA.y - 16, COLOR.etiqueta);
   escribir(ctx, 'Efectos', RECT_EFECTOS.x, RECT_EFECTOS.y - 16, COLOR.etiqueta);
   escribir(ctx, 'Temblor', RECT_TEMBLOR.x, RECT_TEMBLOR.y - 16, COLOR.etiqueta);

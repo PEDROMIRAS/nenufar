@@ -9,6 +9,7 @@ import {
   COLOR,
   NOMBRE_SECCION,
   RECT_CALIDAD,
+  RECT_RETO,
   RECT_EFECTOS,
   RECT_TEMBLOR,
   RECT_MUSICA,
@@ -193,6 +194,7 @@ function dibujarAjustes(ctx: CanvasRenderingContext2D, c: Rect): void {
     RECT_CALIDAD.y + 14,
     PALETA.texto,
   );
+  escribir(ctx, 'Reto', RECT_RETO.x + RECT_RETO.ancho + 8, RECT_RETO.y + 14, PALETA.texto);
   escribir(ctx, 'Música', RECT_MUSICA.x, RECT_MUSICA.y - 16, COLOR.etiqueta);
   escribir(ctx, 'Efectos', RECT_EFECTOS.x, RECT_EFECTOS.y - 16, COLOR.etiqueta);
   escribir(ctx, 'Temblor', RECT_TEMBLOR.x, RECT_TEMBLOR.y - 16, COLOR.etiqueta);

@@ -76,6 +76,7 @@ export interface Partida {
     temblor: Deslizador;
     sonido: Casilla;
     calidad: Casilla;
+    reto: Casilla;
   };
   /** Nombre del jefe final: lleva el de la última heroína que lo venció, si la hubo. */
   rival: string;

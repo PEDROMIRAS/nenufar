@@ -230,10 +230,10 @@ describe('pausa en vertical: toque y ajustes', () => {
     expect(disposicionPausaCacheada(320, 692, VERTICAL)).not.toBe(a);
   });
 
-  test('disposicionAjustes: sonido, calidad y dos deslizadores uno bajo otro dentro del contenido', () => {
+  test('disposicionAjustes: sonido, calidad, reto y los deslizadores uno bajo otro dentro del contenido', () => {
     const c = disposicionPausa(320, 569, VERTICAL).contenido;
     const a = disposicionAjustes(c, VERTICAL);
-    const cuatro = [a.sonido, a.calidad, a.musica, a.efectos];
+    const cuatro = [a.sonido, a.calidad, a.reto, a.musica, a.efectos, a.temblor];
     for (const r of cuatro) {
       expect(r.x).toBeGreaterThanOrEqual(c.x);
       expect(r.x + r.ancho).toBeLessThanOrEqual(c.x + c.ancho);

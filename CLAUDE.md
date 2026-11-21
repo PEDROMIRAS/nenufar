@@ -83,6 +83,8 @@ Todo está fusionado en `main` y publicado; no hay ramas abiertas ni nada sin su
 
 **Mensajes centrados (2026-11-21, rama `mensaje-centrado`, a petición de Pedro):** las pantallas de mensaje (`EscenaMensaje`: historia, carteles, entrada al reto, nivel…) centran en alto el título y el texto juntos; uno largo sigue empezando arriba. La entrada al reto pasa a «Reto del día» de título y la fecha en el texto (en vertical el título se partía con el «·» suelto). Visto a 1280×800 y 390×844 en la entrada al reto y en la historia.
 
+**Reto del día opcional (2026-11-21, rama `reto-opcional`, a petición de Pedro):** casilla «Reto» en Ajustes (pausa; en horizontal, en la fila de Sonido y Calidad, que se recolocan a la separación de los deslizadores; en vertical, bajo Calidad: `reto` en `disposicionAjustes`, con test) que quita el botón «Reto del día» de la portada (`retoOculto` en los ajustes guardados; `conReto` en `escenas/titulo.ts`: sin botón, la flecha que llevaría a él no hace nada y la banda de abajo se encoge). Visto a 1280×800 y 390×844.
+
 **Hecho el 2026-11-19** (detalle en el documento de desarrollo y en cada spec):
 - **Auditoría ponytail:** guardar al ganar un combate antes de sus pantallas (`despuesDelCombate` en `core/trasCombate.ts`, con test); anuncios del lector de pantalla en el primer `update`; sonido del cofre trampa al volver al mapa; código sin uso fuera; menores (ermitaño sin objeto por fotograma, un solo «¡Nivel N!», `claveDe`, comentario de `vivos`).
 - **`main.ts` partido:** `main.ts` = arranque, portada y bucle; la partida en `src/partida/` (`partida.ts` con `Partida`, `guardado` y `sesion`; `relato`, `combates`, `eventos`, `zona`, `fin`).
