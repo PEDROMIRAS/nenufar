@@ -109,6 +109,19 @@ export function disposicionCombate(
 }
 
 /**
+ * Dónde acaba por abajo el cartel del mando en el combate: sobre la pestaña de la lista si hay un menú abierto (si
+ * no, tapaba las opciones 2,5 s) y sobre la ficha si no lo hay.
+ */
+export function topeCartelCombate(
+  disp: DisposicionCombate,
+  conMenu: boolean,
+  d: DatosMenuCombate,
+): number {
+  const arriba = conMenu ? disp.lista.y - d.rellenoLista - d.tituloLista : disp.ficha.y;
+  return arriba - d.separacion;
+}
+
+/**
  * La primera fila a la vista tras tocar la opción `tocada`: si es la última visible y hay más abajo, se desplaza una;
  * si es la primera visible y hay más arriba, también. Así con el dedo se llega a las opciones ocultas.
  */

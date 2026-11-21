@@ -68,6 +68,27 @@ export function rombo(
   ctx.fill();
 }
 
+/** Triángulo de `ancho`×`alto` centrado en (cx, cy), con la punta arriba o abajo (flechas de desplazar una lista). */
+export function triangulo(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  ancho: number,
+  alto: number,
+  arriba: boolean,
+  color: string,
+): void {
+  const punta = arriba ? cy - alto / 2 : cy + alto / 2;
+  const base = arriba ? cy + alto / 2 : cy - alto / 2;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(cx, punta);
+  ctx.lineTo(cx + ancho / 2, base);
+  ctx.lineTo(cx - ancho / 2, base);
+  ctx.closePath();
+  ctx.fill();
+}
+
 /** Fondo de las pantallas a pantalla completa (elegir rana, dificultad, puntos…): degradado lavanda oscuro. */
 export function dibujarFondo(ctx: CanvasRenderingContext2D): void {
   // Sin guardarlo: la ventana puede cambiar de tamaño.

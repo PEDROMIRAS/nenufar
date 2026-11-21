@@ -2,7 +2,12 @@ import { camaraAtaque, encuadrar, zoomMaximo, type Encuadre } from '../core/cama
 import type { Combate, Luchador } from '../core/combate';
 import { escalaHoja } from '../core/hoja';
 import { partirTexto } from '../core/texto';
-import { anchoNombre, disposicionCombate, type DisposicionCombate } from '../core/disposicion';
+import {
+  anchoNombre,
+  disposicionCombate,
+  topeCartelCombate,
+  type DisposicionCombate,
+} from '../core/disposicion';
 import { mensajesQueCaben, opacidadMensaje, type MensajesCombate } from '../core/mensajes';
 import { IMPACTO, MENU_COMBATE } from '../data/datos';
 import ritmo from '../data/ritmo.json';
@@ -11,7 +16,15 @@ import { movimientoReducido } from './accesibilidad';
 import { dibujarFotograma, type Sprite } from './recursos';
 import type { FondoSala } from './mundo/mundo';
 import { conRelieve, escribir, FAMILIA, FUENTE_GRANDE } from './texto';
-import { dibujarCaja, dibujarFila, dibujarMarco, dibujarPestana, PALETA, rombo } from './marco';
+import {
+  dibujarCaja,
+  dibujarFila,
+  dibujarMarco,
+  dibujarPestana,
+  PALETA,
+  rombo,
+  triangulo,
+} from './marco';
 import type { Rect } from '../core/menu';
 import type { MenuVista } from './menu';
 
@@ -493,9 +506,10 @@ export function visiblesCombate(n: number): number {
   return disposicion(n).visibles;
 }
 
-/** Dónde acaba el cartel del mando en el combate: en horizontal, justo sobre la ficha; en vertical, donde siempre. */
-export function bajoCartelCombate(): number | undefined {
-  return interfaz.alta ? undefined : disposicion(0).ficha.y - 4;
+/** Dónde acaba el cartel del mando en el combate: sobre la lista si está abierta y, si no, sobre la ficha. */
+export function bajoCartelCombate(v: VistaCombate): number {
+  const n = v.menu?.opciones.length ?? 0;
+  return topeCartelCombate(disposicion(n), n > 0, D);
 }
 
 /** La ayuda de cada opción, partida a un ancho (una vez por texto y ancho). */
@@ -558,13 +572,15 @@ function dibujarMensajes(
   const b = d.mensajes;
   const m = v.mensajes;
   const letras = letrasPara(MENSAJES, b.ancho);
+  // Los avisos dados con el menú abierto («No quedan PM…») ya salen en la franja de abajo: aquí no se repiten.
+  const fin = m.textos.length - (v.menu ? v.aviso : 0);
   // Solo mensajes enteros: si el anterior no cabe entero, no se ve su cola.
-  LINEAS_MENSAJE.length = m.textos.length;
-  for (let i = 0; i < m.textos.length; i++)
+  LINEAS_MENSAJE.length = Math.max(0, fin);
+  for (let i = 0; i < fin; i++)
     LINEAS_MENSAJE[i] = avisoPartido(m.textos[i]!, MENSAJES, letras).length;
   const desde = mensajesQueCaben(LINEAS_MENSAJE, D.mensajes);
   let linea = D.mensajes;
-  for (let i = m.textos.length - 1; i >= desde && linea > 0; i--) {
+  for (let i = fin - 1; i >= desde && linea > 0; i--) {
     const alfa = opacidadMensaje(m, i, v.tiempoReal, ritmo.mensajes);
     const lineas = avisoPartido(m.textos[i]!, MENSAJES, letras);
     for (let k = lineas.length - 1; k >= 0 && linea > 0; k--) {
@@ -617,9 +633,11 @@ function dibujarLista(ctx: CanvasRenderingContext2D, v: VistaCombate, d: Disposi
       d.fila >= D.filasConDetalleDebajo,
     );
   }
-  if (v.primera > 0) escribir(ctx, '▲', x + r.ancho - 4, r.y - pad - 12, PALETA.cursor, 'right');
+  // Flechas sobre el borde de la caja: como letra, la de abajo bajaba sobre la ficha.
+  const xFlecha = x + r.ancho - 8;
+  if (v.primera > 0) triangulo(ctx, xFlecha, r.y - pad, 9, 5, true, PALETA.cursor);
   if (v.primera + d.visibles < n)
-    escribir(ctx, '▼', x + r.ancho - 4, r.y + r.alto - 2, PALETA.cursor, 'right');
+    triangulo(ctx, xFlecha, r.y + r.alto + pad, 9, 5, false, PALETA.cursor);
   ctx.globalAlpha = 1;
 }
 
@@ -722,7 +740,7 @@ function bordeCamara(v: VistaCombate): number {
 }
 
 /**
- * Cámara de este fotograma (en `v.camara`): durante un ataque, la escena (sin la barra de turnos ni el panel) se
+ * Cámara de este fotograma (en `v.camara`): durante un ataque, la escena (sin la barra de turnos ni la ficha) se
  * acerca al punto entre quien ataca y quien recibe; el fondo 3D se queda quieto, así que el primer plano se separa
  * de él. El acercamiento nunca saca del marco los nombres de los enemigos ni los pies de la heroína, ni nada por
  * los lados de la pantalla.
