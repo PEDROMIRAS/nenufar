@@ -28,6 +28,14 @@ const RELIEVE = new Map<string, { contorno: number; sombra: number }>([
 const CONTORNO = '#120c22';
 
 /**
+ * Da contorno y sombra a otra letra grande de `px` píxeles, en la misma proporción que los títulos (los números de
+ * daño que flotan en el combate). Se llama al cargar, no en el bucle.
+ */
+export function conRelieve(fuente: string, px: number): void {
+  RELIEVE.set(fuente, { contorno: px / 7, sombra: px / 10 });
+}
+
+/**
  * Texto legible sobre cualquier fondo: la letra normal y la de los botones, con una sombra de 1 px; los títulos
  * grandes, con contorno oscuro y sombra debajo (con solo la sombra se veían planos; elegido por Pedro entre cuatro
  * estilos).
