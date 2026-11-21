@@ -40,3 +40,10 @@ Ninguna casilla se mueve más de 0,4 puntos: el puesto sale en un 5 % de las zon
 - **Arreglado:** con las pociones y los éteres al máximo, el puesto se quedaba la pieza sin dar nada. Ahora el lote solo cuenta lo que cabe. Si no cabe nada, la oferta se apaga («No te cabe nada más…») y no hay trueque.
 - **Arreglado:** el aviso pasa a ser «Te llevas {lote}», porque el largo se salía de su caja; «no te caben más» dice los nombres y no las claves; con la mochila vacía o todo lleno, el texto del puesto ya dice por qué no hay trueque, también para el lector de pantalla. El generador de `comunes` tiene el puesto, y hay tests de los datos del puesto, del tile, de que lo vendido no vuelve en los cofres y de que el guardado valida `vendidas`.
 - **Decisiones mías que quedan así:** las piezas especiales de los jefes violeta se valoran por sus bonos de base (3 a 5), sin contar lo que crecen con el nivel, así que pagan 1 o 2. La jugadora simulada no apunta las piezas que suelta un combate y no se pone, así que en la medida el mercader rinde algo menos que en el juego.
+
+### Menores, hechos el 2026-11-21
+
+- Las piezas que crecen con la heroína (las especiales de los jefes violeta) se valoran con lo que suman en su nivel (`valorPieza` con `nivel`; `opcionesMercader`, `loteMercader` y `aplicarMercader` lo reciben, el juego pasa el de la heroína). La Katana sagrada pagaba 2 en cualquier nivel; en el nivel 8, 4.
+- La jugadora simulada apunta en lo que le sobra las piezas que suelta un combate (también el jefe y el cofre trampa) y no se pone (`sobra` en `pelear` de `core/jugadora.ts`; test en `tests/jugadora.test.ts`), y valora con su nivel.
+- Equilibrado con 2400 partidas por casilla y la mezcla real de eventos: idéntico a antes (Fácil 73,1 / 73,2; Normal 46,1 / 51,3; Difícil 24,3 / 28,5). Cuando sale el puesto, la jugadora ya suele tener en la mochila piezas de cofre más valiosas que lo que sueltan los combates, y el simulador no juega las salas violetas.
+

@@ -101,7 +101,7 @@ Todo está fusionado en `main` y publicado; no hay ramas abiertas ni nada sin su
 3. **Arte que falta:** imágenes de Pedro para el dragón negro, el murciélago, el sacerdote y el cofre trampa; las ranas a doble resolución (proyecto aparte, con su visto bueno); monstruos nuevos (bloque 3 de la variedad).
 4. **Enlace desde el portafolio** (hace falta saber dónde está) y el vídeo de demo, que aún no va.
 5. **Ideas de «versión 2» del documento aún sin hacer** (las dos piden diseño con Pedro): elegir 3 habilidades equipadas y el menú de combate junto a quien actúa (boceto A).
-6. **Menores del mercader que quedan** (decisiones mías apuntadas en su spec): las piezas especiales de los violeta se valoran por sus bonos de base; la jugadora simulada no cuenta las piezas que suelta un combate.
+6. **Menores del mercader: hechos el 2026-11-21** (ver el final de su spec).
 7. **Dejados a propósito por inofensivos:** cerrar el navegador en el medio segundo de la entrada a un combate repite la sala; `?combate` sin entrada (desarrollo).
 
 **Cuidado con iCloud:** `~/Documents` está en iCloud y a veces crea copias con « 2» en el nombre (hoy en `src/partida/` y `dist/`); antes de compilar, `find src tests dist -name "* 2.*"`, comparar con el original y borrarlas. En `.claude/skills/router/` quedan cinco copias idénticas que no son del proyecto. Si `git push` falla con «RPC failed», reintentar con `git -c http.version=HTTP/1.1 push`.

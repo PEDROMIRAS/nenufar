@@ -108,7 +108,8 @@ export function quizaEquipar(
 
 /**
  * Lucha contra `grupo` (claves del bestiario) hasta el final; se equipa lo que encuentre si es mejor y reparte sus
- * puntos. Devuelve si ganó. `recibido`, si se pasa, suma el daño recibido en fracción de su vida máxima.
+ * puntos. Devuelve si ganó. `recibido`, si se pasa, suma el daño recibido en fracción de su vida máxima. `sobra`, si
+ * se pasa, recibe cada pieza encontrada que no se pone (en el juego iría a la mochila y se podría dejar al mercader).
  */
 export function pelear(
   h: Luchador,
@@ -117,6 +118,7 @@ export function pelear(
   azar: () => number,
   m: MundoJugadora,
   recibido?: { suma: number; n: number },
+  sobra?: (clave: string) => void,
 ): boolean {
   const c = crearCombate(
     h,
@@ -140,7 +142,12 @@ export function pelear(
     recibido.suma += Math.min(1, danio / h.pvMax);
     recibido.n++;
   }
-  for (const pieza of c.equipoEncontrado) quizaEquipar(h, inv, m.objetos, pieza);
+  for (const pieza of c.equipoEncontrado) {
+    const hueco = m.objetos.equipo[pieza]?.hueco;
+    const antes = hueco ? inv[hueco] : null;
+    quizaEquipar(h, inv, m.objetos, pieza);
+    if (hueco && inv[hueco] === antes) sobra?.(pieza);
+  }
   repartirPuntos(h, h.heroe?.planPuntos ?? [], m.experiencia);
   return c.resultado === 'victoria';
 }

@@ -91,7 +91,8 @@ export function abrirMercader(
   partida: Partida,
   alTerminar: (usado: boolean, aviso: string) => void,
 ): void {
-  const opciones = opcionesMercader(partida.inventario, EVENTOS.mercader, OBJETOS);
+  const nivel = partida.luchadora.nivel;
+  const opciones = opcionesMercader(partida.inventario, EVENTOS.mercader, OBJETOS, nivel);
   // Si no hay trueque posible, el texto ya dice por qué (con la selección en Marcharse no se leería).
   const hay = opciones.some((o) => o.activa && o.clave !== 'marcharse');
   const porque = hay ? '' : ` ${opciones[0]?.descripcion ?? ''}`;
@@ -103,7 +104,13 @@ export function abrirMercader(
       (clave) => {
         partida.pila.desapilar();
         if (clave === 'marcharse') return alTerminar(false, '');
-        const aviso = aplicarMercader(partida.inventario, clave, EVENTOS.mercader, OBJETOS);
+        const aviso = aplicarMercader(
+          partida.inventario,
+          clave,
+          EVENTOS.mercader,
+          OBJETOS,
+          partida.luchadora.nivel,
+        );
         alTerminar(aviso !== '', aviso);
       },
     ),

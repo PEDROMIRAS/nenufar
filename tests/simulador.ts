@@ -6,7 +6,7 @@ import {
 } from '../src/core/jugadora';
 import JUGADORA from '../src/data/jugadora.json';
 import { luchadorDeHeroe, type Luchador } from '../src/core/combate';
-import { abrirCofre, inventarioInicial } from '../src/core/equipo';
+import { abrirCofre, bonosDe, inventarioInicial } from '../src/core/equipo';
 import {
   aplicarAltar,
   aplicarErmitano,
@@ -71,8 +71,10 @@ export function pelear(
   m: Mundo,
   /** Si se pasa, suma el daño que recibe la heroína, en fracción de su vida máxima. */
   recibido?: Media,
+  /** Si se pasa, recibe cada pieza que suelta el combate y no se pone. */
+  sobra?: (clave: string) => void,
 ): boolean {
-  return pelearJugadora(h, inv, grupo, azar, conDatos(m), recibido);
+  return pelearJugadora(h, inv, grupo, azar, conDatos(m), recibido, sobra);
 }
 
 const quizaEquipar = (h: Luchador, inv: Inventario, clave: string): void =>
@@ -121,16 +123,19 @@ function tratarConErmitano(h: Luchador, inv: Inventario): void {
 
 /**
  * La jugadora simulada ante el puesto del mercader: deja la pieza más valiosa de las que le sobran (las que habría
- * en la mochila: la jugadora no la usa, así que se apuntan aparte en `sobrantes`) y se lleva su lote.
+ * en la mochila, también las que suelta un combate: la jugadora no la usa, así que se apuntan aparte en
+ * `sobrantes`), valorada con su nivel como en el juego, y se lleva su lote.
  */
-function tratarConMercader(inv: Inventario, sobrantes: string[]): void {
-  const valor = (k: string): number =>
-    Object.values(OBJETOS.equipo[k]?.bonos ?? {}).reduce((a: number, b) => a + (b ?? 0), 0);
+function tratarConMercader(h: Luchador, inv: Inventario, sobrantes: string[]): void {
+  const valor = (k: string): number => {
+    const p = OBJETOS.equipo[k];
+    return p ? Object.values(bonosDe(p, h.nivel)).reduce((a: number, b) => a + (b ?? 0), 0) : 0;
+  };
   const pieza = [...sobrantes].sort((a, b) => valor(b) - valor(a))[0];
   if (!pieza) return;
   sobrantes.splice(sobrantes.indexOf(pieza), 1);
   inv.mochila.push(pieza);
-  aplicarMercader(inv, pieza, EVENTOS.mercader, OBJETOS);
+  aplicarMercader(inv, pieza, EVENTOS.mercader, OBJETOS, h.nivel);
 }
 
 /** Con al menos esta parte de los PV la jugadora simulada acepta el desafío; con menos, se marcha. */
@@ -269,7 +274,7 @@ export function simular(
         if (sala.tipo !== 'combate' && !sala.trampa && sala.evento !== 'desafio') {
           if (sala.tipo === 'tesoro') abrir();
           if (sala.evento === 'ermitano') tratarConErmitano(h, inv);
-          else if (sala.evento === 'mercader') tratarConMercader(inv, sobrantes);
+          else if (sala.evento === 'mercader') tratarConMercader(h, inv, sobrantes);
           else if (sala.tipo === 'evento') usarAltar(h, inv);
           continue;
         }
@@ -284,7 +289,9 @@ export function simular(
           continue;
         }
         if (sala.trampa) {
-          viva = pelear(h, inv, [z.cofreTrampa], azar, mundoZona);
+          const antesTrampa = [inv.arma, inv.armadura];
+          viva = pelear(h, inv, [z.cofreTrampa], azar, mundoZona, undefined, sobrar);
+          sobrarCambios(antesTrampa);
           contar(trampas, clave, viva);
           if (!viva) break;
           abrir();
@@ -311,7 +318,7 @@ export function simular(
             ),
           );
           const antes = [inv.arma, inv.armadura];
-          viva = pelear(h, inv, grupo, azar, mundoZona);
+          viva = pelear(h, inv, grupo, azar, mundoZona, undefined, sobrar);
           sobrarCambios(antes);
           contar(reales, clave, viva);
         }
@@ -321,7 +328,9 @@ export function simular(
       alExplorar?.(clave, h, inv, mundoZona, s);
       if (fuente) restaurarFuente(h, modoFuente);
       (niveles[clave] ??= []).push(h.nivel);
-      viva = pelear(h, inv, [z.jefe], azar, mundoZona);
+      const antesJefe = [inv.arma, inv.armadura];
+      viva = pelear(h, inv, [z.jefe], azar, mundoZona, undefined, sobrar);
+      sobrarCambios(antesJefe);
       contar(jefes, clave, viva);
       if (!viva) break;
     }
