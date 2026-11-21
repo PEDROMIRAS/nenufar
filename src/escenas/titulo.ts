@@ -58,6 +58,8 @@ export class EscenaTitulo implements Escena {
   private foco = 1;
   /** El botón del reto está en la portada (se puede quitar con la casilla «Reto» de Ajustes). */
   private conReto = true;
+  /** Se viene de los controles, donde se puede quitar o poner el botón del reto: hay que releerlo. */
+  private releerReto = false;
   private ultimoX = 0;
   private ultimoY = 0;
   /** Récords generales y, debajo, los de cada dificultad (o el mejor tiempo, si aún no hay). */
@@ -110,6 +112,11 @@ export class EscenaTitulo implements Escena {
 
   update(dt: number, acciones: Acciones): void {
     ponerMusica(null);
+    if (this.releerReto) {
+      this.releerReto = false;
+      this.conReto = !cargarAjustes().retoOculto;
+      if (!this.conReto && FOCOS[this.foco] === 'reto') this.foco = 1;
+    }
     this.disponer();
     this.tiempo += dt;
     // Las flechas siguen el orden de los botones en la pantalla (ver `focoPortada`).
@@ -129,16 +136,22 @@ export class EscenaTitulo implements Escena {
     }
     const { toqueX: x, toqueY: y } = acciones;
     if (acciones.info || dentro(x, y, BOTON_EXTRAS)) this.alExtras();
-    else if (dentro(x, y, BOTON_CONTROLES)) this.alControles();
+    else if (dentro(x, y, BOTON_CONTROLES)) this.abrirControles();
     else if (this.conReto && dentro(x, y, BOTON_RETO)) this.alReto();
     else if (x >= 0) this.alEmpezar();
     else if (acciones.confirmar) {
       const elegido = FOCOS[this.foco];
       if (elegido === 'extras') this.alExtras();
-      else if (elegido === 'controles') this.alControles();
+      else if (elegido === 'controles') this.abrirControles();
       else if (elegido === 'reto') this.alReto();
       else this.alEmpezar();
     }
+  }
+
+  /** Abre los controles; al volver, se relee si el botón del reto sigue en la portada (allí se puede quitar). */
+  private abrirControles(): void {
+    this.releerReto = true;
+    this.alControles();
   }
 
   /**
