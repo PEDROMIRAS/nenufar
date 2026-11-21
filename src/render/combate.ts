@@ -8,7 +8,7 @@ import { ANCHO, aPixel, area, interfaz, rellenarArea } from './pantalla';
 import { movimientoReducido } from './accesibilidad';
 import { dibujarFotograma, type Sprite } from './recursos';
 import type { FondoSala } from './mundo/mundo';
-import { escribir, FAMILIA, FUENTE_GRANDE } from './texto';
+import { conRelieve, escribir, FAMILIA, FUENTE_GRANDE } from './texto';
 import {
   dibujarCaja,
   dibujarFila,
@@ -914,6 +914,10 @@ function dibujarEfecto(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
 
 /** Letras del número que flota, de 0 a 64 px, hechas una vez (no se crea un texto nuevo en cada fotograma). */
 const FUENTES_NUMERO = Array.from({ length: 65 }, (_, px) => `bold ${px}px ${FAMILIA}`);
+// Con contorno y sombra, como los títulos: con solo la sombra fina se perdían sobre el fondo.
+FUENTES_NUMERO.forEach((f, px) => {
+  if (px >= 16) conRelieve(f, px);
+});
 const TAMANO_NUMERO = 24;
 
 /** Letra del número que flota: aparece un poco más grande y se asienta en su tamaño, sin rebote. */
