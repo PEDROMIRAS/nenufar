@@ -37,6 +37,21 @@ export function apuntarMensaje(
   }
 }
 
+/**
+ * Desde qué mensaje se dibujan, del más viejo al más nuevo, para que quepan enteros en `max` líneas (`lineas[i]` es
+ * lo que ocupa cada uno): uno que no cabe entero no sale (si no, se veía la cola de una frase). El último sale
+ * siempre.
+ */
+export function mensajesQueCaben(lineas: readonly number[], max: number): number {
+  let i = lineas.length - 1;
+  let usadas = lineas[i] ?? 0;
+  while (i > 0 && usadas + (lineas[i - 1] ?? 0) <= max) {
+    i--;
+    usadas += lineas[i] ?? 0;
+  }
+  return Math.max(0, i);
+}
+
 /** Opacidad (0 a 1) del mensaje `i` en `ahora`. */
 export function opacidadMensaje(
   m: MensajesCombate,

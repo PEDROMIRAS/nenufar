@@ -32,7 +32,7 @@ import {
 } from '../core/descripciones';
 import { haceAlgo } from '../core/inventario';
 import { efectoToque, filaDeToque } from '../core/menu';
-import { primeraVisible } from '../core/disposicion';
+import { primeraTrasToque, primeraVisible } from '../core/disposicion';
 import { apuntarMensaje, crearMensajes } from '../core/mensajes';
 import {
   decaerTrauma,
@@ -635,6 +635,8 @@ export class EscenaCombate implements Escena {
     }
     const menu = this.v.menu!;
     const n = menu.opciones.length;
+    // La elegida siempre a la vista, también si cambió el sitio (girar el móvil) o el menú se abrió con otra.
+    this.v.primera = primeraVisible(menu.seleccion, this.v.primera, visiblesCombate(n), n);
     // En Habilidad, Objeto y la elección de enemigo, el primer toque solo elige (y la franja de abajo dice
     // qué hace) y el segundo la usa: así no se gastan PM ni objetos sin querer. El menú principal y «Volver»
     // (la última fila) van al primer toque.
@@ -652,6 +654,8 @@ export class EscenaCombate implements Escena {
       const dobleToque = this.modo !== 'principal' && i !== n - 1;
       const soloElegir = efectoToque(menu.seleccion, i, dobleToque) === 'elegir';
       menu.seleccion = i;
+      // Tocar la primera o la última fila a la vista desplaza una: con el dedo se llega a las ocultas.
+      this.v.primera = primeraTrasToque(i, this.v.primera, visiblesCombate(n), n);
       if (soloElegir) {
         sonar('cursor');
         this.anunciarOpcion();

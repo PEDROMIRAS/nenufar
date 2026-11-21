@@ -89,7 +89,7 @@ export function disposicionCombate(
     bajoLista = yExplicacion - d.separacion;
   }
 
-  const xLista = o.heroinaX + 32 + d.separacionLista;
+  const xLista = o.heroinaX + d.medioCuerpo + d.separacionLista;
   const anchoLista = alta ? ancho - m - xLista : d.horizontal.anchoLista;
   // Lo que deja el borde de abajo de la lista hasta lo de los enemigos, sin la pestaña ni el relleno de la caja.
   const sitio =
@@ -104,6 +104,21 @@ export function disposicionCombate(
   fuera.heroina.x = o.heroinaX;
   fuera.heroina.y = yLista + visibles * fila;
   return fuera;
+}
+
+/**
+ * La primera fila a la vista tras tocar la opción `tocada`: si es la última visible y hay más abajo, se desplaza una;
+ * si es la primera visible y hay más arriba, también. Así con el dedo se llega a las opciones ocultas.
+ */
+export function primeraTrasToque(
+  tocada: number,
+  primera: number,
+  visibles: number,
+  n: number,
+): number {
+  if (tocada === primera + visibles - 1 && tocada < n - 1) return primera + 1;
+  if (tocada === primera && primera > 0) return primera - 1;
+  return primera;
 }
 
 /** La primera fila que se ve de una lista de `n` con `visibles` a la vista, para que la `seleccion` se vea. */

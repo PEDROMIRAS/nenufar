@@ -17,6 +17,7 @@ import {
   toquePuntos,
   toqueEquipo,
   tarjetasAltas,
+  primeraTrasToque,
   primeraVisible,
   type DisposicionCombate,
 } from '../src/core/disposicion';
@@ -92,6 +93,28 @@ describe('disposicionCombate', () => {
     const d = disposicionCombate(480, 352, 5, false, D);
     expect(d.lista.x).toBeGreaterThan(d.heroina.x);
     expect(d.heroina.y).toBe(d.lista.y + d.lista.alto);
+  });
+
+  test('en un móvil pequeño de pie (320×468) cabe el menú de acción entero', () => {
+    expect(disposicionCombate(320, 468, 5, true, D).visibles).toBe(5);
+  });
+
+  test('en horizontal la lista es ancha: «Tajo de llama morada» y su coste no se pisan', () => {
+    const d = disposicionCombate(480, 352, 5, false, D);
+    // Nombre desde x+16 a 7,35 por letra; coste («12 PM», 5 letras) pegado a la derecha con 8 de margen.
+    expect(16 + 20 * 7.35).toBeLessThanOrEqual(d.lista.ancho - 8 - 5 * 7.35);
+  });
+
+  test('tocar la última fila a la vista desplaza una hacia abajo; la primera, una hacia arriba', () => {
+    // 7 opciones, 5 a la vista desde la 0: tocar la 4 (última visible) deja ver la 5.
+    expect(primeraTrasToque(4, 0, 5, 7)).toBe(1);
+    // Desde la 2, tocar la 2 (primera visible) deja ver la 1.
+    expect(primeraTrasToque(2, 2, 5, 7)).toBe(1);
+    // En los extremos no se pasa: la 6 es la última opción, la 0 la primera.
+    expect(primeraTrasToque(6, 2, 5, 7)).toBe(2);
+    expect(primeraTrasToque(0, 0, 5, 7)).toBe(0);
+    // Si caben todas, nada.
+    expect(primeraTrasToque(4, 0, 7, 7)).toBe(0);
   });
 
   test('primeraVisible deja la elegida a la vista desplazando lo justo', () => {

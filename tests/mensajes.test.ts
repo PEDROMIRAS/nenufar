@@ -1,5 +1,10 @@
 import { describe, expect, test } from 'vitest';
-import { apuntarMensaje, crearMensajes, opacidadMensaje } from '../src/core/mensajes';
+import {
+  apuntarMensaje,
+  crearMensajes,
+  mensajesQueCaben,
+  opacidadMensaje,
+} from '../src/core/mensajes';
 
 const R = { cuantos: 3, duran: 4, apagar: 0.6, tenues: [1, 0.65, 0.35] };
 
@@ -31,5 +36,18 @@ describe('mensajes del combate', () => {
     apuntarMensaje(m, 'b', 10, R.cuantos);
     expect(opacidadMensaje(m, 1, 10, R)).toBe(1);
     expect(opacidadMensaje(m, 0, 10, R)).toBe(0.65);
+  });
+});
+
+describe('mensajesQueCaben', () => {
+  test('solo mensajes enteros: si el anterior no cabe entero, no sale por la cola', () => {
+    // Tres mensajes de 1, 2 y 2 líneas en 3 líneas: cabe el último (2) y del anterior (2) nada.
+    expect(mensajesQueCaben([1, 2, 2], 3)).toBe(2);
+    expect(mensajesQueCaben([1, 1, 1], 3)).toBe(0);
+    expect(mensajesQueCaben([1, 2, 1], 3)).toBe(1);
+  });
+
+  test('el último siempre sale, aunque ocupe más que la banda', () => {
+    expect(mensajesQueCaben([1, 4], 3)).toBe(1);
   });
 });

@@ -3,7 +3,7 @@ import type { Combate, Luchador } from '../core/combate';
 import { escalaHoja } from '../core/hoja';
 import { partirTexto } from '../core/texto';
 import { anchoNombre, disposicionCombate, type DisposicionCombate } from '../core/disposicion';
-import { opacidadMensaje, type MensajesCombate } from '../core/mensajes';
+import { mensajesQueCaben, opacidadMensaje, type MensajesCombate } from '../core/mensajes';
 import { IMPACTO, MENU_COMBATE } from '../data/datos';
 import ritmo from '../data/ritmo.json';
 import { ANCHO, aPixel, area, interfaz, rellenarArea } from './pantalla';
@@ -105,7 +105,6 @@ export interface VistaCombate {
 const COLOR = {
   /** Oscurece la sala de fondo para que se lean los luchadores y los textos. */
   velo: 'rgba(10, 12, 16, 0.6)',
-  panel: 'rgba(0, 0, 0, 0.45)',
   pv: '#d8584a',
   pm: '#5a8bd8',
   cura: '#7fd88a',
@@ -119,7 +118,7 @@ const LINEA = 14;
 const D = MENU_COMBATE;
 const ENEMIGO = { y: 128, escala: 2, separacion: 140, alto: 56 };
 /** Primera línea libre bajo la barra de turnos (su texto empieza en y = 10). */
-const FIN_BARRA_TURNOS = 26;
+const FIN_BARRA_TURNOS = D.finTurnos;
 /**
  * Primera línea libre bajo la banda de mensajes: ni los nombres de los enemigos (tampoco los de un jefe alto) ni sus
  * avisos suben de aquí, y la cámara no los empuja encima.
@@ -239,7 +238,7 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   ctx.fillStyle = COLOR.velo;
   rellenarArea(ctx);
 
-  // La escena tiembla con la sala de fondo; el panel, no.
+  // La escena tiembla con la sala de fondo; la lista, la ficha y los textos, no.
   ctx.save();
   ctx.translate(Math.round(tx), Math.round(ty));
   dibujarOrden(ctx, v);
@@ -543,6 +542,9 @@ function letrasPara(cache: Map<string, readonly string[]>, ancho: number): numbe
   return letras;
 }
 
+/** Líneas de cada mensaje de arriba (reutilizado: sin asignar en cada fotograma). */
+const LINEAS_MENSAJE: number[] = [];
+
 /**
  * Los últimos mensajes, arriba bajo la barra de turnos: el más nuevo en la última línea de la banda y los
  * anteriores encima, cada uno con su opacidad (`opacidadMensaje`): se apagan solos.
@@ -555,8 +557,13 @@ function dibujarMensajes(
   const b = d.mensajes;
   const m = v.mensajes;
   const letras = letrasPara(MENSAJES, b.ancho);
+  // Solo mensajes enteros: si el anterior no cabe entero, no se ve su cola.
+  LINEAS_MENSAJE.length = m.textos.length;
+  for (let i = 0; i < m.textos.length; i++)
+    LINEAS_MENSAJE[i] = avisoPartido(m.textos[i]!, MENSAJES, letras).length;
+  const desde = mensajesQueCaben(LINEAS_MENSAJE, D.mensajes);
   let linea = D.mensajes;
-  for (let i = m.textos.length - 1; i >= 0 && linea > 0; i--) {
+  for (let i = m.textos.length - 1; i >= desde && linea > 0; i--) {
     const alfa = opacidadMensaje(m, i, v.tiempoReal, ritmo.mensajes);
     const lineas = avisoPartido(m.textos[i]!, MENSAJES, letras);
     for (let k = lineas.length - 1; k >= 0 && linea > 0; k--) {
@@ -606,7 +613,7 @@ function dibujarLista(ctx: CanvasRenderingContext2D, v: VistaCombate, d: Disposi
       o.texto,
       o.detalle,
       estado,
-      d.fila >= 30,
+      d.fila >= D.filasConDetalleDebajo,
     );
   }
   if (v.primera > 0) escribir(ctx, '▲', x + r.ancho - 4, r.y - pad - 12, PALETA.cursor, 'right');
@@ -622,18 +629,16 @@ function dibujarExplicacion(
   d: DisposicionCombate,
 ): void {
   const e = d.explicacion;
-  const ayudaElegida = v.menu?.opciones[v.menu.seleccion]?.ayuda;
+  const ayuda = v.menu?.opciones[v.menu.seleccion]?.ayuda;
   // Sin nada que decir (elegir enemigo, Volver), no hay franja: una caja vacía abajo era otro panel fijo.
-  if (v.aviso === 0 && !ayudaElegida) return;
+  if (v.aviso === 0 && !ayuda) return;
   dibujarCaja(ctx, e.x, e.y, e.ancho, e.alto, 'normal');
   const letras = letrasPara(AVISOS, e.ancho - 20);
   const maxLineas = Math.max(1, Math.floor((e.alto - 8) / LINEA));
   const x = e.x + 10;
   const y = e.y + 6;
   if (v.aviso > 0) dibujarAviso(ctx, v, x, y, letras, maxLineas, AVISOS);
-  else {
-    const ayuda = v.menu?.opciones[v.menu.seleccion]?.ayuda;
-    if (!ayuda) return;
+  else if (ayuda) {
     const lineas = ayudaPartida(ayuda, letras);
     for (let i = 0; i < lineas.length && i < maxLineas; i++)
       escribir(ctx, lineas[i]!, x, y + i * LINEA, PALETA.texto);
@@ -665,7 +670,7 @@ function dibujarFicha(ctx: CanvasRenderingContext2D, v: VistaCombate, d: Disposi
   dibujarCaja(ctx, f.x, f.y, f.ancho, f.alto, 'normal');
   const h = v.combate.heroina;
   const fx = f.x + 8;
-  const ancho = f.ancho - 16 - 46;
+  const ancho = f.ancho - 16 - D.textoFicha;
   // Los estados van tras el nombre si caben; si no, en su lugar (saber que está quemada importa más que leer su
   // nombre, y «Quemadura» se quedaba en «Quema…»), y solo se cortan si ni así caben.
   const estados = v.estados.get(h) ?? '';
@@ -699,7 +704,7 @@ function abarcar(x: number, ancho: number): void {
 /** Píxeles que bajan los pies de la heroína bajo su ancla (2 de la hoja × 2 de escala). */
 const PIES_HEROINA = 4;
 /** Lo que ocupa bajo su ancla un enemigo: barra de vida, PV y estados (`dibujarEnemigo`). */
-const BAJO_ENEMIGO = 46;
+const BAJO_ENEMIGO = D.bajoEnemigo;
 
 /**
  * Borde de abajo de la escena: con el menú abierto, lo alto de la lista (con su pestaña); sin él, la ficha en

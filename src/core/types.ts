@@ -587,6 +587,12 @@ export interface DatosMenuCombate {
   separacionLista: number;
   /** Hueco entre la lista, la ficha y la explicación. */
   separacion: number;
+  /** Media rana a escala 2 (de su centro a su borde derecho): la lista empieza ahí más `separacionLista`. */
+  medioCuerpo: number;
+  /** Desde este alto de fila, el coste va bajo el nombre (filas de dedo en vertical); por debajo, a la derecha. */
+  filasConDetalleDebajo: number;
+  /** Sitio de los números de PV y PM a la derecha de las barras de la ficha («121/121»). */
+  textoFicha: number;
   /** Segundos que tarda la lista en entrar y cuánto se desliza al hacerlo. */
   entradaLista: number;
   deslizamiento: number;

@@ -14,10 +14,13 @@
   "deslizamiento": 12,
   "horizontal": {
     "heroinaX": 48,
-    "anchoLista": 168,
+    "anchoLista": 210,
     "fila": 16,
     "filaMin": 14,
-    "ficha": [164, 46],
+    "ficha": [
+      164,
+      46
+    ],
     "explicacion": 24
   },
   "vertical": {
@@ -25,6 +28,9 @@
     "fila": 34,
     "filaMin": 24,
     "ficha": 44,
-    "explicacion": 64
-  }
+    "explicacion": 50
+  },
+  "medioCuerpo": 32,
+  "filasConDetalleDebajo": 30,
+  "textoFicha": 52
 }
