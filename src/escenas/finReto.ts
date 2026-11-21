@@ -20,6 +20,8 @@ const altoBotones = (): number => {
 /** Primera y última línea de texto de la tarjeta (sin desplazar) y el aire entre el texto y los botones en vertical. */
 const ARRIBA = 36;
 const FIN_TEXTO = 230;
+/** Lo que ocupa la línea «¡Nuevo récord!»: sin récord, lo de debajo sube eso (si no, quedaba un hueco). */
+const LINEA_RECORD = 30;
 const AIRE_BOTONES = 28;
 const OPCIONES = ['Otra vez', 'Portada'] as const;
 
@@ -82,13 +84,18 @@ export class EscenaFinReto implements Escena {
    */
   private bajar(): number {
     if (!interfaz.alta) return 0;
-    const alto = FIN_TEXTO - ARRIBA + AIRE_BOTONES + altoBotones();
+    const alto = this.finTexto() - ARRIBA + AIRE_BOTONES + altoBotones();
     return Math.max(0, Math.round((interfaz.alto - alto) / 2) - ARRIBA);
+  }
+
+  /** Dónde acaba el texto (sin desplazar): sin récord nuevo, una línea antes. */
+  private finTexto(): number {
+    return FIN_TEXTO - (this.lineas.nuevo ? 0 : LINEA_RECORD);
   }
 
   /** Dónde empiezan los botones: en horizontal, abajo, dentro del marco; en vertical, bajo el texto. */
   private yFilas(): number {
-    if (interfaz.alta) return FIN_TEXTO + AIRE_BOTONES + this.bajar();
+    if (interfaz.alta) return this.finTexto() + AIRE_BOTONES + this.bajar();
     return interfaz.alto - 32 - altoBotones() - 12;
   }
 
@@ -139,7 +146,7 @@ export class EscenaFinReto implements Escena {
     escribir(ctx, l.mejor, centro, 140 + b, PALETA.claro, 'center');
     escribir(ctx, l.mejorValor, centro, 160 + b, PALETA.claro, 'center');
     if (l.nuevo) escribir(ctx, '¡Nuevo récord!', centro, 186 + b, PALETA.cursor, 'center');
-    escribir(ctx, l.dias, centro, 216 + b, PALETA.apagada, 'center');
+    escribir(ctx, l.dias, centro, 216 - (l.nuevo ? 0 : LINEA_RECORD) + b, PALETA.apagada, 'center');
     // Botones en caja, como los de las demás pantallas.
     const y = this.yFilas();
     const medidas = boton();
