@@ -19,9 +19,18 @@ export async function cargarFuente(): Promise<void> {
   }
 }
 
+/** Contorno y sombra de los títulos grandes, por tamaño: el grosor del contorno y lo que baja la sombra. */
+const RELIEVE = new Map<string, { contorno: number; sombra: number }>([
+  [FUENTE_GRANDE, { contorno: 3.5, sombra: 2.5 }],
+  [FUENTE_TITULO, { contorno: 4.5, sombra: 3 }],
+  [FUENTE_LOGO, { contorno: 7, sombra: 5 }],
+]);
+const CONTORNO = '#120c22';
+
 /**
- * Texto con sombra, legible sobre cualquier fondo: de 1 px en la letra normal y de 2 px en los títulos grandes
- * (con 1 px se veían planos).
+ * Texto legible sobre cualquier fondo: la letra normal y la de los botones, con una sombra de 1 px; los títulos
+ * grandes, con contorno oscuro y sombra debajo (con solo la sombra se veían planos; elegido por Pedro entre cuatro
+ * estilos).
  */
 export function escribir(
   ctx: CanvasRenderingContext2D,
@@ -35,9 +44,18 @@ export function escribir(
   ctx.font = fuente;
   ctx.textAlign = alinear;
   ctx.textBaseline = 'top';
-  const sombra = fuente === FUENTE || fuente === FUENTE_BOTON ? 1 : 2;
-  ctx.fillStyle = '#000';
-  ctx.fillText(texto, x + sombra, y + sombra);
+  const relieve = RELIEVE.get(fuente);
+  if (relieve) {
+    ctx.fillStyle = '#000';
+    ctx.fillText(texto, x + relieve.sombra, y + relieve.sombra);
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = relieve.contorno;
+    ctx.strokeStyle = CONTORNO;
+    ctx.strokeText(texto, x, y);
+  } else {
+    ctx.fillStyle = '#000';
+    ctx.fillText(texto, x + 1, y + 1);
+  }
   ctx.fillStyle = color;
   ctx.fillText(texto, x, y);
 }
