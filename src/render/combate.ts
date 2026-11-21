@@ -622,6 +622,9 @@ function dibujarExplicacion(
   d: DisposicionCombate,
 ): void {
   const e = d.explicacion;
+  const ayudaElegida = v.menu?.opciones[v.menu.seleccion]?.ayuda;
+  // Sin nada que decir (elegir enemigo, Volver), no hay franja: una caja vacía abajo era otro panel fijo.
+  if (v.aviso === 0 && !ayudaElegida) return;
   dibujarCaja(ctx, e.x, e.y, e.ancho, e.alto, 'normal');
   const letras = letrasPara(AVISOS, e.ancho - 20);
   const maxLineas = Math.max(1, Math.floor((e.alto - 8) / LINEA));
