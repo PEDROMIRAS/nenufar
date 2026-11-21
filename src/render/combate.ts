@@ -21,6 +21,7 @@ import {
   dibujarPestana,
   dibujarTitulo,
   PALETA,
+  rombo,
 } from './marco';
 import type { Rect } from '../core/menu';
 
@@ -458,21 +459,32 @@ function lineasNombre(l: Luchador): readonly string[] {
 
 /** Barra con quién actúa en lo que queda de ronda; el primero es el que tiene el turno. */
 function dibujarOrden(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
-  escribir(ctx, 'Turno', 12, 10, PALETA.claro);
+  // Una banda oscura con el filete lavanda de los marcos y, en ella, quién actúa en lo que queda de ronda: cada
+  // uno en su cajita con una pestaña de su color; el que tiene el turno, resaltado y con el rombo del cursor.
+  // A todo el ancho de la ventana (en horizontal, la interfaz de 480 va centrada y quedaban los lados sin banda).
+  ctx.fillStyle = 'rgba(9, 7, 18, 0.6)';
+  ctx.fillRect(area.x, area.y, area.ancho, FIN_BARRA_TURNOS - 1 - area.y);
+  ctx.fillStyle = PALETA.filete;
+  ctx.fillRect(area.x, FIN_BARRA_TURNOS - 1, area.ancho, 1);
+  escribir(ctx, 'Turno', 10, 7, PALETA.apagada);
   let x = 64;
   for (let i = v.turno; i < v.orden.length; i++) {
     const l = v.orden[i]!;
     if ((v.pv.get(l) ?? l.pv) <= 0) continue;
     const nombre = nombreCorto(l);
+    const ancho = Math.ceil(16 + nombre.length * ANCHO_LETRA);
     // Lo que no cabe se resume en «…» en vez de salirse de la pantalla.
-    if (x + 12 + nombre.length * ANCHO_LETRA > G.ancho - 8) {
-      escribir(ctx, '…', x, 10);
+    if (x + ancho > G.ancho - 6) {
+      escribir(ctx, '…', x, 7, PALETA.apagada);
       return;
     }
+    const actua = i === v.turno;
+    dibujarCaja(ctx, x, 4, ancho, 17, actua ? 'elegida' : 'normal');
     ctx.fillStyle = l.esHeroina ? COLOR.pm : (l.monstruo?.color ?? '#999');
-    ctx.fillRect(x, 8, 8, 16);
-    escribir(ctx, nombre, x + 12, 10);
-    x += 24 + nombre.length * 7;
+    ctx.fillRect(x + 3, 7, 3, 11);
+    escribir(ctx, nombre, x + 10, 7, actua ? PALETA.elegida : PALETA.texto);
+    if (actua) rombo(ctx, x - 1, 12, 6, PALETA.cursor);
+    x += ancho + 7;
   }
 }
 

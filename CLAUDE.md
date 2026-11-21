@@ -87,6 +87,8 @@ Todo está fusionado en `main` y publicado; no hay ramas abiertas ni nada sin su
 
 **Revisión en vertical (2026-11-21):** capturas a 390×844 del mapa de las Ruinas, la Cripta y el Cauce, de un combate contra tres enemigos (menú, objetivos, objetos) y contra el oni. Todo bien salvo la ficha de la heroína en el combate vertical, donde «Quemadura» se cortaba en «Quema…»: ahora, si el estado no cabe tras el nombre, se muestra en su lugar (rama `estado-ficha`). Las salas de evento, la pausa, el bestiario y la tarjeta del reto se habían revisado en vertical antes.
 
+**Capturas de Pedro (2026-11-21, rama `capturas-pedro`):** la tapa del cofre abierto gira 92° (antes 106°: se salía de su casilla y atravesaba el pino de detrás); el texto de los botones de la portada se centra en alto según el botón (el de «Reto del día», de 30 de alto, quedaba abajo); barra de turnos del combate rehecha: banda oscura a todo el ancho con el filete lavanda, cada luchador en su cajita con una pestaña de su color y el que tiene el turno resaltado con el rombo del cursor (`dibujarOrden`).
+
 **Hecho el 2026-11-19** (detalle en el documento de desarrollo y en cada spec):
 - **Auditoría ponytail:** guardar al ganar un combate antes de sus pantallas (`despuesDelCombate` en `core/trasCombate.ts`, con test); anuncios del lector de pantalla en el primer `update`; sonido del cofre trampa al volver al mapa; código sin uso fuera; menores (ermitaño sin objeto por fotograma, un solo «¡Nivel N!», `claveDe`, comentario de `vivos`).
 - **`main.ts` partido:** `main.ts` = arranque, portada y bucle; la partida en `src/partida/` (`partida.ts` con `Partida`, `guardado` y `sesion`; `relato`, `combates`, `eventos`, `zona`, `fin`).

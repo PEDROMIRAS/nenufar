@@ -244,7 +244,8 @@ function cofre(abierto: boolean, azar: Azar): Elemento {
   grupo.add(tapa);
 
   if (abierto) {
-    tapa.rotation.x = -1.85;
+    // Casi vertical (92°): echada más atrás (106°) se salía de su casilla y atravesaba lo de detrás (un pino).
+    tapa.rotation.x = -1.6;
     // Dentro: el fondo oscuro y un montón de monedas de oro que brillan
     malla(
       grupo,

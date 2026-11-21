@@ -262,9 +262,12 @@ export class EscenaTitulo implements Escena {
     dibujarCaja(ctx, b.x, b.y, b.ancho, b.alto, elegido ? 'elegida' : 'normal');
     const x = b.x + b.ancho / 2;
     const color = elegido ? PALETA.elegida : PALETA.claro;
+    // Centrado en alto según el botón (la letra mide ~12 de alto; dos líneas, 27): con la altura fija, en el
+    // botón del reto (30 de alto) el texto quedaba abajo.
     if (linea2) {
-      escribir(ctx, linea1, x, b.y + 6, color, 'center', FUENTE);
-      escribir(ctx, linea2, x, b.y + 21, color, 'center', FUENTE);
-    } else escribir(ctx, linea1, x, b.y + 14, color, 'center', FUENTE);
+      const y = Math.round(b.y + (b.alto - 27) / 2);
+      escribir(ctx, linea1, x, y, color, 'center', FUENTE);
+      escribir(ctx, linea2, x, y + 15, color, 'center', FUENTE);
+    } else escribir(ctx, linea1, x, Math.round(b.y + (b.alto - 12) / 2), color, 'center', FUENTE);
   }
 }
