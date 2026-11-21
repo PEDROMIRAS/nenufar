@@ -117,9 +117,14 @@ const COLOR = {
 const LINEA = 14;
 /** Medidas del combate sin panel (src/data/menu_combate.json). */
 const D = MENU_COMBATE;
-const ENEMIGO = { y: 128, escala: 2, separacion: 140, alto: 56, topeMinimo: 44 };
+const ENEMIGO = { y: 128, escala: 2, separacion: 140, alto: 56 };
 /** Primera línea libre bajo la barra de turnos (su texto empieza en y = 10). */
 const FIN_BARRA_TURNOS = 26;
+/**
+ * Primera línea libre bajo la banda de mensajes: ni los nombres de los enemigos (tampoco los de un jefe alto) ni sus
+ * avisos suben de aquí, y la cámara no los empuja encima.
+ */
+const TOPE_ESCENA = D.finTurnos + 2 + D.mensajes * D.lineaMensaje;
 /** Escala de la heroína (su sitio, abajo a la izquierda junto a la lista, lo da `disposicionCombate`). */
 const HEROINA = { escala: 2 };
 /** Centro de los enemigos: algo a la derecha, para dejar sitio a la heroína. */
@@ -393,7 +398,7 @@ function topeEnemigo(v: VistaCombate, e: Luchador): number {
   const alto = sprite
     ? (sprite.datos.frameHeight / escalaHoja(sprite.datos) - 6) * G.escala
     : ENEMIGO.alto;
-  return Math.max(ENEMIGO.topeMinimo, G.enemigoY - alto);
+  return Math.max(TOPE_ESCENA + D.nombre, G.enemigoY - alto);
 }
 
 function dibujarEnemigo(
@@ -428,11 +433,11 @@ function dibujarEnemigo(
   // Un nombre largo se parte en líneas y sube lo que ocupen.
   const lineas = lineasNombre(e);
   const extra = (lineas.length - 1) * LINEA_NOMBRE;
-  const sinSitio = tope - 36 - extra < FIN_BARRA_TURNOS;
+  const sinSitio = tope - 36 - extra < TOPE_ESCENA;
   const avisoEnNombre = sinSitio && v.cargando.has(e);
-  // Nunca sube sobre la barra de turnos: un jefe alto con el nombre en dos líneas lo baja hasta su borde
+  // Nunca sube sobre los mensajes: un jefe alto con el nombre en dos líneas lo baja hasta su borde
   // (los fotogramas dejan unos píxeles libres por arriba).
-  const yNombre = Math.max(FIN_BARRA_TURNOS, tope - 18 - extra);
+  const yNombre = Math.max(TOPE_ESCENA, tope - 18 - extra);
   if (avisoEnNombre) escribir(ctx, '¡Golpe fuerte!', x, yNombre, COLOR.aviso, 'center');
   else
     for (let i = 0; i < lineas.length; i++)
@@ -755,13 +760,13 @@ function colocarCamara(v: VistaCombate): void {
       const aviso = tope - 36 - extra;
       arriba = Math.min(
         arriba,
-        aviso >= FIN_BARRA_TURNOS ? aviso : Math.max(FIN_BARRA_TURNOS, tope - 18 - extra),
+        aviso >= TOPE_ESCENA ? aviso : Math.max(TOPE_ESCENA, tope - 18 - extra),
       );
     }
     CONTENIDO.abajo = Math.max(G.heroinaY + PIES_HEROINA, G.enemigoY + BAJO_ENEMIGO);
     CONTENIDO.arriba = Number.isFinite(arriba) ? arriba : CONTENIDO.abajo;
     // El marco nunca es más estrecho que lo que ya se ve sin acercarse.
-    MARCO.arriba = Math.min(FIN_BARRA_TURNOS, CONTENIDO.arriba);
+    MARCO.arriba = Math.min(TOPE_ESCENA, CONTENIDO.arriba);
     MARCO.abajo = Math.max(bordeCamara(v), CONTENIDO.abajo);
     encuadrar(
       zoomMaximo(camara, v.ataqueFuerte),
