@@ -1,6 +1,6 @@
 import { elegirConPeso } from './azar';
 import type { Luchador } from './combate';
-import { crecerEquipo } from './equipo';
+import { bonosDe, crecerEquipo } from './equipo';
 import { guardar, type Inventario } from './inventario';
 import { experienciaParaSubir, ganarExperiencia } from './progresion';
 import type { DatosEventos, ObjetosJson, ReglasCombate, ReglasProgresion } from './types';
@@ -176,24 +176,30 @@ export function despedidaErmitano(e: Ermitano, azar: () => number): string {
   return e.despedidas[Math.floor(azar() * e.despedidas.length)] ?? '';
 }
 
-/** Lo que vale una pieza para el mercader: la suma de sus bonos. */
-function valorPieza(clave: string, objetos: ObjetosJson): number {
-  const bonos = objetos.equipo[clave]?.bonos ?? {};
-  return Object.values(bonos).reduce((a: number, b) => a + (b ?? 0), 0);
+/**
+ * Lo que vale una pieza para el mercader: la suma de sus bonos con la heroína en `nivel` (las especiales de los jefes
+ * violeta crecen con ella; con sus bonos de base solo pagaban 1 o 2 consumibles).
+ */
+function valorPieza(clave: string, objetos: ObjetosJson, nivel: number): number {
+  const pieza = objetos.equipo[clave];
+  if (!pieza) return 0;
+  return Object.values(bonosDe(pieza, nivel)).reduce((a: number, b) => a + (b ?? 0), 0);
 }
 
 /**
  * Lo que da el mercader por la pieza `clave`: `base` más uno por cada `porBono` de su valor, y cada unidad del
  * consumible de `paga` del que menos se lleva (contando lo que ya suma el lote; a igualdad, el primero de la lista).
- * Solo da lo que cabe: con todo al máximo, el lote sale más corto o vacío (y la oferta se apaga).
+ * Solo da lo que cabe: con todo al máximo, el lote sale más corto o vacío (y la oferta se apaga). `nivel` es el de
+ * la heroína (ver `valorPieza`).
  */
 export function loteMercader(
   inv: Inventario,
   clave: string,
   m: Mercader,
   objetos: ObjetosJson,
+  nivel = 1,
 ): string[] {
-  const n = m.base + Math.floor(valorPieza(clave, objetos) / m.porBono);
+  const n = m.base + Math.floor(valorPieza(clave, objetos, nivel) / m.porBono);
   const cuenta = new Map(m.paga.map((c) => [c, inv.consumibles[c] ?? 0]));
   const lote: string[] = [];
   for (let i = 0; i < n; i++) {
@@ -232,15 +238,16 @@ export function opcionesMercader(
   inv: Inventario,
   m: Mercader,
   objetos: ObjetosJson,
+  nivel = 1,
 ): OpcionEvento[] {
   const piezas = inv.mochila
     .filter((k) => objetos.equipo[k])
-    .map((k, i) => ({ k, i, v: valorPieza(k, objetos) }))
+    .map((k, i) => ({ k, i, v: valorPieza(k, objetos, nivel) }))
     .sort((a, b) => b.v - a.v || a.i - b.i)
     .slice(0, m.cuantas);
   const ofertas: OpcionEvento[] = piezas.map(({ k }) => {
     const nombre = objetos.equipo[k]!.nombre;
-    const lote = loteMercader(inv, k, m, objetos);
+    const lote = loteMercader(inv, k, m, objetos, nivel);
     return {
       clave: k,
       texto: nombre,
@@ -263,10 +270,11 @@ export function aplicarMercader(
   clave: string,
   m: Mercader,
   objetos: ObjetosJson,
+  nivel = 1,
 ): string {
   const pieza = objetos.equipo[clave];
   if (!pieza || !inv.mochila.includes(clave)) return '';
-  const lote = loteMercader(inv, clave, m, objetos);
+  const lote = loteMercader(inv, clave, m, objetos, nivel);
   // Sin nada que quepa no hay trueque: la pieza se queda en la mochila.
   if (lote.length === 0) return '';
   inv.mochila = inv.mochila.filter((k) => k !== clave);

@@ -315,6 +315,15 @@ describe('mercader', () => {
     expect(loteMercader(inv, 'katana_acero', mercader, objetos)).toEqual(['eter', 'eter']);
   });
 
+  test('una pieza que crece con la heroína vale lo que suma en su nivel', () => {
+    const inv = crearInventario();
+    // Katana sagrada: +5 de ataque y +1 por nivel. En el nivel 1, 1 + ⌊5/4⌋ = 2; en el 8, 1 + ⌊12/4⌋ = 4.
+    expect(loteMercader(inv, 'katana_sagrada', mercader, objetos)).toHaveLength(2);
+    expect(loteMercader(inv, 'katana_sagrada', mercader, objetos, 8)).toHaveLength(4);
+    // Una pieza que no crece paga lo mismo en cualquier nivel.
+    expect(loteMercader(inv, 'katana_acero', mercader, objetos, 8)).toEqual(['pocion', 'eter']);
+  });
+
   test('cambiar quita la pieza de la mochila, la apunta como vendida y da el lote', () => {
     const inv = crearInventario();
     inv.mochila = ['katana_acero'];
