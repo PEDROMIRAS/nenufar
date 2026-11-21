@@ -254,22 +254,25 @@ function dibujarLogros(ctx: CanvasRenderingContext2D, v: VistaExtras): void {
       const l = v.logros[i]!;
       const r = filas[i]!;
       dibujarCaja(ctx, r.x, r.y + 2, r.ancho, r.alto - 4, 'normal');
+      // El nombre y la descripción, juntos y centrados en alto en la fila (con una sola línea de descripción
+      // quedaban arriba y un hueco debajo).
+      const lineas = partirCacheado(l.descripcion, letrasEnAncho(r.ancho - 36));
+      const y = Math.round(r.y + (r.alto - (14 + lineas.length * 12)) / 2);
       escribir(
         ctx,
         l.conseguido ? '★' : '·',
         r.x + 14,
-        r.y + 8,
+        y + 2,
         l.conseguido ? COLOR.oro : COLOR.apagado,
         'center',
       );
-      escribir(ctx, l.nombre, r.x + 28, r.y + 6, l.conseguido ? COLOR.oro : COLOR.tenue);
-      const lineas = partirCacheado(l.descripcion, letrasEnAncho(r.ancho - 36));
+      escribir(ctx, l.nombre, r.x + 28, y, l.conseguido ? COLOR.oro : COLOR.tenue);
       for (let k = 0; k < lineas.length; k++)
         escribir(
           ctx,
           lineas[k]!,
           r.x + 28,
-          r.y + 20 + k * 12,
+          y + 14 + k * 12,
           l.conseguido ? COLOR.texto : COLOR.apagado,
         );
     }
