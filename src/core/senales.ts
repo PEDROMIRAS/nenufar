@@ -14,9 +14,10 @@ export interface SignoJson {
 export interface MapaVivoJson {
   /**
    * Lo que ve un monstruo: `angulo` grados delante de él (hasta su `vision`) y, en cualquier dirección, a menos de
-   * `cerca` píxeles. Por detrás y más lejos no la nota: así se le puede pillar por la espalda.
+   * `cerca` píxeles. Por detrás y más lejos no la nota: así se le puede pillar por la espalda. Los muros y los objetos
+   * altos tapan la vista; si se esconde tras ellos, la busca donde la vio `olvido` segundos antes de perderla.
    */
-  vista: { angulo: number; cerca: number };
+  vista: { angulo: number; cerca: number; olvido: number };
   alerta: SignoJson & { pausa: number };
   perdido: SignoJson;
   pasos: { pisadas: number[]; corriendo: number };

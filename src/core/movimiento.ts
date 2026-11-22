@@ -8,7 +8,8 @@ export interface Cuerpo {
   alto: number;
 }
 
-export type Rejilla = Pick<Sala, 'ancho' | 'alto' | 'solido'> & Partial<Pick<Sala, 'cajas'>>;
+export type Rejilla = Pick<Sala, 'ancho' | 'alto' | 'solido'> &
+  Partial<Pick<Sala, 'cajas' | 'opaco'>>;
 
 /**
  * Borde de lo primero con que choca la caja con los pies en (x, y) en el sentido del movimiento

@@ -206,3 +206,63 @@ describe('iniciativa', () => {
     expect(eventos[1]).toMatchObject({ tipo: 'turno', actor: sorprendida.enemigos[0] });
   });
 });
+
+describe('línea de vista', () => {
+  /** Sala abierta de 15×11 con casillas marcadas: «#» muro (sólido y opaco), «~» agua (sólida, no tapa la vista). */
+  function conMuro(dibujo: Record<string, '#' | '~'>) {
+    const solido = new Array<boolean>(165).fill(false);
+    const opaco = new Array<boolean>(165).fill(false);
+    for (const [k, v] of Object.entries(dibujo)) {
+      const [c, f] = k.split(',').map(Number) as [number, number];
+      solido[f * 15 + c] = true;
+      opaco[f * 15 + c] = v === '#';
+    }
+    return { ancho: 15, alto: 11, solido, opaco };
+  }
+  // Monstruo en la casilla (2, 5) y la heroína en la (4, 5), a 64 px (ve a 80); en medio, la casilla (3, 5).
+  const m = () => crearPatrulla(cuerpo(2 * T + 16, 5 * T + 22));
+  const hx = 4 * T + 16;
+  const hy = 5 * T + 22;
+
+  test('no la ve a través de un muro u objeto alto', () => {
+    const p = m();
+    actualizarPatrulla(p, mov, hx, hy, 1 / 60, conMuro({ '3,5': '#' }), T, crearAzar(1));
+    expect(p.persiguiendo).toBe(false);
+  });
+
+  test('sí a través del agua', () => {
+    const p = m();
+    actualizarPatrulla(p, mov, hx, hy, 1 / 60, conMuro({ '3,5': '~' }), T, crearAzar(1));
+    expect(p.persiguiendo).toBe(true);
+  });
+
+  test('si se esconde tras un muro, va a donde la vio y, sin verla, la pierde', () => {
+    // Un muro en la columna 5; con vista larga, para que la pierda por el muro y no por la distancia.
+    const sala = conMuro({
+      '5,2': '#',
+      '5,3': '#',
+      '5,4': '#',
+      '5,5': '#',
+      '5,6': '#',
+      '5,7': '#',
+      '5,8': '#',
+    });
+    const lejos = { ...mov, vision: 200 };
+    const vista = { ...vistaDe({ angulo: 360, cerca: 0 }), olvido: 2 };
+    const p = m();
+    const azar = crearAzar(1);
+    actualizarPatrulla(p, lejos, hx, hy, 1 / 60, sala, T, azar, 0, vista);
+    expect(p.persiguiendo).toBe(true);
+    // Se esconde detrás del muro: el monstruo va hacia donde la vio y acaba perdiéndola.
+    let perdida = false;
+    for (let t = 0; t < 4 && !perdida; t += 1 / 60) {
+      actualizarPatrulla(p, lejos, 6 * T + 16, 5 * T + 22, 1 / 60, sala, T, azar, 0, vista);
+      if (p.cambio === -1) perdida = true;
+    }
+    expect(perdida).toBe(true);
+    expect(p.persiguiendo).toBe(false);
+    // Fue hacia donde la vio (x = 144), sin rodear el muro hasta donde está.
+    expect(p.cuerpo.x).toBeGreaterThan(3 * T);
+    expect(p.cuerpo.x).toBeLessThan(5 * T);
+  });
+});
