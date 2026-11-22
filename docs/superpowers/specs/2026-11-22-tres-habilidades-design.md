@@ -35,6 +35,7 @@ El público importa: quien llega desde el portafolio y el reto del día solo jue
 4. La lista de habilidades de abajo («me gusta así»).
 5. Construcción: pantalla propia «Habilidades» (enfoque A).
 6. También se elige justo antes del combate final (tras la revisión).
+8. La quemadura y el veneno de las ranas (Fuego fatuo, Hoja envenenada) quitan el 4 % por turno, no el 8 % de los monstruos: con el 8 % la maga hundía a los violetas y subirles la vida no lo frenaba (la quemadura es un % de esa vida). Tras el reequilibrado.
 7. Al reequilibrar se pueden tocar sin preguntar los PM y el poder de todas las habilidades y los multiplicadores de dificultad; las estadísticas de las ranas y el nivel 3 del reto, solo preguntándole (tras la revisión).
 
 ## Enfoques considerados
@@ -56,7 +57,7 @@ Nueve por rana: las cinco de ahora (algunas cambian de nivel) y cuatro nuevas. L
 | Al empezar | **Golpe de pomo** (nueva) | 2 | Golpe físico a uno, poder ~0,7, `rompeCarga` | Golpe cargado: deja de hacer falta defenderse |
 | Al empezar | **Grito de guerra** (nueva) | 3 | Estado `furia` sobre sí misma (ataque ×1,5, defensa ×0,7, tres turnos) | Rematar rápido a cambio de recibir más |
 | Nivel 3 | Tajo del viento | 5 | Golpe físico a todos, poder 0,9 (antes, nivel 5) | Grupos |
-| Nivel 5 | **Hoja envenenada** (nueva) | 4 | Golpe físico a uno, poder ~1,0, aplica `veneno` al objetivo | Jefes |
+| Nivel 5 | **Hoja envenenada** (nueva) | 4 | Golpe físico a uno, poder ~1,0, envenena al objetivo (4 % de su vida por turno: `veneno_rana`) | Jefes |
 | Nivel 7 | Iaido | 6 | Golpe a uno, poder 2, crítico seguro (como ahora) | Jefes |
 | Nivel 9 | **Respiro** (nueva) | 5 | Cura el 25 % de sus PV y le quita veneno y quemadura | La ronin no sabe curarse |
 | Jefe violeta | Tajo de llama morada | 12 | Golpe físico a todos, poder 1,8 (como ahora) | Grupos |
@@ -69,7 +70,7 @@ Nueve por rana: las cinco de ahora (algunas cambian de nivel) y cuatro nuevas. L
 | Al empezar | Curar | 4 | Cura el 35 % de sus PV (antes, nivel 3) | Aguantar |
 | Al empezar | **Escarcha** (nueva) | 2 | Golpe mágico a uno, poder ~0,6, `rompeCarga` | Golpe cargado |
 | Al empezar | **Velo** (nueva) | 3 | Estado nuevo `velo` sobre sí misma (defensa ×1,5, tres turnos) | La maga es frágil |
-| Nivel 3 | Fuego fatuo | 5 | Golpe mágico a uno, poder 0,8, aplica `quemadura` (antes, nivel 5) | Jefes |
+| Nivel 3 | Fuego fatuo | 5 | Golpe mágico a uno, poder 0,8, quema al objetivo (4 % de su vida por turno: `quemadura_rana`; antes, nivel 5 y 8 %) | Jefes |
 | Nivel 5 | **Maldición** (nueva) | 4 | Estado nuevo `debilitado` a un enemigo (ataque y magia ×0,6, tres turnos) | El que pega fuerte, o el jefe |
 | Nivel 7 | Tormenta morada | 8 | Golpe mágico a todos, poder 1,2 (como ahora) | Grupos |
 | Nivel 9 | **Purificar** (nueva) | 4 | Le quita veneno y quemadura y cura el 15 % de sus PV | Compite con Curar por un hueco |
