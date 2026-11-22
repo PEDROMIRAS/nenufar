@@ -1662,7 +1662,7 @@
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
     "estadisticas": {
-      "pv": 289,
+      "pv": 305,
       "pm": 0,
       "ataque": 32,
       "magia": 0,

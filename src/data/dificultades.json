@@ -19,8 +19,8 @@
     "nombre": "Difícil",
     "descripcion": "Para quien ya lo ha terminado: apenas te recuperas entre combates, cada golpe cuenta.",
     "ataque": 1.09,
-    "vida": 1.05,
+    "vida": 1.07,
     "recuperacion": 0.47,
-    "violetas": 1.175
+    "violetas": 1.17
   }
 }

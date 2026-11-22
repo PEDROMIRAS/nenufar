@@ -6,7 +6,7 @@
       "descripcion": "Tras cada combate te recuperas menos, pero los cofres de la zona dan equipo de un nivel más.",
       "ataque": 1,
       "vida": 1,
-      "recuperacion": 0.93,
+      "recuperacion": 0.9,
       "experiencia": 1,
       "gruposExtra": 0,
       "nivelCofre": 1,
@@ -18,7 +18,7 @@
       "ataque": 1,
       "vida": 1,
       "recuperacion": 1,
-      "experiencia": 0.93,
+      "experiencia": 0.9,
       "gruposExtra": 1,
       "nivelCofre": 0,
       "fuente": "todo"
