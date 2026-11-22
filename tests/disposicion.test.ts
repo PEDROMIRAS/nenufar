@@ -85,6 +85,13 @@ describe('disposicionCombate', () => {
     expect(d.fila).toBeGreaterThanOrEqual(18);
   });
 
+  test('en un móvil tumbado (844×390), el menú de acción tiene filas de al menos 24 px de pantalla', () => {
+    const d = disposicionCombate(480, 352, 5, false, D);
+    const escala = Math.min(844 / 480, 390 / 352);
+    expect(d.visibles).toBe(5);
+    expect(d.fila * escala).toBeGreaterThanOrEqual(24);
+  });
+
   test('en horizontal la explicación va arriba, en la banda de los mensajes', () => {
     const d = disposicionCombate(480, 352, 5, false, D);
     expect(d.explicacion).toEqual(d.mensajes);

@@ -13,6 +13,11 @@ describe('zoomMaximo', () => {
     expect(zoomMaximo(d, true)).toBeCloseTo(1.1);
   });
 
+  test('con «menos movimiento», la cámara no se acerca', () => {
+    expect(zoomMaximo({ ...d, fuerte: 1.6 }, true, true)).toBe(1);
+    expect(zoomMaximo(d, false, true)).toBe(1);
+  });
+
   test('sin zoom en los datos, 1', () => {
     expect(zoomMaximo({ ...d, zoom: 0 })).toBe(1);
     expect(zoomMaximo({ ...d, zoom: Number.NaN })).toBe(1);

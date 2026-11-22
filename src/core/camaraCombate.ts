@@ -26,8 +26,9 @@ export interface Franja {
 const suave = (x: number): number => x * x * (3 - 2 * x);
 
 /** Lo más que se acerca la cámara en un ataque (con `fuerte`, más). Sin zoom en los datos, 1. */
-export function zoomMaximo(d: CamaraCombateJson, fuerte = false): number {
-  if (!(d.zoom > 0)) return 1;
+export function zoomMaximo(d: CamaraCombateJson, fuerte = false, reducido = false): number {
+  // Con «menos movimiento» del sistema, la cámara no se acerca (es lo que más marea).
+  if (reducido || !(d.zoom > 0)) return 1;
   return 1 + d.zoom * (fuerte ? (d.fuerte ?? 1) : 1);
 }
 

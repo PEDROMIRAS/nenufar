@@ -54,7 +54,8 @@ export function mensajesQueCaben(lineas: readonly number[], max: number): number
 
 /**
  * Opacidad (0 a 1) del mensaje `i` en `ahora`. Si los últimos no se ven (`fin`: cuántos se ven desde el primero;
- * los avisos que ya salen en la franja), lo tenue y el reloj para apagarse cuentan desde el último que se ve.
+ * los avisos que ya salen en la franja), lo tenue y el reloj para apagarse cuentan desde el último que se ve. Con
+ * `quietos` no se apagan.
  */
 export function opacidadMensaje(
   m: MensajesCombate,
@@ -62,12 +63,14 @@ export function opacidadMensaje(
   ahora: number,
   r: RitmoMensajes,
   fin = m.textos.length,
+  quietos = false,
 ): number {
   const n = Math.min(fin, m.textos.length);
   if (i < 0 || i >= n) return 0;
   const base = r.tenues[Math.min(n - 1 - i, r.tenues.length - 1)] ?? 0;
   const ultimo = m.desde[n - 1] ?? 0;
-  const pasado = ahora - ultimo - r.duran;
+  // Con el menú de la heroína abierto no se apagan: se pueden leer mientras se piensa el turno.
+  const pasado = quietos ? 0 : ahora - ultimo - r.duran;
   if (pasado <= 0) return base;
   if (pasado >= r.apagar) return 0;
   return base * (1 - pasado / r.apagar);
