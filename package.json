@@ -8,7 +8,10 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "lint": "eslint . && prettier --check ."
+    "lint": "eslint . && prettier --check .",
+    "equilibrio": "EQUILIBRIO=medir vitest run tests/herramientas --silent=false",
+    "equilibrio:buscar": "EQUILIBRIO=buscar vitest run tests/herramientas --silent=false",
+    "equilibrio:reto": "EQUILIBRIO=reto vitest run tests/herramientas --silent=false"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
