@@ -263,7 +263,13 @@ export class EscenaMapa implements Escena {
   /** Aviso en pantalla (la fuente…) y segundos que le quedan. */
   private aviso = '';
   private tiempoAviso = 0;
-  private readonly hud: TextosHud = { cabecera: '', cabeceraCorta: '', pv: '', pm: '' };
+  private readonly hud: TextosHud = {
+    cabecera: '',
+    cabeceraCorta: '',
+    presagio: '',
+    pv: '',
+    pm: '',
+  };
   /** Valores con los que se escribieron los textos del HUD, para rehacerlos solo si cambian. */
   private hudFirma = -1;
   /** Cómo pasea el ermitaño: sin visión ni persecución. Se hace una vez y no en cada fotograma. */
@@ -896,6 +902,7 @@ export class EscenaMapa implements Escena {
     this.hudFirma = firma;
     this.hud.cabecera = `${this.o.nombreZona}${this.o.presagio ? ` · ${this.o.presagio}` : ''} · Nv ${l.nivel}`;
     this.hud.cabeceraCorta = `${this.o.nombreZona} · Nv ${l.nivel}`;
+    this.hud.presagio = this.o.presagio ?? '';
     this.hud.pv = `${l.pv}/${l.pvMax}`;
     this.hud.pm = `${l.pm}/${l.pmMax}`;
   }

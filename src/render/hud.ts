@@ -3,13 +3,18 @@ import { barra, COLOR_BARRA } from './combate';
 import { PALETA } from './marco';
 import { SALA_ALTO, vista } from './pantalla';
 import { escribir } from './texto';
-import { ANCHO_LETRA, cabeceraQueCabe, letrasEnAncho } from '../core/disposicion';
+import { ANCHO_LETRA, cabeceraQueCabe, letrasEnAncho, lineaPresagio } from '../core/disposicion';
+
+/** Alto de la segunda línea de la cabecera (el presagio), en píxeles lógicos del HUD. */
+const LINEA_PRESAGIO = 15;
 
 /** Textos del HUD; la escena los rehace solo cuando cambia algún valor. */
 export interface TextosHud {
   cabecera: string;
   /** Sin el presagio, para cuando la larga no cabe antes del minimapa. */
   cabeceraCorta: string;
+  /** El nombre del presagio (vacío si no hay): segunda línea cuando la cabecera larga no cabe. */
+  presagio: string;
   pv: string;
   pm: string;
 }
@@ -24,14 +29,19 @@ export function dibujarHud(
   t: TextosHud,
   hasta: number,
 ): void {
-  const cabecera = cabeceraQueCabe(t.cabecera, t.cabeceraCorta, letrasEnAncho(hasta - 12));
+  const letras = letrasEnAncho(hasta - 12);
+  const cabecera = cabeceraQueCabe(t.cabecera, t.cabeceraCorta, letras);
+  // Si no cabe con el presagio, el presagio baja a una segunda línea y las barras con él.
+  const presagio = lineaPresagio(t.cabecera, letras, t.presagio);
+  const extra = presagio ? LINEA_PRESAGIO : 0;
   ctx.fillStyle = 'rgba(9, 7, 18, 0.7)';
-  ctx.fillRect(6, 6, Math.max(150, Math.ceil(cabecera.length * ANCHO_LETRA) + 12), 50);
+  ctx.fillRect(6, 6, Math.max(150, Math.ceil(cabecera.length * ANCHO_LETRA) + 12), 50 + extra);
   escribir(ctx, cabecera, 12, 10);
-  barra(ctx, 12, 30, 80, h.pv / h.pvMax, COLOR_BARRA.pv);
-  escribir(ctx, t.pv, 98, 26);
-  barra(ctx, 12, 44, 80, h.pm / Math.max(1, h.pmMax), COLOR_BARRA.pm);
-  escribir(ctx, t.pm, 98, 40);
+  if (presagio) escribir(ctx, presagio, 12, 10 + LINEA_PRESAGIO, PALETA.claro);
+  barra(ctx, 12, 30 + extra, 80, h.pv / h.pvMax, COLOR_BARRA.pv);
+  escribir(ctx, t.pv, 98, 26 + extra);
+  barra(ctx, 12, 44 + extra, 80, h.pm / Math.max(1, h.pmMax), COLOR_BARRA.pm);
+  escribir(ctx, t.pm, 98, 40 + extra);
 }
 
 /** Aviso centrado en la parte baja de la sala («La fuente te restaura…»). */
