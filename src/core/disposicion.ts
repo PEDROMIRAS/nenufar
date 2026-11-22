@@ -456,3 +456,34 @@ export function pestanasExtras(ancho: number, d: DatosVertical): Rect[] {
   const w = (ancho - 2 * m - m) / 2;
   return [r(m, 4, w, d.menu.pestana - 4), r(m + w + m, 4, w, d.menu.pestana - 4)];
 }
+
+/**
+ * Reparto de la pantalla Habilidades a partir de `yLista` (bajo el título): la lista de `filas` (las habilidades y
+ * «Listo») con su alto de fila y cuántas se ven a la vez (las demás se desplazan), y dónde va la explicación de la
+ * elegida: a la derecha en horizontal, debajo en vertical.
+ */
+export function disposicionHabilidades(
+  ancho: number,
+  alto: number,
+  filas: number,
+  alta: boolean,
+  yLista: number,
+  d: DatosVertical,
+): { lista: Rect; fila: number; visibles: number; detalle: Rect } {
+  const h = d.habilidades;
+  const m = alta ? 2 * d.menu.margen : 24;
+  const abajo = alto - m;
+  if (!alta) {
+    const fila = h.filaHorizontal;
+    const visibles = Math.max(1, Math.min(filas, Math.floor((abajo - yLista) / fila)));
+    const lista = r(m, yLista, Math.round((ancho - 2 * m) * h.columnaLista), visibles * fila);
+    const x = lista.x + lista.ancho + h.separacion;
+    return { lista, fila, visibles, detalle: r(x, yLista, ancho - m - x, abajo - yLista) };
+  }
+  const fila = d.menu.fila;
+  const reservado = h.separacion + h.lineasDetalle * h.lineaDetalle;
+  const visibles = Math.max(1, Math.min(filas, Math.floor((abajo - reservado - yLista) / fila)));
+  const lista = r(m, yLista, ancho - 2 * m, visibles * fila);
+  const y = lista.y + lista.alto + h.separacion;
+  return { lista, fila, visibles, detalle: r(m, y, ancho - 2 * m, Math.max(0, abajo - y)) };
+}
