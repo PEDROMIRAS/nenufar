@@ -20,6 +20,7 @@ import {
   primeraTrasToque,
   primeraVisible,
   topeCartelCombate,
+  ladoFlecha,
   yNumeroDanio,
   zonasDestello,
   type DisposicionCombate,
@@ -159,6 +160,15 @@ describe('disposicionCombate', () => {
     // justo en el techo.
     expect(yNumeroDanio(90, 120, 0, 18)).toBe(138);
     expect(yNumeroDanio(90, 120, 18, 18)).toBe(120);
+  });
+
+  test('la flecha del objetivo va a la izquierda del nombre si cabe, si no a la derecha, y si no en ninguno', () => {
+    // Nombre centrado en 100 de 40 de mitad (60 a 140); la flecha pide 14.
+    expect(ladoFlecha(100, 40, 0, 300, 14)).toBe(-1);
+    // A la izquierda solo quedan 10 (otro nombre acaba en 50): a la derecha.
+    expect(ladoFlecha(100, 40, 50, 300, 14)).toBe(1);
+    // Ni a un lado ni al otro (el caso del Sacerdote entre sus acólitos en el móvil de pie).
+    expect(ladoFlecha(100, 40, 50, 150, 14)).toBe(0);
   });
 
   test('primeraVisible deja la elegida a la vista desplazando lo justo', () => {
