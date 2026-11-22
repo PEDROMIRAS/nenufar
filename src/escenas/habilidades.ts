@@ -1,7 +1,7 @@
 import type { Acciones } from '../core/acciones';
 import { habilidadesConocidas, type Luchador } from '../core/combate';
 import { describirHabilidad } from '../core/descripciones';
-import { ANCHO_LETRA, disposicionHabilidades } from '../core/disposicion';
+import { ANCHO_LETRA, disposicionHabilidades, primeraTrasToque } from '../core/disposicion';
 import { alternarEquipada, puedeCerrar } from '../core/equipadas';
 import { efectoToque, filaTocada } from '../core/menu';
 import { partirTexto } from '../core/texto';
@@ -80,6 +80,8 @@ export class EscenaHabilidades implements Escena {
       const k = filaTocada(a.toqueX, a.toqueY, d.lista, d.fila, d.visibles);
       if (k < 0) return;
       const i = this.primera + k;
+      // Tocar la primera o la última fila a la vista desplaza una: con el dedo se llega a las ocultas («Listo»).
+      this.primera = primeraTrasToque(i, this.primera, d.visibles, this.filas);
       if (efectoToque(this.seleccion, i, true) === 'elegir') this.mover(i);
       else this.activar(i);
       return;

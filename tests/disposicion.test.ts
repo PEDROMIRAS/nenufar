@@ -490,9 +490,10 @@ describe('pantalla Habilidades', () => {
   const seSolapan = (a: Rect, b: Rect) =>
     a.x < b.x + b.ancho && b.x < a.x + a.ancho && a.y < b.y + b.alto && b.y < a.y + a.alto;
 
-  test('en horizontal caben las 10 filas y la explicación va a la derecha', () => {
-    const d = disposicionHabilidades(480, 352, 10, false, 64, VERTICAL);
-    expect(d.visibles).toBe(10);
+  test('en horizontal se ven 9 de 10 filas (el resto se desplaza) y la explicación va a la derecha', () => {
+    // La lista empieza bajo el título de una línea: 48 + 30 + 4 = 82 (como en escenas/habilidades.ts).
+    const d = disposicionHabilidades(480, 352, 10, false, 82, VERTICAL);
+    expect(d.visibles).toBe(9);
     expect(dentroDe(d.lista, 480, 352 - 16)).toBe(true);
     expect(d.detalle.x).toBeGreaterThanOrEqual(d.lista.x + d.lista.ancho);
     expect(dentroDe(d.detalle, 480, 352)).toBe(true);
