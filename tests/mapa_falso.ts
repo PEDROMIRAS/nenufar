@@ -5,7 +5,7 @@ import { inventarioInicial } from '../src/core/equipo';
 import { crearHeroina } from '../src/core/heroina';
 import { crearCatalogo } from '../src/core/sala';
 import type { MonstruoJson, TilesetJson } from '../src/core/types';
-import { generarZona, type SalaZona, type Zona } from '../src/core/zona';
+import { generarZona, type AjustesZona, type SalaZona, type Zona } from '../src/core/zona';
 import { EVENTOS, HD2D, HEROES, MONSTRUOS, OBJETOS, REGLAS } from '../src/data/datos';
 import bosque from '../src/data/salas/plantillas_bosque.json';
 import zonas from '../src/data/zonas.json';
@@ -24,11 +24,23 @@ export const catalogo = crearCatalogo([
 ] as unknown as TilesetJson[]);
 const monstruo = (clave: string): MonstruoJson => MONSTRUOS[clave]!;
 
-/** Un Bosque (con todo evento hecho desafío) que tenga una sala que cumpla `cumple`, y el índice de esa sala. */
-export function zonaCon(cumple: (s: SalaZona) => boolean): { zona: Zona; sala: number } {
+/**
+ * Un Bosque que tenga una sala que cumpla `cumple`, y el índice de esa sala. Por defecto todo evento es un desafío;
+ * `ajustes` cambia las probabilidades (p. ej. `{ probabilidadDesafio: 0, probabilidadErmitano: 1 }`).
+ */
+export function zonaCon(
+  cumple: (s: SalaZona) => boolean,
+  ajustes: Partial<AjustesZona> = {},
+): { zona: Zona; sala: number } {
   for (let semilla = 1; ; semilla++) {
     const zona = generarZona(
-      { ...zonas.generacion, salas: datos.salas, probabilidadEvento: 1, probabilidadDesafio: 1 },
+      {
+        ...zonas.generacion,
+        salas: datos.salas,
+        probabilidadEvento: 1,
+        probabilidadDesafio: 1,
+        ...ajustes,
+      },
       semilla,
     );
     const sala = zona.salas.findIndex(cumple);
