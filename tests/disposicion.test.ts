@@ -20,6 +20,7 @@ import {
   primeraTrasToque,
   primeraVisible,
   topeCartelCombate,
+  yNumeroDanio,
   zonasDestello,
   type DisposicionCombate,
 } from '../src/core/disposicion';
@@ -148,6 +149,16 @@ describe('disposicionCombate', () => {
     expect(sePisan(zonas)).toBe(false);
     const cubierto = zonas.reduce((s, z) => s + z.ancho * z.alto, 0);
     expect(cubierto).toBe(area.ancho * area.alto - d.ficha.ancho * d.ficha.alto);
+  });
+
+  test('el número de daño sube desde donde toca y, si no hay sitio, empieza más abajo sin pasar del techo', () => {
+    // Con sitio: sale en `inicio` y sube lo que le toque.
+    expect(yNumeroDanio(200, 100, 0, 18)).toBe(200);
+    expect(yNumeroDanio(200, 100, 18, 18)).toBe(182);
+    // Sin sitio (un jefe alto: el techo, bajo su nombre, está más abajo que el inicio): empieza bajado y acaba
+    // justo en el techo.
+    expect(yNumeroDanio(90, 120, 0, 18)).toBe(138);
+    expect(yNumeroDanio(90, 120, 18, 18)).toBe(120);
   });
 
   test('primeraVisible deja la elegida a la vista desplazando lo justo', () => {
