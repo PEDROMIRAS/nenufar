@@ -122,6 +122,8 @@ export interface HabilidadJson {
   recompensa?: true;
   /** Quita el golpe cargado que estén preparando los objetivos que sobreviven. */
   rompeCarga?: true;
+  /** Estados de combate.json que quita a cada objetivo (Respiro y Purificar: veneno y quemadura). */
+  quitaEstados?: string[];
 }
 
 /** Un estado alterado de combate.json: dura unos turnos del afectado y cambia sus estadísticas o su turno. */

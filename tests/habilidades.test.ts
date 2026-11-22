@@ -42,11 +42,20 @@ const usar = (c: Combate, nombre: string, heroe: HeroeJson) =>
   actuar(c, { tipo: 'habilidad', habilidad: habilidad(heroe, nombre), objetivo: c.enemigos[0]! });
 
 describe('habilidades', () => {
-  test('se desbloquean por nivel: 1, 3, 5 y 7', () => {
-    const h = luchadorDeHeroe(heroes.maga);
-    expect(habilidadesDisponibles(h).map((x) => x.nombre)).toEqual(['Fuego morado']);
-    h.nivel = 7;
-    expect(habilidadesDisponibles(h)).toHaveLength(4);
+  test('cada rana conoce 4 al empezar y una más en los niveles 3, 5, 7 y 9', () => {
+    for (const heroe of [heroes.ronin, heroes.maga]) {
+      const h = luchadorDeHeroe(heroe);
+      for (const [nivel, cuantas] of [
+        [1, 4],
+        [3, 5],
+        [5, 6],
+        [7, 7],
+        [9, 8],
+      ] as const) {
+        h.nivel = nivel;
+        expect(habilidadesDisponibles(h), `${heroe.nombre} a nivel ${nivel}`).toHaveLength(cuantas);
+      }
+    }
   });
 
   test('Corte rápido: daño físico con su poder y cuesta sus PM', () => {
@@ -274,5 +283,69 @@ describe('PM al atacar (lo que diga heroes.json)', () => {
   test('la ayuda del ataque lo cuenta solo a quien recupera PM', () => {
     expect(describirAcciones(REGLAS, heroes.ronin)[0]).toContain('PM');
     expect(describirAcciones(REGLAS, heroes.maga)[0]).not.toContain('PM');
+  });
+});
+
+describe('habilidades nuevas', () => {
+  test('Golpe de pomo y Escarcha rompen el golpe cargado', () => {
+    for (const [heroe, nombre] of [
+      [heroes.ronin, 'Golpe de pomo'],
+      [heroes.maga, 'Escarcha'],
+    ] as const) {
+      const c = combate(heroe);
+      c.enemigos[0]!.cargando = true;
+      const eventos = usar(c, nombre, heroe);
+      expect(eventos.some((e) => e.tipo === 'cargaRota')).toBe(true);
+    }
+  });
+
+  test('Respiro quita veneno y quemadura y cura el 25 %', () => {
+    const c = combate(heroes.ronin, 9);
+    const h = c.heroina;
+    h.pv = Math.floor(h.pvMax / 2);
+    aplicarEstado(c, h, 'veneno', false, []);
+    aplicarEstado(c, h, 'quemadura', false, []);
+    const antes = h.pv;
+    const eventos = usar(c, 'Respiro', heroes.ronin);
+    const cura = eventos.find((e) => e.tipo === 'cura');
+    expect(cura && cura.tipo === 'cura' ? cura.cantidad : 0).toBe(Math.round(h.pvMax * 0.25));
+    expect(eventos.filter((e) => e.tipo === 'estado' && !e.activo)).toHaveLength(2);
+    expect(antes).toBeLessThan(h.pvMax);
+  });
+
+  test('Purificar quita veneno y quemadura y cura el 15 %', () => {
+    const c = combate(heroes.maga, 9);
+    const h = c.heroina;
+    h.pv = Math.floor(h.pvMax / 2);
+    aplicarEstado(c, h, 'veneno', false, []);
+    aplicarEstado(c, h, 'quemadura', false, []);
+    const eventos = usar(c, 'Purificar', heroes.maga);
+    const cura = eventos.find((e) => e.tipo === 'cura');
+    expect(cura && cura.tipo === 'cura' ? cura.cantidad : 0).toBe(Math.round(h.pvMax * 0.15));
+    expect(eventos.filter((e) => e.tipo === 'estado' && !e.activo)).toHaveLength(2);
+  });
+
+  test('Maldición deja al enemigo con el 60 % de ataque y de magia', () => {
+    const c = combate(heroes.maga, 5);
+    const e = c.enemigos[0]!;
+    e.magia = 10;
+    usar(c, 'Maldición', heroes.maga);
+    expect(efectiva(e, 'ataque')).toBeCloseTo(e.ataque * 0.6);
+    expect(efectiva(e, 'magia')).toBeCloseTo(e.magia * 0.6);
+  });
+
+  test('Grito de guerra pone Furia a la ronin y Hoja envenenada envenena', () => {
+    const c = combate(heroes.ronin, 5);
+    usar(c, 'Grito de guerra', heroes.ronin);
+    expect(c.heroina.estados.map((e) => e.id)).toContain('furia');
+    const d = combate(heroes.ronin, 5);
+    usar(d, 'Hoja envenenada', heroes.ronin);
+    expect(d.enemigos[0]!.estados.map((e) => e.id)).toContain('veneno');
+  });
+
+  test('Velo sube la defensa de la maga', () => {
+    const c = combate(heroes.maga);
+    usar(c, 'Velo', heroes.maga);
+    expect(efectiva(c.heroina, 'defensa')).toBeCloseTo(c.heroina.defensa * 1.5);
   });
 });

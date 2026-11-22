@@ -56,7 +56,11 @@
       "defensa": 2,
       "velocidad": 1
     },
-    "planPuntos": ["ataque", "pv", "defensa"],
+    "planPuntos": [
+      "ataque",
+      "pv",
+      "defensa"
+    ],
     "armaInicial": "katana_gastada",
     "armas": [
       "katana_madera",
@@ -84,7 +88,7 @@
       },
       {
         "nombre": "Postura de hierro",
-        "nivel": 3,
+        "nivel": 1,
         "pm": 3,
         "objetivo": "propio",
         "estado": "postura",
@@ -92,8 +96,30 @@
         "sonido": "acero"
       },
       {
+        "nombre": "Golpe de pomo",
+        "nivel": 1,
+        "pm": 2,
+        "objetivo": "uno",
+        "danio": {
+          "tipo": "fisico",
+          "poder": 0.7
+        },
+        "rompeCarga": true,
+        "efecto": "impacto",
+        "sonido": "impacto"
+      },
+      {
+        "nombre": "Grito de guerra",
+        "nivel": 1,
+        "pm": 3,
+        "objetivo": "propio",
+        "estado": "furia",
+        "efecto": "llamarada",
+        "sonido": "fuego"
+      },
+      {
         "nombre": "Tajo del viento",
-        "nivel": 5,
+        "nivel": 3,
         "pm": 5,
         "objetivo": "todos",
         "danio": {
@@ -102,6 +128,19 @@
         },
         "efecto": "viento",
         "sonido": "viento"
+      },
+      {
+        "nombre": "Hoja envenenada",
+        "nivel": 5,
+        "pm": 4,
+        "objetivo": "uno",
+        "danio": {
+          "tipo": "fisico",
+          "poder": 1.0
+        },
+        "estado": "veneno",
+        "efecto": "corte",
+        "sonido": "corte"
       },
       {
         "nombre": "Iaido",
@@ -115,6 +154,19 @@
         },
         "efecto": "iaido",
         "sonido": "iaido"
+      },
+      {
+        "nombre": "Respiro",
+        "nivel": 9,
+        "pm": 5,
+        "objetivo": "propio",
+        "cura": 0.25,
+        "quitaEstados": [
+          "veneno",
+          "quemadura"
+        ],
+        "efecto": "chispas_verdes",
+        "sonido": "curar"
       },
       {
         "nombre": "Tajo de llama morada",
@@ -187,7 +239,11 @@
       "defensa": 0,
       "velocidad": 1
     },
-    "planPuntos": ["magia", "pv", "pm"],
+    "planPuntos": [
+      "magia",
+      "pv",
+      "pm"
+    ],
     "armaInicial": "baston_rama",
     "armas": [
       "baston_aprendiz",
@@ -215,7 +271,7 @@
       },
       {
         "nombre": "Curar",
-        "nivel": 3,
+        "nivel": 1,
         "pm": 4,
         "objetivo": "propio",
         "cura": 0.35,
@@ -223,8 +279,30 @@
         "sonido": "curar"
       },
       {
+        "nombre": "Escarcha",
+        "nivel": 1,
+        "pm": 2,
+        "objetivo": "uno",
+        "danio": {
+          "tipo": "magico",
+          "poder": 0.6
+        },
+        "rompeCarga": true,
+        "efecto": "impacto",
+        "sonido": "fuego"
+      },
+      {
+        "nombre": "Velo",
+        "nivel": 1,
+        "pm": 3,
+        "objetivo": "propio",
+        "estado": "velo",
+        "efecto": "aura_acero",
+        "sonido": "acero"
+      },
+      {
         "nombre": "Fuego fatuo",
-        "nivel": 5,
+        "nivel": 3,
         "pm": 5,
         "objetivo": "uno",
         "danio": {
@@ -232,6 +310,15 @@
           "poder": 0.8
         },
         "estado": "quemadura",
+        "efecto": "fuego_fatuo",
+        "sonido": "fatuo"
+      },
+      {
+        "nombre": "Maldición",
+        "nivel": 5,
+        "pm": 4,
+        "objetivo": "uno",
+        "estado": "debilitado",
         "efecto": "fuego_fatuo",
         "sonido": "fatuo"
       },
@@ -246,6 +333,19 @@
         },
         "efecto": "cometa_arcano",
         "sonido": "tormenta"
+      },
+      {
+        "nombre": "Purificar",
+        "nivel": 9,
+        "pm": 4,
+        "objetivo": "propio",
+        "cura": 0.15,
+        "quitaEstados": [
+          "veneno",
+          "quemadura"
+        ],
+        "efecto": "chispas_verdes",
+        "sonido": "curar"
       },
       {
         "nombre": "Cometa arcano",

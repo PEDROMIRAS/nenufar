@@ -37,7 +37,10 @@ export function describirHabilidad(h: HabilidadJson, estados: Record<string, Est
     partes.push(`Daño ${fisico ? 'físico' : 'mágico'} (${base}) ${A_QUIEN[h.objetivo]}`);
     if (h.danio.criticoSeguro) partes.push('Siempre crítico');
   }
+  if (h.rompeCarga) partes.push('Rompe el golpe cargado');
   if (h.cura) partes.push(`Recupera el ${pct(h.cura)} de tus PV`);
+  if (h.quitaEstados?.length)
+    partes.push(`Quita ${h.quitaEstados.map((id) => estados[id]?.nombre ?? id).join(' y ')}`);
   const estado = h.estado ? estados[h.estado] : undefined;
   if (estado) {
     partes.push(

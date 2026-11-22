@@ -55,6 +55,8 @@ export interface Luchador {
   fase: number;
   /** Habilidades ganadas como recompensa (por nombre), que no se desbloquean por nivel. */
   habilidadesGanadas: string[];
+  /** Las habilidades que lleva equipadas (por nombre): en combate solo puede usar esas. Vacío en los monstruos. */
+  equipadas: string[];
   heroe: HeroeJson | null;
   monstruo: MonstruoJson | null;
 }
@@ -163,6 +165,7 @@ function luchador(
     estados: [],
     fase: 0,
     habilidadesGanadas: [],
+    equipadas: [],
     heroe,
     monstruo,
   };
@@ -542,6 +545,10 @@ function usarHabilidad(
       const cantidad = Math.min(o.pvMax - o.pv, Math.round(o.pvMax * hab.cura));
       o.pv += cantidad;
       eventos.push({ tipo: 'cura', objetivo: o, cantidad });
+    }
+    for (const id of hab.quitaEstados ?? []) {
+      const activo = o.estados.find((e) => e.id === id);
+      if (activo) quitarEstado(o, activo, eventos);
     }
     if (hab.estado && o.pv > 0) aplicarEstado(c, o, hab.estado, o === actor, eventos);
     if (hab.rompeCarga && o.cargando) {
