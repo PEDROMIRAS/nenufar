@@ -106,8 +106,11 @@ describe('habilidades', () => {
   test('Tajo del viento golpea a todos los enemigos', () => {
     const c = combate(heroes.ronin, 5, 3);
     usar(c, 'Tajo del viento', heroes.ronin);
-    // (9 × 0,9)² / (9 × 0,9 + 1,5) = 6,84 → 6 a cada uno
-    expect(c.enemigos.map((e) => e.pv)).toEqual([94, 94, 94]);
+    // (ATQ × poder)² / (ATQ × poder + DEF × 0,5) a cada uno, sin varianza ni crítico.
+    const fuerza =
+      heroes.ronin.estadisticas.ataque * habilidad(heroes.ronin, 'Tajo del viento').danio!.poder;
+    const danio = Math.floor((fuerza * fuerza) / (fuerza + 3 * 0.5));
+    expect(c.enemigos.map((e) => e.pv)).toEqual([100 - danio, 100 - danio, 100 - danio]);
   });
 
   test('Curar recupera el 35 % de los PV máximos, sin pasarse', () => {
@@ -152,13 +155,13 @@ describe('estados', () => {
     expect(efectiva(c.heroina, 'defensa')).toBe(6);
   });
 
-  test('Fuego fatuo quema: el 8 % de PV máximos al final de cada turno suyo, 3 veces', () => {
+  test('Fuego fatuo quema: el 4 % de PV máximos al final de cada turno suyo, 3 veces', () => {
     const c = combate(heroes.maga, 5);
     const eventos = usar(c, 'Fuego fatuo', heroes.maga);
     expect(eventos).toContainEqual({
       tipo: 'danioEstado',
       objetivo: c.enemigos[0],
-      cantidad: 8,
+      cantidad: 4,
       estado: 'Quemadura',
     });
     const todos = [...eventos];
@@ -347,7 +350,7 @@ describe('habilidades nuevas', () => {
     expect(c.heroina.estados.map((e) => e.id)).toContain('furia');
     const d = combate(heroes.ronin, 5);
     usar(d, 'Hoja envenenada', heroes.ronin);
-    expect(d.enemigos[0]!.estados.map((e) => e.id)).toContain('veneno');
+    expect(d.enemigos[0]!.estados.map((e) => e.id)).toContain('veneno_rana');
   });
 
   test('Velo sube la defensa de la maga', () => {

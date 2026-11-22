@@ -84,6 +84,16 @@ describe('la jugadora y sus habilidades', () => {
     expect(accion.tipo === 'habilidad' && accion.habilidad.nombre).toBe('Golpe de pomo');
   });
 
+  test('sin PM para Corte rápido ataca, no usa un golpe más flojo que el ataque normal', () => {
+    const h = luchadorDeHeroe(HEROES.ronin);
+    h.equipadas = ['Corte rápido', 'Golpe de pomo'];
+    const m = mundo();
+    const c = crearCombate(h, [luchadorDeMonstruo(m.bestiario.limo!)], m.reglas, () => 0.5);
+    avanzar(c);
+    h.pm = 2;
+    expect(decidir(c, () => 0.99, JUGADORA).tipo).toBe('atacar');
+  });
+
   test('con veneno y Respiro equipado, se lo quita', () => {
     const h = luchadorDeHeroe(HEROES.ronin);
     h.nivel = 9;

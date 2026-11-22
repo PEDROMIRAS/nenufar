@@ -99,7 +99,7 @@
       {
         "nombre": "Golpe de pomo",
         "nivel": 1,
-        "pm": 2,
+        "pm": 3,
         "objetivo": "uno",
         "danio": {
           "tipo": "fisico",
@@ -125,7 +125,7 @@
         "objetivo": "todos",
         "danio": {
           "tipo": "fisico",
-          "poder": 0.9
+          "poder": 0.95
         },
         "efecto": "viento",
         "sonido": "viento"
@@ -139,7 +139,7 @@
           "tipo": "fisico",
           "poder": 1.0
         },
-        "estado": "veneno",
+        "estado": "veneno_rana",
         "efecto": "corte",
         "sonido": "corte"
       },
@@ -185,19 +185,18 @@
     ],
     "planHabilidades": {
       "zona": [
-        "Golpe de pomo",
-        "Corte rápido",
-        "Tajo del viento",
         "Iaido",
+        "Tajo del viento",
+        "Corte rápido",
+        "Golpe de pomo",
         "Hoja envenenada",
         "Respiro"
       ],
       "jefe": [
         "Iaido",
-        "Hoja envenenada",
-        "Golpe de pomo",
+        "Tajo del viento",
         "Corte rápido",
-        "Grito de guerra"
+        "Golpe de pomo"
       ]
     }
   },
@@ -283,7 +282,7 @@
         "objetivo": "uno",
         "danio": {
           "tipo": "magico",
-          "poder": 1.5
+          "poder": 1.53
         },
         "efecto": "llamarada_grande",
         "sonido": "fuego_grande"
@@ -328,7 +327,7 @@
           "tipo": "magico",
           "poder": 0.8
         },
-        "estado": "quemadura",
+        "estado": "quemadura_rana",
         "efecto": "fuego_fatuo",
         "sonido": "fatuo"
       },
@@ -386,14 +385,14 @@
         "Fuego morado",
         "Curar",
         "Tormenta morada",
-        "Escarcha",
-        "Fuego fatuo"
+        "Fuego fatuo",
+        "Velo"
       ],
       "jefe": [
-        "Fuego fatuo",
-        "Maldición",
+        "Fuego morado",
+        "Tormenta morada",
         "Curar",
-        "Fuego morado"
+        "Fuego fatuo"
       ]
     }
   }

@@ -35,6 +35,11 @@ export interface PoliticaJugadora {
   fuenteBajo: number;
   /** Tope de acciones por combate (por si alguno no acabara). */
   vueltas: number;
+  /**
+   * Quema o envenena a un jefe solo si le quedan más PV que este múltiplo de su golpe: en un combate corto el daño por
+   * turno no compensa el turno gastado.
+   */
+  quemarSiVida: number;
 }
 
 /** Monstruos, reglas y objetos con la dificultad de la partida ya aplicada, y cómo juega. */
@@ -61,7 +66,7 @@ export function elegirEquipadas(h: Luchador, orden: readonly string[]): void {
 
 /**
  * Se quita el veneno o la quemadura si lleva con qué, se cura con poca vida, rompe el golpe cargado si puede (si no, a
- * veces se defiende, o se pone en guardia con una habilidad), contra un jefe lo debilita o se enfurece primero y si no
+ * veces se defiende), contra un jefe lo debilita o se enfurece primero y si no
  * usa lo más fuerte que tenga.
  */
 export function decidir(c: Combate, azar: () => number, p: PoliticaJugadora): AccionHeroina {
@@ -83,15 +88,6 @@ export function decidir(c: Combate, azar: () => number, p: PoliticaJugadora): Ac
   if (cargando && romper) return { tipo: 'habilidad', habilidad: romper, objetivo: cargando };
   const golpe = Math.max(h.ataque, h.magia) * p.margenGolpe;
   if (cargando && !(vivos.length === 1 && objetivo.pv <= golpe) && azar() < p.defiendeCargado) {
-    // Una guardia que dura varios turnos (Postura, Velo) antes que defenderse un solo golpe.
-    const guardia = habs.find(
-      (x) =>
-        x.objetivo === 'propio' &&
-        x.estado &&
-        (c.reglas.estados[x.estado]?.defensa ?? 1) > 1 &&
-        !tiene(h, x.estado),
-    );
-    if (guardia) return { tipo: 'habilidad', habilidad: guardia, objetivo: null };
     return { tipo: 'defender' };
   }
   // Contra un jefe, primero lo que dura: debilitarlo, envenenarlo o quemarlo, o su propia furia.
@@ -99,7 +95,9 @@ export function decidir(c: Combate, azar: () => number, p: PoliticaJugadora): Ac
   if (jefe) {
     const preparar = habs.find((x) =>
       x.objetivo === 'uno'
-        ? x.estado !== undefined && !tiene(jefe, x.estado)
+        ? x.estado !== undefined &&
+          !tiene(jefe, x.estado) &&
+          (!c.reglas.estados[x.estado]?.danioPorTurno || jefe.pv > p.quemarSiVida * golpe)
         : x.objetivo === 'propio' &&
           x.estado !== undefined &&
           (c.reglas.estados[x.estado]?.ataque ?? 1) > 1 &&
@@ -114,8 +112,10 @@ export function decidir(c: Combate, azar: () => number, p: PoliticaJugadora): Ac
   }
   const area = habs.find((x) => x.objetivo === 'todos' && x.danio);
   if (area && vivos.length > 1) return { tipo: 'habilidad', habilidad: area, objetivo: null };
+  // Solo golpes más fuertes que el ataque normal (poder 1): uno más flojo (Golpe de pomo, Escarcha) es para romper
+  // cargas, y a la ronin, además, atacar le devuelve PM.
   const porPoder = habilidadesDisponibles(h)
-    .filter((x) => x.objetivo === 'uno' && x.danio)
+    .filter((x) => x.objetivo === 'uno' && x.danio && x.danio.poder > 1)
     .sort((a, b) => b.danio!.poder - a.danio!.poder);
   // Contra un jefe bebe éter si no le llega para su golpe más fuerte, como haría una persona.
   if (
