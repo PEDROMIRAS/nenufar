@@ -307,7 +307,7 @@
         },
         "rompeCarga": true,
         "efecto": "impacto",
-        "sonido": "fuego"
+        "sonido": "escarcha"
       },
       {
         "nombre": "Velo",
@@ -316,7 +316,7 @@
         "objetivo": "propio",
         "estado": "velo",
         "efecto": "aura_acero",
-        "sonido": "acero"
+        "sonido": "velo"
       },
       {
         "nombre": "Fuego fatuo",

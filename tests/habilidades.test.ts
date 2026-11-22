@@ -359,3 +359,21 @@ describe('habilidades nuevas', () => {
     expect(efectiva(c.heroina, 'defensa')).toBeCloseTo(c.heroina.defensa * 1.5);
   });
 });
+
+describe('estados con el mismo nombre', () => {
+  test('la quemadura de un arma y la de Fuego fatuo no se suman: se renueva la que hay y queda la más fuerte', () => {
+    const c = combate(heroes.maga, 5);
+    const e = c.enemigos[0]!;
+    aplicarEstado(c, e, 'quemadura', false, []); // la de un arma, al 8 %
+    aplicarEstado(c, e, 'quemadura_rana', false, []); // la de Fuego fatuo, al 4 %
+    expect(e.estados).toHaveLength(1);
+    expect(e.estados[0]!.def.danioPorTurno).toBe(0.08);
+    // Al revés: la del 4 % primero y luego la del 8 %, que la sustituye.
+    const d = combate(heroes.maga, 5);
+    const f = d.enemigos[0]!;
+    aplicarEstado(d, f, 'quemadura_rana', false, []);
+    aplicarEstado(d, f, 'quemadura', false, []);
+    expect(f.estados).toHaveLength(1);
+    expect(f.estados[0]!.def.danioPorTurno).toBe(0.08);
+  });
+});
