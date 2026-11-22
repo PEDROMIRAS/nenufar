@@ -91,6 +91,7 @@
     "faltan": "Elige {n} antes de seguir",
     "equipada": "Equipada",
     "aviso": "Equípala junto a la fuente o al entrar en la siguiente zona",
-    "pausa": "Se cambian al entrar en una zona o junto a la fuente"
+    "pausa": "Se cambian al entrar en una zona o junto a la fuente",
+    "mas": "y {n} más sin equipar"
   }
 }

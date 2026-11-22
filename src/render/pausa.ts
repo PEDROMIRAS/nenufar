@@ -151,6 +151,8 @@ export interface FichaInventario {
   /** Las habilidades equipadas; las que conoce y no lleva (en tenue) y la nota de dónde se cambian, ya partida. */
   habilidades: string[];
   otras: string[];
+  /** «y 6 más sin equipar»: en horizontal no caben las otras una a una junto al presagio. */
+  resumenOtras: string;
   notaHabilidades: string[];
   /** «Ataque 12 (+3)»…; el bono, si lo hay, va entre paréntesis. */
   estadisticas: string[];
@@ -252,10 +254,11 @@ function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaInventario): void
   let yHab = 158;
   for (let i = 0; i < f.habilidades.length; i++, yHab += 14)
     escribir(ctx, f.habilidades[i]!, derecha, yHab, PALETA.texto);
-  for (let i = 0; i < f.otras.length; i++, yHab += 13)
-    escribir(ctx, f.otras[i]!, derecha, yHab, PALETA.apagada);
-  for (let i = 0; i < f.notaHabilidades.length; i++, yHab += 12)
-    escribir(ctx, f.notaHabilidades[i]!, derecha, yHab, PALETA.apagada);
+  if (f.otras.length > 0) {
+    escribir(ctx, f.resumenOtras, derecha, yHab, PALETA.apagada);
+    yHab += 13;
+  }
+  // La nota de dónde se cambian solo va en vertical: aquí empujaría el presagio fuera del marco.
   if (f.presagio.length > 0) {
     const yPresagio = yHab + 6;
     dibujarTitulo(ctx, derecha, yPresagio, ancho, 'Presagio');

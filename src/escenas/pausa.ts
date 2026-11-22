@@ -454,10 +454,14 @@ export class EscenaPausa implements Escena {
       otras: habilidadesConocidas(l)
         .filter((h) => !l.equipadas.includes(h.nombre))
         .map((h) => h.nombre),
+      resumenOtras: historia.habilidades.mas.replace(
+        '{n}',
+        String(habilidadesConocidas(l).length - l.equipadas.length),
+      ),
       notaHabilidades: partirEnLineas(
         historia.habilidades.pausa,
         // En vertical la columna de Habilidades es la mitad del panel.
-        interfaz.alta ? Math.floor(VERTICAL.menu.letrasPanel / 2) - 1 : LETRAS_COLUMNA,
+        interfaz.alta ? Math.floor(VERTICAL.menu.letrasPanel / 2) - 1 : LETRAS_COLUMNA - 2,
       ),
       estadisticas: [
         conBono('Ataque', 'ataque'),

@@ -239,6 +239,16 @@ async function iniciar(): Promise<void> {
     if (import.meta.env.DEV)
       luchadora.puntos = Number(new URLSearchParams(location.search).get('puntos')) || 0;
     const inventario = inventarioInicial(luchadora, heroe, OBJETOS);
+    // shortcut: solo en desarrollo, ?nivel=N empieza en ese nivel (con la quinta habilidad ganada si N es el máximo),
+    // para revisar la pantalla Habilidades y la pausa con muchas habilidades.
+    const nivel = import.meta.env.DEV
+      ? Number(new URLSearchParams(location.search).get('nivel'))
+      : 0;
+    if (nivel > 1) {
+      empezarEnNivel(luchadora, nivel, REGLAS.experiencia);
+      if (nivel >= REGLAS.experiencia.nivelMaximo)
+        luchadora.habilidadesGanadas.push(heroe.especiales.habilidad);
+    }
     // ?equipo=clave se pone esa pieza al empezar (solo en desarrollo): para ver cómo se viste la heroína.
     const pieza = import.meta.env.DEV ? new URLSearchParams(location.search).get('equipo') : null;
     if (pieza && OBJETOS.equipo[pieza]) equipar(luchadora, inventario, OBJETOS, pieza);
