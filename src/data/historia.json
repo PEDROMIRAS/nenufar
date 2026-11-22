@@ -67,7 +67,7 @@
   "recompensas": {
     "habilidad": {
       "titulo": "Nueva habilidad",
-      "texto": "Has aprendido {habilidad}. Equípala junto a la fuente o al entrar en la siguiente zona."
+      "texto": "Has aprendido {habilidad}. Se equipa junto a la fuente, al entrar en una zona o antes del jefe final."
     },
     "pieza": {
       "titulo": "¡Recompensa!",
@@ -90,7 +90,7 @@
     "llena": "Ya llevas {n}: quita una antes",
     "faltan": "Elige {n} antes de seguir",
     "equipada": "Equipada",
-    "aviso": "Equípala junto a la fuente o al entrar en la siguiente zona",
+    "aviso": "Se equipan junto a la fuente, al entrar en una zona o antes del jefe final.",
     "pausa": "Se cambian al entrar en una zona o junto a la fuente",
     "mas": "y {n} más sin equipar"
   }

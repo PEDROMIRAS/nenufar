@@ -95,12 +95,19 @@ describe('habilidades equipadas', () => {
     );
   });
 
-  test('cambiosDeNivel añade el aviso a la habilidad nueva', () => {
+  test('cambiosDeNivel avisa una sola vez de dónde equipar lo aprendido, al final', () => {
     const l = luchadorDeHeroe(ronin);
     const antes = instantanea(l);
-    l.nivel = 3;
-    expect(cambiosDeNivel(antes, l, 'Equípala junto a la fuente')).toContain(
-      'Nueva habilidad: Tajo del viento. Equípala junto a la fuente',
-    );
+    l.nivel = 5; // aprende Tajo del viento (3) y Hoja envenenada (5)
+    const lineas = cambiosDeNivel(antes, l, 'Se equipan en la pantalla Habilidades');
+    expect(lineas).toContain('Nueva habilidad: Tajo del viento');
+    expect(lineas).toContain('Nueva habilidad: Hoja envenenada');
+    expect(lineas.filter((x) => x.includes('pantalla Habilidades'))).toHaveLength(1);
+    expect(lineas.at(-1)).toBe('Se equipan en la pantalla Habilidades');
+    // Sin habilidad nueva, sin aviso.
+    const otra = luchadorDeHeroe(ronin);
+    const antes2 = instantanea(otra);
+    otra.ataque += 2;
+    expect(cambiosDeNivel(antes2, otra, 'Se equipan en la pantalla Habilidades')).toHaveLength(1);
   });
 });

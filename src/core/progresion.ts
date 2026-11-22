@@ -66,15 +66,19 @@ const NOMBRES: [keyof Omit<Instantanea, 'nivel'>, string][] = [
 ];
 
 /** Líneas de la pantalla de subida de nivel: lo que ha cambiado y las habilidades nuevas. */
-/** `aviso`, si se pasa, va tras cada «Nueva habilidad: X» (dónde equiparla). */
+/** `aviso`, si se pasa y hay alguna habilidad nueva, va al final, una sola vez (dónde equiparlas). */
 export function cambiosDeNivel(antes: Instantanea, ahora: Luchador, aviso = ''): string[] {
   const lineas = NOMBRES.filter(([clave]) => ahora[clave] !== antes[clave]).map(
     ([clave, nombre]) => `${nombre} ${antes[clave]} → ${ahora[clave]}`,
   );
+  let nuevas = 0;
   for (const h of ahora.heroe?.habilidades ?? []) {
-    if (h.nivel > antes.nivel && h.nivel <= ahora.nivel)
-      lineas.push(`Nueva habilidad: ${h.nombre}${aviso ? `. ${aviso}` : ''}`);
+    if (h.nivel > antes.nivel && h.nivel <= ahora.nivel) {
+      lineas.push(`Nueva habilidad: ${h.nombre}`);
+      nuevas++;
+    }
   }
+  if (nuevas > 0 && aviso) lineas.push(aviso);
   return lineas;
 }
 

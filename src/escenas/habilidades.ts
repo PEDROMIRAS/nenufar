@@ -58,7 +58,15 @@ export class EscenaHabilidades implements Escena {
     this.conocidas = habilidadesConocidas(l);
     this.maximo = l.heroe?.equipables ?? 0;
     this.textoLlevas = this.llevas();
+    this.nombres = this.conocidas.map((h) => SANGRIA + h.nombre);
+    this.costes = this.conocidas.map((h) => `${h.pm} PM`);
   }
+
+  /** Lo que se escribe en cada fila (nombre tras la casilla y coste), hecho una vez: no se crean textos por fotograma. */
+  private readonly nombres: readonly string[];
+  private readonly costes: readonly string[];
+  /** El reparto y la forma de la interfaz con que se hizo: se rehace solo si cambia (girar el móvil, otra ventana). */
+  private reparto: ReturnType<typeof disposicionHabilidades> | null = null;
 
   private get filas(): number {
     return this.conocidas.length + 1;
@@ -94,17 +102,13 @@ export class EscenaHabilidades implements Escena {
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
-    const l = letras();
-    if (l.titulo !== this.letrasTitulo) {
-      this.letrasTitulo = l.titulo;
-      this.titulos = partirTexto(this.titulo(), l.titulo);
-    }
+    // Primero el reparto: es lo que parte el título.
+    const d = this.disposicion();
     dibujarFondo(ctx);
     dibujarMarco(ctx, 16, 16, interfaz.ancho - 32, interfaz.alto - 32);
     const centro = interfaz.ancho / 2;
     for (let i = 0; i < this.titulos.length; i++)
       escribir(ctx, this.titulos[i]!, centro, 40 + i * 30, PALETA.claro, 'center', FUENTE_GRANDE);
-    const d = this.disposicion();
     this.visibles = d.visibles;
     this.encuadrar();
     for (let k = 0; k < d.visibles; k++) {
@@ -122,8 +126,8 @@ export class EscenaHabilidades implements Escena {
         y,
         d.lista.ancho,
         d.fila,
-        SANGRIA + hab.nombre,
-        `${hab.pm} PM`,
+        this.nombres[i]!,
+        this.costes[i]!,
         estado,
       );
       const yc = y + (d.fila - CASILLA) / 2;
@@ -155,9 +159,25 @@ export class EscenaHabilidades implements Escena {
 
   private lineasAviso = 0;
 
+  /** El reparto de la pantalla (y el título partido), rehecho solo si cambia la forma de la interfaz. */
   private disposicion(): ReturnType<typeof disposicionHabilidades> {
+    if (
+      this.reparto &&
+      this.anchoForma === interfaz.ancho &&
+      this.altoForma === interfaz.alto &&
+      this.altaForma === interfaz.alta
+    )
+      return this.reparto;
+    this.anchoForma = interfaz.ancho;
+    this.altoForma = interfaz.alto;
+    this.altaForma = interfaz.alta;
+    const l = letras();
+    if (l.titulo !== this.letrasTitulo) {
+      this.letrasTitulo = l.titulo;
+      this.titulos = partirTexto(this.titulo(), l.titulo);
+    }
     const yLista = 48 + Math.max(1, this.titulos.length) * 30 + 4;
-    return disposicionHabilidades(
+    this.reparto = disposicionHabilidades(
       interfaz.ancho,
       interfaz.alto,
       this.filas,
@@ -165,7 +185,11 @@ export class EscenaHabilidades implements Escena {
       yLista,
       VERTICAL,
     );
+    return this.reparto;
   }
+  private anchoForma = 0;
+  private altoForma = 0;
+  private altaForma = false;
 
   /** Que la fila elegida esté a la vista. */
   private encuadrar(): void {
