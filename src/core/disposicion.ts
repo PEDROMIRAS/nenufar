@@ -388,6 +388,14 @@ export function cabeceraQueCabe(larga: string, corta: string, letras: number): s
   return larga.length <= letras ? larga : corta;
 }
 
+/**
+ * La segunda línea de la cabecera del HUD: el presagio, si la cabecera larga no cabe (y entonces va la corta arriba);
+ * vacía si cabe o no hay presagio. Así el presagio no desaparece en el móvil de pie.
+ */
+export function lineaPresagio(larga: string, letras: number, presagio: string): string {
+  return presagio && larga.length > letras ? presagio : '';
+}
+
 export function letrasEnAncho(ancho: number, letra = ANCHO_LETRA): number {
   return Math.max(0, Math.floor(ancho / letra));
 }

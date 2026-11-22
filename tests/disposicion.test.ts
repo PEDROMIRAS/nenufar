@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import {
+  lineaPresagio,
   disposicionHabilidades,
   anchoNombre,
   cabeceraQueCabe,
@@ -514,5 +515,14 @@ describe('pantalla Habilidades', () => {
     expect(d.visibles).toBeGreaterThanOrEqual(3);
     expect(dentroDe(d.lista, 320, 400)).toBe(true);
     expect(dentroDe(d.detalle, 320, 400)).toBe(true);
+  });
+});
+
+describe('presagio en el HUD', () => {
+  test('si la cabecera larga no cabe, el presagio va en una segunda línea; si cabe o no hay, nada', () => {
+    const larga = 'Cauce Seco · Fuente seca · Nv 12';
+    expect(lineaPresagio(larga, 40, 'Fuente seca')).toBe('');
+    expect(lineaPresagio(larga, 20, 'Fuente seca')).toBe('Fuente seca');
+    expect(lineaPresagio('Bosque · Nv 1', 10, '')).toBe('');
   });
 });
