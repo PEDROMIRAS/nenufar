@@ -1,8 +1,18 @@
 import * as THREE from 'three';
 import { desplazamientoCamara, unidadTemblor } from '../../core/impacto';
-import { crearAnillo, progresoNube, soltarNube, vaciarAnillo } from '../../core/polvo';
-import { MAPA_VIVO } from '../../data/datos';
+import * as actores from './actores';
+import {
+  carton,
+  crearTexturasSigno,
+  ponerRelieve,
+  quitarRelieve,
+  TAM,
+  type Actor,
+  type Pie,
+} from './actores';
 import { crearDesenfoque } from './desenfoque';
+import { anadirLuz, Puntuales, type LuzSala } from './luces';
+import { Polvo } from './polvo';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -10,11 +20,9 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { VignetteShader } from 'three/addons/shaders/VignetteShader.js';
 import { crearAzar } from '../../core/azar';
-import { escalaHoja } from '../../core/hoja';
 import type { ObjetoSala, Sala, Salida, Tile } from '../../core/sala';
-import type { Direccion, Hd2dJson, LuzHd2d, ZonaHd2d } from '../../core/types';
+import type { Direccion, Hd2dJson, ZonaHd2d } from '../../core/types';
 import { N, S } from '../../core/zona';
-import { PALETA } from '../marco';
 import { cargarAjustes, guardarAjustes } from '../almacen';
 import {
   alRedimensionar,
@@ -33,15 +41,13 @@ import {
   type MaterialesBosque,
   type SombraSuelo,
 } from './borde';
-import { FAMILIA } from '../texto';
 import { crearElemento } from './elementos';
 import { crearFuente } from './fuente';
 import { crearHundidos } from './hundidos';
-import { compararLuces, cuantasDeAmbiente, lugaresDeLuz } from '../../core/luces';
+import { cuantasDeAmbiente, lugaresDeLuz } from '../../core/luces';
 import { crearAmbiente } from './ambiente';
 import { crearArco, crearBarrera, crearModelo } from './modelos';
 import {
-  ajustarPixelArt,
   cuentaColores,
   materialRuido,
   olvidarRuido,
@@ -49,7 +55,6 @@ import {
   pintar,
   textura,
   prepararNormales,
-  texturaNormales,
 } from './texturas';
 import { transparentar, uniformesTransparencia } from './transparencia';
 
@@ -64,19 +69,6 @@ export function ponerCalidadAlta(alta: boolean): void {
   guardarAjustes({ calidadBaja: !alta });
 }
 
-/** Luces puntuales que hay siempre en la escena: cambiar cuántas hay obliga a recompilar los materiales. */
-const PUNTUALES = 4;
-/** Una luz puntual de una sala: cuál (de `hd2d.json`), dónde (en casillas) y su desfase de parpadeo. */
-export interface LuzSala {
-  luz: LuzHd2d;
-  x: number;
-  z: number;
-  fase: number;
-}
-/** Píxeles de una casilla (el tileSize de todos los tilesets): una unidad del mundo. */
-const TAM = 32;
-
-/** Un sprite de pie (heroína o monstruo) con su hoja de animaciones; el fotograma se elige moviendo la textura. */
 /** Dibuja la sala de fondo del combate: tiempo de sus animaciones, temblor en píxeles y luz de un proyectil. */
 export type FondoSala = (
   tiempo: number,
@@ -85,20 +77,8 @@ export type FondoSala = (
   luz: { nombre: string; x: number; y: number } | null,
 ) => void;
 
-export interface Actor {
-  malla: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshLambertMaterial>;
-  tex: THREE.Texture;
-  sprite: Sprite;
-  columnas: number;
-  filas: number;
-  /** El «¡!» o el «?» sobre la cabeza (hijo de la malla); null si este actor no lleva signos. */
-  signo: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial> | null;
-}
-
-/** Lado del signo, en casillas, y cuánto queda por encima de la cabeza. */
-const SIGNO = { lado: 0.5, sobre: 0.15 };
-/** Lado de una nube de polvo en casillas, cuánto sube y cuánto crece al deshacerse, y su opacidad al salir. */
-const NUBE = { lado: 0.28, sube: 0.15, crece: 1, opacidad: 0.55 };
+export type { Actor } from './actores';
+export type { LuzSala } from './luces';
 
 /** Tiles de un objeto apilados de arriba abajo en una textura, que se repinta al cambiar de fotograma. */
 interface Pieza {
@@ -160,17 +140,16 @@ export class Mundo {
   private readonly tiltV: ShaderPass;
   private readonly cielo: THREE.HemisphereLight;
   private readonly principal: THREE.DirectionalLight;
-  private readonly puntuales: THREE.PointLight[] = [];
+  private readonly puntuales: Puntuales;
   private heroe: Actor | null = null;
   private zona: ZonaMontada | null = null;
   private vista: VistaSala | null = null;
   private readonly giro: number;
-  /** Texturas del «¡!» y el «?», hechas una vez y compartidas por todos los signos. */
-  private readonly texturasSigno: { alerta: THREE.Texture; perdido: THREE.Texture };
-  /** Nubes de polvo de los pasos: un plano por hueco del anillo (la siguiente que sale es la más vieja). */
-  private readonly nubes: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>[] = [];
-  private readonly anillo = crearAnillo(MAPA_VIVO.polvo.cantidad);
   private readonly estirar: number;
+  /** Cómo se ponen de pie los sprites (`giro` y `estirar`, juntos para crear actores). */
+  private readonly pie: Pie;
+  private readonly texturasSigno = crearTexturasSigno();
+  private readonly polvo: Polvo;
   /** Vectores de trabajo para proyectar a pantalla y al revés (sin crear nada en el bucle). */
   private readonly pantalla = new THREE.Vector3();
   private readonly rayo = new THREE.Vector3();
@@ -217,20 +196,8 @@ export class Mundo {
     // se estiran para que, vistos desde la cámara, conserven su alto.
     this.giro = angulo * a.inclinacionSprites;
     this.estirar = 1 / Math.cos(angulo - this.giro);
-    this.texturasSigno = {
-      alerta: texturaSigno('¡!', PALETA.peligro),
-      perdido: texturaSigno('?', PALETA.claro),
-    };
-    const textNube = texturaNube();
-    for (let i = 0; i < MAPA_VIVO.polvo.cantidad; i++) {
-      const malla = new THREE.Mesh(
-        new THREE.PlaneGeometry(NUBE.lado, NUBE.lado),
-        new THREE.MeshBasicMaterial({ map: textNube, transparent: true, depthWrite: false }),
-      );
-      malla.rotation.x = -this.giro;
-      malla.visible = false;
-      this.nubes.push(malla);
-    }
+    this.pie = { giro: this.giro, estirar: this.estirar };
+    this.polvo = new Polvo(this.giro);
 
     this.cielo = new THREE.HemisphereLight();
     this.principal = new THREE.DirectionalLight();
@@ -238,15 +205,7 @@ export class Mundo {
     this.principal.shadow.mapSize.set(a.sombras.principal, a.sombras.principal);
     Object.assign(this.principal.shadow.camera, { left: -10, right: 10, top: 10, bottom: -10 });
     this.escena.add(this.cielo, this.principal, this.principal.target);
-    for (let i = 0; i < PUNTUALES; i++) {
-      const luz = new THREE.PointLight(0xffffff, 0, 1, 1.5);
-      luz.shadow.mapSize.set(a.sombras.puntual, a.sombras.puntual);
-      luz.shadow.bias = -0.002;
-      // Solo la primera puede proyectar sombras: las puntuales con sombra son caras.
-      luz.castShadow = i === 0;
-      this.puntuales.push(luz);
-      this.escena.add(luz);
-    }
+    this.puntuales = new Puntuales(this.escena, a.sombras);
 
     this.escena.add(this.luzCombate);
     const t = a.transparencia;
@@ -606,9 +565,8 @@ export class Mundo {
       e.grupo.traverse((m) => {
         if (m instanceof THREE.Points && !m.material.sizeAttenuation) this.puntos.push(m.material);
       });
-      v.luces.push({ luz, x: x + 0.5, z: y + 0.5, fase: v.azar() * 10 });
+      anadirLuz(v.luces, { luz, x: x + 0.5, z: y + 0.5, fase: v.azar() * 10 });
     }
-    v.luces.sort((p, q) => compararLuces(p.luz, q.luz));
   }
 
   /**
@@ -619,8 +577,7 @@ export class Mundo {
     const luz = this.a.luces[nombre];
     if (!luz) return null;
     const l: LuzSala = { luz, x: 0, z: 0, fase: v.azar() * 10 };
-    v.luces.push(l);
-    v.luces.sort((p, q) => compararLuces(p.luz, q.luz));
+    anadirLuz(v.luces, l);
     return l;
   }
 
@@ -710,73 +667,20 @@ export class Mundo {
     });
     const luz = this.a.luces[nombre];
     v.luces = v.luces.filter((l) => l.x !== o.x + 0.5 || l.z !== o.y + 0.6);
-    if (luz) {
-      v.luces.push({ luz, x: o.x + 0.5, z: o.y + 0.6, fase: v.azar() * 10 });
-      // Las que hacen sombra, primero (solo la primera luz puntual puede proyectarlas), y después las más fuertes.
-      v.luces.sort((p, q) => compararLuces(p.luz, q.luz));
-    }
+    if (luz) anadirLuz(v.luces, { luz, x: o.x + 0.5, z: o.y + 0.6, fase: v.azar() * 10 });
   }
 
   /** Un sprite de pie con la hoja `sprite`, en la sala `v` (o fuera de las salas, como la heroína). */
   crearActor(v: VistaSala | null, sprite: Sprite): Actor {
-    const tam = TAM * escalaHoja(sprite.datos); // píxeles de la hoja por casilla
-    const { frameWidth, frameHeight, anchor } = sprite.datos;
-    const tex = new THREE.Texture(sprite.imagen as HTMLImageElement);
-    ajustarPixelArt(tex);
-    const img = sprite.imagen as HTMLImageElement;
-    const columnas = (img.naturalWidth || img.width) / frameWidth;
-    const filas = (img.naturalHeight || img.height) / frameHeight;
-    tex.repeat.set(1 / columnas, 1 / filas);
-    const rel = this.a.relieve;
-    const material = new THREE.MeshLambertMaterial({
-      map: tex,
-      alphaTest: 0.5,
-      side: THREE.DoubleSide,
-    });
-    if (rel) {
-      // El mapa de normales se calcula solo cuando hace falta (en calidad baja, nunca) y de la hoja que lleve el
-      // actor en ese momento (la heroína cambia de hoja al vestirse).
-      material.userData.hacerRelieve = (): THREE.Texture => {
-        const normales = texturaNormales(sprite.imagen as HTMLImageElement, rel);
-        normales.repeat.set(1 / columnas, 1 / filas);
-        return normales;
-      };
-      material.normalScale.set(rel.escala, rel.escala);
-      ponerRelieve(material, calidadAlta);
-    }
-    const malla = carton(
-      material,
-      frameWidth / tam,
-      frameHeight / tam,
-      (frameHeight - anchor.y) / tam,
-      (frameWidth / 2 - anchor.x) / tam,
-    );
-    malla.rotation.x = -this.giro;
-    malla.scale.y = this.estirar;
-    (v?.grupo ?? this.escena).add(malla);
-    const actor: Actor = { malla, tex, sprite, columnas, filas, signo: null };
+    const actor = actores.crearActor(sprite, this.pie, this.a.relieve, calidadAlta);
+    (v?.grupo ?? this.escena).add(actor.malla);
     v?.actores.push(actor);
     return actor;
   }
 
   /** Da al actor un signo («¡!» o «?») sobre la cabeza, oculto hasta que se pida con `colocarSigno`. */
   crearSigno(a: Actor): void {
-    if (a.signo) return;
-    const { anchor } = a.sprite.datos;
-    const tam = TAM * escalaHoja(a.sprite.datos);
-    const signo = new THREE.Mesh(
-      new THREE.PlaneGeometry(SIGNO.lado, SIGNO.lado),
-      new THREE.MeshBasicMaterial({
-        map: this.texturasSigno.alerta,
-        transparent: true,
-        depthWrite: false,
-      }),
-    );
-    // La malla del actor tiene el origen en los pies: la cabeza queda `anchor.y` píxeles de hoja más arriba.
-    signo.position.y = anchor.y / tam + SIGNO.sobre + SIGNO.lado / 2;
-    signo.visible = false;
-    a.malla.add(signo);
-    a.signo = signo;
+    actores.crearSigno(a, this.texturasSigno);
   }
 
   /** Enseña (o esconde, con `tipo` null) el signo del actor con ese tamaño y opacidad. */
@@ -786,47 +690,22 @@ export class Mundo {
     escala: number,
     opacidad: number,
   ): void {
-    const s = a.signo;
-    if (!s) return;
-    s.visible = tipo !== null && opacidad > 0;
-    if (!tipo || !s.visible) return;
-    const tex = this.texturasSigno[tipo];
-    if (s.material.map !== tex) s.material.map = tex;
-    s.material.opacity = opacidad;
-    s.scale.set(escala, escala, 1);
+    actores.colocarSigno(a, this.texturasSigno, tipo, escala, opacidad);
   }
 
   /** Color del polvo de los pasos (el del suelo de la zona). */
   ponerColorPolvo(hex: string): void {
-    for (const n of this.nubes) n.material.color.set(hex);
+    this.polvo.ponerColor(hex);
   }
 
   /** Suelta una nube de polvo en los pies, en (x, y) píxeles del juego; reutiliza la más vieja. */
   soltarPolvo(x: number, y: number, tiempo: number): void {
-    const n = this.nubes[soltarNube(this.anillo, tiempo)]!;
-    n.position.set(x / TAM, NUBE.lado / 2, y / TAM);
-    if (n.parent !== this.escena) this.escena.add(n);
+    this.polvo.soltar(this.escena, x, y, tiempo);
   }
 
   /** Quita todo el polvo (al cambiar de sala o de zona, cuando el reloj de la escena cambia). */
   vaciarPolvo(): void {
-    vaciarAnillo(this.anillo);
-    for (const n of this.nubes) n.visible = false;
-  }
-
-  /** Las nubes suben un poco, crecen y se desvanecen; `visibles` = false las esconde (fondo del combate). */
-  private animarPolvo(tiempo: number, visibles: boolean): void {
-    const vida = MAPA_VIVO.polvo.vida;
-    for (let i = 0; i < this.nubes.length; i++) {
-      const n = this.nubes[i]!;
-      const p = visibles ? progresoNube(this.anillo, i, tiempo, vida) : -1;
-      n.visible = p >= 0;
-      if (p < 0) continue;
-      n.position.y = NUBE.lado / 2 + NUBE.sube * p;
-      const e = 1 + NUBE.crece * p;
-      n.scale.set(e, e, 1);
-      n.material.opacity = NUBE.opacidad * (1 - p);
-    }
+    this.polvo.vaciar();
   }
 
   /** Coloca un actor con los pies en (x, y) píxeles del juego y el fotograma de `animacion` a los `tiempo` segundos. */
@@ -838,16 +717,7 @@ export class Mundo {
     direccion: Direccion,
     tiempo: number,
   ): void {
-    a.malla.position.set(x / TAM, 0, y / TAM);
-    const anim = a.sprite.datos.animations[animacion];
-    if (!anim) return;
-    const n = Math.floor(tiempo * anim.fps);
-    const columna = anim.startColumn + (anim.loop ? n % anim.frames : Math.min(n, anim.frames - 1));
-    a.tex.offset.set(
-      columna / a.columnas,
-      1 - (a.sprite.datos.directions[direccion] + 1) / a.filas,
-    );
-    a.malla.material.normalMap?.offset.copy(a.tex.offset);
+    actores.colocarActor(a, x, y, animacion, direccion, tiempo);
   }
 
   /**
@@ -884,7 +754,7 @@ export class Mundo {
     h.malla.material.opacity = opacidad;
     for (const b of v.barreras) b.obj.visible = (cerradas & b.lado) !== 0;
     this.animar(v, tiempo);
-    this.animarPolvo(tiempo, true);
+    this.polvo.animar(tiempo, true);
     this.luzCombate.intensity = 0;
     this.camara.position.set(this.camaraX, this.camaraY, this.camaraZ);
 
@@ -918,7 +788,7 @@ export class Mundo {
     if (v !== this.vista) this.mostrar(v);
     if (this.heroe) this.heroe.malla.visible = false;
     for (const a of v.actores) a.malla.visible = false;
-    this.animarPolvo(tiempo, false);
+    this.polvo.animar(tiempo, false);
     this.animar(v, tiempo);
     // Píxeles lógicos de la capa 2D a unidades del mundo, en el sentido en que la sala acompaña a los sprites: por
     // píxeles de pantalla, porque la interfaz del combate y la sala no tienen la misma escala.
@@ -982,20 +852,7 @@ export class Mundo {
     for (const actualizar of v.animados.values()) actualizar(tiempo);
     for (let i = 0; i < v.ambiente.length; i++) v.ambiente[i]!(tiempo);
     v.hundidos?.actualizar(tiempo);
-    for (let i = 0; i < this.puntuales.length; i++) {
-      const luz = this.puntuales[i]!;
-      const l = v.luces[i];
-      if (!l) {
-        luz.intensity = 0;
-        continue;
-      }
-      // Cada fotograma: alguna se mueve (el farol del ermitaño).
-      luz.position.set(l.x, l.luz.alto, l.z);
-      const p = l.luz.parpadeo;
-      const t = tiempo + l.fase;
-      luz.intensity =
-        l.luz.intensidad * (1 + p * Math.sin(t * 13) + p * 0.6 * Math.sin(t * 7.3 + 1));
-    }
+    this.puntuales.animar(v.luces, tiempo);
   }
 
   /** Franja enfocada del tilt-shift (0 abajo, 1 arriba) y cuántas veces el desenfoque normal. */
@@ -1066,15 +923,7 @@ export class Mundo {
     // desde detrás dejaba a oscuras la cara de los sprites.
     this.principal.position.set(centro.x - 6, 12, centro.z + 5);
     this.principal.target.position.copy(centro);
-    this.puntuales.forEach((luz, i) => {
-      // Las que sobran se quedan apagadas, no se quitan: cambiar cuántas hay recompila los materiales.
-      const l = v.luces[i];
-      if (!l) return;
-      luz.color.set(l.luz.color);
-      luz.distance = l.luz.alcance;
-      luz.position.set(l.x, l.luz.alto, l.z);
-      luz.castShadow = i === 0 && l.luz.sombra && calidadAlta;
-    });
+    this.puntuales.colocar(v.luces, calidadAlta);
   }
 
   /** La heroína de otra partida: su actor, con la hoja nueva. */
@@ -1097,21 +946,6 @@ export class Mundo {
     this.vista = null;
     if (v) this.mostrar(v);
   }
-}
-
-/** Plano de `ancho` × `alto` casillas con el origen `pie` casillas por encima de su borde inferior; `dx` lo corre a la derecha. */
-function carton<M extends THREE.MeshLambertMaterial | THREE.MeshBasicMaterial>(
-  material: M,
-  ancho: number,
-  alto: number,
-  pie: number,
-  dx = 0,
-): THREE.Mesh<THREE.PlaneGeometry, M> {
-  const geometria = new THREE.PlaneGeometry(ancho, alto);
-  geometria.translate(dx, alto / 2 - pie, 0);
-  const plano = new THREE.Mesh(geometria, material);
-  plano.castShadow = true;
-  return plano;
 }
 
 /** Sombras redondas en el suelo, corridas `dx`, `dz` casillas (el lienzo de fuera empieza antes que la sala). */
@@ -1150,67 +984,4 @@ function pintarPieza(
     dibujarTile(p.ctx, imagenes, t, tam, 0, fila * tam, t.frames ? frame % t.frames : 0),
   );
   p.tex.needsUpdate = true;
-}
-
-/** Textura de un signo («¡!» o «?»): letra gruesa del color pedido con contorno oscuro, en píxeles nítidos. */
-function texturaSigno(texto: string, color: string): THREE.Texture {
-  const lienzo = document.createElement('canvas');
-  lienzo.width = 32;
-  lienzo.height = 32;
-  const ctx = lienzo.getContext('2d')!;
-  ctx.font = `bold 26px ${FAMILIA}`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.lineWidth = 5;
-  ctx.strokeStyle = '#08040c';
-  ctx.strokeText(texto, 16, 17);
-  ctx.fillStyle = color;
-  ctx.fillText(texto, 16, 17);
-  const tex = new THREE.CanvasTexture(lienzo);
-  ajustarPixelArt(tex);
-  return tex;
-}
-
-/** Textura de una nube de polvo: un círculo blanco de borde suave (el color lo pone el material). */
-function texturaNube(): THREE.Texture {
-  const lienzo = document.createElement('canvas');
-  lienzo.width = 16;
-  lienzo.height = 16;
-  const ctx = lienzo.getContext('2d')!;
-  const g = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
-  g.addColorStop(0, 'rgba(255,255,255,1)');
-  g.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 16, 16);
-  return new THREE.CanvasTexture(lienzo);
-}
-
-/**
- * Pone o quita el relieve de un material: el bump del suelo (`userData.relieve`, su propio dibujo) o el mapa de
- * normales de un sprite, que se calcula la primera vez que se pone (`userData.hacerRelieve`). Sin ninguno, nada.
- */
-function ponerRelieve(m: THREE.MeshLambertMaterial, alta: boolean): void {
-  let relieve = m.userData.relieve as THREE.Texture | undefined;
-  const hacer = m.userData.hacerRelieve as (() => THREE.Texture) | undefined;
-  if (!relieve && alta && hacer) relieve = m.userData.relieve = hacer();
-  if (!relieve) return;
-  const esSuelo = relieve === m.map;
-  const actual = esSuelo ? m.bumpMap : m.normalMap;
-  const nuevo = alta ? relieve : null;
-  if (actual === nuevo) return;
-  if (esSuelo) m.bumpMap = nuevo;
-  else m.normalMap = nuevo;
-  m.needsUpdate = true;
-}
-
-/** Suelta el mapa de normales calculado de un sprite (se rehará si hace falta); el bump del suelo es su dibujo. */
-function quitarRelieve(m: THREE.MeshLambertMaterial): void {
-  const relieve = m.userData.relieve as THREE.Texture | undefined;
-  if (!relieve || relieve === m.map) return;
-  relieve.dispose();
-  delete m.userData.relieve;
-  if (m.normalMap) {
-    m.normalMap = null;
-    m.needsUpdate = true;
-  }
 }
