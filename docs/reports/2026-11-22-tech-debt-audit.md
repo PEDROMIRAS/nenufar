@@ -45,4 +45,4 @@ Auditoría completa: Nenúfar · Salud: 7/10 · Deuda de interés alto: 3 · TOD
 
 ## Seguimiento
 
-- 2026-11-22: punto 1 hecho (herramientas `npm run equilibrio*` y equilibrado con 2 puntos de margen salvo los presagios). Punto 2 hecho (`src/escenas/salasEvento.ts`, tests de caracterización en `tests/mapa_eventos.test.ts`; `mapa.ts` de 1210 a 1078 líneas).
+- 2026-11-22: punto 1 hecho (herramientas `npm run equilibrio*` y equilibrado con 2 puntos de margen salvo los presagios). Punto 2 hecho (`src/escenas/salasEvento.ts`, tests de caracterización en `tests/mapa_eventos.test.ts`; `mapa.ts` de 1210 a 1078 líneas). Punto 3 hecho (`tests/combate_flujos.test.ts`: seis flujos del menú de combate con teclado y dedo, con la escena de verdad).
