@@ -3,19 +3,31 @@ import { barra, COLOR_BARRA } from './combate';
 import { PALETA } from './marco';
 import { SALA_ALTO, vista } from './pantalla';
 import { escribir } from './texto';
+import { ANCHO_LETRA, cabeceraQueCabe, letrasEnAncho } from '../core/disposicion';
 
 /** Textos del HUD; la escena los rehace solo cuando cambia algún valor. */
 export interface TextosHud {
   cabecera: string;
+  /** Sin el presagio, para cuando la larga no cabe antes del minimapa. */
+  cabeceraCorta: string;
   pv: string;
   pm: string;
 }
 
-/** Zona, nivel, PV y PM de la heroína, arriba a la izquierda del mapa. */
-export function dibujarHud(ctx: CanvasRenderingContext2D, h: Luchador, t: TextosHud): void {
+/**
+ * Zona, nivel, PV y PM de la heroína, arriba a la izquierda del mapa. La cabecera acaba antes de `hasta` (el
+ * minimapa): si la larga no cabe, va la corta; la caja se ensancha con ella.
+ */
+export function dibujarHud(
+  ctx: CanvasRenderingContext2D,
+  h: Luchador,
+  t: TextosHud,
+  hasta: number,
+): void {
+  const cabecera = cabeceraQueCabe(t.cabecera, t.cabeceraCorta, letrasEnAncho(hasta - 12));
   ctx.fillStyle = 'rgba(9, 7, 18, 0.7)';
-  ctx.fillRect(6, 6, 150, 50);
-  escribir(ctx, t.cabecera, 12, 10);
+  ctx.fillRect(6, 6, Math.max(150, Math.ceil(cabecera.length * ANCHO_LETRA) + 12), 50);
+  escribir(ctx, cabecera, 12, 10);
   barra(ctx, 12, 30, 80, h.pv / h.pvMax, COLOR_BARRA.pv);
   escribir(ctx, t.pv, 98, 26);
   barra(ctx, 12, 44, 80, h.pm / Math.max(1, h.pmMax), COLOR_BARRA.pm);

@@ -249,7 +249,7 @@ export class EscenaMapa implements Escena {
   /** Aviso en pantalla (la fuente…) y segundos que le quedan. */
   private aviso = '';
   private tiempoAviso = 0;
-  private readonly hud: TextosHud = { cabecera: '', pv: '', pm: '' };
+  private readonly hud: TextosHud = { cabecera: '', cabeceraCorta: '', pv: '', pm: '' };
   /** Valores con los que se escribieron los textos del HUD, para rehacerlos solo si cambian. */
   private hudFirma = -1;
   /** Cómo pasea el ermitaño: sin visión ni persecución. Se hace una vez y no en cada fotograma. */
@@ -585,8 +585,6 @@ export class EscenaMapa implements Escena {
     this.refrescarHud();
     ctx.save();
     ctx.scale(ventana.hud, ventana.hud);
-    dibujarHud(ctx, this.o.luchadora, this.hud);
-    if (this.tiempoAviso > 0) dibujarAviso(ctx, this.aviso);
     // El minimapa va encima del fundido: es interfaz, no parte de la sala.
     // A la izquierda de la mochila, como siempre; crece en enteros con el ancho que sobra a los lados de la sala.
     const { width: mw, height: mh } = this.minimapa;
@@ -595,7 +593,11 @@ export class EscenaMapa implements Escena {
       1,
       Math.min(3, Math.floor(lateral / mw), Math.floor(ventana.alto / 2 / ventana.hud / mh)),
     );
-    ctx.drawImage(this.minimapa, BOTON_MENU.x - MARGEN_HUD - mw * k, MARGEN_HUD, mw * k, mh * k);
+    const xMinimapa = BOTON_MENU.x - MARGEN_HUD - mw * k;
+    // La cabecera del HUD acaba antes del minimapa (en el móvil de pie, con el presagio, chocaba).
+    dibujarHud(ctx, this.o.luchadora, this.hud, xMinimapa - MARGEN_HUD);
+    if (this.tiempoAviso > 0) dibujarAviso(ctx, this.aviso);
+    ctx.drawImage(this.minimapa, xMinimapa, MARGEN_HUD, mw * k, mh * k);
     dibujarBotonMenu(ctx, this.o.luchadora.puntos > 0);
     ctx.restore();
     if (this.combateEntrante) {
@@ -866,6 +868,7 @@ export class EscenaMapa implements Escena {
     if (firma === this.hudFirma) return;
     this.hudFirma = firma;
     this.hud.cabecera = `${this.o.nombreZona}${this.o.presagio ? ` · ${this.o.presagio}` : ''} · Nv ${l.nivel}`;
+    this.hud.cabeceraCorta = `${this.o.nombreZona} · Nv ${l.nivel}`;
     this.hud.pv = `${l.pv}/${l.pvMax}`;
     this.hud.pm = `${l.pm}/${l.pmMax}`;
   }

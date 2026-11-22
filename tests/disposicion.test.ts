@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import {
   anchoNombre,
+  cabeceraQueCabe,
   botonesAltos,
   botonesAltosCacheados,
   celdasBestiario,
@@ -183,6 +184,19 @@ describe('disposicionCombate', () => {
     expect(primeraVisible(6, 0, 5, 7)).toBe(2);
     expect(primeraVisible(1, 2, 5, 7)).toBe(1);
     expect(primeraVisible(3, 0, 7, 7)).toBe(0);
+  });
+});
+
+describe('cabeceraQueCabe', () => {
+  const larga = 'Cauce Seco · Fuente seca · Nv 12';
+  const corta = 'Cauce Seco · Nv 12';
+  test('con sitio, la larga (con el presagio)', () => {
+    expect(cabeceraQueCabe(larga, corta, 40)).toBe(larga);
+  });
+  test('si no cabe antes del minimapa, la corta (el presagio sigue en la pausa)', () => {
+    expect(cabeceraQueCabe(larga, corta, 30)).toBe(corta);
+    // Ni la corta cabe: se queda la corta igualmente (nunca se pierde el nivel).
+    expect(cabeceraQueCabe(larga, corta, 10)).toBe(corta);
   });
 });
 
