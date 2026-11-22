@@ -142,6 +142,15 @@ export function zonasDestello(
 }
 
 /**
+ * Altura del número de daño de un enemigo, que sube `sube` píxeles de los `subida` que sube en todo el golpe: sale en
+ * `inicio` (sobre su cabeza) si así no pasa nunca del `techo` (la banda de mensajes, o el pie de su nombre si el
+ * nombre es ancho y lo taparía); si no, sale más abajo, sobre el dibujo, y acaba justo en el techo.
+ */
+export function yNumeroDanio(inicio: number, techo: number, sube: number, subida: number): number {
+  return Math.max(inicio, techo + subida) - sube;
+}
+
+/**
  * La primera fila a la vista tras tocar la opción `tocada`: si es la última visible y hay más abajo, se desplaza una;
  * si es la primera visible y hay más arriba, también. Así con el dedo se llega a las opciones ocultas.
  */

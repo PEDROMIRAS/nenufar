@@ -6,6 +6,7 @@ import {
   anchoNombre,
   disposicionCombate,
   topeCartelCombate,
+  yNumeroDanio,
   zonasDestello,
   type DisposicionCombate,
 } from '../core/disposicion';
@@ -422,6 +423,14 @@ function topeEnemigo(v: VistaCombate, e: Luchador): number {
   return Math.max(TOPE_ESCENA + D.nombre, G.enemigoY - alto);
 }
 
+/**
+ * Dónde empieza el nombre de un enemigo de `lineas` líneas: sobre su cabeza, pero nunca sobre los mensajes (un jefe
+ * alto con el nombre en dos líneas lo baja hasta su borde; los fotogramas dejan unos píxeles libres por arriba).
+ */
+function yNombreEnemigo(tope: number, lineas: number): number {
+  return Math.max(TOPE_ESCENA, tope - 18 - (lineas - 1) * LINEA_NOMBRE);
+}
+
 function dibujarEnemigo(
   ctx: CanvasRenderingContext2D,
   v: VistaCombate,
@@ -456,9 +465,7 @@ function dibujarEnemigo(
   const extra = (lineas.length - 1) * LINEA_NOMBRE;
   const sinSitio = tope - 36 - extra < TOPE_ESCENA;
   const avisoEnNombre = sinSitio && v.cargando.has(e);
-  // Nunca sube sobre los mensajes: un jefe alto con el nombre en dos líneas lo baja hasta su borde
-  // (los fotogramas dejan unos píxeles libres por arriba).
-  const yNombre = Math.max(TOPE_ESCENA, tope - 18 - extra);
+  const yNombre = yNombreEnemigo(tope, lineas.length);
   if (avisoEnNombre) escribir(ctx, '¡Golpe fuerte!', x, yNombre, COLOR.aviso, 'center');
   else
     for (let i = 0; i < lineas.length; i++)
@@ -901,6 +908,9 @@ function fuenteNumero(v: VistaCombate): string {
   return FUENTES_NUMERO[Math.min(64, Math.round(TAMANO_NUMERO * escala))]!;
 }
 
+/** Lo que se aparta el número de daño a la derecha del centro del enemigo, y lo que sube en todo el golpe. */
+const DX_NUMERO = 42;
+const SUBIDA_NUMERO = Math.round(ritmo.golpe * 30);
 function dibujarFlotante(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   const g = v.golpeado;
   if (!g || !v.flotante) return;
@@ -912,7 +922,17 @@ function dibujarFlotante(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
     escribir(ctx, v.flotante, G.heroinaX, G.heroinaY - 80 - sube, color, 'center', fuente);
     return;
   }
-  // A la derecha del nombre (que ocupa unos 36 px a cada lado), para no taparlo mientras sube.
-  const x = xEnemigo(enemigos.indexOf(g), enemigos.length) + 42;
-  escribir(ctx, v.flotante, x, topeEnemigo(v, g) - 30 - sube, color, 'left', fuente);
+  // A la derecha del nombre corto (unos 36 px a cada lado), para no taparlo mientras sube. Nunca sube sobre los
+  // mensajes, ni sobre un nombre ancho que taparía (un jefe solo, «Guardián del Bosque»): entonces sale sobre el
+  // dibujo, bajo el nombre.
+  const x = xEnemigo(enemigos.indexOf(g), enemigos.length) + DX_NUMERO;
+  const tope = topeEnemigo(v, g);
+  const lineas = lineasNombre(g);
+  const ancho = lineas.reduce((m, l) => Math.max(m, l.length), 0) * ANCHO_LETRA;
+  const techo =
+    ancho / 2 + 4 > DX_NUMERO
+      ? yNombreEnemigo(tope, lineas.length) + lineas.length * LINEA_NOMBRE + 2
+      : TOPE_ESCENA;
+  const y = yNumeroDanio(tope - 30, techo, sube, SUBIDA_NUMERO);
+  escribir(ctx, v.flotante, x, y, color, 'left', fuente);
 }
