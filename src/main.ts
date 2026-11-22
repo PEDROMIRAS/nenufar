@@ -94,10 +94,13 @@ async function iniciar(): Promise<void> {
   const mundo = new Mundo(canvas, HD2D);
   prepararSonido();
 
-  // ?semilla=N repite una partida; sin ella, cada carga es distinta.
+  // ?semilla=N repite una partida; sin ella, cada carga es distinta. Por debajo de 2³¹, como la del azar: el guardado no
+  // acepta semillas de 2³² o más, y con una así la partida se jugaba pero se descartaba al recargar.
   const pedida = Number(new URLSearchParams(location.search).get('semilla'));
   const semilla =
-    Number.isInteger(pedida) && pedida > 0 ? pedida : Math.floor(Math.random() * 2 ** 31);
+    Number.isInteger(pedida) && pedida > 0 && pedida < 2 ** 31
+      ? pedida
+      : Math.floor(Math.random() * 2 ** 31);
   console.info('Semilla de la partida:', semilla);
   // ?zona=N empieza en la zona N (0 = Bosque), solo en desarrollo: para revisar el arte de cada zona.
   const zonaInicial = import.meta.env.DEV

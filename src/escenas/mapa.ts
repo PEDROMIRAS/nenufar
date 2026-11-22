@@ -282,7 +282,9 @@ export class EscenaMapa implements Escena {
       this.fundido = o.duracionFundido / 2;
       this.prepararAlEmpezar = true;
     }
-    o.alEntrarEnSala?.(this.estado());
+    // Una zona recuperada ya está guardada tal cual, con el combate interrumpido o lo pendiente del desafío: guardarla
+    // otra vez lo borraría, y cerrar de nuevo antes de volver al combate perdía el desafío y su premio.
+    if (!r) o.alEntrarEnSala?.(this.estado());
   }
 
   /** Vuelve a dejar la zona como estaba al guardar: salas vistas y hechas, grupos vencidos, fuente. */
