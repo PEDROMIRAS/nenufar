@@ -152,7 +152,10 @@ export async function crearZona(
                 partida.pila.cambiar(siguiente);
                 // Tras el cartel (y el presagio), las habilidades con que se entra en la zona.
                 contar(partida.pila, [cartel(indice + 1), ...paginaPresagio(partida)], () =>
-                  elegirHabilidades(partida, () => {}),
+                  // Lo elegido se guarda ya: si no, se perdía al cerrar en la primera sala.
+                  elegirHabilidades(partida, () =>
+                    guardarPartida(guardado(partida, indice + 1, siguiente.estado())),
+                  ),
                 );
               })
               .catch(mostrarError);
@@ -198,7 +201,12 @@ export async function crearZona(
     usarErmitano: (azar, alTerminar) => abrirErmitano(partida, nombre, azar, alTerminar),
     usarMercader: (alTerminar) => abrirMercader(partida, alTerminar),
     ofrecerEquipo: (clave, alFinal) => ofrecerEquipo(partida, [clave], alFinal),
-    elegirHabilidades: (alCerrar) => elegirHabilidades(partida, alCerrar),
+    // Junto a la fuente: lo elegido se guarda al cerrar (el reto no guarda nada).
+    elegirHabilidades: (alCerrar) =>
+      elegirHabilidades(partida, () => {
+        if (!reto) guardarPartida(guardado(partida, indice, escena.estado()));
+        alCerrar();
+      }),
     abrirPausa: () => {
       const pausa: EscenaPausa = new EscenaPausa(
         partida.luchadora,

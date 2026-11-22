@@ -54,7 +54,7 @@ import {
 import { prepararSonido } from './render/sonido';
 import { Mundo } from './render/mundo/mundo';
 import { crearPortada, type Portada3d } from './render/mundo/portada';
-import { cargarPartida, cargarRecords, guardarAjustes } from './render/almacen';
+import { cargarPartida, cargarRecords, guardarAjustes, guardarPartida } from './render/almacen';
 import {
   cargarImagen,
   cargarSprite,
@@ -70,6 +70,7 @@ import {
   type Partida,
   CONOCIDO,
   aspecto,
+  guardado,
   mostrarError,
 } from './partida/partida';
 import { LOGROS, hoy, terminarReto } from './partida/fin';
@@ -293,7 +294,11 @@ async function iniciar(): Promise<void> {
             ...paginaPresagio(partida),
           ],
           // Después, las 3 habilidades con que se entra en la zona.
-          () => elegirHabilidades(partida, () => {}),
+          // Lo elegido se guarda ya: si no, se perdía al cerrar en la primera sala.
+          () =>
+            elegirHabilidades(partida, () =>
+              guardarPartida(guardado(partida, zonaInicial, zona.estado())),
+            ),
         );
       })
       .catch(mostrarError);
@@ -399,7 +404,12 @@ async function iniciar(): Promise<void> {
               if (guardada.combate) zona.reanudarCombate(guardada.combate);
             };
             // Una partida de antes de las habilidades equipadas: que las elija antes de seguir.
-            if (eligeAlRecuperar(guardada.heroina)) elegirHabilidades(partida, reanudar);
+            if (eligeAlRecuperar(guardada.heroina))
+              elegirHabilidades(partida, () => {
+                // Con lo elegido y el mismo combate pendiente: recuperar otra vez no vuelve a preguntar.
+                guardarPartida(guardado(partida, guardada.zona, zona.estado(), guardada.combate));
+                reanudar();
+              });
             else reanudar();
           },
         );
