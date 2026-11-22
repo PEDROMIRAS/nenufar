@@ -54,6 +54,27 @@
       "nombre": "Postura de hierro",
       "turnos": 3,
       "defensa": 1.5
+    },
+    "velo": {
+      "nombre": "Velo",
+      "turnos": 3,
+      "defensa": 1.5
+    },
+    "debilitado": {
+      "nombre": "Debilitado",
+      "turnos": 3,
+      "ataque": 0.6,
+      "magia": 0.6
+    },
+    "quemadura_rana": {
+      "nombre": "Quemadura",
+      "turnos": 3,
+      "danioPorTurno": 0.04
+    },
+    "veneno_rana": {
+      "nombre": "Veneno",
+      "turnos": 3,
+      "danioPorTurno": 0.04
     }
   },
   "experiencia": {

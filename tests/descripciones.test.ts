@@ -47,6 +47,31 @@ describe('descripciones', () => {
     );
   });
 
+  test('las que rompen el golpe cargado o quitan estados lo dicen', () => {
+    const estados = {
+      ...ESTADOS,
+      quemadura: { nombre: 'Quemadura', turnos: 3, danioPorTurno: 0.08 },
+    };
+    const pomo: HabilidadJson = {
+      nombre: 'Golpe de pomo',
+      nivel: 1,
+      pm: 2,
+      objetivo: 'uno',
+      danio: { tipo: 'fisico', poder: 0.7 },
+      rompeCarga: true,
+    };
+    expect(describirHabilidad(pomo, estados)).toContain('Rompe el golpe cargado');
+    const respiro: HabilidadJson = {
+      nombre: 'Respiro',
+      nivel: 9,
+      pm: 5,
+      objetivo: 'propio',
+      cura: 0.25,
+      quitaEstados: ['veneno', 'quemadura'],
+    };
+    expect(describirHabilidad(respiro, estados)).toContain('Quita Veneno y Quemadura');
+  });
+
   test('consumibles y acciones salen de los datos', () => {
     expect(describirConsumible({ nombre: 'Antídoto', quitaEstado: 'veneno' }, ESTADOS)).toBe(
       'Quita el Veneno.',

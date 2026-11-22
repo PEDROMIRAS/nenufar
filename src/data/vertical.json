@@ -17,5 +17,12 @@
     "letrasPanel": 40,
     "letraTitulo": 19.2,
     "letraGrande": 14.69
+  },
+  "habilidades": {
+    "filaHorizontal": 26,
+    "columnaLista": 0.58,
+    "separacion": 12,
+    "lineasDetalle": 4,
+    "lineaDetalle": 18
   }
 }

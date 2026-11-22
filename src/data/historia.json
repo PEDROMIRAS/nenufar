@@ -67,7 +67,7 @@
   "recompensas": {
     "habilidad": {
       "titulo": "Nueva habilidad",
-      "texto": "Has aprendido {habilidad}."
+      "texto": "Has aprendido {habilidad}. Equípala junto a la fuente o al entrar en la siguiente zona."
     },
     "pieza": {
       "titulo": "¡Recompensa!",
@@ -82,5 +82,16 @@
     "heredado": "{nombre}, Señora de la Cripta",
     "inicio": "«Yo también llegué hasta aquí, hace mil años. Yo también lo vencí. Bebe, y no morirás nunca.»",
     "caida": "«Rompe... lo que yo no pude romper.»"
+  },
+  "habilidades": {
+    "titulo": "Habilidades · elige {n}",
+    "listo": "Listo",
+    "llevas": "Llevas {llevas} de {n}",
+    "llena": "Ya llevas {n}: quita una antes",
+    "faltan": "Elige {n} antes de seguir",
+    "equipada": "Equipada",
+    "aviso": "Equípala junto a la fuente o al entrar en la siguiente zona",
+    "pausa": "Se cambian al entrar en una zona o junto a la fuente",
+    "mas": "y {n} más sin equipar"
   }
 }

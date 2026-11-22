@@ -89,11 +89,18 @@ export interface HeroeJson {
   armaInicial: string;
   /** Sus armas por nivel (1, 2, 3): claves de equipo en objetos.json. */
   armas: string[];
+  /** Cuántas habilidades lleva equipadas a la vez (las demás las conoce pero no salen en combate). */
+  equipables: number;
   habilidades: HabilidadJson[];
   /** Recompensas de los jefes violetas: claves de equipo en objetos.json y el nombre de su quinta habilidad. */
   especiales: { arma: string; armadura: string; habilidad: string };
   /** Orden en que se reparten solos sus puntos de mejora (reto del día y simulador). */
   planPuntos: Mejora[];
+  /**
+   * Qué habilidades se equipa la jugadora simulada, por orden de preferencia: al empezar cada zona (`zona`) y antes de
+   * un jefe (`jefe`, en la fuente y antes del final). Reto del día y simulador.
+   */
+  planHabilidades: { zona: string[]; jefe: string[] };
 }
 
 /** Una habilidad: cuesta PM, se desbloquea en un nivel y hace daño, cura o aplica un estado. */
@@ -122,6 +129,8 @@ export interface HabilidadJson {
   recompensa?: true;
   /** Quita el golpe cargado que estén preparando los objetivos que sobreviven. */
   rompeCarga?: true;
+  /** Estados de combate.json que quita a cada objetivo (Respiro y Purificar: veneno y quemadura). */
+  quitaEstados?: string[];
 }
 
 /** Un estado alterado de combate.json: dura unos turnos del afectado y cambia sus estadísticas o su turno. */

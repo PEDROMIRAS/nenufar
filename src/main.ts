@@ -1,7 +1,8 @@
 import { crearAcciones } from './core/acciones';
 import { crearAzar } from './core/azar';
 import { luchadorDeHeroe, type Luchador } from './core/combate';
-import { restaurarHeroina } from './core/guardado';
+import { eligeAlRecuperar, restaurarHeroina } from './core/guardado';
+import { ajustarEquipadas } from './core/equipadas';
 import { crearHeroina } from './core/heroina';
 import { equipar, inventarioInicial } from './core/equipo';
 import type { Inventario } from './core/inventario';
@@ -23,6 +24,7 @@ import { PilaEscenas } from './escenas/pila';
 import { EscenaPausa } from './escenas/pausa';
 import type { Escena } from './escenas/escena';
 import { EscenaPresentacion } from './escenas/presentacion';
+import { EscenaHabilidades } from './escenas/habilidades';
 import { EscenaSeleccion } from './escenas/seleccion';
 import { EscenaTitulo } from './escenas/titulo';
 import { leerFuentes } from './input/fuente';
@@ -71,12 +73,20 @@ import {
   mostrarError,
 } from './partida/partida';
 import { LOGROS, hoy, terminarReto } from './partida/fin';
-import { contar, paginas, paginaPresagio, cartel, tituloRival } from './partida/relato';
+import {
+  contar,
+  elegirHabilidades,
+  paginas,
+  paginaPresagio,
+  cartel,
+  tituloRival,
+} from './partida/relato';
 import { crearZona } from './partida/zona';
 import { abrirAltar } from './partida/eventos';
 import { vestir, luchar } from './partida/combates';
 
-const esPausa = (e: Escena): boolean => e instanceof EscenaPausa;
+/** Escenas que paran el reloj del reto: la pausa (y lo que se abre desde ella) y elegir habilidades. */
+const esPausa = (e: Escena): boolean => e instanceof EscenaPausa || e instanceof EscenaHabilidades;
 
 // Con una partida en marcha, cerrar la pestaña pregunta antes (Ctrl+W sin querer).
 addEventListener('beforeunload', (e) => {
@@ -229,6 +239,16 @@ async function iniciar(): Promise<void> {
     if (import.meta.env.DEV)
       luchadora.puntos = Number(new URLSearchParams(location.search).get('puntos')) || 0;
     const inventario = inventarioInicial(luchadora, heroe, OBJETOS);
+    // shortcut: solo en desarrollo, ?nivel=N empieza en ese nivel (con la quinta habilidad ganada si N es el máximo),
+    // para revisar la pantalla Habilidades y la pausa con muchas habilidades.
+    const nivel = import.meta.env.DEV
+      ? Number(new URLSearchParams(location.search).get('nivel'))
+      : 0;
+    if (nivel > 1) {
+      empezarEnNivel(luchadora, nivel, REGLAS.experiencia);
+      if (nivel >= REGLAS.experiencia.nivelMaximo)
+        luchadora.habilidadesGanadas.push(heroe.especiales.habilidad);
+    }
     // ?equipo=clave se pone esa pieza al empezar (solo en desarrollo): para ver cómo se viste la heroína.
     const pieza = import.meta.env.DEV ? new URLSearchParams(location.search).get('equipo') : null;
     if (pieza && OBJETOS.equipo[pieza]) equipar(luchadora, inventario, OBJETOS, pieza);
@@ -272,7 +292,8 @@ async function iniciar(): Promise<void> {
             cartel(zonaInicial),
             ...paginaPresagio(partida),
           ],
-          () => {},
+          // Después, las 3 habilidades con que se entra en la zona.
+          () => elegirHabilidades(partida, () => {}),
         );
       })
       .catch(mostrarError);
@@ -286,6 +307,7 @@ async function iniciar(): Promise<void> {
     const luchadora = luchadorDeHeroe(heroe);
     const inventario = inventarioInicial(luchadora, heroe, OBJETOS);
     empezarEnNivel(luchadora, RETO.nivel, REGLAS.experiencia);
+    ajustarEquipadas(luchadora);
     const partida = crearPartida(
       heroe,
       sprite,
@@ -308,7 +330,9 @@ async function iniciar(): Promise<void> {
           finForzado = null;
           return;
         }
-        if (!otraVez)
+        const elegir = (): void => elegirHabilidades(partida, () => {});
+        if (otraVez) elegir();
+        else
           contar(
             pila,
             [
@@ -317,7 +341,7 @@ async function iniciar(): Promise<void> {
                 texto: `${fecha.dia}/${fecha.mes}/${fecha.anio}. Llega al Guardián del Bosque.`,
               },
             ],
-            () => {},
+            elegir,
           );
       })
       .catch(mostrarError);
@@ -336,6 +360,7 @@ async function iniciar(): Promise<void> {
     const sprite = opciones.find((o) => o.heroe === heroe)!.sprite;
     const luchadora = luchadorDeHeroe(heroe);
     restaurarHeroina(luchadora, guardada.heroina);
+    ajustarEquipadas(luchadora); // las de una partida de antes, o las que ya no conozca
     const partida = crearPartida(
       heroe,
       sprite,
@@ -370,7 +395,12 @@ async function iniciar(): Promise<void> {
             ...(guardada.combate?.tipo === 'final' ? [] : paginaPresagio(partida)),
           ],
           () => {
-            if (guardada.combate) zona.reanudarCombate(guardada.combate);
+            const reanudar = (): void => {
+              if (guardada.combate) zona.reanudarCombate(guardada.combate);
+            };
+            // Una partida de antes de las habilidades equipadas: que las elija antes de seguir.
+            if (eligeAlRecuperar(guardada.heroina)) elegirHabilidades(partida, reanudar);
+            else reanudar();
           },
         );
       })

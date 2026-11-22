@@ -1,21 +1,10 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { crearAcciones } from '../src/core/acciones';
-import { luchadorDeHeroe, type Resultado } from '../src/core/combate';
-import { inventarioInicial } from '../src/core/equipo';
+import { type Resultado } from '../src/core/combate';
 import type { CombateGuardado, EstadoMapa } from '../src/core/guardado';
-import { crearHeroina } from '../src/core/heroina';
-import { crearCatalogo } from '../src/core/sala';
-import type { MonstruoJson, TilesetJson } from '../src/core/types';
-import { generarZona } from '../src/core/zona';
-import { EVENTOS, HD2D, HEROES, MONSTRUOS, OBJETOS, REGLAS } from '../src/data/datos';
-import bosque from '../src/data/salas/plantillas_bosque.json';
-import zonas from '../src/data/zonas.json';
-import { EscenaMapa, type OpcionesMapa } from '../src/escenas/mapa';
-import type { Mundo } from '../src/render/mundo/mundo';
-import type { Sprite } from '../src/render/recursos';
-import bosqueAuto from '../public/assets/tilesets/bosque_autotiles.json';
-import bosqueTiles from '../public/assets/tilesets/bosque.json';
-import comunes from '../public/assets/tilesets/comunes.json';
+import { EVENTOS } from '../src/data/datos';
+import { EscenaMapa } from '../src/escenas/mapa';
+import { opcionesMapa, zonaCon } from './mapa_falso';
 
 // El mapa sin dibujo ni sonido: aquí solo cuenta qué se guarda y cuándo.
 vi.mock('../src/input/mando', () => ({ vibrar: () => {} }));
@@ -47,27 +36,7 @@ vi.mock('../src/render/pantalla', () => ({
 }));
 vi.mock('../src/render/entrada', () => ({ dibujarEntrada: () => {} }));
 
-const datos = zonas.zonas.bosque;
-const catalogo = crearCatalogo([bosqueTiles, comunes, bosqueAuto] as unknown as TilesetJson[]);
-const monstruo = (clave: string): MonstruoJson => MONSTRUOS[clave]!;
-
-/** Un Bosque con desafío (todos los eventos lo son) y el índice de su sala. */
-function zonaConDesafio(): { zona: ReturnType<typeof generarZona>; sala: number } {
-  for (let semilla = 1; ; semilla++) {
-    const zona = generarZona(
-      {
-        ...zonas.generacion,
-        salas: datos.salas,
-        probabilidadEvento: 1,
-        probabilidadDesafio: 1,
-      },
-      semilla,
-    );
-    const sala = zona.salas.findIndex((s) => s.evento === 'desafio');
-    if (sala >= 0) return { zona, sala };
-  }
-}
-const { zona, sala } = zonaConDesafio();
+const { zona, sala } = zonaCon((s) => s.evento === 'desafio');
 
 /** Lo que hay en el almacenamiento: el estado del mapa y el combate interrumpido o pendiente. */
 interface Disco {
@@ -87,69 +56,22 @@ let combates: { combate: CombateGuardado; acabar: (r: Resultado) => void }[];
  */
 function abrir(recuperado: Disco | null): EscenaMapa {
   combates = [];
-  const heroe = HEROES.ronin!;
-  const luchadora = luchadorDeHeroe(heroe);
-  const o: OpcionesMapa = {
-    zona,
-    plantillas: bosque,
-    catalogo,
-    imagenes: [],
-    tam: 32,
-    heroina: crearHeroina(heroe, 0, 0),
-    sprite: { datos: { animations: {} } } as unknown as Sprite,
-    musica: 'bosque',
-    spritesMonstruos: new Map(),
-    duracionFundido: zonas.transicionSalas,
-    rejilla: zonas.generacion.rejilla,
-    alUsarPortal: null,
-    entrarDesdeNegro: false,
-    grupos: datos.grupos.map(({ monstruos, peso }) => ({
-      peso,
-      monstruos: monstruos.map(monstruo),
-    })),
-    gruposPorSala: zonas.monstruos.gruposPorSala,
-    gruposExtra: 0,
-    modoFuente: 'todo',
-    presagio: null,
-    jefe: monstruo(datos.jefe),
-    jefeVioleta: null,
-    cofreTrampa: monstruo(datos.cofreTrampa),
-    distanciaMonstruos: zonas.monstruos.distanciaEntradas,
-    invulnerabilidad: REGLAS.invulnerabilidadTrasCombate,
-    iniciarCombate: (_grupo, alTerminarMapa, _quien, combate) => {
-      guardar(escena.estado(), combate);
-      combates.push({
-        combate,
-        acabar: (r) => {
-          alTerminarMapa(r);
-          guardar(escena.estado(), escena.combatePendiente());
-        },
-      });
-    },
-    luchadora,
-    nombreZona: datos.nombre,
-    lluviaTrasJefe: 0,
-    pistas: [],
-    segundosPista: 1,
-    cofre: datos.cofre,
-    inventario: inventarioInicial(luchadora, heroe, OBJETOS),
-    objetos: OBJETOS,
-    usarAltar: () => {},
-    desafio: EVENTOS.desafio,
-    usarDesafio: () => {},
-    ermitano: EVENTOS.ermitano,
-    usarErmitano: () => {},
-    usarMercader: () => {},
-    // La comparación de la pieza se cierra en el acto.
-    ofrecerEquipo: (_clave, alFinal) => alFinal(),
-    abrirPausa: () => {},
-    mundo: { refrescarLuces: () => {}, rehacerObjeto: () => {} } as unknown as Mundo,
-    aspecto: HD2D.zonas.bosque!,
-    fuente: HD2D.fuente,
-    recuperado: recuperado?.mapa ?? null,
-    alEntrarEnSala: (estado) => guardar(estado, null),
-  };
-  const escena: EscenaMapa = new EscenaMapa(o);
+  const escena: EscenaMapa = new EscenaMapa(
+    opcionesMapa(zona, {
+      iniciarCombate: (_grupo, alTerminarMapa, _quien, combate) => {
+        guardar(escena.estado(), combate);
+        combates.push({
+          combate,
+          acabar: (r) => {
+            alTerminarMapa(r);
+            guardar(escena.estado(), escena.combatePendiente());
+          },
+        });
+      },
+      recuperado: recuperado?.mapa ?? null,
+      alEntrarEnSala: (estado) => guardar(estado, null),
+    }),
+  );
   return escena;
 }
 

@@ -1,4 +1,5 @@
 import { elegirConPeso } from './azar';
+import { equipadasIniciales } from './equipadas';
 import { crecerEquipo, piezaDeBotin, yaSalio } from './equipo';
 import { aplicarConsumible, crearInventario, gastar, guardar, type Inventario } from './inventario';
 import { ganarExperiencia } from './progresion';
@@ -55,6 +56,8 @@ export interface Luchador {
   fase: number;
   /** Habilidades ganadas como recompensa (por nombre), que no se desbloquean por nivel. */
   habilidadesGanadas: string[];
+  /** Las habilidades que lleva equipadas (por nombre): en combate solo puede usar esas. Vacío en los monstruos. */
+  equipadas: string[];
   heroe: HeroeJson | null;
   monstruo: MonstruoJson | null;
 }
@@ -163,13 +166,18 @@ function luchador(
     estados: [],
     fase: 0,
     habilidadesGanadas: [],
+    equipadas: [],
     heroe,
     monstruo,
   };
 }
 
-export const luchadorDeHeroe = (h: HeroeJson): Luchador =>
-  luchador(h.nombre, h.estadisticas, h, null);
+/** La heroína recién creada, con sus primeras habilidades equipadas. */
+export function luchadorDeHeroe(h: HeroeJson): Luchador {
+  const l = luchador(h.nombre, h.estadisticas, h, null);
+  l.equipadas = equipadasIniciales(l);
+  return l;
+}
 export const luchadorDeMonstruo = (m: MonstruoJson): Luchador =>
   luchador(m.nombre, m.estadisticas, null, m);
 
@@ -219,12 +227,17 @@ export function puedeHuir(c: Combate): boolean {
   return !c.enemigos.some((e) => e.monstruo?.jefe);
 }
 
-/** Habilidades que la heroína ya ha desbloqueado: por nivel, o ganadas como recompensa. */
-export function habilidadesDisponibles(h: Luchador): HabilidadJson[] {
-  return (h.heroe?.habilidades ?? []).filter((hab) => disponible(h, hab));
+/** Habilidades que la heroína conoce: las de su nivel y las ganadas como recompensa. */
+export function habilidadesConocidas(h: Luchador): HabilidadJson[] {
+  return (h.heroe?.habilidades ?? []).filter((hab) => conocida(h, hab));
 }
 
-const disponible = (h: Luchador, hab: HabilidadJson): boolean =>
+/** Las que puede usar en combate: las conocidas que lleva equipadas, en el orden de su lista. */
+export function habilidadesDisponibles(h: Luchador): HabilidadJson[] {
+  return habilidadesConocidas(h).filter((hab) => h.equipadas.includes(hab.nombre));
+}
+
+const conocida = (h: Luchador, hab: HabilidadJson): boolean =>
   hab.recompensa ? h.habilidadesGanadas.includes(hab.nombre) : hab.nivel <= h.nivel;
 
 /** Estadística con los multiplicadores de los estados activos (Furia, Postura de hierro…). */
@@ -308,7 +321,9 @@ export function actuar(c: Combate, accion: AccionHeroina): Evento[] {
   const h = c.heroina;
   if (accion.tipo === 'habilidad') {
     const { habilidad } = accion;
-    if (!disponible(h, habilidad)) throw new Error(`${habilidad.nombre} aún no está disponible`);
+    if (!conocida(h, habilidad)) throw new Error(`${habilidad.nombre} aún no está disponible`);
+    if (!h.equipadas.includes(habilidad.nombre))
+      throw new Error(`${habilidad.nombre} no está equipada`);
     if (habilidad.pm > h.pm) throw new Error(`No hay PM para ${habilidad.nombre}`);
   }
   if (accion.tipo === 'huir' && !puedeHuir(c)) throw new Error('No se puede huir de este combate');
@@ -542,6 +557,10 @@ function usarHabilidad(
       const cantidad = Math.min(o.pvMax - o.pv, Math.round(o.pvMax * hab.cura));
       o.pv += cantidad;
       eventos.push({ tipo: 'cura', objetivo: o, cantidad });
+    }
+    for (const id of hab.quitaEstados ?? []) {
+      const activo = o.estados.find((e) => e.id === id);
+      if (activo) quitarEstado(o, activo, eventos);
     }
     if (hab.estado && o.pv > 0) aplicarEstado(c, o, hab.estado, o === actor, eventos);
     if (hab.rompeCarga && o.cargando) {

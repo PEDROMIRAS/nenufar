@@ -2,10 +2,10 @@
   "facil": {
     "nombre": "Fácil",
     "descripcion": "Para disfrutar de la historia: te recuperas mucho más al ganar cada combate.",
-    "ataque": 1.07,
+    "ataque": 1.08,
     "vida": 1.07,
     "recuperacion": 1,
-    "violetas": 1.151
+    "violetas": 1.178
   },
   "normal": {
     "nombre": "Normal",
@@ -13,14 +13,14 @@
     "ataque": 1.08,
     "vida": 1.07,
     "recuperacion": 0.6,
-    "violetas": 1.148
+    "violetas": 1.162
   },
   "dificil": {
     "nombre": "Difícil",
     "descripcion": "Para quien ya lo ha terminado: apenas te recuperas entre combates, cada golpe cuenta.",
     "ataque": 1.09,
     "vida": 1.07,
-    "recuperacion": 0.44,
-    "violetas": 1.164
+    "recuperacion": 0.47,
+    "violetas": 1.17
   }
 }

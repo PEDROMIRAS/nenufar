@@ -53,3 +53,13 @@ test('la experiencia de la dificultad pasa a las reglas; sin ella las reglas que
   expect(reglasCon(REGLAS, { ...d, experiencia: 1.15 }).multiplicadorExperiencia).toBe(1.15);
   expect(reglasCon(REGLAS, d)).toEqual(REGLAS);
 });
+
+test('las dificultades van ordenadas: ataque y vida no bajan de Fácil a Difícil y la recuperación no sube', () => {
+  const [f, n, d] = [DIFICULTADES.facil, DIFICULTADES.normal, DIFICULTADES.dificil];
+  for (const k of ['ataque', 'vida'] as const) {
+    expect(n[k], `${k} Normal`).toBeGreaterThanOrEqual(f[k]);
+    expect(d[k], `${k} Difícil`).toBeGreaterThanOrEqual(n[k]);
+  }
+  expect(n.recuperacion).toBeLessThanOrEqual(f.recuperacion);
+  expect(d.recuperacion).toBeLessThanOrEqual(n.recuperacion);
+});

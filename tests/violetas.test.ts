@@ -16,7 +16,9 @@ import { pct, pelear, simular, type Cuenta } from './simulador';
 // unos ±3 puntos, y en Fácil la maga ya gana casi siempre al dragón de las Ruinas: con 5 de margen
 // la regla quedaba por debajo del ruido y se rompía con cualquier cambio.
 const OBJETIVO: Record<keyof typeof DIFICULTADES, number> = { facil: 65, normal: 50, dificil: 35 };
-const MARGEN = 10;
+// ±12 desde las 3 habilidades equipadas (decisión de Pedro, 2026-11-22): en Fácil la ronin gana a los violetas unos 20
+// puntos más que la maga, el ancho entero de la banda de ±10, y el ruido del test (±3) la rompía siempre por décimas.
+const MARGEN = 12;
 const SUELO = 25;
 
 test.each(Object.entries(OBJETIVO))(

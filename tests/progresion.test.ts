@@ -80,7 +80,7 @@ test('cambiosDeNivel lista las estadísticas que suben y las habilidades nuevas'
   h.nivel = 3;
   expect(cambiosDeNivel(antes, h)).toEqual([
     `Ataque ${antes.ataque} → ${antes.ataque + 4}`,
-    'Nueva habilidad: Postura de hierro',
+    'Nueva habilidad: Tajo del viento',
   ]);
 });
 

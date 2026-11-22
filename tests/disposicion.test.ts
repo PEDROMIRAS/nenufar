@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import {
+  disposicionHabilidades,
   anchoNombre,
   cabeceraQueCabe,
   botonesAltos,
@@ -480,5 +481,38 @@ describe('nombres de jefe en la presentación vertical', () => {
   test('letrasEnAncho admite el ancho de letra de otra fuente', () => {
     expect(letrasEnAncho(288, 14.4)).toBe(20);
     expect(letrasEnAncho(288)).toBe(39);
+  });
+});
+
+describe('pantalla Habilidades', () => {
+  const dentroDe = (a: Rect, ancho: number, alto: number) =>
+    a.x >= 0 && a.y >= 0 && a.x + a.ancho <= ancho && a.y + a.alto <= alto;
+  const seSolapan = (a: Rect, b: Rect) =>
+    a.x < b.x + b.ancho && b.x < a.x + a.ancho && a.y < b.y + b.alto && b.y < a.y + a.alto;
+
+  test('en horizontal se ven 9 de 10 filas (el resto se desplaza) y la explicación va a la derecha', () => {
+    // La lista empieza bajo el título de una línea: 48 + 30 + 4 = 82 (como en escenas/habilidades.ts).
+    const d = disposicionHabilidades(480, 352, 10, false, 82, VERTICAL);
+    expect(d.visibles).toBe(9);
+    expect(dentroDe(d.lista, 480, 352 - 16)).toBe(true);
+    expect(d.detalle.x).toBeGreaterThanOrEqual(d.lista.x + d.lista.ancho);
+    expect(dentroDe(d.detalle, 480, 352)).toBe(true);
+  });
+
+  test('en vertical la explicación va debajo de la lista, sin pisarla', () => {
+    const d = disposicionHabilidades(320, 600, 10, true, 80, VERTICAL);
+    expect(d.visibles).toBe(10);
+    expect(d.lista.ancho).toBeGreaterThan(260);
+    expect(d.detalle.y).toBeGreaterThanOrEqual(d.lista.y + d.lista.alto);
+    expect(seSolapan(d.lista, d.detalle)).toBe(false);
+    expect(dentroDe(d.detalle, 320, 600)).toBe(true);
+  });
+
+  test('en un vertical bajo se ven menos filas (se desplaza) y todo cabe', () => {
+    const d = disposicionHabilidades(320, 400, 10, true, 80, VERTICAL);
+    expect(d.visibles).toBeLessThan(10);
+    expect(d.visibles).toBeGreaterThanOrEqual(3);
+    expect(dentroDe(d.lista, 320, 400)).toBe(true);
+    expect(dentroDe(d.detalle, 320, 400)).toBe(true);
   });
 });

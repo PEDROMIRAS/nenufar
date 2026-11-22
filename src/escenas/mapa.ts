@@ -187,6 +187,8 @@ export interface OpcionesMapa {
   usarMercader: (alTerminar: (usado: boolean, aviso: string) => void) => void;
   /** Enseña la comparación de una pieza de equipo encontrada y avisa al decidir. */
   ofrecerEquipo: (clave: string, alFinal: () => void) => void;
+  /** Abre la pantalla Habilidades (junto a la fuente de la sala de descanso) y avisa al cerrarla. */
+  elegirHabilidades: (alCerrar: () => void) => void;
   /** Abre la pausa (MENU o el botón de la esquina). */
   abrirPausa: () => void;
   /** El mapa en 3D, compartido por todas las zonas, y el aspecto de esta. */
@@ -249,6 +251,8 @@ export class EscenaMapa implements Escena {
   private fuenteUsada = false;
   /** Falso tras elegir «marcharse» y hasta que la heroína se aparte del altar o del círculo: así no se reabre a cada paso. */
   private eventoListo = true;
+  /** Lo mismo con la fuente del descanso: la pantalla Habilidades sale una vez por acercamiento. */
+  private fuenteLista = true;
   /** Combate de la cadena del desafío que sigue; se lanza en el siguiente fotograma, ya guardado el anterior. */
   private desafioPendiente: number | null = null;
   /** Segundos de lluvia que quedan, y sus gotas (solo si la zona tiene lluvia tras el jefe). */
@@ -447,6 +451,16 @@ export class EscenaMapa implements Escena {
           ? 'La fuente solo te restaura los PM'
           : 'La fuente te restaura los PV y los PM',
       );
+    }
+    // Junto a la fuente (usada o no) se cambian las habilidades equipadas; tras restaurar, si tocaba.
+    if (this.actual.tipo === 'descanso') {
+      const enFuente = objetoAlAlcance(this.montada.sala, 'fuente', h.cuerpo, tam, ALCANCE);
+      if (!enFuente) this.fuenteLista = true;
+      else if (this.fuenteLista) {
+        this.fuenteLista = false;
+        this.o.elegirHabilidades(() => {});
+        return;
+      }
     }
     const ermitano = this.montada.ermitano;
     if (ermitano) {

@@ -34,7 +34,7 @@ import {
   monstruo,
   mostrarError,
 } from './partida';
-import { contar, paginaPresagio, cartel } from './relato';
+import { contar, elegirHabilidades, paginaPresagio, cartel } from './relato';
 import {
   fijarPresagio,
   abrirAltar,
@@ -150,19 +150,25 @@ export async function crearZona(
             crearZona(partida, indice + 1, true)
               .then((siguiente) => {
                 partida.pila.cambiar(siguiente);
-                contar(partida.pila, [cartel(indice + 1), ...paginaPresagio(partida)], () => {});
+                // Tras el cartel (y el presagio), las habilidades con que se entra en la zona.
+                contar(partida.pila, [cartel(indice + 1), ...paginaPresagio(partida)], () =>
+                  elegirHabilidades(partida, () => {}),
+                );
               })
               .catch(mostrarError);
           }
         : () => {
             guardarPartida(guardado(partida, indice, escena.estado(), { tipo: 'final' }));
             fijarPresagio(partida, null); // el jefe final se lucha sin presagio
-            lucharJefe(
-              partida,
-              { ...monstruo(zonas.jefeFinal), nombre: partida.rival },
-              historia.jefeFinal,
-              escena.fondoSala,
-              () => terminarPartida(partida, true),
+            // Antes del Rey, la última ocasión de cambiar las habilidades (también al recuperar con el combate final).
+            elegirHabilidades(partida, () =>
+              lucharJefe(
+                partida,
+                { ...monstruo(zonas.jefeFinal), nombre: partida.rival },
+                historia.jefeFinal,
+                escena.fondoSala,
+                () => terminarPartida(partida, true),
+              ),
             );
           },
     entrarDesdeNegro,
@@ -192,6 +198,7 @@ export async function crearZona(
     usarErmitano: (azar, alTerminar) => abrirErmitano(partida, nombre, azar, alTerminar),
     usarMercader: (alTerminar) => abrirMercader(partida, alTerminar),
     ofrecerEquipo: (clave, alFinal) => ofrecerEquipo(partida, [clave], alFinal),
+    elegirHabilidades: (alCerrar) => elegirHabilidades(partida, alCerrar),
     abrirPausa: () => {
       const pausa: EscenaPausa = new EscenaPausa(
         partida.luchadora,

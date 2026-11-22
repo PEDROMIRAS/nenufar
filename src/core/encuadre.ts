@@ -31,6 +31,17 @@ export interface DatosVertical {
     letraTitulo: number;
     letraGrande: number;
   };
+  /**
+   * Pantalla Habilidades: alto de fila en horizontal (en vertical, `menu.fila`), parte del ancho para la lista en
+   * horizontal, separación entre lista y explicación, y líneas (y su alto) que se reservan a la explicación en vertical.
+   */
+  habilidades: {
+    filaHorizontal: number;
+    columnaLista: number;
+    separacion: number;
+    lineasDetalle: number;
+    lineaDetalle: number;
+  };
 }
 
 /** `escala` es unidades de ventana por unidad lógica de la sala; `x`, `y` la esquina de la sala sin desplazar. */

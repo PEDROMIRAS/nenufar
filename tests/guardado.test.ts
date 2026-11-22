@@ -1,7 +1,9 @@
 import { describe, expect, test } from 'vitest';
 import { luchadorDeHeroe } from '../src/core/combate';
+import { ajustarEquipadas } from '../src/core/equipadas';
 import { inventarioInicial } from '../src/core/equipo';
 import {
+  eligeAlRecuperar,
   heroinaGuardada,
   leerGuardado,
   restaurarHeroina,
@@ -118,6 +120,31 @@ describe('guardado de la partida', () => {
     expect(otra.estados).toEqual([]);
   });
 
+  test('guarda y restaura las equipadas', () => {
+    const l = luchadorDeHeroe(HEROES.ronin);
+    l.equipadas = ['Golpe de pomo', 'Grito de guerra', 'Corte rápido'];
+    const otra = luchadorDeHeroe(HEROES.ronin);
+    restaurarHeroina(otra, heroinaGuardada(l));
+    expect(otra.equipadas).toEqual(l.equipadas);
+  });
+
+  test('una partida sin equipadas se lee y se recupera con las 3 primeras conocidas', () => {
+    const g = ejemplo() as unknown as { heroina: Record<string, unknown> };
+    delete g.heroina.equipadas;
+    const leida = leerGuardado(JSON.stringify(g), conocido);
+    expect(leida).not.toBeNull();
+    const l = luchadorDeHeroe(HEROES.ronin);
+    restaurarHeroina(l, leida!.heroina);
+    ajustarEquipadas(l);
+    expect(l.equipadas).toEqual(['Corte rápido', 'Postura de hierro', 'Golpe de pomo']);
+  });
+
+  test('equipadas que no son textos invalidan el guardado', () => {
+    const g = ejemplo() as unknown as { heroina: Record<string, unknown> };
+    g.heroina.equipadas = [1, 2];
+    expect(leerGuardado(JSON.stringify(g), conocido)).toBeNull();
+  });
+
   test.each([
     ['nada', null],
     ['vacío', ''],
@@ -167,4 +194,12 @@ describe('guardado de la partida', () => {
     romper(g);
     expect(leerGuardado(JSON.stringify(g), conocido)).toBeNull();
   });
+});
+
+test('una partida guardada antes de las habilidades equipadas pide elegirlas al recuperarla; una nueva, no', () => {
+  const g = ejemplo();
+  expect(eligeAlRecuperar(g.heroina)).toBe(false);
+  const vieja = { ...g.heroina } as Partial<typeof g.heroina>;
+  delete vieja.equipadas;
+  expect(eligeAlRecuperar(vieja as typeof g.heroina)).toBe(true);
 });
