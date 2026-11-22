@@ -592,6 +592,44 @@
         "duracion": 0.05,
         "volumen": 0.14
       }
+    ],
+    "escarcha": [
+      {
+        "onda": "triangle",
+        "desde": 2637,
+        "hasta": 1760,
+        "duracion": 0.18,
+        "volumen": 0.3
+      },
+      {
+        "onda": "sine",
+        "desde": 3136,
+        "duracion": 0.12,
+        "volumen": 0.2,
+        "retardo": 0.05
+      },
+      {
+        "onda": "ruido",
+        "duracion": 0.08,
+        "volumen": 0.3
+      }
+    ],
+    "velo": [
+      {
+        "onda": "sine",
+        "desde": 660,
+        "hasta": 990,
+        "duracion": 0.35,
+        "volumen": 0.25
+      },
+      {
+        "onda": "sine",
+        "desde": 990,
+        "hasta": 1320,
+        "duracion": 0.35,
+        "volumen": 0.15,
+        "retardo": 0.08
+      }
     ]
   },
   "variacion": {

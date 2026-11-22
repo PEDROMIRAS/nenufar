@@ -282,10 +282,16 @@ export function aplicarEstado(
 ): void {
   const def = c.reglas.estados[id];
   if (!def) throw new Error(`Estado desconocido: ${id}`);
-  const activo = objetivo.estados.find((e) => e.id === id);
+  // Uno con el mismo nombre (la quemadura de un arma y la de Fuego fatuo) se renueva en vez de sumarse; queda el que
+  // más quita por turno.
+  const activo = objetivo.estados.find((e) => e.id === id || e.def.nombre === def.nombre);
   if (activo) {
     activo.turnos = def.turnos;
     activo.nuevo = enSuTurno;
+    if ((def.danioPorTurno ?? 0) > (activo.def.danioPorTurno ?? 0)) {
+      activo.id = id;
+      activo.def = def;
+    }
   } else {
     objetivo.estados.push({ id, def, turnos: def.turnos, nuevo: enSuTurno });
   }
