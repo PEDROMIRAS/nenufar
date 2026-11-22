@@ -13,6 +13,7 @@ import {
 } from '../src/core/descripciones';
 import { letrasEnAncho } from '../src/core/disposicion';
 import { partirTexto } from '../src/core/texto';
+import ritmo from '../src/data/ritmo.json';
 import { HEROES, MENU_COMBATE, MONSTRUOS, OBJETOS, REGLAS } from '../src/data/datos';
 
 const R = { cuantos: 3, duran: 4, apagar: 0.6, tenues: [1, 0.65, 0.35] };
@@ -45,6 +46,16 @@ describe('mensajes del combate', () => {
     apuntarMensaje(m, 'b', 10, R.cuantos);
     expect(opacidadMensaje(m, 1, 10, R)).toBe(1);
     expect(opacidadMensaje(m, 0, 10, R)).toBe(0.65);
+  });
+
+  test('quietos (con tu menú abierto) no se apagan', () => {
+    const m = crearMensajes();
+    apuntarMensaje(m, 'a', 0, R.cuantos);
+    expect(opacidadMensaje(m, 0, 60, R, 1, true)).toBe(1);
+  });
+
+  test('el más tenue de los datos se sigue leyendo (al menos 0,55 de opacidad)', () => {
+    expect(Math.min(...ritmo.mensajes.tenues)).toBeGreaterThanOrEqual(0.55);
   });
 
   test('con los últimos ocultos (avisos), los que se ven cuentan desde el último visible', () => {

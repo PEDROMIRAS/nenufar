@@ -633,7 +633,7 @@ function dibujarMensajes(
   const desde = mensajesQueCaben(LINEAS_MENSAJE, D.mensajes);
   let linea = D.mensajes;
   for (let i = fin - 1; i >= desde && linea > 0; i--) {
-    const alfa = opacidadMensaje(m, i, v.tiempoReal, ritmo.mensajes, fin);
+    const alfa = opacidadMensaje(m, i, v.tiempoReal, ritmo.mensajes, fin, v.menu !== null);
     const lineas = avisoPartido(m.textos[i]!, MENSAJES, letras);
     for (let k = lineas.length - 1; k >= 0 && linea > 0; k--) {
       linea--;
@@ -852,7 +852,7 @@ function colocarCamara(v: VistaCombate): void {
     MARCO.arriba = Math.min(TOPE_ESCENA, CONTENIDO.arriba);
     MARCO.abajo = Math.max(bordeCamara(v), CONTENIDO.abajo);
     encuadrar(
-      zoomMaximo(camara, v.ataqueFuerte),
+      zoomMaximo(camara, v.ataqueFuerte, movimientoReducido()),
       (centroX(v, a) + centroX(v, o)) / 2,
       (centroY(a) + centroY(o)) / 2,
       CONTENIDO,
