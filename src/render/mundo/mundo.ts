@@ -362,8 +362,10 @@ export class Mundo {
     // Si aún se preparan sombreadores (`prepararVista` pasó su tope), three los sigue mirando: soltar ahora sus
     // materiales haría fallar esa comprobación. Se sueltan cuando acabe.
     if (this.preparando) {
-      const pendiente = this.preparando;
-      void pendiente.finally(() => this.soltarVistas(vistas));
+      // Con `then` en los dos casos: un fallo de la compilación (contexto perdido en el móvil) no queda sin recoger, que
+      // acabaría en la pantalla de error.
+      const soltar = (): void => this.soltarVistas(vistas);
+      void this.preparando.then(soltar, soltar);
     } else this.soltarVistas(vistas);
     this.zona = null;
     this.vista = null;
