@@ -932,7 +932,7 @@
     "nombre": "Árbol maldito",
     "sprite": "monstruos/arbol_maldito",
     "estadisticas": {
-      "pv": 105,
+      "pv": 107,
       "pm": 20,
       "ataque": 11,
       "magia": 0,
@@ -983,7 +983,7 @@
     "nombre": "Caballero maldito",
     "sprite": "monstruos/caballero_maldito",
     "estadisticas": {
-      "pv": 426,
+      "pv": 418,
       "pm": 0,
       "ataque": 13,
       "magia": 0,
@@ -1021,7 +1021,7 @@
     "nombre": "Ojo flotante",
     "sprite": "monstruos/ojo_flotante",
     "estadisticas": {
-      "pv": 285,
+      "pv": 291,
       "pm": 50,
       "ataque": 28,
       "magia": 18,
@@ -1094,7 +1094,7 @@
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
     "estadisticas": {
-      "pv": 69,
+      "pv": 70,
       "pm": 0,
       "ataque": 22,
       "magia": 0,
@@ -1144,7 +1144,7 @@
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
     "estadisticas": {
-      "pv": 171,
+      "pv": 172,
       "pm": 0,
       "ataque": 20,
       "magia": 0,
@@ -1194,7 +1194,7 @@
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
     "estadisticas": {
-      "pv": 304,
+      "pv": 308,
       "pm": 0,
       "ataque": 29,
       "magia": 0,
@@ -1591,7 +1591,7 @@
     "nombre": "Monje oni",
     "sprite": "monstruos/oni",
     "estadisticas": {
-      "pv": 317,
+      "pv": 315,
       "pm": 40,
       "ataque": 22,
       "magia": 14,
@@ -1662,7 +1662,7 @@
     "nombre": "Dragón negro",
     "sprite": "monstruos/dragon_negro",
     "estadisticas": {
-      "pv": 305,
+      "pv": 312,
       "pm": 0,
       "ataque": 32,
       "magia": 0,

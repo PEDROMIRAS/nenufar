@@ -10,9 +10,9 @@
   "dificultad": {
     "nombre": "Reto del día",
     "descripcion": "El Bosque en pequeño, con el mapa del día.",
-    "ataque": 1.85,
+    "ataque": 1.75,
     "vida": 1.65,
-    "recuperacion": 0.75,
+    "recuperacion": 0.8,
     "violetas": 1
   },
   "comprobacion": {

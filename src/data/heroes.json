@@ -125,7 +125,7 @@
         "objetivo": "todos",
         "danio": {
           "tipo": "fisico",
-          "poder": 0.95
+          "poder": 0.94
         },
         "efecto": "viento",
         "sonido": "viento"
