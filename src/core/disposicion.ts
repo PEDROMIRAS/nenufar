@@ -122,6 +122,26 @@ export function topeCartelCombate(
 }
 
 /**
+ * Dónde cae el destello de un golpe: todo `area` menos la caja de la ficha, en cuatro rectángulos (encima, a la
+ * izquierda, a la derecha y debajo de ella). Solo hay golpes con el menú cerrado, así que la lista no cuenta.
+ * Rellena y devuelve `fuera` (sin asignar memoria).
+ */
+export function zonasDestello(
+  disp: DisposicionCombate,
+  area: Rect,
+  fuera: Rect[] = [rect(), rect(), rect(), rect()],
+): Rect[] {
+  const f = disp.ficha;
+  const finX = area.x + area.ancho;
+  const finY = area.y + area.alto;
+  poner(fuera[0]!, area.x, area.y, area.ancho, Math.max(0, f.y - area.y));
+  poner(fuera[1]!, area.x, f.y, Math.max(0, f.x - area.x), Math.max(0, finY - f.y));
+  poner(fuera[2]!, f.x + f.ancho, f.y, Math.max(0, finX - f.x - f.ancho), Math.max(0, finY - f.y));
+  poner(fuera[3]!, f.x, f.y + f.alto, f.ancho, Math.max(0, finY - f.y - f.alto));
+  return fuera;
+}
+
+/**
  * La primera fila a la vista tras tocar la opción `tocada`: si es la última visible y hay más abajo, se desplaza una;
  * si es la primera visible y hay más arriba, también. Así con el dedo se llega a las opciones ocultas.
  */

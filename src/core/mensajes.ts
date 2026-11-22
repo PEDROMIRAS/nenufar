@@ -52,14 +52,18 @@ export function mensajesQueCaben(lineas: readonly number[], max: number): number
   return Math.max(0, i);
 }
 
-/** Opacidad (0 a 1) del mensaje `i` en `ahora`. */
+/**
+ * Opacidad (0 a 1) del mensaje `i` en `ahora`. Si los últimos no se ven (`fin`: cuántos se ven desde el primero;
+ * los avisos que ya salen en la franja), lo tenue y el reloj para apagarse cuentan desde el último que se ve.
+ */
 export function opacidadMensaje(
   m: MensajesCombate,
   i: number,
   ahora: number,
   r: RitmoMensajes,
+  fin = m.textos.length,
 ): number {
-  const n = m.textos.length;
+  const n = Math.min(fin, m.textos.length);
   if (i < 0 || i >= n) return 0;
   const base = r.tenues[Math.min(n - 1 - i, r.tenues.length - 1)] ?? 0;
   const ultimo = m.desde[n - 1] ?? 0;
