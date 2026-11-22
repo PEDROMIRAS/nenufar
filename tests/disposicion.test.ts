@@ -20,6 +20,7 @@ import {
   primeraTrasToque,
   primeraVisible,
   topeCartelCombate,
+  zonasDestello,
   type DisposicionCombate,
 } from '../src/core/disposicion';
 import { partirTexto } from '../src/core/texto';
@@ -137,6 +138,17 @@ describe('disposicionCombate', () => {
       }
     },
   );
+
+  test.each(tamanos)('%ix%i: el destello cubre todo menos la ficha', (ancho, alto, alta) => {
+    const d = disposicionCombate(ancho, alto, 5, alta, D);
+    // El área de la ventana puede salirse de la interfaz (bandas a los lados o arriba y abajo).
+    const area = { x: -20, y: -10, ancho: ancho + 40, alto: alto + 20 };
+    const zonas = zonasDestello(d, area);
+    for (const z of zonas) expect(seCruzan(z, d.ficha)).toBe(false);
+    expect(sePisan(zonas)).toBe(false);
+    const cubierto = zonas.reduce((s, z) => s + z.ancho * z.alto, 0);
+    expect(cubierto).toBe(area.ancho * area.alto - d.ficha.ancho * d.ficha.alto);
+  });
 
   test('primeraVisible deja la elegida a la vista desplazando lo justo', () => {
     expect(primeraVisible(0, 0, 5, 7)).toBe(0);

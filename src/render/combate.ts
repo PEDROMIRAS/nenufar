@@ -6,6 +6,7 @@ import {
   anchoNombre,
   disposicionCombate,
   topeCartelCombate,
+  zonasDestello,
   type DisposicionCombate,
 } from '../core/disposicion';
 import { mensajesQueCaben, opacidadMensaje, type MensajesCombate } from '../core/mensajes';
@@ -305,15 +306,22 @@ export function dibujarCombate(ctx: CanvasRenderingContext2D, v: VistaCombate): 
   }
 }
 
-/** Destello blanco del impacto sobre la escena (no sobre la lista ni la ficha), que se apaga enseguida. */
+/** Las cuatro zonas del destello (`zonasDestello`), reutilizadas. */
+const DESTELLO: Rect[] = [
+  { x: 0, y: 0, ancho: 0, alto: 0 },
+  { x: 0, y: 0, ancho: 0, alto: 0 },
+  { x: 0, y: 0, ancho: 0, alto: 0 },
+  { x: 0, y: 0, ancho: 0, alto: 0 },
+];
+/** Destello blanco del impacto sobre la escena (no sobre la ficha), que se apaga enseguida. */
 function dibujarDestello(ctx: CanvasRenderingContext2D, v: VistaCombate): void {
   const opacidad = v.destello * Math.max(0, 1 - v.tiempoDestello / IMPACTO.destello.duracion);
   if (opacidad <= 0) return;
-  // Hasta lo de abajo (la lista, si está abierta, o la ficha).
-  const abajo = bordeCamara(v);
+  // Toda la escena menos la ficha (la vida no parpadea con cada golpe).
   ctx.fillStyle = '#fff';
   ctx.globalAlpha = opacidad;
-  ctx.fillRect(area.x, area.y, area.ancho, abajo - area.y);
+  for (const z of zonasDestello(disposicion(0), area, DESTELLO))
+    if (z.ancho > 0 && z.alto > 0) ctx.fillRect(z.x, z.y, z.ancho, z.alto);
   ctx.globalAlpha = 1;
 }
 
@@ -581,7 +589,7 @@ function dibujarMensajes(
   const desde = mensajesQueCaben(LINEAS_MENSAJE, D.mensajes);
   let linea = D.mensajes;
   for (let i = fin - 1; i >= desde && linea > 0; i--) {
-    const alfa = opacidadMensaje(m, i, v.tiempoReal, ritmo.mensajes);
+    const alfa = opacidadMensaje(m, i, v.tiempoReal, ritmo.mensajes, fin);
     const lineas = avisoPartido(m.textos[i]!, MENSAJES, letras);
     for (let k = lineas.length - 1; k >= 0 && linea > 0; k--) {
       linea--;

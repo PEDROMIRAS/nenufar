@@ -5,10 +5,15 @@ import {
   mensajesQueCaben,
   opacidadMensaje,
 } from '../src/core/mensajes';
-import { describirEstado } from '../src/core/descripciones';
+import {
+  describirAcciones,
+  describirConsumible,
+  describirEstado,
+  describirHabilidad,
+} from '../src/core/descripciones';
 import { letrasEnAncho } from '../src/core/disposicion';
 import { partirTexto } from '../src/core/texto';
-import { HEROES, MENU_COMBATE, MONSTRUOS, REGLAS } from '../src/data/datos';
+import { HEROES, MENU_COMBATE, MONSTRUOS, OBJETOS, REGLAS } from '../src/data/datos';
 
 const R = { cuantos: 3, duran: 4, apagar: 0.6, tenues: [1, 0.65, 0.35] };
 
@@ -40,6 +45,16 @@ describe('mensajes del combate', () => {
     apuntarMensaje(m, 'b', 10, R.cuantos);
     expect(opacidadMensaje(m, 1, 10, R)).toBe(1);
     expect(opacidadMensaje(m, 0, 10, R)).toBe(0.65);
+  });
+
+  test('con los últimos ocultos (avisos), los que se ven cuentan desde el último visible', () => {
+    const m = crearMensajes();
+    apuntarMensaje(m, 'a', 0, R.cuantos);
+    apuntarMensaje(m, 'aviso 1', 10, R.cuantos);
+    apuntarMensaje(m, 'aviso 2', 10, R.cuantos);
+    // Solo se ve «a» (fin = 1): sale claro y su reloj es el suyo, no el de los avisos.
+    expect(opacidadMensaje(m, 0, 1, R, 1)).toBe(1);
+    expect(opacidadMensaje(m, 0, 10, R, 1)).toBe(0);
   });
 });
 
@@ -84,5 +99,21 @@ describe('mensajes largos en la banda de arriba', () => {
     const letras = letrasEnAncho(320 - 2 * MENU_COMBATE.margen);
     for (const t of textos)
       expect(partirTexto(t, letras).length, t).toBeLessThanOrEqual(MENU_COMBATE.mensajes);
+  });
+});
+
+describe('explicación de lo elegido', () => {
+  test('cabe entera en la franja de abajo del móvil de pie más estrecho', () => {
+    const textos: string[] = [];
+    for (const h of Object.values(HEROES)) {
+      textos.push(...describirAcciones(REGLAS, h));
+      for (const hab of h.habilidades) textos.push(describirHabilidad(hab, REGLAS.estados));
+    }
+    for (const c of Object.values(OBJETOS.consumibles))
+      textos.push(describirConsumible(c, REGLAS.estados));
+    // La franja va de margen a margen de 320, con 10 de aire a cada lado y líneas de 14 (`dibujarExplicacion`).
+    const letras = letrasEnAncho(320 - 2 * MENU_COMBATE.margen - 20);
+    const lineas = Math.floor((MENU_COMBATE.vertical.explicacion - 8) / 14);
+    for (const t of textos) expect(partirTexto(t, letras).length, t).toBeLessThanOrEqual(lineas);
   });
 });
