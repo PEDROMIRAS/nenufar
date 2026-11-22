@@ -3,6 +3,7 @@ import {
   actuar,
   avanzar,
   crearCombate,
+  habilidadesConocidas,
   habilidadesDisponibles,
   luchadoresDeGrupo,
   type AccionHeroina,
@@ -45,24 +46,71 @@ export interface MundoJugadora {
   politica: PoliticaJugadora;
 }
 
-/** Se cura con poca vida, a veces defiende el golpe cargado y usa lo más fuerte que tenga. */
-function decidir(c: Combate, azar: () => number, p: PoliticaJugadora): AccionHeroina {
+/**
+ * Se equipa las primeras de `orden` que conozca, hasta su máximo; si no llega, completa con las que conoce, en su
+ * orden. Lo que haría una persona con su plan de habilidades (`planHabilidades` de heroes.json).
+ */
+export function elegirEquipadas(h: Luchador, orden: readonly string[]): void {
+  const conocidas = habilidadesConocidas(h).map((x) => x.nombre);
+  const maximo = h.heroe?.equipables ?? 0;
+  const elegidas = orden.filter((n) => conocidas.includes(n)).slice(0, maximo);
+  for (const n of conocidas)
+    if (elegidas.length < maximo && !elegidas.includes(n)) elegidas.push(n);
+  h.equipadas = elegidas;
+}
+
+/**
+ * Se quita el veneno o la quemadura si lleva con qué, se cura con poca vida, rompe el golpe cargado si puede (si no, a
+ * veces se defiende, o se pone en guardia con una habilidad), contra un jefe lo debilita o se enfurece primero y si no
+ * usa lo más fuerte que tenga.
+ */
+export function decidir(c: Combate, azar: () => number, p: PoliticaJugadora): AccionHeroina {
   const h = c.heroina;
   const vivos = c.enemigos.filter((e) => e.pv > 0).sort((a, b) => a.pv - b.pv);
   const objetivo = vivos[0]!;
   const habs = habilidadesDisponibles(h).filter((x) => x.pm <= h.pm);
+  const tiene = (l: Luchador, id: string | undefined): boolean =>
+    l.estados.some((e) => e.id === id);
+  const limpiar = habs.find((x) => x.quitaEstados?.some((id) => tiene(h, id)));
+  if (limpiar) return { tipo: 'habilidad', habilidad: limpiar, objetivo: null };
   if (h.pv < h.pvMax * p.curarBajo) {
     const cura = habs.find((x) => x.cura);
     if (cura) return { tipo: 'habilidad', habilidad: cura, objetivo: null };
     if ((c.inventario?.consumibles.pocion ?? 0) > 0) return { tipo: 'objeto', clave: 'pocion' };
   }
+  const cargando = vivos.find((e) => e.cargando);
+  const romper = habs.find((x) => x.rompeCarga && x.objetivo === 'uno');
+  if (cargando && romper) return { tipo: 'habilidad', habilidad: romper, objetivo: cargando };
   const golpe = Math.max(h.ataque, h.magia) * p.margenGolpe;
-  if (
-    vivos.some((e) => e.cargando) &&
-    !(vivos.length === 1 && objetivo.pv <= golpe) &&
-    azar() < p.defiendeCargado
-  ) {
+  if (cargando && !(vivos.length === 1 && objetivo.pv <= golpe) && azar() < p.defiendeCargado) {
+    // Una guardia que dura varios turnos (Postura, Velo) antes que defenderse un solo golpe.
+    const guardia = habs.find(
+      (x) =>
+        x.objetivo === 'propio' &&
+        x.estado &&
+        (c.reglas.estados[x.estado]?.defensa ?? 1) > 1 &&
+        !tiene(h, x.estado),
+    );
+    if (guardia) return { tipo: 'habilidad', habilidad: guardia, objetivo: null };
     return { tipo: 'defender' };
+  }
+  // Contra un jefe, primero lo que dura: debilitarlo, envenenarlo o quemarlo, o su propia furia.
+  const jefe = vivos.find((e) => e.monstruo?.jefe);
+  if (jefe) {
+    const preparar = habs.find((x) =>
+      x.objetivo === 'uno'
+        ? x.estado !== undefined && !tiene(jefe, x.estado)
+        : x.objetivo === 'propio' &&
+          x.estado !== undefined &&
+          (c.reglas.estados[x.estado]?.ataque ?? 1) > 1 &&
+          !tiene(h, x.estado),
+    );
+    if (preparar)
+      return {
+        tipo: 'habilidad',
+        habilidad: preparar,
+        objetivo: preparar.objetivo === 'uno' ? jefe : null,
+      };
   }
   const area = habs.find((x) => x.objetivo === 'todos' && x.danio);
   if (area && vivos.length > 1) return { tipo: 'habilidad', habilidad: area, objetivo: null };

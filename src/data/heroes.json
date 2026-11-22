@@ -182,7 +182,24 @@
         "efecto": "tajo_llama_morada",
         "sonido": "llama_morada"
       }
-    ]
+    ],
+    "planHabilidades": {
+      "zona": [
+        "Golpe de pomo",
+        "Corte rápido",
+        "Tajo del viento",
+        "Iaido",
+        "Hoja envenenada",
+        "Respiro"
+      ],
+      "jefe": [
+        "Iaido",
+        "Hoja envenenada",
+        "Golpe de pomo",
+        "Corte rápido",
+        "Grito de guerra"
+      ]
+    }
   },
   "maga": {
     "nombre": "Rana maga",
@@ -363,6 +380,21 @@
         "efecto": "lluvia_fuego",
         "sonido": "cometa"
       }
-    ]
+    ],
+    "planHabilidades": {
+      "zona": [
+        "Fuego morado",
+        "Curar",
+        "Tormenta morada",
+        "Escarcha",
+        "Fuego fatuo"
+      ],
+      "jefe": [
+        "Fuego fatuo",
+        "Maldición",
+        "Curar",
+        "Fuego morado"
+      ]
+    }
   }
 }

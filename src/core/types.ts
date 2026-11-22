@@ -96,6 +96,11 @@ export interface HeroeJson {
   especiales: { arma: string; armadura: string; habilidad: string };
   /** Orden en que se reparten solos sus puntos de mejora (reto del día y simulador). */
   planPuntos: Mejora[];
+  /**
+   * Qué habilidades se equipa la jugadora simulada, por orden de preferencia: al empezar cada zona (`zona`) y antes de
+   * un jefe (`jefe`, en la fuente y antes del final). Reto del día y simulador.
+   */
+  planHabilidades: { zona: string[]; jefe: string[] };
 }
 
 /** Una habilidad: cuesta PM, se desbloquea en un nivel y hace daño, cura o aplica un estado. */

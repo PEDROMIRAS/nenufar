@@ -1,7 +1,7 @@
 import { crearAzar } from './azar';
 import { luchadorDeHeroe } from './combate';
 import { abrirCofre, inventarioInicial } from './equipo';
-import { pelear, quizaEquipar, type MundoJugadora } from './jugadora';
+import { elegirEquipadas, pelear, quizaEquipar, type MundoJugadora } from './jugadora';
 import { azarCofre } from './montaje';
 import { restaurarFuente } from './presagios';
 import { empezarEnNivel } from './progresion';
@@ -47,6 +47,7 @@ export function jugarReto(
   const h = luchadorDeHeroe(heroe);
   const inv = inventarioInicial(h, heroe, mundo.objetos);
   empezarEnNivel(h, d.nivel, mundo.experiencia);
+  elegirEquipadas(h, heroe.planHabilidades.zona);
   let fuente = zona.salas.some((x) => x.tipo === 'descanso');
   for (const sala of zona.salas) {
     if (sala.tipo === 'tesoro') {
@@ -64,6 +65,8 @@ export function jugarReto(
     }
   }
   if (fuente) restaurarFuente(h, 'todo');
+  // Junto a la fuente cambia a las del jefe.
+  elegirEquipadas(h, heroe.planHabilidades.jefe);
   return pelear(h, inv, [d.jefe], azar, mundo);
 }
 

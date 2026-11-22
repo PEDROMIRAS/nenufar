@@ -1,5 +1,6 @@
 import { crearAzar, elegirConPeso } from '../src/core/azar';
 import {
+  elegirEquipadas,
   pelear as pelearJugadora,
   quizaEquipar as quizaEquiparJugadora,
   type MundoJugadora,
@@ -226,6 +227,8 @@ export function simular(
     };
     for (const [i, clave] of claves.entries()) {
       const z = zonas.zonas[clave];
+      // Como en el juego: al entrar en cada zona elige sus 3 habilidades.
+      elegirEquipadas(h, heroe.planHabilidades.zona);
       // Sin salas violetas (son opcionales), pero con el tesoro trampa, que no se distingue de uno normal.
       const zona = generarZona(
         {
@@ -324,6 +327,8 @@ export function simular(
       if (!viva) break;
       alExplorar?.(clave, h, inv, mundoZona, s);
       if (fuente) restaurarFuente(h, modoFuente);
+      // Junto a la fuente (siempre hay sala de descanso) cambia a las del jefe.
+      elegirEquipadas(h, heroe.planHabilidades.jefe);
       (niveles[clave] ??= []).push(h.nivel);
       const antesJefe = [inv.arma, inv.armadura];
       viva = pelear(h, inv, [z.jefe], azar, mundoZona, undefined, sobrar);
@@ -333,6 +338,7 @@ export function simular(
     }
     if (viva) {
       (niveles.final ??= []).push(h.nivel);
+      elegirEquipadas(h, heroe.planHabilidades.jefe);
       viva = pelear(h, inv, [zonas.jefeFinal], azar, mundo);
       contar(jefes, 'final', viva);
     }
