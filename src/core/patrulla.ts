@@ -1,3 +1,4 @@
+import { casillaDe, centroX, centroY, DIRECTO, haciaDonde } from './camino';
 import { moverCuerpo, type Cuerpo, type Rejilla } from './movimiento';
 import type { MovimientoMapaJson } from './types';
 
@@ -18,6 +19,16 @@ export interface Patrulla {
   /** Lado al que mira un monstruo dibujado solo de lado (`deLado`): 1 derecha, −1 izquierda. */
   lado: 1 | -1;
   persiguiendo: boolean;
+  /**
+   * Persiguiéndola, por dónde va: `DIRECTO` a ella, una casilla del camino (su centro en `pasoX`, `pasoY`) o
+   * `SIN_CAMINO` (en línea recta). Se piensa de nuevo cada `REPENSAR` segundos (`repensar` cuenta atrás), cuando ella
+   * cambia de casilla (`casillaHeroe`) o al llegar al paso.
+   */
+  ruta: number;
+  pasoX: number;
+  pasoY: number;
+  repensar: number;
+  casillaHeroe: number;
   /** Segundos que le quedan quieto tras ver a la heroína (el «¡!»), antes de lanzarse. */
   alerta: number;
   /** Qué pasó en el último paso: 1 = acaba de verla, −1 = acaba de perderla, 0 = nada. */
@@ -43,6 +54,8 @@ export const vistaDe = (v: { angulo: number; cerca: number }): Vista => ({
 const OLVIDO = 1.5;
 /** Un monstruo `deLado` cambia de lado solo si se mueve al menos así de lado (fracción de lo que anduvo). */
 const DE_LADO = 0.25;
+/** Segundos entre dos búsquedas de camino mientras persigue (si ella no cambia de casilla ni llega al paso). */
+const REPENSAR = 0.25;
 /** Píxeles a los que se da por llegado a un destino. */
 const LLEGADA = 2;
 
@@ -60,6 +73,11 @@ export function crearPatrulla(cuerpo: Cuerpo): Patrulla {
     dirY: 1,
     lado: 1,
     persiguiendo: false,
+    ruta: DIRECTO,
+    pasoX: cuerpo.x,
+    pasoY: cuerpo.y,
+    repensar: 0,
+    casillaHeroe: -1,
     alerta: 0,
     cambio: 0,
   };
@@ -107,6 +125,7 @@ export function actualizarPatrulla(
   if (!antes && p.persiguiendo) {
     p.cambio = 1;
     p.alerta = pausa;
+    p.repensar = 0;
     if (aHeroe > 0 && delante) {
       p.dirX = hx / aHeroe;
       p.dirY = hy / aHeroe;
@@ -140,6 +159,24 @@ export function actualizarPatrulla(
       p.destinoY = p.casaY + Math.sin(angulo) * r;
       p.espera = 0.5 + azar();
       return;
+    }
+  } else {
+    // Rodea lo que haya en medio en vez de quedarse pegado: va al paso del camino que toque.
+    const casilla = casillaDe(rejilla, tam, heroeX, heroeY, 2);
+    p.repensar -= dt;
+    const enPaso = p.ruta >= 0 && Math.hypot(p.pasoX - c.x, p.pasoY - c.y) <= LLEGADA;
+    if (p.repensar <= 0 || casilla !== p.casillaHeroe || enPaso) {
+      p.repensar = REPENSAR;
+      p.casillaHeroe = casilla;
+      p.ruta = haciaDonde(rejilla, tam, c, heroeX, heroeY);
+      if (p.ruta >= 0) {
+        p.pasoX = centroX(rejilla, tam, p.ruta);
+        p.pasoY = centroY(rejilla, tam, p.ruta, c.alto);
+      }
+    }
+    if (p.ruta >= 0) {
+      tx = p.pasoX;
+      ty = p.pasoY;
     }
   }
   const dx = tx - c.x;
