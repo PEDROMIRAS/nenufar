@@ -1,4 +1,5 @@
 // Fin de la partida y del reto del día: récords, logros, la tarjeta final y la vuelta a la portada.
+import { ATAJOS } from './atajos';
 import { anotarReto, textoFecha, type Fecha, type ResultadoReto } from '../core/reto';
 import { EscenaFinReto } from '../escenas/finReto';
 import {
@@ -47,10 +48,7 @@ export const volverAPortada = (): void => {
 
 /** La fecha de hoy en el navegador; en desarrollo, `?fecha=AAAA-MM-DD` la fuerza. */
 export function hoy(): Fecha {
-  const pedida = import.meta.env.DEV
-    ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(new URLSearchParams(location.search).get('fecha') ?? '')
-    : null;
-  if (pedida) return { anio: Number(pedida[1]), mes: Number(pedida[2]), dia: Number(pedida[3]) };
+  if (ATAJOS.fecha) return ATAJOS.fecha;
   const d = new Date();
   return { anio: d.getFullYear(), mes: d.getMonth() + 1, dia: d.getDate() };
 }

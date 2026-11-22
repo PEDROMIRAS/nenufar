@@ -1,4 +1,5 @@
 // Presagios y salas de evento (altar, ermitaño y desafío), con los atajos de desarrollo para probarlos.
+import { ATAJOS } from './atajos';
 import { type EstadoMapa } from '../core/guardado';
 import { bestiarioCon, reglasCon } from '../core/dificultad';
 import type { PresagioJson } from '../core/types';
@@ -119,18 +120,8 @@ export function abrirMercader(
 
 /** ?desafio, ?ermitano o ?mercader empiezan dentro de esa sala de evento de la zona, si la tiene (solo en desarrollo). */
 export function empezarEnEvento(zona: Zona): EstadoMapa | null {
-  // shortcut: solo en desarrollo, para probar el desafío o el ermitaño sin recorrer la zona
-  if (!import.meta.env.DEV) return null;
-  const url = new URLSearchParams(location.search);
-  const evento = url.has('desafio')
-    ? 'desafio'
-    : url.has('ermitano')
-      ? 'ermitano'
-      : url.has('mercader')
-        ? 'mercader'
-        : null;
-  const sala = zona.salas.findIndex((s) => s.evento === evento);
-  if (sala < 0) return null;
+  const sala = zona.salas.findIndex((s) => s.evento === ATAJOS.evento);
+  if (ATAJOS.evento === null || sala < 0) return null;
   return { sala, lado: null, visitadas: [sala], hechas: [], vencidos: {}, fuenteUsada: false };
 }
 
@@ -150,44 +141,24 @@ export function abrirDesafio(partida: Partida, alTerminar: (aceptado: boolean) =
 }
 
 /** ?evento hace que toda zona con un callejón libre tenga un evento (?desafio, además, un desafío), solo en desarrollo. */
-export function probabilidadEvento(): number {
-  // shortcut: solo en desarrollo, para probar los eventos sin buscarlos
-  if (!import.meta.env.DEV) return EVENTOS.probabilidad;
-  const url = new URLSearchParams(location.search);
-  return ['evento', 'desafio', 'ermitano', 'mercader'].some((k) => url.has(k))
-    ? 1
-    : EVENTOS.probabilidad;
-}
+export const probabilidadEvento = (): number => (ATAJOS.eventos ? 1 : EVENTOS.probabilidad);
 
-/** La fracción de eventos que son un desafío; con ?desafio, todos (solo en desarrollo). */
+/** La fracción de eventos que son un desafío; con ?desafio, todos, y con ?ermitano o ?mercader, ninguno. */
 export function probabilidadDesafio(): number {
-  // shortcut: solo en desarrollo, para probar el desafío sin buscarlo
-  if (!import.meta.env.DEV) return EVENTOS.desafio.fraccion;
-  const url = new URLSearchParams(location.search);
-  if (url.has('ermitano') || url.has('mercader')) return 0;
-  return url.has('desafio') ? 1 : EVENTOS.desafio.fraccion;
+  if (ATAJOS.evento === null) return EVENTOS.desafio.fraccion;
+  return ATAJOS.evento === 'desafio' ? 1 : 0;
 }
 
-/** La fracción de los eventos que no son un desafío que son un ermitaño; con ?ermitano, todos (solo en desarrollo). */
+/** La fracción de los eventos que no son un desafío que son un ermitaño; con ?ermitano, todos, y con ?mercader, ninguno. */
 export function probabilidadErmitano(): number {
-  // shortcut: solo en desarrollo, para probar al ermitaño sin buscarlo
-  if (!import.meta.env.DEV) return EVENTOS.ermitano.fraccion;
-  const url = new URLSearchParams(location.search);
-  if (url.has('mercader')) return 0;
-  return url.has('ermitano') ? 1 : EVENTOS.ermitano.fraccion;
+  if (ATAJOS.evento === 'mercader') return 0;
+  return ATAJOS.evento === 'ermitano' ? 1 : EVENTOS.ermitano.fraccion;
 }
 
-/** La fracción de los altares que son un puesto del mercader; con ?mercader, todos (solo en desarrollo). */
-export function probabilidadMercader(): number {
-  // shortcut: solo en desarrollo, para probar el mercader sin buscarlo
-  if (!import.meta.env.DEV) return EVENTOS.mercader.fraccion;
-  return new URLSearchParams(location.search).has('mercader') ? 1 : EVENTOS.mercader.fraccion;
-}
+/** La fracción de los altares que son un puesto del mercader; con ?mercader, todos. */
+export const probabilidadMercader = (): number =>
+  ATAJOS.evento === 'mercader' ? 1 : EVENTOS.mercader.fraccion;
 
 /** ?presagio=clave fuerza el presagio de todas las zonas, solo en desarrollo. */
-export function presagioForzado(): string | null {
-  // shortcut: solo en desarrollo, para probar un presagio concreto
-  if (!import.meta.env.DEV) return null;
-  const clave = new URLSearchParams(location.search).get('presagio');
-  return clave && clave in PRESAGIOS.lista ? clave : null;
-}
+export const presagioForzado = (): string | null =>
+  ATAJOS.presagio && ATAJOS.presagio in PRESAGIOS.lista ? ATAJOS.presagio : null;

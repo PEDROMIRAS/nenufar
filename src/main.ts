@@ -1,48 +1,36 @@
 import { crearAcciones } from './core/acciones';
 import { crearAzar } from './core/azar';
-import { luchadorDeHeroe, type Luchador } from './core/combate';
-import { eligeAlRecuperar, restaurarHeroina } from './core/guardado';
-import { ajustarEquipadas } from './core/equipadas';
-import { crearHeroina } from './core/heroina';
-import { equipar, inventarioInicial } from './core/equipo';
-import type { Inventario } from './core/inventario';
-import { empezarEnNivel } from './core/progresion';
-import { semillaDelDia, type Fecha } from './core/reto';
-import RETO from './data/reto.json';
+import { avisoNuevo, crearEstadoCartel, opacidadCartel, reiniciarCartel } from './core/cartel';
 import { construirSala, crearCatalogo } from './core/sala';
-import { bestiarioCon, reglasCon } from './core/dificultad';
-import type { DificultadJson, HeroeJson } from './core/types';
 import controles from './data/controles.json';
-import { DIFICULTADES, EVENTOS, HD2D, HEROES, MONSTRUOS, OBJETOS, REGLAS } from './data/datos';
-import historia from './data/historia.json';
-import ritmo from './data/ritmo.json';
+import { DIFICULTADES, EVENTOS, HD2D, HEROES, MONSTRUOS, OBJETOS } from './data/datos';
 import { EscenaControles } from './escenas/controles';
 import { EscenaDificultad } from './escenas/dificultad';
-import { EscenaExtras } from './escenas/extras';
-import { EscenaNombre } from './escenas/nombre';
-import { PilaEscenas } from './escenas/pila';
-import { EscenaPausa } from './escenas/pausa';
 import type { Escena } from './escenas/escena';
-import { EscenaPresentacion } from './escenas/presentacion';
+import { EscenaExtras } from './escenas/extras';
 import { EscenaHabilidades } from './escenas/habilidades';
+import { EscenaNombre } from './escenas/nombre';
+import { EscenaPausa } from './escenas/pausa';
+import { PilaEscenas } from './escenas/pila';
 import { EscenaSeleccion } from './escenas/seleccion';
 import { EscenaTitulo } from './escenas/titulo';
+import { fijarDispositivo, usarDispositivo } from './input/dispositivo';
 import { leerFuentes } from './input/fuente';
 import { crearJoystick } from './input/joystick';
-import { crearTeclado } from './input/teclado';
-import { fijarDispositivo, usarDispositivo } from './input/dispositivo';
 import { conexionesMando, crearMando } from './input/mando';
-import { avisoNuevo, crearEstadoCartel, opacidadCartel, reiniciarCartel } from './core/cartel';
-import { dibujarCartel } from './render/cartel';
-import { anunciar, movimientoReducido } from './render/accesibilidad';
+import { crearTeclado } from './input/teclado';
 import { crearToque } from './input/toque';
-import { iniciarBucle } from './render/bucle';
+import { anunciar, movimientoReducido } from './render/accesibilidad';
 import { vigilarActualizaciones } from './render/actualizacion';
-import { colocarContexto, esTactil, fijarModo, prepararPantalla } from './render/pantalla';
-import { cargarFuente } from './render/texto';
-import { crearCasilla, crearDeslizador } from './render/deslizador';
+import { cargarPartida, cargarRecords } from './render/almacen';
+import { iniciarBucle } from './render/bucle';
 import { crearCampoNombre } from './render/campoNombre';
+import { dibujarCartel } from './render/cartel';
+import { crearCasilla, crearDeslizador } from './render/deslizador';
+import { Mundo } from './render/mundo/mundo';
+import { crearPortada, type Portada3d } from './render/mundo/portada';
 import { LARGO_NOMBRE, RECT_CAMPO } from './render/nombre';
+import { colocarContexto, esTactil, fijarModo, prepararPantalla } from './render/pantalla';
 import {
   RECT_CALIDAD,
   RECT_EFECTOS,
@@ -51,40 +39,13 @@ import {
   RECT_SONIDO,
   RECT_TEMBLOR,
 } from './render/pausa';
+import { cargarImagen, cargarSprite, cargarSprites, cargarTilesets } from './render/recursos';
 import { prepararSonido } from './render/sonido';
-import { Mundo } from './render/mundo/mundo';
-import { crearPortada, type Portada3d } from './render/mundo/portada';
-import { cargarPartida, cargarRecords, guardarAjustes, guardarPartida } from './render/almacen';
-import {
-  cargarImagen,
-  cargarSprite,
-  cargarSprites,
-  cargarTilesets,
-  type Sprite,
-} from './render/recursos';
-import {
-  sesion,
-  type NombreZona,
-  ORDEN,
-  PLANTILLAS_DEV,
-  type Partida,
-  CONOCIDO,
-  aspecto,
-  guardado,
-  mostrarError,
-} from './partida/partida';
-import { LOGROS, hoy, terminarReto } from './partida/fin';
-import {
-  contar,
-  elegirHabilidades,
-  paginas,
-  paginaPresagio,
-  cartel,
-  tituloRival,
-} from './partida/relato';
-import { crearZona } from './partida/zona';
-import { abrirAltar } from './partida/eventos';
-import { vestir, luchar } from './partida/combates';
+import { cargarFuente } from './render/texto';
+import { ATAJOS } from './partida/atajos';
+import { LOGROS, hoy } from './partida/fin';
+import { crearInicio } from './partida/inicio';
+import { aspecto, CONOCIDO, mostrarError, PLANTILLAS_DEV, sesion } from './partida/partida';
 
 /** Escenas que paran el reloj del reto: la pausa (y lo que se abre desde ella) y elegir habilidades. */
 const esPausa = (e: Escena): boolean => e instanceof EscenaPausa || e instanceof EscenaHabilidades;
@@ -105,27 +66,14 @@ async function iniciar(): Promise<void> {
   const mundo = new Mundo(canvas, HD2D);
   prepararSonido();
 
-  // ?semilla=N repite una partida; sin ella, cada carga es distinta. Por debajo de 2³¹, como la del azar: el guardado no
-  // acepta semillas de 2³² o más, y con una así la partida se jugaba pero se descartaba al recargar.
-  const pedida = Number(new URLSearchParams(location.search).get('semilla'));
-  const semilla =
-    Number.isInteger(pedida) && pedida > 0 && pedida < 2 ** 31
-      ? pedida
-      : Math.floor(Math.random() * 2 ** 31);
+  // ?semilla=N repite una partida; sin ella, cada carga es distinta.
+  const semilla = ATAJOS.semilla ?? Math.floor(Math.random() * 2 ** 31);
   console.info('Semilla de la partida:', semilla);
-  // ?zona=N empieza en la zona N (0 = Bosque), solo en desarrollo: para revisar el arte de cada zona.
-  const zonaInicial = import.meta.env.DEV
-    ? Math.max(
-        0,
-        Math.min(ORDEN.length - 1, Number(new URLSearchParams(location.search).get('zona')) || 0),
-      )
-    : 0;
 
   // El joystick escucha en todo el body: también responde en las franjas negras fuera del canvas.
   if (esTactil()) usarDispositivo('tactil');
   // shortcut: solo en desarrollo, para ver los textos del mando sin tenerlo
-  if (import.meta.env.DEV && new URLSearchParams(location.search).has('mando'))
-    fijarDispositivo('mando');
+  if (ATAJOS.mando) fijarDispositivo('mando');
   const fuentes = [
     crearTeclado(),
     crearMando(controles.mando),
@@ -164,6 +112,15 @@ async function iniciar(): Promise<void> {
     efectos: crearDeslizador(canvas, RECT_EFECTOS, 'Volumen de los efectos'),
     temblor: crearDeslizador(canvas, RECT_TEMBLOR, 'Temblor de la pantalla'),
   };
+  const inicio = crearInicio({
+    pila,
+    mundo,
+    semilla,
+    ranas: opciones,
+    capas,
+    hojas,
+    controles: sonidoHtml,
+  });
   const seleccion: EscenaSeleccion = new EscenaSeleccion(opciones, ({ heroe, sprite }) => {
     const pedirNombre: EscenaNombre = new EscenaNombre(
       heroe,
@@ -176,7 +133,7 @@ async function iniciar(): Promise<void> {
             nombre === heroe.nombre
               ? `Con la ${heroe.nombre}`
               : `Con ${nombre}, la ${heroe.nombre.toLowerCase()}`,
-            (dificultad) => empezar(heroe, sprite, dificultad, nombre),
+            (dificultad) => inicio.empezar(heroe, dificultad, nombre),
             () => pila.cambiar(pedirNombre),
           ),
         ),
@@ -184,240 +141,17 @@ async function iniciar(): Promise<void> {
     );
     pila.cambiar(pedirNombre);
   });
-  /** La partida con su heroína, inventario y dificultad (nueva o recuperada), aún sin zona. */
-  const crearPartida = (
-    heroe: HeroeJson,
-    sprite: Sprite,
-    dificultad: DificultadJson,
-    luchadora: Luchador,
-    inventario: Inventario,
-    semillaPartida: number,
-  ): Partida => {
-    const partida: Partida = {
-      semilla: semillaPartida,
-      pila,
-      heroina: crearHeroina(heroe, 0, 0), // cada escena la coloca en su sala
-      // La misma luchadora en todos los combates: la vida perdida se arrastra.
-      luchadora,
-      inventario,
-      // Copia propia: `vestir` la recolorea y la de la selección se queda con los colores originales.
-      sprite: { ...sprite },
-      imagenBase: sprite.imagen as HTMLImageElement,
-      capas,
-      hojas,
-      combates: 0,
-      inicio: performance.now(),
-      vencidos: 0,
-      zona: '',
-      dificultad,
-      presagio: null,
-      dificultadZona: dificultad,
-      bestiario: bestiarioCon(MONSTRUOS, dificultad),
-      reglas: reglasCon(REGLAS, dificultad),
-      rival: tituloRival(),
-      controles: sonidoHtml,
-      violetas: 0,
-      dragonUsado: false,
-      violetasAntes: 0,
-      dragonAntes: false,
-      mundo,
-      reto: null,
-    };
-    vestir(partida); // con el arma y la armadura que lleve
-    sesion.enCurso = true;
-    return partida;
-  };
-  /** Crea la partida con la heroína, su nombre y la dificultad elegidas y carga la primera zona. */
-  const empezar = (
-    heroe: HeroeJson,
-    sprite: Sprite,
-    dificultad: DificultadJson,
-    nombre: string,
-  ): void => {
-    const luchadora = luchadorDeHeroe(heroe);
-    luchadora.nombre = nombre;
-    // ?puntos=N da N puntos de mejora al empezar (solo en desarrollo): para revisar la pantalla de puntos.
-    if (import.meta.env.DEV)
-      luchadora.puntos = Number(new URLSearchParams(location.search).get('puntos')) || 0;
-    const inventario = inventarioInicial(luchadora, heroe, OBJETOS);
-    // shortcut: solo en desarrollo, ?nivel=N empieza en ese nivel (con la quinta habilidad ganada si N es el máximo),
-    // para revisar la pantalla Habilidades y la pausa con muchas habilidades.
-    const nivel = import.meta.env.DEV
-      ? Number(new URLSearchParams(location.search).get('nivel'))
-      : 0;
-    if (nivel > 1) {
-      empezarEnNivel(luchadora, nivel, REGLAS.experiencia);
-      if (nivel >= REGLAS.experiencia.nivelMaximo)
-        luchadora.habilidadesGanadas.push(heroe.especiales.habilidad);
-    }
-    // ?equipo=clave se pone esa pieza al empezar (solo en desarrollo): para ver cómo se viste la heroína.
-    const pieza = import.meta.env.DEV ? new URLSearchParams(location.search).get('equipo') : null;
-    if (pieza && OBJETOS.equipo[pieza]) equipar(luchadora, inventario, OBJETOS, pieza);
-    const partida = crearPartida(heroe, sprite, dificultad, luchadora, inventario, semilla);
-    crearZona(partida, zonaInicial, true)
-      .then((zona) => {
-        pila.cambiar(zona);
-        // ?combate=clave1,clave2 abre un combate contra esos monstruos nada más empezar (solo en desarrollo):
-        // para revisar la pantalla de combate sin recorrer las salas.
-        const claves = import.meta.env.DEV
-          ? new URLSearchParams(location.search).get('combate')
-          : null;
-        const grupo = claves?.split(',').flatMap((c) => (MONSTRUOS[c] ? [MONSTRUOS[c]] : [])) ?? [];
-        if (grupo.length > 0) {
-          // shortcut: solo en desarrollo; con ?presentar y un solo monstruo, antes sale su presentación de
-          // jefe (para grabar el vídeo de demo).
-          const jefe = grupo[0]!;
-          if (grupo.length === 1 && new URLSearchParams(location.search).has('presentar')) {
-            partida.pila.apilar(
-              new EscenaPresentacion(zona.fondoSala, jefe.nombre, ritmo.presentacionJefe, () => {
-                partida.pila.desapilar();
-                luchar(partida, grupo, zona.fondoSala, () => {});
-              }),
-            );
-            return;
-          }
-          luchar(partida, grupo, zona.fondoSala, () => {});
-          return;
-        }
-        // ?altar abre la elección del altar nada más empezar (solo en desarrollo), para revisar su pantalla.
-        if (import.meta.env.DEV && new URLSearchParams(location.search).has('altar')) {
-          abrirAltar(partida, () => {});
-          return;
-        }
-        guardarAjustes({ pistasVistas: true }); // las pistas, si tocaban, ya van en esta zona
-        // La historia se cuenta encima del mapa ya cargado: al pasarla, empieza el fundido de entrada.
-        contar(
-          pila,
-          [
-            ...paginas([...historia.inicio, ...heroe.historia.inicio]),
-            cartel(zonaInicial),
-            ...paginaPresagio(partida),
-          ],
-          // Después, las 3 habilidades con que se entra en la zona.
-          // Lo elegido se guarda ya: si no, se perdía al cerrar en la primera sala.
-          () =>
-            elegirHabilidades(partida, () =>
-              guardarPartida(guardado(partida, zonaInicial, zona.estado())),
-            ),
-        );
-      })
-      .catch(mostrarError);
-  };
-
-  /**
-   * Empieza el reto del día con la rana elegida: el Bosque corto de reto.json con la semilla de `fecha`, la rana ya en
-   * el nivel del reto y sin guardar nada. «Otra vez» lo vuelve a llamar con la misma rana y la misma fecha.
-   */
-  const empezarReto = (heroe: HeroeJson, sprite: Sprite, fecha: Fecha, otraVez = false): void => {
-    const luchadora = luchadorDeHeroe(heroe);
-    const inventario = inventarioInicial(luchadora, heroe, OBJETOS);
-    empezarEnNivel(luchadora, RETO.nivel, REGLAS.experiencia);
-    ajustarEquipadas(luchadora);
-    const partida = crearPartida(
-      heroe,
-      sprite,
-      RETO.dificultad,
-      luchadora,
-      inventario,
-      semillaDelDia(fecha),
-    );
-    sesion.enCurso = false; // el reto dura minutos: cerrar la pestaña no pregunta
-    partida.reto = { fecha, segundos: 0, progreso: () => ({ sala: 1, de: 1 }) };
-    sesion.retoEnJuego = partida;
-    crearZona(partida, ORDEN.indexOf(RETO.zona as NombreZona), true)
-      .then((zona) => {
-        pila.cambiar(zona);
-        guardarAjustes({ pistasVistas: true }); // las pistas, si tocaban, ya van en esta zona
-        // shortcut: solo en desarrollo, ?reto=gana|pierde enseña la tarjeta final nada más entrar (una vez).
-        if (finForzado) {
-          partida.reto!.segundos = 222;
-          terminarReto(partida, finForzado === 'gana');
-          finForzado = null;
-          return;
-        }
-        const elegir = (): void => elegirHabilidades(partida, () => {});
-        if (otraVez) elegir();
-        else
-          contar(
-            pila,
-            [
-              {
-                titulo: 'Reto del día',
-                texto: `${fecha.dia}/${fecha.mes}/${fecha.anio}. Llega al Guardián del Bosque.`,
-              },
-            ],
-            elegir,
-          );
-      })
-      .catch(mostrarError);
-  };
-  sesion.reiniciarReto = (heroe, fecha) =>
-    empezarReto(heroe, opciones.find((o) => o.heroe === heroe)!.sprite, fecha, true);
-  let finForzado = import.meta.env.DEV ? new URLSearchParams(location.search).get('reto') : null;
-  const seleccionReto = new EscenaSeleccion(opciones, ({ heroe, sprite }) =>
-    empezarReto(heroe, sprite, hoy()),
+  const seleccionReto = new EscenaSeleccion(opciones, ({ heroe }) =>
+    inicio.empezarReto(heroe, hoy()),
   );
 
   // Una partida a medias (se cerró el navegador): se vuelve a la sala donde se guardó, sin portada.
   const guardada = cargarPartida(CONOCIDO);
-  if (guardada) {
-    const heroe = HEROES[guardada.heroe as keyof typeof HEROES];
-    const sprite = opciones.find((o) => o.heroe === heroe)!.sprite;
-    const luchadora = luchadorDeHeroe(heroe);
-    restaurarHeroina(luchadora, guardada.heroina);
-    ajustarEquipadas(luchadora); // las de una partida de antes, o las que ya no conozca
-    const partida = crearPartida(
-      heroe,
-      sprite,
-      DIFICULTADES[guardada.dificultad as keyof typeof DIFICULTADES],
-      luchadora,
-      guardada.inventario,
-      guardada.semilla,
-    );
-    partida.combates = guardada.combates;
-    partida.vencidos = guardada.vencidos;
-    partida.rival = guardada.rival;
-    partida.inicio = performance.now() - guardada.segundos * 1000;
-    partida.violetas = guardada.violetasAntes;
-    partida.dragonUsado = guardada.dragonAntes;
-    crearZona(partida, guardada.zona, false, guardada.mapa)
-      .then((zona) => {
-        pila.cambiar(zona);
-        contar(
-          pila,
-          [
-            guardada.combate
-              ? {
-                  titulo: 'Combate interrumpido',
-                  texto:
-                    'El juego se cerró en mitad de un combate: vuelves a empezarlo con la vida que tenías.',
-                }
-              : {
-                  titulo: 'Partida recuperada',
-                  texto: `${luchadora.nombre}, nivel ${luchadora.nivel}, en ${partida.zona}. Sigues donde lo dejaste.`,
-                },
-            // El combate final se lucha sin presagio: no tiene sentido recordárselo.
-            ...(guardada.combate?.tipo === 'final' ? [] : paginaPresagio(partida)),
-          ],
-          () => {
-            const reanudar = (): void => {
-              if (guardada.combate) zona.reanudarCombate(guardada.combate);
-            };
-            // Una partida de antes de las habilidades equipadas: que las elija antes de seguir.
-            if (eligeAlRecuperar(guardada.heroina))
-              elegirHabilidades(partida, () => {
-                // Con lo elegido y el mismo combate pendiente: recuperar otra vez no vuelve a preguntar.
-                guardarPartida(guardado(partida, guardada.zona, zona.estado(), guardada.combate));
-                reanudar();
-              });
-            else reanudar();
-          },
-        );
-      })
-      .catch(mostrarError);
-  } else {
+  if (guardada) inicio.recuperar(guardada);
+  else {
     await mostrarPortada();
-    if (finForzado) empezarReto(opciones[0]!.heroe, opciones[0]!.sprite, hoy());
+    // shortcut: solo en desarrollo, ?reto=gana|pierde abre la tarjeta del reto nada más cargar.
+    if (ATAJOS.reto) inicio.empezarReto(opciones[0]!.heroe, hoy());
   }
 
   async function mostrarPortada(): Promise<void> {
@@ -448,7 +182,7 @@ async function iniciar(): Promise<void> {
   const estadoCartel = crearEstadoCartel();
   let tiempoCartel = Infinity;
   // shortcut: solo en desarrollo, con ?mando el cartel sale al empezar para verlo sin mando
-  if (import.meta.env.DEV && new URLSearchParams(location.search).has('mando')) tiempoCartel = 0;
+  if (ATAJOS.mando) tiempoCartel = 0;
   iniciarBucle(
     (dt) => {
       leerFuentes(fuentes, acciones);
@@ -477,10 +211,8 @@ async function portada(
 ): Promise<Portada3d> {
   // En desarrollo, `?portada=cauce_combate_01` enseña esa sala (la zona es lo que va antes del primer `_`) y
   // `&vista=x,z,ancho` acerca la cámara a esa casilla, con ese ancho en casillas.
-  const params = import.meta.env.DEV ? new URLSearchParams(location.search) : null;
-  const pedida = params?.get('portada') ?? null;
-  const [vx, vz, va] = (params?.get('vista') ?? '').split(',').map(Number);
-  const datos = va ? { ...HD2D.portada, encuadre: { x: vx!, z: vz!, ancho: va } } : HD2D.portada;
+  const pedida = ATAJOS.portada;
+  const datos = ATAJOS.vista ? { ...HD2D.portada, encuadre: ATAJOS.vista } : HD2D.portada;
   const zona = pedida ? pedida.split('_')[0]! : datos.zona;
   const idPlantilla = pedida ?? datos.plantilla;
   const conjunto = PLANTILLAS_DEV[zona];
