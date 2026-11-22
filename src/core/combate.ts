@@ -1,4 +1,5 @@
 import { elegirConPeso } from './azar';
+import { equipadasIniciales } from './equipadas';
 import { crecerEquipo, piezaDeBotin, yaSalio } from './equipo';
 import { aplicarConsumible, crearInventario, gastar, guardar, type Inventario } from './inventario';
 import { ganarExperiencia } from './progresion';
@@ -171,8 +172,12 @@ function luchador(
   };
 }
 
-export const luchadorDeHeroe = (h: HeroeJson): Luchador =>
-  luchador(h.nombre, h.estadisticas, h, null);
+/** La heroína recién creada, con sus primeras habilidades equipadas. */
+export function luchadorDeHeroe(h: HeroeJson): Luchador {
+  const l = luchador(h.nombre, h.estadisticas, h, null);
+  l.equipadas = equipadasIniciales(l);
+  return l;
+}
 export const luchadorDeMonstruo = (m: MonstruoJson): Luchador =>
   luchador(m.nombre, m.estadisticas, null, m);
 
@@ -222,12 +227,17 @@ export function puedeHuir(c: Combate): boolean {
   return !c.enemigos.some((e) => e.monstruo?.jefe);
 }
 
-/** Habilidades que la heroína ya ha desbloqueado: por nivel, o ganadas como recompensa. */
-export function habilidadesDisponibles(h: Luchador): HabilidadJson[] {
-  return (h.heroe?.habilidades ?? []).filter((hab) => disponible(h, hab));
+/** Habilidades que la heroína conoce: las de su nivel y las ganadas como recompensa. */
+export function habilidadesConocidas(h: Luchador): HabilidadJson[] {
+  return (h.heroe?.habilidades ?? []).filter((hab) => conocida(h, hab));
 }
 
-const disponible = (h: Luchador, hab: HabilidadJson): boolean =>
+/** Las que puede usar en combate: las conocidas que lleva equipadas, en el orden de su lista. */
+export function habilidadesDisponibles(h: Luchador): HabilidadJson[] {
+  return habilidadesConocidas(h).filter((hab) => h.equipadas.includes(hab.nombre));
+}
+
+const conocida = (h: Luchador, hab: HabilidadJson): boolean =>
   hab.recompensa ? h.habilidadesGanadas.includes(hab.nombre) : hab.nivel <= h.nivel;
 
 /** Estadística con los multiplicadores de los estados activos (Furia, Postura de hierro…). */
@@ -311,7 +321,9 @@ export function actuar(c: Combate, accion: AccionHeroina): Evento[] {
   const h = c.heroina;
   if (accion.tipo === 'habilidad') {
     const { habilidad } = accion;
-    if (!disponible(h, habilidad)) throw new Error(`${habilidad.nombre} aún no está disponible`);
+    if (!conocida(h, habilidad)) throw new Error(`${habilidad.nombre} aún no está disponible`);
+    if (!h.equipadas.includes(habilidad.nombre))
+      throw new Error(`${habilidad.nombre} no está equipada`);
     if (habilidad.pm > h.pm) throw new Error(`No hay PM para ${habilidad.nombre}`);
   }
   if (accion.tipo === 'huir' && !puedeHuir(c)) throw new Error('No se puede huir de este combate');

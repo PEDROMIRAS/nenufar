@@ -89,6 +89,8 @@ export interface HeroeJson {
   armaInicial: string;
   /** Sus armas por nivel (1, 2, 3): claves de equipo en objetos.json. */
   armas: string[];
+  /** Cuántas habilidades lleva equipadas a la vez (las demás las conoce pero no salen en combate). */
+  equipables: number;
   habilidades: HabilidadJson[];
   /** Recompensas de los jefes violetas: claves de equipo en objetos.json y el nombre de su quinta habilidad. */
   especiales: { arma: string; armadura: string; habilidad: string };

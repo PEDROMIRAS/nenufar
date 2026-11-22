@@ -73,6 +73,7 @@
       "armadura": "armadura_samurai",
       "habilidad": "Tajo de llama morada"
     },
+    "equipables": 3,
     "habilidades": [
       {
         "nombre": "Corte rápido",
@@ -256,6 +257,7 @@
       "armadura": "tunica_arcana",
       "habilidad": "Cometa arcano"
     },
+    "equipables": 3,
     "habilidades": [
       {
         "nombre": "Fuego morado",

@@ -5,7 +5,7 @@ import {
   avanzar,
   crearCombate,
   efectiva,
-  habilidadesDisponibles,
+  habilidadesConocidas,
   luchadorDeHeroe,
   luchadorDeMonstruo,
   type Combate,
@@ -38,8 +38,15 @@ function combate(heroe: HeroeJson, nivel = 1, enemigos = 1): Combate {
 }
 const habilidad = (heroe: HeroeJson, nombre: string): HabilidadJson =>
   heroe.habilidades.find((h) => h.nombre === nombre)!;
-const usar = (c: Combate, nombre: string, heroe: HeroeJson) =>
-  actuar(c, { tipo: 'habilidad', habilidad: habilidad(heroe, nombre), objetivo: c.enemigos[0]! });
+/** Usa la habilidad (equipándola antes: aquí se prueba lo que hace, no qué se lleva equipado). */
+function usar(c: Combate, nombre: string, heroe: HeroeJson) {
+  c.heroina.equipadas = [nombre];
+  return actuar(c, {
+    tipo: 'habilidad',
+    habilidad: habilidad(heroe, nombre),
+    objetivo: c.enemigos[0]!,
+  });
+}
 
 describe('habilidades', () => {
   test('cada rana conoce 4 al empezar y una más en los niveles 3, 5, 7 y 9', () => {
@@ -53,7 +60,7 @@ describe('habilidades', () => {
         [9, 8],
       ] as const) {
         h.nivel = nivel;
-        expect(habilidadesDisponibles(h), `${heroe.nombre} a nivel ${nivel}`).toHaveLength(cuantas);
+        expect(habilidadesConocidas(h), `${heroe.nombre} a nivel ${nivel}`).toHaveLength(cuantas);
       }
     }
   });
@@ -206,9 +213,9 @@ describe('quinta habilidad (recompensa de los jefes violetas)', () => {
       expect(habilidad(heroe, quinta)?.recompensa).toBe(true);
       const h = luchadorDeHeroe(heroe);
       h.nivel = REGLAS.experiencia.nivelMaximo;
-      expect(habilidadesDisponibles(h).map((x) => x.nombre)).not.toContain(quinta);
+      expect(habilidadesConocidas(h).map((x) => x.nombre)).not.toContain(quinta);
       h.habilidadesGanadas.push(quinta);
-      expect(habilidadesDisponibles(h).map((x) => x.nombre)).toContain(quinta);
+      expect(habilidadesConocidas(h).map((x) => x.nombre)).toContain(quinta);
     },
   );
 
