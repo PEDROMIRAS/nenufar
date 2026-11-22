@@ -1,7 +1,7 @@
 import { crearAcciones } from './core/acciones';
 import { crearAzar } from './core/azar';
 import { luchadorDeHeroe, type Luchador } from './core/combate';
-import { restaurarHeroina } from './core/guardado';
+import { eligeAlRecuperar, restaurarHeroina } from './core/guardado';
 import { ajustarEquipadas } from './core/equipadas';
 import { crearHeroina } from './core/heroina';
 import { equipar, inventarioInicial } from './core/equipo';
@@ -395,7 +395,12 @@ async function iniciar(): Promise<void> {
             ...(guardada.combate?.tipo === 'final' ? [] : paginaPresagio(partida)),
           ],
           () => {
-            if (guardada.combate) zona.reanudarCombate(guardada.combate);
+            const reanudar = (): void => {
+              if (guardada.combate) zona.reanudarCombate(guardada.combate);
+            };
+            // Una partida de antes de las habilidades equipadas: que las elija antes de seguir.
+            if (eligeAlRecuperar(guardada.heroina)) elegirHabilidades(partida, reanudar);
+            else reanudar();
           },
         );
       })

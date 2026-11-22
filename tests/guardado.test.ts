@@ -3,6 +3,7 @@ import { luchadorDeHeroe } from '../src/core/combate';
 import { ajustarEquipadas } from '../src/core/equipadas';
 import { inventarioInicial } from '../src/core/equipo';
 import {
+  eligeAlRecuperar,
   heroinaGuardada,
   leerGuardado,
   restaurarHeroina,
@@ -193,4 +194,12 @@ describe('guardado de la partida', () => {
     romper(g);
     expect(leerGuardado(JSON.stringify(g), conocido)).toBeNull();
   });
+});
+
+test('una partida guardada antes de las habilidades equipadas pide elegirlas al recuperarla; una nueva, no', () => {
+  const g = ejemplo();
+  expect(eligeAlRecuperar(g.heroina)).toBe(false);
+  const vieja = { ...g.heroina } as Partial<typeof g.heroina>;
+  delete vieja.equipadas;
+  expect(eligeAlRecuperar(vieja as typeof g.heroina)).toBe(true);
 });

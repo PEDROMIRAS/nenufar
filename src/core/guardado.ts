@@ -114,6 +114,12 @@ export function heroinaGuardada(l: Luchador): HeroinaGuardada {
   return g;
 }
 
+/**
+ * Si al recuperar la partida hay que dejar elegir las habilidades equipadas: las guardadas antes de que existieran no
+ * las llevan, y la heroína se quedaría con las de nivel 1 sin haberlas elegido (y quizá a punto de un combate).
+ */
+export const eligeAlRecuperar = (g: HeroinaGuardada): boolean => g.equipadas === undefined;
+
 /** Copia los campos guardados sobre una luchadora recién creada con `luchadorDeHeroe`. */
 export function restaurarHeroina(l: Luchador, g: HeroinaGuardada): void {
   l.nombre = g.nombre;
