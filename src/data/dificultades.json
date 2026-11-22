@@ -5,7 +5,7 @@
     "ataque": 1.08,
     "vida": 1.07,
     "recuperacion": 1,
-    "violetas": 1.178
+    "violetas": 1.177
   },
   "normal": {
     "nombre": "Normal",
@@ -13,14 +13,14 @@
     "ataque": 1.08,
     "vida": 1.07,
     "recuperacion": 0.6,
-    "violetas": 1.162
+    "violetas": 1.158
   },
   "dificil": {
     "nombre": "Difícil",
     "descripcion": "Para quien ya lo ha terminado: apenas te recuperas entre combates, cada golpe cuenta.",
     "ataque": 1.09,
     "vida": 1.07,
-    "recuperacion": 0.47,
-    "violetas": 1.17
+    "recuperacion": 0.473,
+    "violetas": 1.167
   }
 }
