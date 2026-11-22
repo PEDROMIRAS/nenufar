@@ -25,6 +25,8 @@ export interface Sala {
   solido: boolean[];
   /** Por casilla sólida con objeto, la base que choca (null = la casilla entera). */
   cajas: (readonly [number, number, number, number] | null)[];
+  /** Casillas que tapan la vista de los monstruos: muros y objetos altos (con parte de arriba); el agua y las rocas bajas, no. */
+  opaco: boolean[];
 }
 
 // Símbolos que, además de sí mismos, enlazan un autotile: el camino entra en puertas y portales (como en plantilla.py).
@@ -88,6 +90,7 @@ export function construirSala(
   const objetos: ObjetoSala[] = [];
   const solido: boolean[] = [];
   const cajas: (readonly [number, number, number, number] | null)[] = [];
+  const opaco: boolean[] = [];
   for (let y = 0; y < alto; y++) {
     for (let x = 0; x < ancho; x++) {
       const ch = celda(x, y) ?? '';
@@ -130,10 +133,11 @@ export function construirSala(
       base.push(fondo);
       solido.push(fondo.solid || (objeto?.inf.solid ?? false));
       cajas.push(!fondo.solid && objeto?.inf.solid ? (objeto.inf.caja ?? null) : null);
+      opaco.push(fondo.layer === 'muro' || (objeto?.sup ?? null) !== null);
       if (objeto) objetos.push(objeto);
     }
   }
-  return { ancho, alto, base, objetos, solido, cajas };
+  return { ancho, alto, base, objetos, solido, cajas, opaco };
 }
 
 export interface Salida {

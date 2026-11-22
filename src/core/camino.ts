@@ -140,3 +140,30 @@ export function haciaDonde(r: Rejilla, tam: number, c: Cuerpo, hx: number, hy: n
   }
   return objetivo;
 }
+
+/** Píxeles entre las pruebas de la línea de vista. */
+const PASO_VISTA = 8;
+
+/**
+ * ¿Se ve (x1, y1) desde (x0, y0)? Falso si en medio hay una casilla opaca (muro u objeto alto). Las casillas de los dos
+ * extremos no cuentan: quien está pegado a un árbol se ve. Sin tabla de opacas, siempre.
+ */
+export function hayVista(
+  r: Rejilla,
+  tam: number,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+): boolean {
+  if (!r.opaco) return true;
+  const desde = casillaDe(r, tam, x0, y0, 0);
+  const hasta = casillaDe(r, tam, x1, y1, 0);
+  const pasos = Math.ceil(Math.hypot(x1 - x0, y1 - y0) / PASO_VISTA);
+  for (let i = 1; i < pasos; i++) {
+    const t = i / pasos;
+    const c = casillaDe(r, tam, x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, 0);
+    if (c !== desde && c !== hasta && r.opaco[c]) return false;
+  }
+  return true;
+}

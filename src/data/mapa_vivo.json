@@ -1,7 +1,8 @@
 {
   "vista": {
     "angulo": 120,
-    "cerca": 32
+    "cerca": 32,
+    "olvido": 2
   },
   "alerta": {
     "pausa": 0.3,

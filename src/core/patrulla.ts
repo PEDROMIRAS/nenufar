@@ -1,4 +1,4 @@
-import { casillaDe, centroX, centroY, DIRECTO, haciaDonde } from './camino';
+import { casillaDe, centroX, centroY, DIRECTO, haciaDonde, hayVista } from './camino';
 import { moverCuerpo, type Cuerpo, type Rejilla } from './movimiento';
 import type { MovimientoMapaJson } from './types';
 
@@ -25,6 +25,10 @@ export interface Patrulla {
    * cambia de casilla (`casillaHeroe`) o al llegar al paso.
    */
   ruta: number;
+  /** Dónde la vio por última vez y segundos que lleva sin verla (escondida tras un muro), persiguiéndola. */
+  vistaX: number;
+  vistaY: number;
+  sinVer: number;
   pasoX: number;
   pasoY: number;
   repensar: number;
@@ -39,15 +43,18 @@ export interface Patrulla {
 export interface Vista {
   cosMitad: number;
   cerca: number;
+  /** Segundos que la sigue buscando sin verla (escondida tras un muro) antes de perderla. */
+  olvido: number;
 }
 
 /** Vista en todas direcciones (como el ermitaño, que no ve, y como era antes del cono). */
-const EN_REDONDO: Vista = { cosMitad: -2, cerca: 0 };
+const EN_REDONDO: Vista = { cosMitad: -2, cerca: 0, olvido: Infinity };
 
 /** La vista de `angulo` grados delante y `cerca` píxeles en redondo (`vista` de mapa_vivo.json). */
-export const vistaDe = (v: { angulo: number; cerca: number }): Vista => ({
+export const vistaDe = (v: { angulo: number; cerca: number; olvido?: number }): Vista => ({
   cosMitad: Math.cos((v.angulo * Math.PI) / 360),
   cerca: v.cerca,
+  olvido: v.olvido ?? Infinity,
 });
 
 /** La persecución se abandona cuando la heroína se aleja más que la visión × este factor. */
@@ -56,6 +63,8 @@ const OLVIDO = 1.5;
 const DE_LADO = 0.25;
 /** Segundos entre dos búsquedas de camino mientras persigue (si ella no cambia de casilla ni llega al paso). */
 const REPENSAR = 0.25;
+/** Altura de los ojos sobre los pies (la de la heroína, para mirarla), en píxeles. */
+const OJOS = 6;
 /** Píxeles a los que se da por llegado a un destino. */
 const LLEGADA = 2;
 
@@ -74,6 +83,9 @@ export function crearPatrulla(cuerpo: Cuerpo): Patrulla {
     lado: 1,
     persiguiendo: false,
     ruta: DIRECTO,
+    vistaX: cuerpo.x,
+    vistaY: cuerpo.y,
+    sinVer: 0,
     pasoX: cuerpo.x,
     pasoY: cuerpo.y,
     repensar: 0,
@@ -120,8 +132,23 @@ export function actualizarPatrulla(
   const aHeroe = Math.hypot(hx, hy);
   const delante =
     aHeroe === 0 || (miraX(p, mov) * hx + miraY(p, mov) * hy) / aHeroe >= vista.cosMitad;
-  if (aHeroe < mov.vision && (antes || delante || aHeroe < vista.cerca)) p.persiguiendo = true;
+  // Nada opaco en medio (muros, objetos altos): a través del agua o de una roca baja sí la ve.
+  const ve =
+    aHeroe < mov.vision * OLVIDO &&
+    hayVista(rejilla, tam, c.x, c.y - c.alto / 2, heroeX, heroeY - OJOS);
+  if (aHeroe < mov.vision && ve && (antes || delante || aHeroe < vista.cerca))
+    p.persiguiendo = true;
   else if (aHeroe > mov.vision * OLVIDO) p.persiguiendo = false;
+  if (p.persiguiendo && ve) {
+    p.vistaX = heroeX;
+    p.vistaY = heroeY;
+    p.sinVer = 0;
+  } else if (p.persiguiendo && antes) {
+    // Escondida: va a donde la vio por última vez; si llega o pasa el olvido sin verla, la pierde.
+    p.sinVer += dt;
+    const llego = Math.hypot(p.vistaX - c.x, p.vistaY - c.y) <= LLEGADA * 4;
+    if (p.sinVer >= vista.olvido || llego) p.persiguiendo = false;
+  }
   if (!antes && p.persiguiendo) {
     p.cambio = 1;
     p.alerta = pausa;
@@ -140,8 +167,11 @@ export function actualizarPatrulla(
     return;
   }
 
-  let tx = heroeX;
-  let ty = heroeY;
+  // A por ella si la ve; si no, a donde la vio por última vez.
+  const objX = ve ? heroeX : p.vistaX;
+  const objY = ve ? heroeY : p.vistaY;
+  let tx = objX;
+  let ty = objY;
   let velocidad = mov.persecucion;
   if (!p.persiguiendo) {
     if (p.espera > 0) {
@@ -162,13 +192,13 @@ export function actualizarPatrulla(
     }
   } else {
     // Rodea lo que haya en medio en vez de quedarse pegado: va al paso del camino que toque.
-    const casilla = casillaDe(rejilla, tam, heroeX, heroeY, 2);
+    const casilla = casillaDe(rejilla, tam, objX, objY, 2);
     p.repensar -= dt;
     const enPaso = p.ruta >= 0 && Math.hypot(p.pasoX - c.x, p.pasoY - c.y) <= LLEGADA;
     if (p.repensar <= 0 || casilla !== p.casillaHeroe || enPaso) {
       p.repensar = REPENSAR;
       p.casillaHeroe = casilla;
-      p.ruta = haciaDonde(rejilla, tam, c, heroeX, heroeY);
+      p.ruta = haciaDonde(rejilla, tam, c, objX, objY);
       if (p.ruta >= 0) {
         p.pasoX = centroX(rejilla, tam, p.ruta);
         p.pasoY = centroY(rejilla, tam, p.ruta, c.alto);

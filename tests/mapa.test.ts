@@ -67,6 +67,7 @@ test('portalPisado solo se activa con los pies en la casilla del portal', () => 
     base: [],
     solido: [],
     cajas: [],
+    opaco: [],
     objetos: [
       { x: 2, y: 2, inf: roca, sup: null },
       { x: 11, y: 3, inf: portal, sup: null },
@@ -85,6 +86,7 @@ test('objetoAlAlcance: pegada a la fuente sí, a un paso de distancia no', () =>
     base: [],
     solido: [],
     cajas: [],
+    opaco: [],
     objetos: [{ x: 10, y: 7, inf: fuente, sup: null }],
   };
   const cuerpo = (x: number, y: number) => ({ x, y, ancho: 14, alto: 8 });
@@ -126,6 +128,7 @@ test('objetoAlAlcance encuentra cualquier pieza de un objeto de varias casillas,
     base: [],
     solido: [],
     cajas: [],
+    opaco: [],
     objetos: [{ x: 10, y: 7, inf: pieza('fuente_der_inf'), sup: null }],
   };
   const cuerpo = { x: 320 - 7, y: 7 * T + 20, ancho: 14, alto: 8 };
