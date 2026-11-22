@@ -1,4 +1,8 @@
 {
+  "vista": {
+    "angulo": 120,
+    "cerca": 32
+  },
   "alerta": {
     "pausa": 0.3,
     "duracion": 0.9,

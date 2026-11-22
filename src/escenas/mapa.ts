@@ -16,7 +16,15 @@ import {
 import { cuantosGrupos, seTocan } from '../core/monstruos';
 import { azarCofre, montarSalaZona, sortearGrupos } from '../core/montaje';
 import { restaurarFuente } from '../core/presagios';
-import { actualizarPatrulla, crearPatrulla, iniciativa, type Patrulla } from '../core/patrulla';
+import {
+  actualizarPatrulla,
+  crearPatrulla,
+  iniciativa,
+  miraX,
+  miraY,
+  vistaDe,
+  type Patrulla,
+} from '../core/patrulla';
 import { buscarInicio } from '../core/movimiento';
 import {
   chocarConElipse,
@@ -63,6 +71,8 @@ import { IMPACTO, MAPA_VIVO } from '../data/datos';
 import { dibujarEntrada } from '../render/entrada';
 import type { Escena } from './escena';
 
+/** Lo que ven los monstruos: un cono delante y un poco en redondo (mapa_vivo.json). */
+const VISTA = vistaDe(MAPA_VIVO.vista);
 /** Lo más que se espera en negro a que se prepare una sala nueva, en milisegundos. */
 const TOPE_PREPARAR = 1500;
 /** Vector hacia el que mira la heroína según su dirección. */
@@ -510,6 +520,7 @@ export class EscenaMapa implements Escena {
           tam,
           this.azarMapa,
           MAPA_VIVO.alerta.pausa,
+          VISTA,
         );
         this.avisarSigno(m, dt);
       }
@@ -882,7 +893,9 @@ export class EscenaMapa implements Escena {
     const x = xAnterior + (c.x - xAnterior) * alpha;
     const y = yAnterior + (c.y - yAnterior) * alpha;
     const andando = c.x !== xAnterior || c.y !== yAnterior;
-    const direccion = direccionDe(m.p.dirX, m.p.dirY);
+    // Como mira: de lado si su hoja solo tiene esa vista (si no, al bajar se giraba de golpe a la derecha).
+    const mov = m.grupo[0]?.mapa;
+    const direccion = direccionDe(miraX(m.p, mov), miraY(m.p, mov));
     const lider = actores[0];
     if (lider) {
       const datos = m.signo === 'perdido' ? MAPA_VIVO.perdido : MAPA_VIVO.alerta;
@@ -979,7 +992,12 @@ export class EscenaMapa implements Escena {
         : m.grupo[0]?.mapa
           ? iniciativa(
               { x: h.cuerpo.x, y: h.cuerpo.y, dirX, dirY },
-              { x: m.p.cuerpo.x, y: m.p.cuerpo.y, dirX: m.p.dirX, dirY: m.p.dirY },
+              {
+                x: m.p.cuerpo.x,
+                y: m.p.cuerpo.y,
+                dirX: miraX(m.p, m.grupo[0]?.mapa),
+                dirY: miraY(m.p, m.grupo[0]?.mapa),
+              },
             )
           : null;
     this.lanzarCombate(
