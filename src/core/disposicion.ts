@@ -471,7 +471,8 @@ export function disposicionHabilidades(
   d: DatosVertical,
 ): { lista: Rect; fila: number; visibles: number; detalle: Rect } {
   const h = d.habilidades;
-  const m = alta ? 2 * d.menu.margen : 24;
+  // El marco va a 16 del borde: 8 de aire dentro de él, en las dos orientaciones.
+  const m = 3 * d.menu.margen;
   const abajo = alto - m;
   if (!alta) {
     const fila = h.filaHorizontal;
