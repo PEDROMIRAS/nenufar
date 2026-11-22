@@ -67,7 +67,7 @@
   "recompensas": {
     "habilidad": {
       "titulo": "Nueva habilidad",
-      "texto": "Has aprendido {habilidad}."
+      "texto": "Has aprendido {habilidad}. Equípala junto a la fuente o al entrar en la siguiente zona."
     },
     "pieza": {
       "titulo": "¡Recompensa!",

@@ -1,5 +1,5 @@
 import type { Acciones } from '../core/acciones';
-import { habilidadesDisponibles, type Luchador } from '../core/combate';
+import { habilidadesConocidas, habilidadesDisponibles, type Luchador } from '../core/combate';
 import { aplicarConsumible, gastar, haceAlgo, type Inventario } from '../core/inventario';
 import { describirConsumible, partirEnLineas } from '../core/descripciones';
 import { bonoDe, describirEfecto } from '../core/equipo';
@@ -7,6 +7,7 @@ import { efectoToque, enfocarAjustes, filaTocada } from '../core/menu';
 import { dispositivo } from '../input/dispositivo';
 import { experienciaParaSubir } from '../core/progresion';
 import { lineasPresagio } from '../core/presagios';
+import historia from '../data/historia.json';
 import type {
   EquipoJson,
   EstadoJson,
@@ -344,6 +345,8 @@ export class EscenaPausa implements Escena {
             `PX ${f.textoPx}`,
             'Habilidades',
             ...f.habilidades,
+            ...f.otras.map((n) => `${n}, sin equipar`),
+            ...f.notaHabilidades,
             'Estadísticas',
             ...f.estadisticas,
             'Equipo',
@@ -448,6 +451,14 @@ export class EscenaPausa implements Escena {
       textoPm: `${l.pm}/${l.pmMax}`,
       textoPx: maximo ? 'Máx.' : `${l.experiencia}/${siguiente}`,
       habilidades: habilidadesDisponibles(l).map((h) => h.nombre),
+      otras: habilidadesConocidas(l)
+        .filter((h) => !l.equipadas.includes(h.nombre))
+        .map((h) => h.nombre),
+      notaHabilidades: partirEnLineas(
+        historia.habilidades.pausa,
+        // En vertical la columna de Habilidades es la mitad del panel.
+        interfaz.alta ? Math.floor(VERTICAL.menu.letrasPanel / 2) - 1 : LETRAS_COLUMNA,
+      ),
       estadisticas: [
         conBono('Ataque', 'ataque'),
         conBono('Magia', 'magia'),

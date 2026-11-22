@@ -148,7 +148,10 @@ export interface FichaInventario {
   textoPv: string;
   textoPm: string;
   textoPx: string;
+  /** Las habilidades equipadas; las que conoce y no lleva (en tenue) y la nota de dónde se cambian, ya partida. */
   habilidades: string[];
+  otras: string[];
+  notaHabilidades: string[];
   /** «Ataque 12 (+3)»…; el bono, si lo hay, va entre paréntesis. */
   estadisticas: string[];
   /** Piezas puestas, su efecto, el Corazón y la mochila, ya partidas al ancho de la columna. */
@@ -246,10 +249,15 @@ function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaInventario): void
     escribir(ctx, f.equipo[i]!, DX, y, PALETA.texto);
 
   dibujarTitulo(ctx, derecha, 136, ancho, 'Habilidades');
-  for (let i = 0; i < f.habilidades.length; i++)
-    escribir(ctx, f.habilidades[i]!, derecha, 158 + i * 14, PALETA.texto);
+  let yHab = 158;
+  for (let i = 0; i < f.habilidades.length; i++, yHab += 14)
+    escribir(ctx, f.habilidades[i]!, derecha, yHab, PALETA.texto);
+  for (let i = 0; i < f.otras.length; i++, yHab += 13)
+    escribir(ctx, f.otras[i]!, derecha, yHab, PALETA.apagada);
+  for (let i = 0; i < f.notaHabilidades.length; i++, yHab += 12)
+    escribir(ctx, f.notaHabilidades[i]!, derecha, yHab, PALETA.apagada);
   if (f.presagio.length > 0) {
-    const yPresagio = 158 + f.habilidades.length * 14 + 6;
+    const yPresagio = yHab + 6;
     dibujarTitulo(ctx, derecha, yPresagio, ancho, 'Presagio');
     for (let i = 0; i < f.presagio.length; i++)
       escribir(

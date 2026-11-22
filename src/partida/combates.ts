@@ -217,7 +217,7 @@ export function luchar(
                   ? new EscenaMensaje(
                       `¡Nivel ${luchadora.nivel}!`,
                       PALETA.elegida,
-                      cambiosDeNivel(antes, luchadora),
+                      cambiosDeNivel(antes, luchadora, historia.habilidades.aviso),
                       SEGUIR,
                       quitar,
                     )

@@ -126,10 +126,15 @@ function dibujarHeroina(ctx: CanvasRenderingContext2D, v: VistaInventario, c: Re
   for (let i = 0; i < f.estadisticas.length; i++)
     escribir(ctx, f.estadisticas[i]!, x0, arriba + 22 + i * 13, PALETA.texto);
   dibujarTitulo(ctx, derecha, arriba, columna, 'Habilidades');
-  for (let i = 0; i < f.habilidades.length; i++)
-    escribir(ctx, f.habilidades[i]!, derecha, arriba + 22 + i * LINEA, PALETA.texto);
+  let yHab = arriba + 22;
+  for (let i = 0; i < f.habilidades.length; i++, yHab += LINEA)
+    escribir(ctx, f.habilidades[i]!, derecha, yHab, PALETA.texto);
+  for (let i = 0; i < f.otras.length; i++, yHab += LINEA)
+    escribir(ctx, f.otras[i]!, derecha, yHab, PALETA.apagada);
+  for (let i = 0; i < f.notaHabilidades.length; i++, yHab += 12)
+    escribir(ctx, f.notaHabilidades[i]!, derecha, yHab, PALETA.apagada);
 
-  const fin = Math.max(f.estadisticas.length * 13, f.habilidades.length * LINEA);
+  const fin = Math.max(f.estadisticas.length * 13, yHab - (arriba + 22));
   const yEquipo = arriba + 22 + fin + 8;
   dibujarTitulo(ctx, x0, yEquipo, ancho, 'Equipo');
   for (let i = 0; i < f.equipo.length; i++)
