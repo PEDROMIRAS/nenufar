@@ -151,6 +151,23 @@ export function yNumeroDanio(inicio: number, techo: number, sube: number, subida
 }
 
 /**
+ * A qué lado del nombre de un enemigo (centrado en `x`, `medio` de mitad) cabe la flecha del objetivo, que pide
+ * `ancho`: −1 a la izquierda, 1 a la derecha, 0 en ninguno. `izquierda` y `derecha` son hasta dónde llega lo de al
+ * lado (el nombre del vecino o el borde de la pantalla).
+ */
+export function ladoFlecha(
+  x: number,
+  medio: number,
+  izquierda: number,
+  derecha: number,
+  ancho: number,
+): -1 | 0 | 1 {
+  if (x - medio - ancho >= izquierda) return -1;
+  if (x + medio + ancho <= derecha) return 1;
+  return 0;
+}
+
+/**
  * La primera fila a la vista tras tocar la opción `tocada`: si es la última visible y hay más abajo, se desplaza una;
  * si es la primera visible y hay más arriba, también. Así con el dedo se llega a las opciones ocultas.
  */

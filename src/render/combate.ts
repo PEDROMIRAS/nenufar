@@ -5,6 +5,7 @@ import { partirTexto } from '../core/texto';
 import {
   anchoNombre,
   disposicionCombate,
+  ladoFlecha,
   topeCartelCombate,
   yNumeroDanio,
   zonasDestello,
@@ -431,6 +432,24 @@ function yNombreEnemigo(tope: number, lineas: number): number {
   return Math.max(TOPE_ESCENA, tope - 18 - (lineas - 1) * LINEA_NOMBRE);
 }
 
+/** Sitio que pide la flecha del objetivo al lado de un nombre (la flecha y aire a los dos lados). */
+const ANCHO_FLECHA = 16;
+
+/** Media anchura del nombre de un enemigo, tal como se parte en líneas. */
+function medioNombre(l: Luchador): number {
+  const lineas = lineasNombre(l);
+  let letras = 0;
+  for (const t of lineas) letras = Math.max(letras, t.length);
+  return (letras * ANCHO_LETRA) / 2;
+}
+
+/** El enemigo `i` si se ve (vivo, o cayendo con su parpadeo); null si no hay o ya no está. */
+function vecinoVisible(v: VistaCombate, i: number): Luchador | null {
+  const e = v.enemigos[i];
+  if (!e) return null;
+  return (v.pv.get(e) ?? e.pv) > 0 || v.golpeado === e ? e : null;
+}
+
 function dibujarEnemigo(
   ctx: CanvasRenderingContext2D,
   v: VistaCombate,
@@ -466,18 +485,36 @@ function dibujarEnemigo(
   const sinSitio = tope - 36 - extra < TOPE_ESCENA;
   const avisoEnNombre = sinSitio && v.cargando.has(e);
   const yNombre = yNombreEnemigo(tope, lineas.length);
+  const apuntado = v.apuntado === e;
+  // El enemigo elegido como objetivo lleva el nombre en lavanda, aunque no quepa la flecha.
   if (avisoEnNombre) escribir(ctx, '¡Golpe fuerte!', x, yNombre, COLOR.aviso, 'center');
   else
     for (let i = 0; i < lineas.length; i++)
-      escribir(ctx, lineas[i]!, x, yNombre + i * LINEA_NOMBRE, PALETA.texto, 'center');
-  if (v.apuntado === e) {
+      escribir(
+        ctx,
+        lineas[i]!,
+        x,
+        yNombre + i * LINEA_NOMBRE,
+        apuntado ? PALETA.claro : PALETA.texto,
+        'center',
+      );
+  if (apuntado) {
     const sube = Math.round(Math.sin(v.tiempo * 8) * 2);
     if (sinSitio) {
-      const ancho = lineas.reduce((m, l) => Math.max(m, l.length), 0);
-      const medio = (avisoEnNombre ? 7 : ancho / 2) * ANCHO_LETRA + 10;
-      // A la izquierda del nombre; si ahí no cabe (primer enemigo, pegado al borde), a la derecha.
-      if (x - medio < 6) escribir(ctx, '◀', x + medio, yNombre, COLOR.aviso, 'center');
-      else escribir(ctx, '▶', x - medio, yNombre, COLOR.aviso, 'center');
+      // Sin sitio encima, al lado del nombre donde quepa sin pisar el del vecino ni salirse; si no cabe, solo el
+      // nombre resaltado (el Sacerdote entre sus acólitos en el móvil de pie).
+      const medio = avisoEnNombre ? 7 * ANCHO_LETRA : medioNombre(e);
+      const i = v.enemigos.indexOf(e);
+      const n = v.enemigos.length;
+      const antes = vecinoVisible(v, i - 1);
+      const despues = vecinoVisible(v, i + 1);
+      const izquierda = antes ? xEnemigo(i - 1, n) + medioNombre(antes) : 0;
+      const derecha = despues ? xEnemigo(i + 1, n) - medioNombre(despues) : G.ancho;
+      const lado = ladoFlecha(x, medio, izquierda, derecha, ANCHO_FLECHA);
+      if (lado < 0)
+        escribir(ctx, '▶', x - medio - ANCHO_FLECHA / 2, yNombre, COLOR.aviso, 'center');
+      else if (lado > 0)
+        escribir(ctx, '◀', x + medio + ANCHO_FLECHA / 2, yNombre, COLOR.aviso, 'center');
     } else escribir(ctx, '▼', x, tope - 34 - extra + sube, COLOR.aviso, 'center');
   }
   const anchoBarra = Math.min(80, G.separacion - 8);
