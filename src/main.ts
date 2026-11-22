@@ -24,6 +24,7 @@ import { PilaEscenas } from './escenas/pila';
 import { EscenaPausa } from './escenas/pausa';
 import type { Escena } from './escenas/escena';
 import { EscenaPresentacion } from './escenas/presentacion';
+import { EscenaHabilidades } from './escenas/habilidades';
 import { EscenaSeleccion } from './escenas/seleccion';
 import { EscenaTitulo } from './escenas/titulo';
 import { leerFuentes } from './input/fuente';
@@ -72,12 +73,20 @@ import {
   mostrarError,
 } from './partida/partida';
 import { LOGROS, hoy, terminarReto } from './partida/fin';
-import { contar, paginas, paginaPresagio, cartel, tituloRival } from './partida/relato';
+import {
+  contar,
+  elegirHabilidades,
+  paginas,
+  paginaPresagio,
+  cartel,
+  tituloRival,
+} from './partida/relato';
 import { crearZona } from './partida/zona';
 import { abrirAltar } from './partida/eventos';
 import { vestir, luchar } from './partida/combates';
 
-const esPausa = (e: Escena): boolean => e instanceof EscenaPausa;
+/** Escenas que paran el reloj del reto: la pausa (y lo que se abre desde ella) y elegir habilidades. */
+const esPausa = (e: Escena): boolean => e instanceof EscenaPausa || e instanceof EscenaHabilidades;
 
 // Con una partida en marcha, cerrar la pestaña pregunta antes (Ctrl+W sin querer).
 addEventListener('beforeunload', (e) => {
@@ -273,7 +282,8 @@ async function iniciar(): Promise<void> {
             cartel(zonaInicial),
             ...paginaPresagio(partida),
           ],
-          () => {},
+          // Después, las 3 habilidades con que se entra en la zona.
+          () => elegirHabilidades(partida, () => {}),
         );
       })
       .catch(mostrarError);
@@ -287,6 +297,7 @@ async function iniciar(): Promise<void> {
     const luchadora = luchadorDeHeroe(heroe);
     const inventario = inventarioInicial(luchadora, heroe, OBJETOS);
     empezarEnNivel(luchadora, RETO.nivel, REGLAS.experiencia);
+    ajustarEquipadas(luchadora);
     const partida = crearPartida(
       heroe,
       sprite,
@@ -309,7 +320,9 @@ async function iniciar(): Promise<void> {
           finForzado = null;
           return;
         }
-        if (!otraVez)
+        const elegir = (): void => elegirHabilidades(partida, () => {});
+        if (otraVez) elegir();
+        else
           contar(
             pila,
             [
@@ -318,7 +331,7 @@ async function iniciar(): Promise<void> {
                 texto: `${fecha.dia}/${fecha.mes}/${fecha.anio}. Llega al Guardián del Bosque.`,
               },
             ],
-            () => {},
+            elegir,
           );
       })
       .catch(mostrarError);

@@ -2,6 +2,8 @@
 import { limpiarNombre } from '../core/nombre';
 import historia from '../data/historia.json';
 import zonas from '../data/zonas.json';
+import { REGLAS } from '../data/datos';
+import { EscenaHabilidades } from '../escenas/habilidades';
 import { EscenaMensaje } from '../escenas/mensaje';
 import { type PilaEscenas } from '../escenas/pila';
 import { LARGO_NOMBRE } from '../render/nombre';
@@ -28,6 +30,16 @@ export function contar(pila: PilaEscenas, paginas: readonly Pagina[], alFinal: (
     new EscenaMensaje(primera.titulo, COLOR_HISTORIA, [primera.texto], SEGUIR, () => {
       pila.desapilar();
       contar(pila, resto, alFinal);
+    }),
+  );
+}
+
+/** Apila la pantalla Habilidades; al cerrarla (con las equipadas que debe), la quita y sigue. */
+export function elegirHabilidades(partida: Partida, alCerrar: () => void): void {
+  partida.pila.apilar(
+    new EscenaHabilidades(partida.luchadora, REGLAS.estados, () => {
+      partida.pila.desapilar();
+      alCerrar();
     }),
   );
 }
