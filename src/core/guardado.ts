@@ -39,6 +39,8 @@ export interface HeroinaGuardada {
   velocidad: number;
   critico: number;
   habilidadesGanadas: string[];
+  /** Las habilidades equipadas; falta en las partidas guardadas antes de que existieran. */
+  equipadas?: string[];
 }
 
 export interface PartidaGuardada {
@@ -103,7 +105,11 @@ const NUMEROS = [
 ] as const;
 
 export function heroinaGuardada(l: Luchador): HeroinaGuardada {
-  const g = { nombre: l.nombre, habilidadesGanadas: [...l.habilidadesGanadas] } as HeroinaGuardada;
+  const g = {
+    nombre: l.nombre,
+    habilidadesGanadas: [...l.habilidadesGanadas],
+    equipadas: [...l.equipadas],
+  } as HeroinaGuardada;
   for (const k of NUMEROS) g[k] = l[k];
   return g;
 }
@@ -113,6 +119,8 @@ export function restaurarHeroina(l: Luchador, g: HeroinaGuardada): void {
   l.nombre = g.nombre;
   for (const k of NUMEROS) l[k] = g[k];
   l.habilidadesGanadas = [...g.habilidadesGanadas];
+  // Sin el campo (partida de antes) se quedan las de la luchadora recién creada; `ajustarEquipadas` las cuadra.
+  if (g.equipadas) l.equipadas = [...g.equipadas];
   l.estados = [];
   l.defendiendo = false;
 }
@@ -135,6 +143,7 @@ function heroinaValida(h: unknown): boolean {
     esObjeto(h) &&
     typeof h.nombre === 'string' &&
     sonTextos(h.habilidadesGanadas) &&
+    (h.equipadas === undefined || sonTextos(h.equipadas)) &&
     NUMEROS.every((k) => esNumero(h[k]))
   );
 }

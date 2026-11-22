@@ -2,6 +2,7 @@ import { crearAcciones } from './core/acciones';
 import { crearAzar } from './core/azar';
 import { luchadorDeHeroe, type Luchador } from './core/combate';
 import { restaurarHeroina } from './core/guardado';
+import { ajustarEquipadas } from './core/equipadas';
 import { crearHeroina } from './core/heroina';
 import { equipar, inventarioInicial } from './core/equipo';
 import type { Inventario } from './core/inventario';
@@ -336,6 +337,7 @@ async function iniciar(): Promise<void> {
     const sprite = opciones.find((o) => o.heroe === heroe)!.sprite;
     const luchadora = luchadorDeHeroe(heroe);
     restaurarHeroina(luchadora, guardada.heroina);
+    ajustarEquipadas(luchadora); // las de una partida de antes, o las que ya no conozca
     const partida = crearPartida(
       heroe,
       sprite,
