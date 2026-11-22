@@ -201,6 +201,11 @@ export interface MovimientoMapaJson {
   vision: number;
   /** Radio alrededor de su casa por el que patrulla. */
   patrulla: number;
+  /**
+   * Su hoja solo lo dibuja de lado (arriba y abajo son la vista de la derecha): mira a la izquierda o a la derecha,
+   * según lo último que anduvo de lado, y así ve y se dibuja. Sin el campo, mira hacia donde se mueve.
+   */
+  deLado?: boolean;
 }
 
 /** Una fase de jefe: empieza cuando sus PV bajan de `pvMenorQue` × PV máximos. */

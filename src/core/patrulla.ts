@@ -15,6 +15,8 @@ export interface Patrulla {
   /** Hacia dónde mira (vector unitario): la última dirección en la que se movió. */
   dirX: number;
   dirY: number;
+  /** Lado al que mira un monstruo dibujado solo de lado (`deLado`): 1 derecha, −1 izquierda. */
+  lado: 1 | -1;
   persiguiendo: boolean;
   /** Segundos que le quedan quieto tras ver a la heroína (el «¡!»), antes de lanzarse. */
   alerta: number;
@@ -22,8 +24,25 @@ export interface Patrulla {
   cambio: -1 | 0 | 1;
 }
 
+/** Qué parte de alrededor ve un monstruo: el coseno de medio ángulo de su cono y a cuántos píxeles nota en redondo. */
+export interface Vista {
+  cosMitad: number;
+  cerca: number;
+}
+
+/** Vista en todas direcciones (como el ermitaño, que no ve, y como era antes del cono). */
+const EN_REDONDO: Vista = { cosMitad: -2, cerca: 0 };
+
+/** La vista de `angulo` grados delante y `cerca` píxeles en redondo (`vista` de mapa_vivo.json). */
+export const vistaDe = (v: { angulo: number; cerca: number }): Vista => ({
+  cosMitad: Math.cos((v.angulo * Math.PI) / 360),
+  cerca: v.cerca,
+});
+
 /** La persecución se abandona cuando la heroína se aleja más que la visión × este factor. */
 const OLVIDO = 1.5;
+/** Un monstruo `deLado` cambia de lado solo si se mueve al menos así de lado (fracción de lo que anduvo). */
+const DE_LADO = 0.25;
 /** Píxeles a los que se da por llegado a un destino. */
 const LLEGADA = 2;
 
@@ -39,6 +58,7 @@ export function crearPatrulla(cuerpo: Cuerpo): Patrulla {
     espera: 0,
     dirX: 0,
     dirY: 1,
+    lado: 1,
     persiguiendo: false,
     alerta: 0,
     cambio: 0,
@@ -46,8 +66,19 @@ export function crearPatrulla(cuerpo: Cuerpo): Patrulla {
 }
 
 /**
- * Un paso lógico de patrulla o persecución. No crea objetos: se llama en cada paso del bucle. Al ver a la heroína,
- * la mira y se queda quieto `pausa` segundos antes de perseguirla (el «¡!»); `cambio` cuenta si la vio o la perdió.
+ * Hacia dónde mira, tal como se dibuja: de lado (`lado`, 0) si su hoja solo tiene esa vista, o hacia donde se movió.
+ * Es lo que cuenta para verla y para pillarlo por la espalda (sin crear objetos: un número cada una).
+ */
+export const miraX = (p: Patrulla, mov: MovimientoMapaJson | undefined): number =>
+  mov?.deLado ? p.lado : p.dirX;
+export const miraY = (p: Patrulla, mov: MovimientoMapaJson | undefined): number =>
+  mov?.deLado ? 0 : p.dirY;
+
+/**
+ * Un paso lógico de patrulla o persecución. No crea objetos: se llama en cada paso del bucle. Al ver a la heroína
+ * (dentro de `vista`), se queda quieto `pausa` segundos antes de perseguirla (el «¡!»); `cambio` cuenta si la vio o
+ * la perdió. Si la vio delante, la mira ya; si la notó por detrás, no se gira hasta lanzarse: tocarlo en esa pausa es
+ * pillarlo por la espalda. Ya persiguiéndola, la sigue en redondo hasta perderla.
  */
 export function actualizarPatrulla(
   p: Patrulla,
@@ -59,21 +90,27 @@ export function actualizarPatrulla(
   tam: number,
   azar: () => number,
   pausa = 0,
+  vista: Vista = EN_REDONDO,
 ): void {
   const c = p.cuerpo;
   p.xAnterior = c.x;
   p.yAnterior = c.y;
   p.cambio = 0;
   const antes = p.persiguiendo;
-  const aHeroe = Math.hypot(heroeX - c.x, heroeY - c.y);
-  if (aHeroe < mov.vision) p.persiguiendo = true;
+  const hx = heroeX - c.x;
+  const hy = heroeY - c.y;
+  const aHeroe = Math.hypot(hx, hy);
+  const delante =
+    aHeroe === 0 || (miraX(p, mov) * hx + miraY(p, mov) * hy) / aHeroe >= vista.cosMitad;
+  if (aHeroe < mov.vision && (antes || delante || aHeroe < vista.cerca)) p.persiguiendo = true;
   else if (aHeroe > mov.vision * OLVIDO) p.persiguiendo = false;
   if (!antes && p.persiguiendo) {
     p.cambio = 1;
     p.alerta = pausa;
-    if (aHeroe > 0) {
-      p.dirX = (heroeX - c.x) / aHeroe;
-      p.dirY = (heroeY - c.y) / aHeroe;
+    if (aHeroe > 0 && delante) {
+      p.dirX = hx / aHeroe;
+      p.dirY = hy / aHeroe;
+      if (hx !== 0) p.lado = hx > 0 ? 1 : -1;
     }
   } else if (antes && !p.persiguiendo) {
     p.cambio = -1;
@@ -117,6 +154,7 @@ export function actualizarPatrulla(
   if (movido > 0) {
     p.dirX = movidoX / movido;
     p.dirY = movidoY / movido;
+    if (Math.abs(movidoX) >= movido * DE_LADO) p.lado = movidoX > 0 ? 1 : -1;
   } else if (!p.persiguiendo) {
     // Atascado contra un muro: renuncia a ese destino.
     p.destinoX = c.x;

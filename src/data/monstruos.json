@@ -58,7 +58,8 @@
       "velocidad": 30,
       "persecucion": 55,
       "vision": 80,
-      "patrulla": 48
+      "patrulla": 48,
+      "deLado": true
     },
     "color": "#7fc46a"
   },
@@ -167,7 +168,8 @@
       "velocidad": 28,
       "persecucion": 60,
       "vision": 80,
-      "patrulla": 40
+      "patrulla": 40,
+      "deLado": true
     },
     "color": "#7a5232"
   },
@@ -212,7 +214,8 @@
       "velocidad": 48,
       "persecucion": 85,
       "vision": 112,
-      "patrulla": 64
+      "patrulla": 64,
+      "deLado": true
     },
     "color": "#2c2838"
   },
@@ -278,7 +281,8 @@
       "velocidad": 35,
       "persecucion": 65,
       "vision": 96,
-      "patrulla": 48
+      "patrulla": 48,
+      "deLado": true
     },
     "color": "#d8d2bf"
   },
@@ -345,7 +349,8 @@
       "velocidad": 40,
       "persecucion": 80,
       "vision": 96,
-      "patrulla": 48
+      "patrulla": 48,
+      "deLado": true
     },
     "color": "#7a3b3b"
   },
@@ -408,7 +413,8 @@
       "velocidad": 25,
       "persecucion": 50,
       "vision": 80,
-      "patrulla": 32
+      "patrulla": 32,
+      "deLado": true
     },
     "color": "#3b4560"
   },
@@ -489,7 +495,8 @@
       "velocidad": 30,
       "persecucion": 55,
       "vision": 96,
-      "patrulla": 40
+      "patrulla": 40,
+      "deLado": true
     },
     "color": "#7a2a36"
   },
@@ -552,7 +559,8 @@
       "velocidad": 40,
       "persecucion": 80,
       "vision": 96,
-      "patrulla": 48
+      "patrulla": 48,
+      "deLado": true
     },
     "color": "#262c44"
   },
@@ -1406,7 +1414,8 @@
       "velocidad": 45,
       "persecucion": 85,
       "vision": 96,
-      "patrulla": 48
+      "patrulla": 48,
+      "deLado": true
     },
     "color": "#c8501e"
   },
@@ -1481,7 +1490,8 @@
       "velocidad": 28,
       "persecucion": 55,
       "vision": 96,
-      "patrulla": 40
+      "patrulla": 40,
+      "deLado": true
     },
     "color": "#8a3a22"
   },
