@@ -11,7 +11,7 @@ const poner = (r: Rect, x: number, y: number, ancho: number, alto: number): void
 };
 
 /** Ancho de una letra de la fuente normal (monoespaciada, 0,6 de su tamaño). */
-const ANCHO_LETRA = 7.35;
+export const ANCHO_LETRA = 7.35;
 
 /** Letras que caben en el nombre de un enemigo al que le tocan `separacion` píxeles, con un respiro a cada lado. */
 export function anchoNombre(separacion: number): number {
@@ -380,6 +380,14 @@ export function tarjetaTocada(x: number, y: number, rects: readonly Rect[]): num
 }
 
 /** Letras que caben en `ancho` píxeles lógicos; sin `letra`, de la fuente normal. */
+/**
+ * La cabecera del HUD del mapa que cabe en `letras`: la larga (zona · presagio · nivel) si cabe; si no, la corta (sin
+ * el presagio, que sigue en la pausa), que choca con el minimapa en el móvil de pie con los nombres más largos.
+ */
+export function cabeceraQueCabe(larga: string, corta: string, letras: number): string {
+  return larga.length <= letras ? larga : corta;
+}
+
 export function letrasEnAncho(ancho: number, letra = ANCHO_LETRA): number {
   return Math.max(0, Math.floor(ancho / letra));
 }
