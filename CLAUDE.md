@@ -55,9 +55,11 @@ Si el diseño y este archivo discrepan, manda el documento; avisa de la discrepa
 - `?semilla=N` en la URL repite una partida; la semilla de cada zona sale en la consola.
 - Hitos 2-7 en el documento. Hasta el hito 5 la lógica puede probarse con rectángulos, pero el arte ya existe y se puede usar desde el hito 1.
 
-## Próximos pasos (para retomar, 2026-11-20)
+## Próximos pasos (para retomar, 2026-11-22)
 
-### Por dónde vamos (2026-11-20)
+### Por dónde vamos (2026-11-22)
+
+**Para retomar (2026-11-22):** todo está fusionado en `main` y publicado. En la sesión del 2026-11-21/22 se hizo el menú de combate junto a la rana y, después, sus menores, la medida de rendimiento del combate, una auditoría del combate, el número de daño de los jefes, la flecha del objetivo, un repaso de accesibilidad y un repaso visual del mapa (cada uno en su bloque, más abajo). **Decisión pendiente de Pedro:** en el móvil de pie, con nombres largos, el presagio desaparece de la cabecera del HUD (sigue en la pausa); si lo quiere siempre, iría en una segunda línea y bajarían las barras. Lo siguiente que se le ofreció y no se hizo: elegir 3 habilidades (pide diseño con él), los dos menores del combate (6 enemigos en horizontal, interfaz alta muy baja) y una auditoría del código entero. El registro del documento de desarrollo está al día hasta el repaso visual del mapa.
 
 Todo está fusionado en `main` y publicado; no hay ramas abiertas ni nada sin subir. Regla de Pedro desde el 2026-11-19 (memoria `flujo-hitos`): **lo que funciona, una vez hecho y comprobado, se fusiona en `main` y se publica sin preguntar**; solo se le pregunta si algo falla o la decisión es suya (arte, diseño, equilibrado con coste). Tras cada cambio, Pedro suele pedir «actualiza el documento de desarrollo»: el registro de la pestaña «Versión 2: lo nuevo» está al día hasta el decorado del Cauce (2026-11-20), y al final de esa pestaña está la sección «Revisión visual del 2026-11-20» con sus siete decisiones, todas hechas.
 
