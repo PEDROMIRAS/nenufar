@@ -7,6 +7,7 @@ import {
   abrirSalidas,
   cerrarSalidas,
   objetoAlAlcance,
+  tocaCasillas,
   opuesto,
   portalPisado,
   posicionEntrada,
@@ -115,6 +116,8 @@ interface SalaMontada {
   ermitano: Patrulla | null;
   /** Portal de la sala del jefe, guardado fuera de la sala hasta que se vence al jefe. */
   portal: ObjetoSala | null;
+  /** Casillas con que choca la fuente (su elipse); vacío si la sala no tiene. */
+  fuente: number[];
 }
 
 export interface OpcionesMapa {
@@ -449,7 +452,7 @@ export class EscenaMapa implements Escena {
     if (
       !this.fuenteUsada &&
       this.actual.tipo === 'descanso' &&
-      objetoAlAlcance(this.montada.sala, 'fuente', h.cuerpo, tam, ALCANCE)
+      tocaCasillas(this.montada.sala, this.montada.fuente, h.cuerpo, tam, ALCANCE)
     ) {
       const l = this.o.luchadora;
       restaurarFuente(l, this.o.modoFuente);
@@ -464,7 +467,7 @@ export class EscenaMapa implements Escena {
     }
     // Junto a la fuente (usada o no) se cambian las habilidades equipadas; tras restaurar, si tocaba.
     if (this.actual.tipo === 'descanso') {
-      const enFuente = objetoAlAlcance(this.montada.sala, 'fuente', h.cuerpo, tam, ALCANCE);
+      const enFuente = tocaCasillas(this.montada.sala, this.montada.fuente, h.cuerpo, tam, ALCANCE);
       if (!enFuente) this.fuenteLista = true;
       else if (this.fuenteLista) {
         this.fuenteLista = false;
@@ -997,11 +1000,11 @@ export class EscenaMapa implements Escena {
       const altar = sala.objetos.find((o) => o.inf.name === 'altar');
       if (altar) altar.inf = propio;
     }
-    const fuente = sala.objetos.find((o) => o.inf.name === 'fuente_cen_inf');
-    if (fuente) {
-      const f = this.o.fuente;
-      chocarConElipse(sala, tam, fuente.x + 0.5, fuente.y + f.centroZ, f.radioX, f.radioZ);
-    }
+    const centro = sala.objetos.find((o) => o.inf.name === 'fuente_cen_inf');
+    const f = this.o.fuente;
+    const fuente = centro
+      ? chocarConElipse(sala, tam, centro.x + 0.5, centro.y + f.centroZ, f.radioX, f.radioZ)
+      : [];
     // Con jefe, el portal se saca de la sala hasta vencerlo.
     let portal: ObjetoSala | null = null;
     if (s.tipo === 'jefe' && this.o.jefe) {
@@ -1013,6 +1016,7 @@ export class EscenaMapa implements Escena {
       vista: null,
       monstruos: this.poblar(s, sala, azar),
       portal,
+      fuente,
       ermitano: !ermitano
         ? null
         : crearPatrulla({

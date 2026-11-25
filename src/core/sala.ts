@@ -186,7 +186,8 @@ export function aplicarPuertas(mapa: readonly string[], puertas: number): string
 
 /**
  * La fuente choca con la elipse de su pilón (centro y semiejes en casillas), no con las cajas del dibujo en 2D:
- * en 3D es un modelo con relieve y las cajas dejaban paredes invisibles. Rehace las casillas que toca la elipse.
+ * en 3D es un modelo con relieve y las cajas dejaban paredes invisibles. Rehace las casillas que toca la elipse y
+ * devuelve las que quedan sólidas (para saber si la heroína está pegada a la fuente: `tocaCasillas`).
  */
 export function chocarConElipse(
   sala: Pick<Sala, 'ancho' | 'alto' | 'solido' | 'cajas'>,
@@ -195,7 +196,8 @@ export function chocarConElipse(
   cz: number,
   rx: number,
   rz: number,
-): void {
+): number[] {
+  const solidas: number[] = [];
   for (
     let fila = Math.max(0, Math.floor(cz - rz));
     fila <= Math.min(sala.alto - 1, cz + rz);
@@ -224,6 +226,8 @@ export function chocarConElipse(
       // La casilla entera choca con null: con la elipse entera dentro basta con eso.
       sala.cajas[i] =
         dentro && !(x0 === 0 && y0 === 0 && x1 === tam && y1 === tam) ? [x0, y0, x1, y1] : null;
+      if (dentro) solidas.push(i);
     }
   }
+  return solidas;
 }
