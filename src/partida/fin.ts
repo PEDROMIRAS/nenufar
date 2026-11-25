@@ -1,5 +1,6 @@
 // Fin de la partida y del reto del día: récords, logros, la tarjeta final y la vuelta a la portada.
 import { ATAJOS } from './atajos';
+import { volverAHoguera } from '../core/hoguera';
 import { anotarReto, textoFecha, type Fecha, type ResultadoReto } from '../core/reto';
 import { EscenaFinReto } from '../escenas/finReto';
 import {
@@ -21,6 +22,7 @@ import {
   cargarRecords,
   cargarReto,
   guardarAjustes,
+  guardarPartida,
   guardarRecords,
   guardarReto,
 } from '../render/almacen';
@@ -92,8 +94,16 @@ export function terminarReto(partida: Partida, victoria: boolean): void {
   );
 }
 
-/** Fin de la partida: guarda los récords y enseña el resumen. */
+/** Fin de la partida: guarda los récords y enseña el resumen. Al caer con una hoguera encendida y brasas, se vuelve a ella. */
 export function terminarPartida(partida: Partida, victoria: boolean): void {
+  const segundos = (performance.now() - partida.inicio) / 1000;
+  const vuelta = victoria ? null : volverAHoguera(partida, segundos);
+  if (vuelta) {
+    // Se guarda ya: si se cierra en la página de la vuelta, se sigue desde la hoguera igual.
+    guardarPartida(vuelta);
+    sesion.volverAHoguera(vuelta);
+    return;
+  }
   // Morir o ganar acaba la partida: no hay nada que recuperar.
   sesion.enCurso = false;
   borrarPartida();
@@ -104,7 +114,7 @@ export function terminarPartida(partida: Partida, victoria: boolean): void {
     nivel: l.nivel,
     zona: partida.zona,
     vencidos: partida.vencidos,
-    segundos: (performance.now() - partida.inicio) / 1000,
+    segundos,
     dificultad: claveDe(DIFICULTADES, partida.dificultad),
     heroe: l.heroe ? claveDe(HEROES, l.heroe) : '',
     objetosUsados: partida.inventario.usados,
@@ -122,6 +132,7 @@ export function terminarPartida(partida: Partida, victoria: boolean): void {
     victoria ? `Has derrotado a ${partida.rival}` : `Caíste en: ${resumen.zona}`,
     `Monstruos vencidos: ${resumen.vencidos}`,
     `Tiempo: ${formatearTiempo(resumen.segundos)}`,
+    ...(partida.vueltas > 0 ? [`Vueltas a la hoguera: ${partida.vueltas}`] : []),
     ...(nuevoRecord ? ['', `¡Nuevo récord en ${partida.dificultad.nombre}!`] : []),
     ...nuevos.map((clave) => `Logro: ${LOGROS.find((l) => l.clave === clave)?.nombre ?? clave}`),
   ];

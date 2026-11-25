@@ -96,3 +96,70 @@ describe('la fuente de la sala de descanso', () => {
     expect(veces).toBe(1);
   });
 });
+
+describe('la hoguera de la sala de descanso', () => {
+  const montada = montarSalaZona(zona, zona.salas[sala]!, bosque, catalogo).sala;
+  const hoguera = montada.objetos.find((o) => o.inf.name === 'hoguera')!;
+  const estado = {
+    sala,
+    lado: null,
+    visitadas: [sala],
+    hechas: [sala],
+    vencidos: {},
+    fuenteUsada: true,
+  };
+
+  function probar(
+    prende: boolean,
+    encendida = false,
+  ): { veces: number; escena: EscenaMapa; mover: (cerca: boolean) => void } {
+    const r = { veces: 0 } as {
+      veces: number;
+      escena: EscenaMapa;
+      mover: (cerca: boolean) => void;
+    };
+    const o = opcionesMapa(zona, {
+      recuperado: estado,
+      hoguera: {
+        encendida,
+        encender: () => {
+          r.veces++;
+          return { prende, aviso: 'x' };
+        },
+      },
+    });
+    r.escena = new EscenaMapa(o);
+    r.mover = (cerca) => {
+      const h = o.heroina;
+      h.cuerpo.x = h.xAnterior = cerca ? (hoguera.x + 0.5) * 32 : 2.5 * 32;
+      h.cuerpo.y = h.yAnterior = cerca ? (hoguera.y + 1) * 32 + 2 : 3 * 32;
+      pasar(r.escena, 0.3);
+    };
+    return r;
+  }
+
+  test('se enciende al acercarse, una sola vez', () => {
+    const r = probar(true);
+    r.mover(true);
+    expect(r.veces).toBe(1);
+    r.mover(false);
+    r.mover(true);
+    expect(r.veces).toBe(1);
+  });
+
+  test('sin brasas no prende: lo dice una vez por acercamiento', () => {
+    const r = probar(false);
+    r.mover(true);
+    r.mover(true);
+    expect(r.veces).toBe(1);
+    r.mover(false);
+    r.mover(true);
+    expect(r.veces).toBe(2);
+  });
+
+  test('ya encendida en la zona (al volver a ella), no se vuelve a encender', () => {
+    const r = probar(true, true);
+    r.mover(true);
+    expect(r.veces).toBe(0);
+  });
+});

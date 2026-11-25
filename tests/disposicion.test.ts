@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import {
   lineaPresagio,
+  cajaAviso,
   disposicionHabilidades,
   anchoNombre,
   cabeceraQueCabe,
@@ -524,5 +525,19 @@ describe('presagio en el HUD', () => {
     expect(lineaPresagio(larga, 40, 'Fuente seca')).toBe('');
     expect(lineaPresagio(larga, 20, 'Fuente seca')).toBe('Fuente seca');
     expect(lineaPresagio('Bosque · Nv 1', 10, '')).toBe('');
+  });
+});
+
+describe('caja del aviso del mapa', () => {
+  test('crece con el texto y, si no cabe, se parte', () => {
+    expect(cajaAviso('Corto', 1000)).toEqual({ ancho: 340, lineas: ['Corto'] });
+    const largo = 'Hoguera encendida: si caes, vuelves aquí. Te quedan 3 brasas.';
+    const ancha = cajaAviso(largo, 1000);
+    expect(ancha.lineas).toEqual([largo]);
+    expect(ancha.ancho).toBeGreaterThan(largo.length * 7);
+    const movil = cajaAviso(largo, 330);
+    expect(movil.lineas.length).toBe(2);
+    expect(movil.ancho).toBeLessThanOrEqual(330 - 16);
+    for (const l of movil.lineas) expect(l.length * 7.35 + 24).toBeLessThanOrEqual(movil.ancho);
   });
 });

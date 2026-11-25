@@ -120,7 +120,12 @@ export function abrirMercader(
 
 /** ?desafio, ?ermitano o ?mercader empiezan dentro de esa sala de evento de la zona, si la tiene (solo en desarrollo). */
 export function empezarEnEvento(zona: Zona): EstadoMapa | null {
-  const sala = zona.salas.findIndex((s) => s.evento === ATAJOS.evento);
+  // ?descanso y ?hoguera: dentro de la sala de descanso.
+  const sala = ATAJOS.descanso
+    ? zona.salas.findIndex((s) => s.tipo === 'descanso')
+    : zona.salas.findIndex((s) => s.evento === ATAJOS.evento);
+  if (ATAJOS.descanso && sala >= 0)
+    return { sala, lado: null, visitadas: [sala], hechas: [], vencidos: {}, fuenteUsada: false };
   if (ATAJOS.evento === null || sala < 0) return null;
   return { sala, lado: null, visitadas: [sala], hechas: [], vencidos: {}, fuenteUsada: false };
 }

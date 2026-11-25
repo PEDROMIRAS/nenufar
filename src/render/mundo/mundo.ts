@@ -554,7 +554,9 @@ export class Mundo {
     // Un altar, círculo o puesto ya usado (apagado) no da luz, pero la sala es la misma que con él encendido: sin
     // contarlo, al volver a ella salía una luz de ambiente que no estaba la primera vez.
     let propias = v.luces.length;
-    for (const o of v.sala.objetos) if (o.inf.name === 'altar_apagado') propias++;
+    // Lo mismo con la hoguera del punto de control antes de encenderla.
+    for (const o of v.sala.objetos)
+      if (o.inf.name === 'altar_apagado' || o.inf.name === 'hoguera_apagada') propias++;
     const cuantos = cuantasDeAmbiente(propias, amb, v.azar);
     if (cuantos === 0) return;
     for (const [x, y] of lugaresDeLuz(v.sala, salidas, cuantos, amb.distancia, v.azar)) {

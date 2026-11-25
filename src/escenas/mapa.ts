@@ -26,7 +26,7 @@ import {
   vistaDe,
   type Patrulla,
 } from '../core/patrulla';
-import { buscarInicio } from '../core/movimiento';
+import { buscarInicio, type Cuerpo } from '../core/movimiento';
 import {
   chocarConElipse,
   salidas,
@@ -202,6 +202,11 @@ export interface OpcionesMapa {
   recuperado?: EstadoMapa | null;
   /** Se llama al terminar de entrar en una sala (también la inicial y la recuperada), para guardar. */
   alEntrarEnSala?: (estado: EstadoMapa) => void;
+  /**
+   * La hoguera de la sala de descanso, punto de control: si ya está encendida en esta zona y cómo encenderla (guarda
+   * la copia; devuelve el aviso y si prendió: sin brasas no prende). Sin esto (el reto) es solo adorno.
+   */
+  hoguera?: { encendida: boolean; encender: () => { prende: boolean; aviso: string } } | null;
 }
 
 /** Exploración de una zona: la sala actual, la heroína y el paso de una sala a otra o a la zona siguiente. */
@@ -253,6 +258,9 @@ export class EscenaMapa implements Escena {
   private fuenteUsada = false;
   /** Lo mismo con la fuente del descanso: la pantalla Habilidades sale una vez por acercamiento. */
   private fuenteLista = true;
+  /** La hoguera, encendida en esta zona; y si avisa al acercarse (sin brasas, una vez por acercamiento). */
+  private hogueraEncendida = false;
+  private hogueraLista = true;
   /** Segundos de lluvia que quedan, y sus gotas (solo si la zona tiene lluvia tras el jefe). */
   private lluvia = 0;
   /** Siguiente pista por enseñar. */
@@ -296,6 +304,7 @@ export class EscenaMapa implements Escena {
     this.gotas = o.lluviaTrasJefe > 0 ? crearLluvia() : null;
     const referencia = o.plantillas.plantillas[0]?.mapa ?? [];
     this.salidas = salidas(referencia[0]?.length ?? 0, referencia.length);
+    this.hogueraEncendida = o.hoguera?.encendida ?? false;
     const r = o.recuperado;
     if (r) this.recuperar(r);
     this.actual = (r && o.zona.salas[r.sala]) || inicio;
@@ -475,6 +484,7 @@ export class EscenaMapa implements Escena {
         return;
       }
     }
+    if (this.actual.tipo === 'descanso') this.mirarHoguera(h.cuerpo, tam);
     if (this.eventos.actualizar(h.cuerpo, dt)) return;
     // Tras huir del cofre trampa hay un momento para apartarse antes de que vuelva a morder.
     if (this.actual.tipo === 'tesoro' && !(this.actual.trampa && this.invulnerable > 0)) {
@@ -1000,6 +1010,10 @@ export class EscenaMapa implements Escena {
       const altar = sala.objetos.find((o) => o.inf.name === 'altar');
       if (altar) altar.inf = propio;
     }
+    // La hoguera del descanso empieza apagada hasta encenderla (en el reto no se usa: se queda como adorno).
+    const apagada = this.o.catalogo.get('hoguera_apagada');
+    if (this.o.hoguera && !this.hogueraEncendida && apagada)
+      for (const o of sala.objetos) if (o.inf.name === 'hoguera') o.inf = apagada;
     const centro = sala.objetos.find((o) => o.inf.name === 'fuente_cen_inf');
     const f = this.o.fuente;
     const fuente = centro
@@ -1028,6 +1042,30 @@ export class EscenaMapa implements Escena {
     };
     this.montadas.set(s, montada);
     return montada;
+  }
+
+  /** Junto a la hoguera apagada: se enciende (con su luz) o, sin brasas, lo dice una vez por acercamiento. */
+  private mirarHoguera(cuerpo: Cuerpo, tam: number): void {
+    const hoguera = this.o.hoguera;
+    if (!hoguera || this.hogueraEncendida) return;
+    const objeto = objetoAlAlcance(this.montada.sala, 'hoguera_apagada', cuerpo, tam, ALCANCE);
+    if (!objeto) {
+      this.hogueraLista = true;
+      return;
+    }
+    if (!this.hogueraLista) return;
+    this.hogueraLista = false;
+    const encendida = this.o.catalogo.get('hoguera');
+    const { prende, aviso } = hoguera.encender();
+    if (prende && encendida) {
+      this.hogueraEncendida = true;
+      objeto.inf = encendida;
+      const vista = this.montada.vista;
+      if (vista) this.o.mundo.rehacerObjeto(vista.sala, objeto);
+      this.o.mundo.refrescarLuces();
+      sonar('fuego');
+    }
+    this.avisar(aviso);
   }
 
   /** Tras vencer al jefe aparece el portal (con su halo de luz). */

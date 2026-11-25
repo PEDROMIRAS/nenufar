@@ -20,6 +20,8 @@ describe('atajos de la URL', () => {
       eventos: false,
       evento: null,
       presagio: null,
+      descanso: false,
+      hoguera: false,
     });
   });
 
@@ -68,5 +70,11 @@ describe('atajos de la URL', () => {
     expect(leerAtajos('?evento', true, 4)).toMatchObject({ eventos: true, evento: null });
     for (const e of ['desafio', 'ermitano', 'mercader'])
       expect(leerAtajos(`?${e}`, true, 4)).toMatchObject({ eventos: true, evento: e });
+  });
+
+  test('?hoguera también empieza en el descanso', () => {
+    expect(leerAtajos('?descanso', true, 4)).toMatchObject({ descanso: true, hoguera: false });
+    expect(leerAtajos('?hoguera', true, 4)).toMatchObject({ descanso: true, hoguera: true });
+    expect(leerAtajos('?hoguera', false, 4)).toMatchObject({ descanso: false, hoguera: false });
   });
 });

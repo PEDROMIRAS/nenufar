@@ -49,6 +49,7 @@ import {
   probabilidadMercader,
 } from './eventos';
 import { lucharJefe, lucharVioleta, vestir, datosEquipo, ofrecerEquipo, luchar } from './combates';
+import { copiaHoguera, hogueraEn, textoBrasas } from '../core/hoguera';
 import { empezarOtra, volverAPortada, terminarReto, terminarPartida } from './fin';
 
 /** Carga la zona `indice` y crea su escena; su portal carga la siguiente y la pone en su lugar. */
@@ -180,6 +181,22 @@ export async function crearZona(
     alEntrarEnSala: (estado) => {
       if (!reto) guardarPartida(guardado(partida, indice, estado));
     },
+    // El reto no tiene punto de control: su hoguera es solo adorno.
+    hoguera: reto
+      ? null
+      : {
+          encendida: hogueraEn(partida.hoguera, indice),
+          encender: () => {
+            if (partida.brasas <= 0)
+              return { prende: false, aviso: 'La hoguera no prende: no te quedan brasas' };
+            partida.hoguera = copiaHoguera(guardado(partida, indice, escena.estado()));
+            guardarPartida(guardado(partida, indice, escena.estado()));
+            return {
+              prende: true,
+              aviso: `Hoguera encendida: si caes, vuelves aquí. ${textoBrasas(partida.brasas)}`,
+            };
+          },
+        },
     grupos: datos.grupos.map(({ monstruos, peso }) => ({
       peso,
       monstruos: monstruos.map(monstruo),

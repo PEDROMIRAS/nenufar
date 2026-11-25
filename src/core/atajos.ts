@@ -39,6 +39,9 @@ export interface Atajos {
   evento: EventoForzado | null;
   /** ?presagio=clave: ese presagio en todas las zonas (la clave sin comprobar). */
   presagio: string | null;
+  /** ?descanso: la partida empieza dentro de la sala de descanso. ?hoguera, además, con su hoguera ya encendida. */
+  descanso: boolean;
+  hoguera: boolean;
 }
 
 /** Lee los atajos de `search` (`location.search`); con `dev` falso, solo la semilla. `zonas` es cuántas hay. */
@@ -76,5 +79,7 @@ export function leerAtajos(search: string, dev: boolean, zonas: number): Atajos 
     eventos: si('evento') || evento !== null,
     evento,
     presagio: texto('presagio'),
+    descanso: si('descanso') || si('hoguera'),
+    hoguera: si('hoguera'),
   };
 }

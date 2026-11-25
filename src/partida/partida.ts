@@ -5,6 +5,7 @@ import {
   VERSION_GUARDADO,
   type CombateGuardado,
   type Conocido,
+  type CopiaHoguera,
   type EstadoMapa,
   type PartidaGuardada,
 } from '../core/guardado';
@@ -94,6 +95,10 @@ export interface Partida {
    * la partida normal. El reto no se guarda ni toca los récords, los logros ni el bestiario.
    */
   reto: { fecha: Fecha; segundos: number; progreso: () => { sala: number; de: number } } | null;
+  /** Brasas que quedan para volver a la hoguera, veces que se ha vuelto y la copia de la última encendida. */
+  brasas: number;
+  vueltas: number;
+  hoguera: CopiaHoguera | null;
 }
 
 /** Lo que existe en el juego, para descartar una partida guardada que nombre algo que ya no está. */
@@ -132,6 +137,9 @@ export function guardado(
     heroina: heroinaGuardada(l),
     inventario: partida.inventario,
     mapa,
+    brasas: partida.brasas,
+    vueltas: partida.vueltas,
+    hoguera: partida.hoguera,
   };
 }
 
@@ -176,4 +184,6 @@ export const sesion: {
    * tiene las hojas cargadas).
    */
   reiniciarReto: (heroe: HeroeJson, fecha: Fecha) => void;
-} = { enCurso: false, retoEnJuego: null, reiniciarReto: () => {} };
+  /** Sigue la partida desde la hoguera tras caer (lo pone `crearInicio`, como `reiniciarReto`). */
+  volverAHoguera: (guardada: PartidaGuardada) => void;
+} = { enCurso: false, retoEnJuego: null, reiniciarReto: () => {}, volverAHoguera: () => {} };

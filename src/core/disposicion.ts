@@ -1,6 +1,7 @@
 import type { DatosMenuCombate } from './types';
 import type { DatosVertical } from './encuadre';
 import type { Rect } from './menu';
+import { partirEnLineas } from './descripciones';
 
 const rect = (): Rect => ({ x: 0, y: 0, ancho: 0, alto: 0 });
 const poner = (r: Rect, x: number, y: number, ancho: number, alto: number): void => {
@@ -495,4 +496,24 @@ export function disposicionHabilidades(
   const lista = r(m, yLista, ancho - 2 * m, visibles * fila);
   const y = lista.y + lista.alto + h.separacion;
   return { lista, fila, visibles, detalle: r(m, y, ancho - 2 * m, Math.max(0, abajo - y)) };
+}
+
+/**
+ * La caja del aviso del mapa: tan ancha como el texto (al menos `minimo`), y si no cabe en `ancho` menos los márgenes,
+ * partido en líneas. `relleno` es el hueco a cada lado del texto.
+ */
+export function cajaAviso(
+  texto: string,
+  ancho: number,
+  minimo = 340,
+  margen = 8,
+  relleno = 12,
+): { ancho: number; lineas: string[] } {
+  const libre = ancho - 2 * margen;
+  const lineas = partirEnLineas(texto, letrasEnAncho(libre - 2 * relleno));
+  const largo = Math.max(...lineas.map((l) => l.length));
+  return {
+    ancho: Math.min(libre, Math.max(minimo, largo * ANCHO_LETRA + 2 * relleno)),
+    lineas,
+  };
 }
