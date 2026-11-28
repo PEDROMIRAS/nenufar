@@ -80,7 +80,10 @@ describe('la hoguera', () => {
 
   test('al caer se gasta una brasa, se suma una vuelta y el tiempo sigue; la hoguera sigue encendida', () => {
     const copia = copiaHoguera(ejemplo());
-    const vuelta = volverAHoguera({ brasas: 2, vueltas: 1, hoguera: copia }, 900)!;
+    const vuelta = volverAHoguera(
+      { brasas: 2, vueltas: 1, hoguera: copia, combates: 7, usados: 0 },
+      900,
+    )!;
     expect(vuelta.brasas).toBe(1);
     expect(vuelta.vueltas).toBe(2);
     expect(vuelta.segundos).toBe(900);
@@ -89,10 +92,25 @@ describe('la hoguera', () => {
     expect(vuelta.mapa).not.toBe(copia.mapa); // la partida recuperada no toca la copia
   });
 
+  test('no se rebobinan los combates (los dados) ni los objetos usados (los logros)', () => {
+    const copia = copiaHoguera(ejemplo()); // 7 combates, 0 usados
+    const vuelta = volverAHoguera(
+      { brasas: 1, vueltas: 0, hoguera: copia, combates: 12, usados: 3 },
+      1,
+    )!;
+    expect(vuelta.combates).toBe(12);
+    expect(vuelta.inventario.usados).toBe(3);
+    expect(copia.inventario.usados).toBe(0);
+  });
+
   test('sin brasas o sin hoguera no hay vuelta', () => {
     const copia = copiaHoguera(ejemplo());
-    expect(volverAHoguera({ brasas: 0, vueltas: 0, hoguera: copia }, 1)).toBeNull();
-    expect(volverAHoguera({ brasas: 3, vueltas: 0, hoguera: null }, 1)).toBeNull();
+    expect(
+      volverAHoguera({ brasas: 0, vueltas: 0, hoguera: copia, combates: 0, usados: 0 }, 1),
+    ).toBeNull();
+    expect(
+      volverAHoguera({ brasas: 3, vueltas: 0, hoguera: null, combates: 0, usados: 0 }, 1),
+    ).toBeNull();
   });
 
   test('el guardado lleva brasas, vueltas y la copia; las partidas de antes, sin ellos, también valen', () => {

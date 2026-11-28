@@ -67,7 +67,8 @@ export function dibujarAviso(ctx: CanvasRenderingContext2D, texto: string): void
   const x = anchoVentana / 2;
   ctx.fillStyle = 'rgba(9, 7, 18, 0.8)';
   ctx.fillRect(x - ancho / 2, y, ancho, alto);
-  lineas.forEach((l, i) => escribir(ctx, l, x, y + 6 + i * LINEA_AVISO, PALETA.cursor, 'center'));
+  for (let i = 0; i < lineas.length; i++)
+    escribir(ctx, lineas[i]!, x, y + 6 + i * LINEA_AVISO, PALETA.cursor, 'center');
 }
 
 /** Botón de menú en la esquina superior derecha del mapa (para el móvil; con teclado es Escape). */

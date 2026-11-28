@@ -24,21 +24,32 @@ export const hogueraEn = (hoguera: CopiaHoguera | null | undefined, zona: number
 
 /**
  * La partida con que se sigue al caer: la copia de la hoguera con una brasa menos, una vuelta más y el tiempo que ya
- * se llevaba (no se rebobina). La hoguera sigue encendida. Null si no hay hoguera o no quedan brasas.
+ * se llevaba (no se rebobina). La hoguera sigue encendida. Tampoco se rebobinan los combates (son el contador de los
+ * dados: si no, cada vuelta repetiría las mismas tiradas) ni los objetos usados (los logros los cuentan). Null si no
+ * hay hoguera o no quedan brasas.
  */
 export function volverAHoguera(
-  estado: { brasas: number; vueltas: number; hoguera: CopiaHoguera | null },
+  estado: {
+    brasas: number;
+    vueltas: number;
+    hoguera: CopiaHoguera | null;
+    combates: number;
+    usados: number;
+  },
   segundos: number,
 ): PartidaGuardada | null {
   const { brasas, vueltas, hoguera } = estado;
   if (!hoguera || brasas <= 0) return null;
-  return {
+  const vuelta: PartidaGuardada = {
     ...structuredClone(hoguera),
     segundos,
+    combates: estado.combates,
     brasas: brasas - 1,
     vueltas: vueltas + 1,
     hoguera,
   };
+  vuelta.inventario.usados = Math.max(vuelta.inventario.usados, estado.usados);
+  return vuelta;
 }
 
 /** «Te queda 1 brasa», «Te quedan 2 brasas», «No te quedan brasas: si caes otra vez, es el final». */

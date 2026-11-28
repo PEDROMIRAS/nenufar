@@ -23,6 +23,11 @@ motivo para no volver. El guardado al entrar en cada sala solo protege de cerrar
   estar. Sin hoguera o sin brasas, «Fin de la partida» como siempre.
 - *Mi decisión:* el tiempo no se rebobina (cuenta todo lo jugado) y la hoguera sigue encendida al volver (se puede volver
   otra vez mientras queden brasas).
+- *Mi decisión, tras la revisión:* al volver no se rebobinan los combates (son el contador de los dados: si no, cada
+  vuelta repetía las mismas tiradas) ni los objetos usados («A pelo» no se puede sacar habiendo gastado objetos antes de
+  una vuelta). Al volver aparece junto a la fuente, pero Habilidades no se abre hasta apartarse y acercarse a ella.
+- Al caer, el mapa se sustituye en el acto por una pantalla negra (`EscenaNegra`) mientras carga la zona de la hoguera:
+  si no, el monstruo que la venció volvía a lanzar el combate y su guardado pisaba el de la vuelta (brasas duplicadas).
 - **Récords:** el resumen final dice «Vueltas a la hoguera: N» si se usó alguna (*mi decisión*: los récords no se separan;
   se apunta el dato).
 - **Reto del día:** sin hoguera (no guarda nada ni hay sala de descanso en su Bosque corto que sirva).

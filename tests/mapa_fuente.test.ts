@@ -66,6 +66,12 @@ describe('la fuente de la sala de descanso', () => {
       h.cuerpo.y = h.yAnterior = y;
     };
     const junto = (): void => poner((fuente.x + 0.5) * 32, (fuente.y + 1) * 32 + 2);
+    // Recuperada sin lado (como al volver a la hoguera) no se abre hasta acercarse: primero se aparta.
+    junto();
+    pasar(escena, 0.5);
+    expect(veces).toBe(0);
+    poner(2.5 * 32, 3 * 32);
+    pasar(escena, 0.5);
     junto();
     pasar(escena, 1);
     expect(veces).toBe(1);
@@ -90,6 +96,9 @@ describe('la fuente de la sala de descanso', () => {
       elegirHabilidades: () => veces++,
     });
     const escena = new EscenaMapa(o);
+    o.heroina.cuerpo.x = o.heroina.xAnterior = 2.5 * 32;
+    o.heroina.cuerpo.y = o.heroina.yAnterior = 3 * 32;
+    pasar(escena, 0.5);
     o.heroina.cuerpo.x = o.heroina.xAnterior = (fuente.x + 0.5) * 32;
     o.heroina.cuerpo.y = o.heroina.yAnterior = (fuente.y + 1) * 32 + 2;
     pasar(escena, 1);

@@ -307,6 +307,9 @@ export class EscenaMapa implements Escena {
     this.hogueraEncendida = o.hoguera?.encendida ?? false;
     const r = o.recuperado;
     if (r) this.recuperar(r);
+    // De vuelta en la hoguera (sala de descanso sin lado de entrada) aparece junto a la fuente: que no abra Habilidades
+    // sin haberse acercado a ella.
+    if (r && r.lado === null && o.zona.salas[r.sala]?.tipo === 'descanso') this.fuenteLista = false;
     this.actual = (r && o.zona.salas[r.sala]) || inicio;
     this.montada = this.montar(this.actual);
     this.minimapa = this.visitar(this.actual);
