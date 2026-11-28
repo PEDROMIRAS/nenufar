@@ -21,11 +21,13 @@ import {
   cargarRecords,
   cargarReto,
   guardarAjustes,
+  guardarPartida,
   guardarRecords,
   guardarReto,
 } from '../render/almacen';
 import { sesion, type Partida, claveDe, monstruo } from './partida';
 import { contar, paginas } from './relato';
+import { intentarVuelta } from './vuelta';
 
 export const LOGROS: readonly Logro[] = logrosJson.logros;
 /** Lo que miran los logros que no está en la partida: qué ranas y qué monstruos existen. */
@@ -92,8 +94,11 @@ export function terminarReto(partida: Partida, victoria: boolean): void {
   );
 }
 
-/** Fin de la partida: guarda los récords y enseña el resumen. */
+/** Fin de la partida: guarda los récords y enseña el resumen. Al caer con una hoguera encendida y brasas, se vuelve a ella. */
 export function terminarPartida(partida: Partida, victoria: boolean): void {
+  const segundos = (performance.now() - partida.inicio) / 1000;
+  // Al caer con una hoguera encendida y brasas, se sigue desde ella.
+  if (!victoria && intentarVuelta(partida, segundos, guardarPartida, sesion.volverAHoguera)) return;
   // Morir o ganar acaba la partida: no hay nada que recuperar.
   sesion.enCurso = false;
   borrarPartida();
@@ -104,7 +109,7 @@ export function terminarPartida(partida: Partida, victoria: boolean): void {
     nivel: l.nivel,
     zona: partida.zona,
     vencidos: partida.vencidos,
-    segundos: (performance.now() - partida.inicio) / 1000,
+    segundos,
     dificultad: claveDe(DIFICULTADES, partida.dificultad),
     heroe: l.heroe ? claveDe(HEROES, l.heroe) : '',
     objetosUsados: partida.inventario.usados,
@@ -122,6 +127,7 @@ export function terminarPartida(partida: Partida, victoria: boolean): void {
     victoria ? `Has derrotado a ${partida.rival}` : `Caíste en: ${resumen.zona}`,
     `Monstruos vencidos: ${resumen.vencidos}`,
     `Tiempo: ${formatearTiempo(resumen.segundos)}`,
+    ...(partida.vueltas > 0 ? [`Vueltas a la hoguera: ${partida.vueltas}`] : []),
     ...(nuevoRecord ? ['', `¡Nuevo récord en ${partida.dificultad.nombre}!`] : []),
     ...nuevos.map((clave) => `Logro: ${LOGROS.find((l) => l.clave === clave)?.nombre ?? clave}`),
   ];

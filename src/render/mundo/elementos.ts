@@ -274,13 +274,29 @@ function cofre(abierto: boolean, azar: Azar): Elemento {
   return { grupo };
 }
 
-/** Hoguera: anillo de piedras, brasas con troncos chamuscados y llama de tres capas que se agita, con chispas. */
-function hoguera(azar: Azar, tamPunto: number): Elemento {
+/**
+ * Hoguera: anillo de piedras, brasas con troncos chamuscados y llama de tres capas que se agita, con chispas. Apagada
+ * (la del punto de control, hasta encenderla): solo piedras, ceniza y troncos fríos.
+ */
+function hoguera(azar: Azar, tamPunto: number, encendida = true): Elemento {
   const grupo = new THREE.Group();
-  const piedra = new THREE.MeshLambertMaterial({ map: texturaPiedra(azar), color: 0x6a6a72 });
-  const tronco = new THREE.MeshLambertMaterial({ color: 0x2a190e });
-  const carbon = new THREE.MeshLambertMaterial({ color: 0x1e1612 });
-  const brasa = new THREE.MeshBasicMaterial({ color: 0xff6a20 });
+  // Apagada no tiene luz propia: piedras y ceniza más claras y con algo de brillo, para que no sea una mancha negra.
+  const piedra = new THREE.MeshLambertMaterial({
+    map: texturaPiedra(azar),
+    color: encendida ? 0x6a6a72 : 0x9a9aa4,
+    emissive: encendida ? 0x000000 : 0x2a2a30,
+  });
+  const tronco = new THREE.MeshLambertMaterial({
+    color: encendida ? 0x2a190e : 0x5a4030,
+    emissive: encendida ? 0x000000 : 0x1a120c,
+  });
+  const carbon = new THREE.MeshLambertMaterial({
+    color: encendida ? 0x1e1612 : 0x8a847c,
+    emissive: encendida ? 0x000000 : 0x24221f,
+  });
+  const brasa = encendida
+    ? new THREE.MeshBasicMaterial({ color: 0xff6a20 })
+    : new THREE.MeshLambertMaterial({ color: 0x6a645e, emissive: 0x1c1a18 });
   const bola = new THREE.IcosahedronGeometry(1, 1);
 
   // Anillo de piedras de distinto tamaño
@@ -313,6 +329,7 @@ function hoguera(azar: Azar, tamPunto: number): Elemento {
     const m = malla(grupo, lena, tronco, Math.cos(ang) * 0.09, 0.14, Math.sin(ang) * 0.09);
     m.rotation.set(Math.sin(ang) * 0.7, 0, -Math.cos(ang) * 0.7);
   }
+  if (!encendida) return { grupo };
 
   // Llama: tres conos que se cuelan unos en otros, del naranja al blanco amarillento
   const colores = [0xff4a0c, 0xff9a2a, 0xfff2a8];
@@ -521,6 +538,8 @@ export function crearElemento(nombre: string, azar: Azar, tamPunto: number): Ele
       return cofre(true, azar);
     case 'hoguera':
       return hoguera(azar, tamPunto);
+    case 'hoguera_apagada':
+      return hoguera(azar, tamPunto, false);
     case 'portal':
       return portal(azar, tamPunto);
     case 'altar':

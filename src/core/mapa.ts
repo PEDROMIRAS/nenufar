@@ -85,6 +85,34 @@ export function objetoAlAlcance(
 }
 
 /**
+ * ¿Toca la caja de la heroína, ampliada `margen` píxeles por cada lado, lo que choca en alguna de las `celdas`
+ * (índices de la sala)? Sirve para lo que choca con otra forma que su dibujo, como la elipse de la fuente.
+ */
+export function tocaCasillas(
+  sala: Pick<Sala, 'ancho' | 'cajas'>,
+  celdas: readonly number[],
+  cuerpo: Cuerpo,
+  tam: number,
+  margen: number,
+): boolean {
+  const izq = cuerpo.x - cuerpo.ancho / 2 - margen;
+  const der = cuerpo.x + cuerpo.ancho / 2 + margen;
+  const arriba = cuerpo.y - cuerpo.alto - margen;
+  const abajo = cuerpo.y + margen;
+  for (const i of celdas) {
+    const col = i % sala.ancho;
+    const fila = (i - col) / sala.ancho;
+    const c = sala.cajas[i] ?? null;
+    const x0 = col * tam + (c ? c[0] : 0);
+    const x1 = col * tam + (c ? c[2] : tam);
+    const y0 = fila * tam + (c ? c[1] : 0);
+    const y1 = fila * tam + (c ? c[3] : tam);
+    if (izq < x1 && der > x0 && arriba < y1 && abajo > y0) return true;
+  }
+  return false;
+}
+
+/**
  * Cierra las salidas de los `lados` (bits N/E/S/O): vuelve sólidas sus casillas que estaban libres y
  * devuelve cuáles ha tocado, para devolverlas luego con `abrirSalidas` sin abrir nada que ya fuera muro.
  */

@@ -7,6 +7,7 @@ import {
   abrirSalidas,
   cerrarSalidas,
   objetoAlAlcance,
+  tocaCasillas,
   opuesto,
   portalPisado,
   posicionEntrada,
@@ -25,7 +26,7 @@ import {
   vistaDe,
   type Patrulla,
 } from '../core/patrulla';
-import { buscarInicio } from '../core/movimiento';
+import { buscarInicio, type Cuerpo } from '../core/movimiento';
 import {
   chocarConElipse,
   salidas,
@@ -115,6 +116,8 @@ interface SalaMontada {
   ermitano: Patrulla | null;
   /** Portal de la sala del jefe, guardado fuera de la sala hasta que se vence al jefe. */
   portal: ObjetoSala | null;
+  /** Casillas con que choca la fuente (su elipse); vacío si la sala no tiene. */
+  fuente: number[];
 }
 
 export interface OpcionesMapa {
@@ -199,6 +202,11 @@ export interface OpcionesMapa {
   recuperado?: EstadoMapa | null;
   /** Se llama al terminar de entrar en una sala (también la inicial y la recuperada), para guardar. */
   alEntrarEnSala?: (estado: EstadoMapa) => void;
+  /**
+   * La hoguera de la sala de descanso, punto de control: si ya está encendida en esta zona y cómo encenderla (guarda
+   * la copia; devuelve el aviso y si prendió: sin brasas no prende). Sin esto (el reto) es solo adorno.
+   */
+  hoguera?: { encendida: boolean; encender: () => { prende: boolean; aviso: string } } | null;
 }
 
 /** Exploración de una zona: la sala actual, la heroína y el paso de una sala a otra o a la zona siguiente. */
@@ -250,6 +258,9 @@ export class EscenaMapa implements Escena {
   private fuenteUsada = false;
   /** Lo mismo con la fuente del descanso: la pantalla Habilidades sale una vez por acercamiento. */
   private fuenteLista = true;
+  /** La hoguera, encendida en esta zona; y si avisa al acercarse (sin brasas, una vez por acercamiento). */
+  private hogueraEncendida = false;
+  private hogueraLista = true;
   /** Segundos de lluvia que quedan, y sus gotas (solo si la zona tiene lluvia tras el jefe). */
   private lluvia = 0;
   /** Siguiente pista por enseñar. */
@@ -293,8 +304,12 @@ export class EscenaMapa implements Escena {
     this.gotas = o.lluviaTrasJefe > 0 ? crearLluvia() : null;
     const referencia = o.plantillas.plantillas[0]?.mapa ?? [];
     this.salidas = salidas(referencia[0]?.length ?? 0, referencia.length);
+    this.hogueraEncendida = o.hoguera?.encendida ?? false;
     const r = o.recuperado;
     if (r) this.recuperar(r);
+    // De vuelta en la hoguera (sala de descanso sin lado de entrada) aparece junto a la fuente: que no abra Habilidades
+    // sin haberse acercado a ella.
+    if (r && r.lado === null && o.zona.salas[r.sala]?.tipo === 'descanso') this.fuenteLista = false;
     this.actual = (r && o.zona.salas[r.sala]) || inicio;
     this.montada = this.montar(this.actual);
     this.minimapa = this.visitar(this.actual);
@@ -449,7 +464,7 @@ export class EscenaMapa implements Escena {
     if (
       !this.fuenteUsada &&
       this.actual.tipo === 'descanso' &&
-      objetoAlAlcance(this.montada.sala, 'fuente', h.cuerpo, tam, ALCANCE)
+      tocaCasillas(this.montada.sala, this.montada.fuente, h.cuerpo, tam, ALCANCE)
     ) {
       const l = this.o.luchadora;
       restaurarFuente(l, this.o.modoFuente);
@@ -464,7 +479,7 @@ export class EscenaMapa implements Escena {
     }
     // Junto a la fuente (usada o no) se cambian las habilidades equipadas; tras restaurar, si tocaba.
     if (this.actual.tipo === 'descanso') {
-      const enFuente = objetoAlAlcance(this.montada.sala, 'fuente', h.cuerpo, tam, ALCANCE);
+      const enFuente = tocaCasillas(this.montada.sala, this.montada.fuente, h.cuerpo, tam, ALCANCE);
       if (!enFuente) this.fuenteLista = true;
       else if (this.fuenteLista) {
         this.fuenteLista = false;
@@ -472,6 +487,7 @@ export class EscenaMapa implements Escena {
         return;
       }
     }
+    if (this.actual.tipo === 'descanso') this.mirarHoguera(h.cuerpo, tam);
     if (this.eventos.actualizar(h.cuerpo, dt)) return;
     // Tras huir del cofre trampa hay un momento para apartarse antes de que vuelva a morder.
     if (this.actual.tipo === 'tesoro' && !(this.actual.trampa && this.invulnerable > 0)) {
@@ -997,11 +1013,15 @@ export class EscenaMapa implements Escena {
       const altar = sala.objetos.find((o) => o.inf.name === 'altar');
       if (altar) altar.inf = propio;
     }
-    const fuente = sala.objetos.find((o) => o.inf.name === 'fuente_cen_inf');
-    if (fuente) {
-      const f = this.o.fuente;
-      chocarConElipse(sala, tam, fuente.x + 0.5, fuente.y + f.centroZ, f.radioX, f.radioZ);
-    }
+    // La hoguera del descanso empieza apagada hasta encenderla (en el reto no se usa: se queda como adorno).
+    const apagada = this.o.catalogo.get('hoguera_apagada');
+    if (this.o.hoguera && !this.hogueraEncendida && apagada)
+      for (const o of sala.objetos) if (o.inf.name === 'hoguera') o.inf = apagada;
+    const centro = sala.objetos.find((o) => o.inf.name === 'fuente_cen_inf');
+    const f = this.o.fuente;
+    const fuente = centro
+      ? chocarConElipse(sala, tam, centro.x + 0.5, centro.y + f.centroZ, f.radioX, f.radioZ)
+      : [];
     // Con jefe, el portal se saca de la sala hasta vencerlo.
     let portal: ObjetoSala | null = null;
     if (s.tipo === 'jefe' && this.o.jefe) {
@@ -1013,6 +1033,7 @@ export class EscenaMapa implements Escena {
       vista: null,
       monstruos: this.poblar(s, sala, azar),
       portal,
+      fuente,
       ermitano: !ermitano
         ? null
         : crearPatrulla({
@@ -1024,6 +1045,30 @@ export class EscenaMapa implements Escena {
     };
     this.montadas.set(s, montada);
     return montada;
+  }
+
+  /** Junto a la hoguera apagada: se enciende (con su luz) o, sin brasas, lo dice una vez por acercamiento. */
+  private mirarHoguera(cuerpo: Cuerpo, tam: number): void {
+    const hoguera = this.o.hoguera;
+    if (!hoguera || this.hogueraEncendida) return;
+    const objeto = objetoAlAlcance(this.montada.sala, 'hoguera_apagada', cuerpo, tam, ALCANCE);
+    if (!objeto) {
+      this.hogueraLista = true;
+      return;
+    }
+    if (!this.hogueraLista) return;
+    this.hogueraLista = false;
+    const encendida = this.o.catalogo.get('hoguera');
+    const { prende, aviso } = hoguera.encender();
+    if (prende && encendida) {
+      this.hogueraEncendida = true;
+      objeto.inf = encendida;
+      const vista = this.montada.vista;
+      if (vista) this.o.mundo.rehacerObjeto(vista.sala, objeto);
+      this.o.mundo.refrescarLuces();
+      sonar('fuego');
+    }
+    this.avisar(aviso);
   }
 
   /** Tras vencer al jefe aparece el portal (con su halo de luz). */

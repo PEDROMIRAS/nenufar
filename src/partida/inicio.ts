@@ -3,6 +3,7 @@ import { bestiarioCon, reglasCon } from '../core/dificultad';
 import { ajustarEquipadas } from '../core/equipadas';
 import { equipar, inventarioInicial } from '../core/equipo';
 import { eligeAlRecuperar, restaurarHeroina, type PartidaGuardada } from '../core/guardado';
+import { brasasDe, copiaHoguera, textoBrasas } from '../core/hoguera';
 import { crearHeroina } from '../core/heroina';
 import type { Inventario } from '../core/inventario';
 import { empezarEnNivel } from '../core/progresion';
@@ -42,7 +43,8 @@ export interface Inicio {
   empezar(heroe: HeroeJson, dificultad: DificultadJson, nombre: string): void;
   /** «Otra vez» vuelve a llamarlo con la misma rana y la misma fecha (y sin la página de entrada). */
   empezarReto(heroe: HeroeJson, fecha: Fecha, otraVez?: boolean): void;
-  recuperar(guardada: PartidaGuardada): void;
+  /** `vuelta`: se sigue desde la hoguera tras caer (otra página de entrada). */
+  recuperar(guardada: PartidaGuardada, vuelta?: boolean): void;
 }
 
 export function crearInicio(a: Arranque): Inicio {
@@ -89,6 +91,9 @@ export function crearInicio(a: Arranque): Inicio {
       dragonAntes: false,
       mundo: a.mundo,
       reto: null,
+      brasas: brasasDe(dificultad),
+      vueltas: 0,
+      hoguera: null,
     };
     vestir(partida); // con el arma y la armadura que lleve
     sesion.enCurso = true;
@@ -135,6 +140,10 @@ export function crearInicio(a: Arranque): Inicio {
     crearZona(partida, zonaInicial, true)
       .then((zona) => {
         pila.cambiar(zona);
+        // shortcut: solo en desarrollo, ?hoguera empieza con la de la sala de descanso encendida (la copia de
+        // ahora; se ve apagada hasta volver a ella). Con ?combate de algo que gane, sirve para ver la vuelta.
+        if (ATAJOS.hoguera)
+          partida.hoguera = copiaHoguera(guardado(partida, zonaInicial, zona.estado()));
         if (abrirAtajo(partida, zona.fondoSala)) return;
         guardarAjustes({ pistasVistas: true }); // las pistas, si tocaban, ya van en esta zona
         // La historia se cuenta encima del mapa ya cargado: al pasarla, empieza el fundido de entrada.
@@ -170,6 +179,7 @@ export function crearInicio(a: Arranque): Inicio {
       semillaDelDia(fecha),
     );
     sesion.enCurso = false; // el reto dura minutos: cerrar la pestaña no pregunta
+    partida.brasas = 0; // ni hoguera
     partida.reto = { fecha, segundos: 0, progreso: () => ({ sala: 1, de: 1 }) };
     sesion.retoEnJuego = partida;
     crearZona(partida, ORDEN.indexOf(RETO.zona as NombreZona), true)
@@ -200,7 +210,7 @@ export function crearInicio(a: Arranque): Inicio {
   };
 
   /** Una partida a medias (se cerró el navegador): se vuelve a la sala donde se guardó, sin portada. */
-  const recuperar: Inicio['recuperar'] = (guardada) => {
+  const recuperar: Inicio['recuperar'] = (guardada, vuelta = false) => {
     const heroe = HEROES[guardada.heroe as keyof typeof HEROES];
     const luchadora = luchadorDeHeroe(heroe);
     restaurarHeroina(luchadora, guardada.heroina);
@@ -218,22 +228,31 @@ export function crearInicio(a: Arranque): Inicio {
     partida.inicio = performance.now() - guardada.segundos * 1000;
     partida.violetas = guardada.violetasAntes;
     partida.dragonUsado = guardada.dragonAntes;
-    crearZona(partida, guardada.zona, false, guardada.mapa)
+    // Una partida de antes de la hoguera: las brasas de su dificultad, sin ninguna encendida.
+    partida.brasas = guardada.brasas ?? partida.brasas;
+    partida.vueltas = guardada.vueltas ?? 0;
+    partida.hoguera = guardada.hoguera ?? null;
+    crearZona(partida, guardada.zona, vuelta, guardada.mapa)
       .then((zona) => {
         pila.cambiar(zona);
         contar(
           pila,
           [
-            guardada.combate
+            vuelta
               ? {
-                  titulo: 'Combate interrumpido',
-                  texto:
-                    'El juego se cerró en mitad de un combate: vuelves a empezarlo con la vida que tenías.',
+                  titulo: 'Vuelves a la hoguera',
+                  texto: `Caíste, pero la hoguera te devuelve a su lado. ${textoBrasas(partida.brasas)}`,
                 }
-              : {
-                  titulo: 'Partida recuperada',
-                  texto: `${luchadora.nombre}, nivel ${luchadora.nivel}, en ${partida.zona}. Sigues donde lo dejaste.`,
-                },
+              : guardada.combate
+                ? {
+                    titulo: 'Combate interrumpido',
+                    texto:
+                      'El juego se cerró en mitad de un combate: vuelves a empezarlo con la vida que tenías.',
+                  }
+                : {
+                    titulo: 'Partida recuperada',
+                    texto: `${luchadora.nombre}, nivel ${luchadora.nivel}, en ${partida.zona}. Sigues donde lo dejaste.`,
+                  },
             // El combate final se lucha sin presagio: no tiene sentido recordárselo.
             ...(guardada.combate?.tipo === 'final' ? [] : paginaPresagio(partida)),
           ],
@@ -256,5 +275,6 @@ export function crearInicio(a: Arranque): Inicio {
   };
 
   sesion.reiniciarReto = (heroe, fecha) => empezarReto(heroe, fecha, true);
+  sesion.volverAHoguera = (guardada) => recuperar(guardada, true);
   return { empezar, empezarReto, recuperar };
 }

@@ -161,6 +161,18 @@
         28,
         31
       ]
+    },
+    {
+      "name": "hoguera_apagada",
+      "index": 16,
+      "layer": "objeto",
+      "solid": true,
+      "caja": [
+        3,
+        19,
+        29,
+        31
+      ]
     }
   ]
 }

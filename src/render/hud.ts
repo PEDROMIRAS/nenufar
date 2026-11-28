@@ -3,10 +3,18 @@ import { barra, COLOR_BARRA } from './combate';
 import { PALETA } from './marco';
 import { SALA_ALTO, vista } from './pantalla';
 import { escribir } from './texto';
-import { ANCHO_LETRA, cabeceraQueCabe, letrasEnAncho, lineaPresagio } from '../core/disposicion';
+import {
+  ANCHO_LETRA,
+  cabeceraQueCabe,
+  cajaAviso,
+  letrasEnAncho,
+  lineaPresagio,
+} from '../core/disposicion';
 
 /** Alto de la segunda línea de la cabecera (el presagio), en píxeles lógicos del HUD. */
 const LINEA_PRESAGIO = 15;
+/** Alto de cada línea más de un aviso que no cabe en una. */
+const LINEA_AVISO = 16;
 
 /** Textos del HUD; la escena los rehace solo cuando cambia algún valor. */
 export interface TextosHud {
@@ -45,12 +53,22 @@ export function dibujarHud(
 }
 
 /** Aviso centrado en la parte baja de la sala («La fuente te restaura…»). */
+/** La caja del último aviso, para no partir el texto en cada fotograma. */
+let ultimoAviso = { texto: '', ancho: 0, caja: cajaAviso('', 1) };
+
 export function dibujarAviso(ctx: CanvasRenderingContext2D, texto: string): void {
-  const y = (vista.salaY + SALA_ALTO) / vista.hud - 46;
-  const x = vista.ancho / 2 / vista.hud;
+  const anchoVentana = vista.ancho / vista.hud;
+  if (ultimoAviso.texto !== texto || ultimoAviso.ancho !== anchoVentana)
+    ultimoAviso = { texto, ancho: anchoVentana, caja: cajaAviso(texto, anchoVentana) };
+  const { ancho, lineas } = ultimoAviso.caja;
+  const alto = 26 + (lineas.length - 1) * LINEA_AVISO;
+  // Crece hacia arriba: la última línea queda donde siempre.
+  const y = (vista.salaY + SALA_ALTO) / vista.hud - 46 - (lineas.length - 1) * LINEA_AVISO;
+  const x = anchoVentana / 2;
   ctx.fillStyle = 'rgba(9, 7, 18, 0.8)';
-  ctx.fillRect(x - 170, y, 340, 26);
-  escribir(ctx, texto, x, y + 6, PALETA.cursor, 'center');
+  ctx.fillRect(x - ancho / 2, y, ancho, alto);
+  for (let i = 0; i < lineas.length; i++)
+    escribir(ctx, lineas[i]!, x, y + 6 + i * LINEA_AVISO, PALETA.cursor, 'center');
 }
 
 /** Botón de menú en la esquina superior derecha del mapa (para el móvil; con teclado es Escape). */

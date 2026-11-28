@@ -283,6 +283,8 @@ export interface DificultadJson {
   violetas: number;
   /** Multiplica la experiencia que dan los monstruos (un presagio); ausente = 1. */
   experiencia?: number;
+  /** Veces por partida que se puede volver a la hoguera al caer; ausente = 0. */
+  brasas?: number;
 }
 
 /** Un presagio de `src/data/presagios.json`: un precio y un premio para una zona (1 y 0 = sin cambio). */

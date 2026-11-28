@@ -67,7 +67,16 @@ export interface PartidaGuardada {
   heroina: HeroinaGuardada;
   inventario: Inventario;
   mapa: EstadoMapa;
+  /** Brasas que quedan para volver a la hoguera; falta en las partidas de antes (reciben las de su dificultad). */
+  brasas?: number;
+  /** Veces que se ha vuelto a la hoguera. */
+  vueltas?: number;
+  /** La partida tal como estaba al encender la última hoguera (ver core/hoguera.ts); null si no hay ninguna. */
+  hoguera?: CopiaHoguera | null;
 }
+
+/** La copia que guarda la hoguera: una partida sin brasas, vueltas ni otra hoguera dentro. */
+export type CopiaHoguera = Omit<PartidaGuardada, 'brasas' | 'vueltas' | 'hoguera'>;
 
 /** Qué combate se interrumpió: un grupo de la sala (por su posición), el cofre trampa o el jefe final. */
 export type CombateGuardado =
@@ -197,16 +206,9 @@ function mapaValido(m: unknown): boolean {
   );
 }
 
-/** Lee y comprueba el texto guardado; null si no vale (nada se da por bueno sin comprobarlo). Nunca lanza. */
-export function leerGuardado(texto: string | null, conocido: Conocido): PartidaGuardada | null {
-  if (!texto) return null;
-  let g: unknown;
-  try {
-    g = JSON.parse(texto);
-  } catch {
-    return null;
-  }
-  const valido =
+/** ¿Es `g` una partida guardada de esta versión con todo lo que el juego conoce? (Sin mirar la hoguera.) */
+function partidaValida(g: unknown, conocido: Conocido): g is Objeto {
+  return (
     esObjeto(g) &&
     g.version === VERSION_GUARDADO &&
     esIndice(g.semilla, 2 ** 32) &&
@@ -225,6 +227,31 @@ export function leerGuardado(texto: string | null, conocido: Conocido): PartidaG
     combateValido(g.combate) &&
     heroinaValida(g.heroina) &&
     inventarioValido(g.inventario, conocido) &&
-    mapaValido(g.mapa);
+    mapaValido(g.mapa)
+  );
+}
+
+/** Lee y comprueba el texto guardado; null si no vale (nada se da por bueno sin comprobarlo). Nunca lanza. */
+export function leerGuardado(texto: string | null, conocido: Conocido): PartidaGuardada | null {
+  if (!texto) return null;
+  let g: unknown;
+  try {
+    g = JSON.parse(texto);
+  } catch {
+    return null;
+  }
+  if (!partidaValida(g, conocido)) return null;
+  const p = g as Objeto;
+  const h = p.hoguera;
+  const valido =
+    (p.brasas === undefined || esIndice(p.brasas)) &&
+    (p.vueltas === undefined || esIndice(p.vueltas)) &&
+    (h === undefined ||
+      h === null ||
+      (partidaValida(h, conocido) &&
+        !('hoguera' in h) &&
+        h.semilla === p.semilla &&
+        h.heroe === p.heroe &&
+        h.dificultad === p.dificultad));
   return valido ? (g as unknown as PartidaGuardada) : null;
 }
